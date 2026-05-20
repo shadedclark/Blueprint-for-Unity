@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Make",
+  "title": "Make Array",
+  "category": "Array",
+  "description": "Creates an array from up to eight item inputs.",
+  "executor": "Array.Make",
+  "inputs": [
+    {
+      "id": "count",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item0",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item1",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item2",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item3",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item4",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item5",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item6",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item7",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "count",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "item0",
+      "required": false
+    },
+    {
+      "id": "item1",
+      "required": false
+    },
+    {
+      "id": "item2",
+      "required": false
+    },
+    {
+      "id": "item3",
+      "required": false
+    },
+    {
+      "id": "item4",
+      "required": false
+    },
+    {
+      "id": "item5",
+      "required": false
+    },
+    {
+      "id": "item6",
+      "required": false
+    },
+    {
+      "id": "item7",
+      "required": false
+    }
+  ]
+}

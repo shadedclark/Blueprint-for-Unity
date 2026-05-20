@@ -1,0 +1,408 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: PlayerMovementBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: PlayerMovementBehavior
+  sourceGuid: 098192506344845e787ea24aad615b97
+  sourcePath: Assets/Game/Blueprint/PlayerMovement/Behavior/PlayerMovementBehavior.blueprint.json
+  sourceHash: ada84cf02d479b725c74cce62c5134ab470da68d82c94a516b434a06fff34716
+  manifestHash: 208a0685579a81973bec00ea1c9a987e481edc234c5e9c0ca0179450451f9e2a
+  variables:
+  - Id: var_player_movement_data_blueprint
+    Name: player_movement_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json
+  bindings:
+  - Name: player_transform
+    Type: Transform
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_tick
+    TypeId: Game.Event.OnTick
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: phase
+      JsonValue: '"Update"'
+  - Id: get_move_input
+    TypeId: Input.GetActionVector2
+    ExecutorId: Input.GetActionVector2
+    Properties:
+    - Id: action
+      JsonValue: '"Player/Move"'
+  - Id: break_move_input
+    TypeId: Vector.BreakVector2
+    ExecutorId: Vector.BreakVector2
+    Properties:
+    - Id: value
+      JsonValue: '[0,0]'
+  - Id: make_move_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 0
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: get_move_length
+    TypeId: Vector.Length
+    ExecutorId: Vector.Length
+    Properties:
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: get_data_blueprint
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"player_movement_data_blueprint"'
+  - Id: get_dead_zone
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"input_dead_zone"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+  - Id: compare_input_dead_zone
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Greater"'
+  - Id: branch_has_input
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: normalize_move_direction
+    TypeId: Vector.Normalize
+    ExecutorId: Vector.Normalize
+    Properties:
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: get_move_speed
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"move_speed"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+  - Id: get_delta_time
+    TypeId: Game.GetDeltaTime
+    ExecutorId: Game.GetDeltaTime
+    Properties: []
+  - Id: multiply_speed_delta
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: multiply_move_delta
+    TypeId: Vector.Multiply
+    ExecutorId: Vector.Multiply
+    Properties:
+    - Id: scalar
+      JsonValue: 1
+    - Id: vector
+      JsonValue: '[0,0,0]'
+  - Id: set_current_input_active
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_input"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+  - Id: set_move_direction_active
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_move_direction"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+  - Id: set_is_moving_true
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"is_moving"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+    - Id: value
+      JsonValue: true
+  - Id: get_rotate_enabled
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"rotate_to_move_direction"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+  - Id: branch_rotate_enabled
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: get_player_position
+    TypeId: Game.GetTransformPosition
+    ExecutorId: Game.GetTransformPosition
+    Properties:
+    - Id: target
+      JsonValue: '"player_transform"'
+  - Id: make_look_target_position
+    TypeId: Vector.Add
+    ExecutorId: Vector.Add
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[0,0,0]'
+  - Id: look_at_move_direction
+    TypeId: Game.LookAtTransform
+    ExecutorId: Game.LookAtTransform
+    Properties:
+    - Id: target
+      JsonValue: '"player_transform"'
+    - Id: targetPosition
+      JsonValue: '[0,0,0]'
+    - Id: worldUp
+      JsonValue: '[0,1,0]'
+  - Id: translate_player_after_look
+    TypeId: Game.TranslateTransform
+    ExecutorId: Game.TranslateTransform
+    Properties:
+    - Id: relativeToSelf
+      JsonValue: false
+    - Id: target
+      JsonValue: '"player_transform"'
+    - Id: translation
+      JsonValue: '[0,0,0]'
+  - Id: translate_player_direct
+    TypeId: Game.TranslateTransform
+    ExecutorId: Game.TranslateTransform
+    Properties:
+    - Id: relativeToSelf
+      JsonValue: false
+    - Id: target
+      JsonValue: '"player_transform"'
+    - Id: translation
+      JsonValue: '[0,0,0]'
+  - Id: set_current_input_zero
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_input"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+    - Id: value
+      JsonValue: '[0,0]'
+  - Id: set_move_direction_zero
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_move_direction"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: set_is_moving_false
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"is_moving"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
+    - Id: value
+      JsonValue: false
+  execEdges:
+  - FromNodeId: branch_has_input
+    FromPortId: false
+    ToNodeId: set_current_input_zero
+    ToPortId: execIn
+  - FromNodeId: branch_has_input
+    FromPortId: true
+    ToNodeId: set_current_input_active
+    ToPortId: execIn
+  - FromNodeId: branch_rotate_enabled
+    FromPortId: false
+    ToNodeId: translate_player_direct
+    ToPortId: execIn
+  - FromNodeId: branch_rotate_enabled
+    FromPortId: true
+    ToNodeId: look_at_move_direction
+    ToPortId: execIn
+  - FromNodeId: event_tick
+    FromPortId: execOut
+    ToNodeId: branch_has_input
+    ToPortId: execIn
+  - FromNodeId: look_at_move_direction
+    FromPortId: execOut
+    ToNodeId: translate_player_after_look
+    ToPortId: execIn
+  - FromNodeId: set_current_input_active
+    FromPortId: execOut
+    ToNodeId: set_move_direction_active
+    ToPortId: execIn
+  - FromNodeId: set_current_input_zero
+    FromPortId: execOut
+    ToNodeId: set_move_direction_zero
+    ToPortId: execIn
+  - FromNodeId: set_is_moving_true
+    FromPortId: execOut
+    ToNodeId: branch_rotate_enabled
+    ToPortId: execIn
+  - FromNodeId: set_move_direction_active
+    FromPortId: execOut
+    ToNodeId: set_is_moving_true
+    ToPortId: execIn
+  - FromNodeId: set_move_direction_zero
+    FromPortId: execOut
+    ToNodeId: set_is_moving_false
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: break_move_input
+    FromPortId: x
+    ToNodeId: make_move_vector
+    ToPortId: x
+  - FromNodeId: break_move_input
+    FromPortId: y
+    ToNodeId: make_move_vector
+    ToPortId: z
+  - FromNodeId: compare_input_dead_zone
+    FromPortId: result
+    ToNodeId: branch_has_input
+    ToPortId: condition
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: get_dead_zone
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: get_move_speed
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: get_rotate_enabled
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_input_active
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_input_zero
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_moving_false
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_moving_true
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: set_move_direction_active
+    ToPortId: target
+  - FromNodeId: get_data_blueprint
+    FromPortId: value
+    ToNodeId: set_move_direction_zero
+    ToPortId: target
+  - FromNodeId: get_dead_zone
+    FromPortId: value
+    ToNodeId: compare_input_dead_zone
+    ToPortId: right
+  - FromNodeId: get_delta_time
+    FromPortId: value
+    ToNodeId: multiply_speed_delta
+    ToPortId: b
+  - FromNodeId: get_move_input
+    FromPortId: value
+    ToNodeId: break_move_input
+    ToPortId: value
+  - FromNodeId: get_move_input
+    FromPortId: value
+    ToNodeId: set_current_input_active
+    ToPortId: value
+  - FromNodeId: get_move_length
+    FromPortId: result
+    ToNodeId: compare_input_dead_zone
+    ToPortId: left
+  - FromNodeId: get_move_speed
+    FromPortId: value
+    ToNodeId: multiply_speed_delta
+    ToPortId: a
+  - FromNodeId: get_player_position
+    FromPortId: value
+    ToNodeId: make_look_target_position
+    ToPortId: a
+  - FromNodeId: get_rotate_enabled
+    FromPortId: value
+    ToNodeId: branch_rotate_enabled
+    ToPortId: condition
+  - FromNodeId: make_look_target_position
+    FromPortId: result
+    ToNodeId: look_at_move_direction
+    ToPortId: targetPosition
+  - FromNodeId: make_move_vector
+    FromPortId: value
+    ToNodeId: get_move_length
+    ToPortId: value
+  - FromNodeId: make_move_vector
+    FromPortId: value
+    ToNodeId: normalize_move_direction
+    ToPortId: value
+  - FromNodeId: multiply_move_delta
+    FromPortId: result
+    ToNodeId: translate_player_after_look
+    ToPortId: translation
+  - FromNodeId: multiply_move_delta
+    FromPortId: result
+    ToNodeId: translate_player_direct
+    ToPortId: translation
+  - FromNodeId: multiply_speed_delta
+    FromPortId: result
+    ToNodeId: multiply_move_delta
+    ToPortId: scalar
+  - FromNodeId: normalize_move_direction
+    FromPortId: result
+    ToNodeId: make_look_target_position
+    ToPortId: b
+  - FromNodeId: normalize_move_direction
+    FromPortId: result
+    ToNodeId: multiply_move_delta
+    ToPortId: vector
+  - FromNodeId: normalize_move_direction
+    FromPortId: result
+    ToNodeId: set_move_direction_active
+    ToPortId: value
+  eventEntries:
+  - EventName: OnTick
+    NodeId: event_tick

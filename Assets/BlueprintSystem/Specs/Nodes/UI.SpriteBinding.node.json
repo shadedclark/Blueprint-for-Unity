@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SpriteBinding",
+  "title": "Sprite Binding",
+  "category": "UI",
+  "description": "Outputs a bound Sprite name for UI image nodes.",
+  "executor": "UI.SpriteBinding",
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "UIBinding<Sprite>"
+    }
+  ],
+  "properties": [
+    {
+      "id": "sprite",
+      "type": "UIBinding<Sprite>",
+      "required": true
+    }
+  ]
+}

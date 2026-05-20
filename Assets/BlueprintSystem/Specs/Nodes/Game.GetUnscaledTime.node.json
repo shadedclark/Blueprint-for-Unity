@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetUnscaledTime",
+  "title": "Get Unscaled Time",
+  "category": "Game/Time",
+  "description": "Returns Unity Time.unscaledTime.",
+  "executor": "Game.GetUnscaledTime",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": []
+}

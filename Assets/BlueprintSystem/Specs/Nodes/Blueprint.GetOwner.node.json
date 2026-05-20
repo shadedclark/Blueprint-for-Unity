@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.GetOwner",
+  "title": "Get Blueprint Owner",
+  "category": "Blueprint",
+  "description": "Returns the owner BlueprintRef for the current component or a supplied BlueprintRef target.",
+  "executor": "Blueprint.GetOwner",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "BlueprintRef",
+      "required": false,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "BlueprintRef"
+    },
+    {
+      "id": "isValid",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "blueprint",
+    "owner",
+    "reference"
+  ]
+}

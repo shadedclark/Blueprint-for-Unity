@@ -1,0 +1,1375 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: EquipmentDetailPresenter.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: EquipmentDetailPresenter
+  sourceGuid: 3d5772d56da3f4042b7a954e7fd72340
+  sourcePath: Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json
+  sourceHash: 4b6c762e81eb5224bdd576dbba44ad26831e277d528f85b4f4aed1fb88adbb5d
+  manifestHash: 2529ef9c3a9fc85001c22a39b51f30af5c80558852d5ec496b6a55b563510727
+  variables:
+  - Id: var_equipment_data_blueprint
+    Name: equipment_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json
+  bindings:
+  - Name: equipment_detail_name_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_slot_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_quality_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_level_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_class_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_stats_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_affix_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_detail_enhance_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_action_equip_button
+    Type: Button
+    Required: 1
+  - Name: equipment_action_unequip_button
+    Type: Button
+    Required: 1
+  components: []
+  nodes:
+  - Id: get_data_0
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_data_blueprint"'
+  - Id: event_refresh_1
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+  - Id: get_equipped_ids_2
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: get_selected_3
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_slot_index"'
+    - Id: target
+      JsonValue: '""'
+  - Id: get_current_id_4
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 0
+  - Id: cmp_empty_5
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '""'
+  - Id: branch_empty_6
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: switch_item_7
+    TypeId: Flow.SwitchString
+    ExecutorId: Flow.SwitchString
+    Properties:
+    - Id: case0
+      JsonValue: '"training_helm"'
+    - Id: case1
+      JsonValue: '"cloth_gloves"'
+    - Id: case2
+      JsonValue: '"training_armor"'
+    - Id: case3
+      JsonValue: '"scout_boots"'
+    - Id: case4
+      JsonValue: '"iron_sword"'
+    - Id: case5
+      JsonValue: '"copper_ring"'
+    - Id: case6
+      JsonValue: '"veteran_blade"'
+    - Id: case7
+      JsonValue: '"mage_ring"'
+    - Id: caseCount
+      JsonValue: 8
+    - Id: selection
+      JsonValue: '""'
+  - Id: empty_equipment_detail_name_text_8
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Empty Slot"'
+  - Id: empty_equipment_detail_slot_text_9
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: empty_equipment_detail_quality_text_10
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: empty_equipment_detail_level_text_11
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: empty_equipment_detail_class_text_12
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: empty_equipment_detail_stats_text_13
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Select an inventory equipment item, then press Equip."'
+  - Id: empty_equipment_detail_affix_text_14
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: empty_equipment_detail_enhance_text_15
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: empty_equip_on_16
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: empty_unequip_on_17
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: false
+  - Id: item_training_helm_equipment_detail_name_text_18
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Training Helm"'
+  - Id: item_training_helm_equipment_detail_slot_text_19
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Head"'
+  - Id: item_training_helm_equipment_detail_quality_text_20
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Common"'
+  - Id: item_training_helm_equipment_detail_level_text_21
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_training_helm_equipment_detail_class_text_22
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Any"'
+  - Id: item_training_helm_equipment_detail_stats_text_23
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +0 / Defense +3 / HP +12"'
+  - Id: item_training_helm_equipment_detail_affix_text_24
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Padded Lining: +1 Defense"'
+  - Id: item_training_helm_equipment_detail_enhance_text_25
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+0"'
+  - Id: item_training_helm_equip_on_26
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_training_helm_unequip_on_27
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_cloth_gloves_equipment_detail_name_text_28
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Cloth Gloves"'
+  - Id: item_cloth_gloves_equipment_detail_slot_text_29
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Hands"'
+  - Id: item_cloth_gloves_equipment_detail_quality_text_30
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Common"'
+  - Id: item_cloth_gloves_equipment_detail_level_text_31
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_cloth_gloves_equipment_detail_class_text_32
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Any"'
+  - Id: item_cloth_gloves_equipment_detail_stats_text_33
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +1 / Defense +0 / HP +0"'
+  - Id: item_cloth_gloves_equipment_detail_affix_text_34
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Grip Wrap: +1 Attack"'
+  - Id: item_cloth_gloves_equipment_detail_enhance_text_35
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+0"'
+  - Id: item_cloth_gloves_equip_on_36
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_cloth_gloves_unequip_on_37
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_training_armor_equipment_detail_name_text_38
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Training Armor"'
+  - Id: item_training_armor_equipment_detail_slot_text_39
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Body"'
+  - Id: item_training_armor_equipment_detail_quality_text_40
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Uncommon"'
+  - Id: item_training_armor_equipment_detail_level_text_41
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_training_armor_equipment_detail_class_text_42
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Warrior"'
+  - Id: item_training_armor_equipment_detail_stats_text_43
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +0 / Defense +6 / HP +40"'
+  - Id: item_training_armor_equipment_detail_affix_text_44
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Sturdy Padding: +10 HP"'
+  - Id: item_training_armor_equipment_detail_enhance_text_45
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+1: +1 Defense, +5 HP"'
+  - Id: item_training_armor_equip_on_46
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_training_armor_unequip_on_47
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_scout_boots_equipment_detail_name_text_48
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Scout Boots"'
+  - Id: item_scout_boots_equipment_detail_slot_text_49
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Shoes"'
+  - Id: item_scout_boots_equipment_detail_quality_text_50
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Common"'
+  - Id: item_scout_boots_equipment_detail_level_text_51
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_scout_boots_equipment_detail_class_text_52
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Any"'
+  - Id: item_scout_boots_equipment_detail_stats_text_53
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +0 / Defense +1 / HP +8"'
+  - Id: item_scout_boots_equipment_detail_affix_text_54
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Soft Step: +8 HP"'
+  - Id: item_scout_boots_equipment_detail_enhance_text_55
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+0"'
+  - Id: item_scout_boots_equip_on_56
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_scout_boots_unequip_on_57
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_iron_sword_equipment_detail_name_text_58
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Iron Sword"'
+  - Id: item_iron_sword_equipment_detail_slot_text_59
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Weapon"'
+  - Id: item_iron_sword_equipment_detail_quality_text_60
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Rare"'
+  - Id: item_iron_sword_equipment_detail_level_text_61
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_iron_sword_equipment_detail_class_text_62
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Warrior"'
+  - Id: item_iron_sword_equipment_detail_stats_text_63
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +10 / Defense +0 / HP +0"'
+  - Id: item_iron_sword_equipment_detail_affix_text_64
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Keen Edge: +2 Attack"'
+  - Id: item_iron_sword_equipment_detail_enhance_text_65
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+1: +1 Attack"'
+  - Id: item_iron_sword_equip_on_66
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_iron_sword_unequip_on_67
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_copper_ring_equipment_detail_name_text_68
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Copper Ring"'
+  - Id: item_copper_ring_equipment_detail_slot_text_69
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Ring"'
+  - Id: item_copper_ring_equipment_detail_quality_text_70
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Uncommon"'
+  - Id: item_copper_ring_equipment_detail_level_text_71
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_copper_ring_equipment_detail_class_text_72
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Any"'
+  - Id: item_copper_ring_equipment_detail_stats_text_73
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +1 / Defense +1 / HP +15"'
+  - Id: item_copper_ring_equipment_detail_affix_text_74
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Warm Band: +15 HP"'
+  - Id: item_copper_ring_equipment_detail_enhance_text_75
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+0"'
+  - Id: item_copper_ring_equip_on_76
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_copper_ring_unequip_on_77
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_veteran_blade_equipment_detail_name_text_78
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Veteran Blade"'
+  - Id: item_veteran_blade_equipment_detail_slot_text_79
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Weapon"'
+  - Id: item_veteran_blade_equipment_detail_quality_text_80
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Epic"'
+  - Id: item_veteran_blade_equipment_detail_level_text_81
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 20"'
+  - Id: item_veteran_blade_equipment_detail_class_text_82
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Warrior"'
+  - Id: item_veteran_blade_equipment_detail_stats_text_83
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +17 / Defense +0 / HP +0"'
+  - Id: item_veteran_blade_equipment_detail_affix_text_84
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Veteran Focus: +3 Attack"'
+  - Id: item_veteran_blade_equipment_detail_enhance_text_85
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+2: +2 Attack"'
+  - Id: item_veteran_blade_equip_on_86
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_veteran_blade_unequip_on_87
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_mage_ring_equipment_detail_name_text_88
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Mage Ring"'
+  - Id: item_mage_ring_equipment_detail_slot_text_89
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"Slot: Ring"'
+  - Id: item_mage_ring_equipment_detail_quality_text_90
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"Quality: Rare"'
+  - Id: item_mage_ring_equipment_detail_level_text_91
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"Requires Lv. 1"'
+  - Id: item_mage_ring_equipment_detail_class_text_92
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"Class: Mage"'
+  - Id: item_mage_ring_equipment_detail_stats_text_93
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"Attack +3 / Defense +0 / HP +10"'
+  - Id: item_mage_ring_equipment_detail_affix_text_94
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"Arcane Thread: +3 Attack"'
+  - Id: item_mage_ring_equipment_detail_enhance_text_95
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"+0"'
+  - Id: item_mage_ring_equip_on_96
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: item_mage_ring_unequip_on_97
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: unknown_equipment_detail_name_text_98
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_name_text"'
+    - Id: value
+      JsonValue: '"Unknown Equipment"'
+  - Id: unknown_equipment_detail_slot_text_99
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_slot_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: unknown_equipment_detail_quality_text_100
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_quality_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: unknown_equipment_detail_level_text_101
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_level_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: unknown_equipment_detail_class_text_102
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_class_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: unknown_equipment_detail_stats_text_103
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_stats_text"'
+    - Id: value
+      JsonValue: '"No config found."'
+  - Id: unknown_equipment_detail_affix_text_104
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_affix_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: unknown_equipment_detail_enhance_text_105
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_detail_enhance_text"'
+    - Id: value
+      JsonValue: '"-"'
+  - Id: unknown_equip_on_106
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_equip_button"'
+    - Id: value
+      JsonValue: true
+  - Id: unknown_unequip_on_107
+    TypeId: UI.SetInteractable
+    ExecutorId: UI.SetInteractable
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_action_unequip_button"'
+    - Id: value
+      JsonValue: true
+  execEdges:
+  - FromNodeId: branch_empty_6
+    FromPortId: false
+    ToNodeId: switch_item_7
+    ToPortId: execIn
+  - FromNodeId: branch_empty_6
+    FromPortId: true
+    ToNodeId: empty_equipment_detail_name_text_8
+    ToPortId: execIn
+  - FromNodeId: empty_equip_on_16
+    FromPortId: execOut
+    ToNodeId: empty_unequip_on_17
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_affix_text_14
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_enhance_text_15
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_class_text_12
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_stats_text_13
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_enhance_text_15
+    FromPortId: execOut
+    ToNodeId: empty_equip_on_16
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_level_text_11
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_class_text_12
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_name_text_8
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_slot_text_9
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_quality_text_10
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_level_text_11
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_slot_text_9
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_quality_text_10
+    ToPortId: execIn
+  - FromNodeId: empty_equipment_detail_stats_text_13
+    FromPortId: execOut
+    ToNodeId: empty_equipment_detail_affix_text_14
+    ToPortId: execIn
+  - FromNodeId: event_refresh_1
+    FromPortId: execOut
+    ToNodeId: branch_empty_6
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equip_on_36
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_unequip_on_37
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_affix_text_34
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_enhance_text_35
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_class_text_32
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_stats_text_33
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_enhance_text_35
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equip_on_36
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_level_text_31
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_class_text_32
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_name_text_28
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_slot_text_29
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_quality_text_30
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_level_text_31
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_slot_text_29
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_quality_text_30
+    ToPortId: execIn
+  - FromNodeId: item_cloth_gloves_equipment_detail_stats_text_33
+    FromPortId: execOut
+    ToNodeId: item_cloth_gloves_equipment_detail_affix_text_34
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equip_on_76
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_unequip_on_77
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_affix_text_74
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_enhance_text_75
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_class_text_72
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_stats_text_73
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_enhance_text_75
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equip_on_76
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_level_text_71
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_class_text_72
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_name_text_68
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_slot_text_69
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_quality_text_70
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_level_text_71
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_slot_text_69
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_quality_text_70
+    ToPortId: execIn
+  - FromNodeId: item_copper_ring_equipment_detail_stats_text_73
+    FromPortId: execOut
+    ToNodeId: item_copper_ring_equipment_detail_affix_text_74
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equip_on_66
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_unequip_on_67
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_affix_text_64
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_enhance_text_65
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_class_text_62
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_stats_text_63
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_enhance_text_65
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equip_on_66
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_level_text_61
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_class_text_62
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_name_text_58
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_slot_text_59
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_quality_text_60
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_level_text_61
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_slot_text_59
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_quality_text_60
+    ToPortId: execIn
+  - FromNodeId: item_iron_sword_equipment_detail_stats_text_63
+    FromPortId: execOut
+    ToNodeId: item_iron_sword_equipment_detail_affix_text_64
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equip_on_96
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_unequip_on_97
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_affix_text_94
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_enhance_text_95
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_class_text_92
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_stats_text_93
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_enhance_text_95
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equip_on_96
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_level_text_91
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_class_text_92
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_name_text_88
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_slot_text_89
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_quality_text_90
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_level_text_91
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_slot_text_89
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_quality_text_90
+    ToPortId: execIn
+  - FromNodeId: item_mage_ring_equipment_detail_stats_text_93
+    FromPortId: execOut
+    ToNodeId: item_mage_ring_equipment_detail_affix_text_94
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equip_on_56
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_unequip_on_57
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_affix_text_54
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_enhance_text_55
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_class_text_52
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_stats_text_53
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_enhance_text_55
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equip_on_56
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_level_text_51
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_class_text_52
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_name_text_48
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_slot_text_49
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_quality_text_50
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_level_text_51
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_slot_text_49
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_quality_text_50
+    ToPortId: execIn
+  - FromNodeId: item_scout_boots_equipment_detail_stats_text_53
+    FromPortId: execOut
+    ToNodeId: item_scout_boots_equipment_detail_affix_text_54
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equip_on_46
+    FromPortId: execOut
+    ToNodeId: item_training_armor_unequip_on_47
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_affix_text_44
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_enhance_text_45
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_class_text_42
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_stats_text_43
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_enhance_text_45
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equip_on_46
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_level_text_41
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_class_text_42
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_name_text_38
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_slot_text_39
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_quality_text_40
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_level_text_41
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_slot_text_39
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_quality_text_40
+    ToPortId: execIn
+  - FromNodeId: item_training_armor_equipment_detail_stats_text_43
+    FromPortId: execOut
+    ToNodeId: item_training_armor_equipment_detail_affix_text_44
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equip_on_26
+    FromPortId: execOut
+    ToNodeId: item_training_helm_unequip_on_27
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_affix_text_24
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_enhance_text_25
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_class_text_22
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_stats_text_23
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_enhance_text_25
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equip_on_26
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_level_text_21
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_class_text_22
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_name_text_18
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_slot_text_19
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_quality_text_20
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_level_text_21
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_slot_text_19
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_quality_text_20
+    ToPortId: execIn
+  - FromNodeId: item_training_helm_equipment_detail_stats_text_23
+    FromPortId: execOut
+    ToNodeId: item_training_helm_equipment_detail_affix_text_24
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equip_on_86
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_unequip_on_87
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_affix_text_84
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_enhance_text_85
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_class_text_82
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_stats_text_83
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_enhance_text_85
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equip_on_86
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_level_text_81
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_class_text_82
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_name_text_78
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_slot_text_79
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_quality_text_80
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_level_text_81
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_slot_text_79
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_quality_text_80
+    ToPortId: execIn
+  - FromNodeId: item_veteran_blade_equipment_detail_stats_text_83
+    FromPortId: execOut
+    ToNodeId: item_veteran_blade_equipment_detail_affix_text_84
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case0
+    ToNodeId: item_training_helm_equipment_detail_name_text_18
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case1
+    ToNodeId: item_cloth_gloves_equipment_detail_name_text_28
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case2
+    ToNodeId: item_training_armor_equipment_detail_name_text_38
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case3
+    ToNodeId: item_scout_boots_equipment_detail_name_text_48
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case4
+    ToNodeId: item_iron_sword_equipment_detail_name_text_58
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case5
+    ToNodeId: item_copper_ring_equipment_detail_name_text_68
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case6
+    ToNodeId: item_veteran_blade_equipment_detail_name_text_78
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: case7
+    ToNodeId: item_mage_ring_equipment_detail_name_text_88
+    ToPortId: execIn
+  - FromNodeId: switch_item_7
+    FromPortId: default
+    ToNodeId: unknown_equipment_detail_name_text_98
+    ToPortId: execIn
+  - FromNodeId: unknown_equip_on_106
+    FromPortId: execOut
+    ToNodeId: unknown_unequip_on_107
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_affix_text_104
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_enhance_text_105
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_class_text_102
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_stats_text_103
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_enhance_text_105
+    FromPortId: execOut
+    ToNodeId: unknown_equip_on_106
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_level_text_101
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_class_text_102
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_name_text_98
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_slot_text_99
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_quality_text_100
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_level_text_101
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_slot_text_99
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_quality_text_100
+    ToPortId: execIn
+  - FromNodeId: unknown_equipment_detail_stats_text_103
+    FromPortId: execOut
+    ToNodeId: unknown_equipment_detail_affix_text_104
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: cmp_empty_5
+    FromPortId: result
+    ToNodeId: branch_empty_6
+    ToPortId: condition
+  - FromNodeId: get_current_id_4
+    FromPortId: item
+    ToNodeId: cmp_empty_5
+    ToPortId: left
+  - FromNodeId: get_current_id_4
+    FromPortId: item
+    ToNodeId: switch_item_7
+    ToPortId: selection
+  - FromNodeId: get_data_0
+    FromPortId: value
+    ToNodeId: get_equipped_ids_2
+    ToPortId: target
+  - FromNodeId: get_data_0
+    FromPortId: value
+    ToNodeId: get_selected_3
+    ToPortId: target
+  - FromNodeId: get_equipped_ids_2
+    FromPortId: value
+    ToNodeId: get_current_id_4
+    ToPortId: array
+  - FromNodeId: get_selected_3
+    FromPortId: value
+    ToNodeId: get_current_id_4
+    ToPortId: index
+  eventEntries:
+  - EventName: RefreshRequested
+    NodeId: event_refresh_1

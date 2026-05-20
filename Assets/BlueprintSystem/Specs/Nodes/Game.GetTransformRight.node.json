@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetTransformRight",
+  "title": "Get Transform Right",
+  "category": "Game/Transform",
+  "description": "Returns Transform.right.",
+  "executor": "Game.GetTransformRight",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    }
+  ]
+}

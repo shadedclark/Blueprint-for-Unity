@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Clear",
+  "title": "Array Clear",
+  "category": "Array",
+  "description": "Returns an empty array.",
+  "executor": "Array.Clear",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    }
+  ],
+  "properties": []
+}

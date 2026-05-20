@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Vector.Dot",
+  "title": "Dot Product",
+  "category": "Vector",
+  "description": "Returns the dot product of two Vector3 values.",
+  "executor": "Vector.Dot",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

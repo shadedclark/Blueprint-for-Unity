@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryConfirmPresenter",
+  "category": "Inventory/UI/Presenter",
+  "description": "Shows and hides the irreversible drop confirmation dialog.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "inventory_confirm_root",
+      "type": "GameObject",
+      "required": true
+    },
+    {
+      "name": "inventory_confirm_message_text",
+      "type": "TMP_Text",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_refresh",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "get_confirm_visible",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "confirm_drop_visible"
+      }
+    },
+    {
+      "id": "set_confirm_message",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_confirm_message_text",
+        "value": "Drop selected item? This cannot be undone."
+      }
+    },
+    {
+      "id": "branch_visible",
+      "typeId": "Flow.Branch",
+      "position": [
+        360,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "show_confirm",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_confirm_root",
+        "value": true
+      }
+    },
+    {
+      "id": "hide_confirm",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_confirm_root",
+        "value": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data.value",
+      "to": "get_confirm_visible.target"
+    },
+    {
+      "from": "event_refresh.execOut",
+      "to": "set_confirm_message.execIn"
+    },
+    {
+      "from": "set_confirm_message.execOut",
+      "to": "branch_visible.execIn"
+    },
+    {
+      "from": "get_confirm_visible.value",
+      "to": "branch_visible.condition"
+    },
+    {
+      "from": "branch_visible.true",
+      "to": "show_confirm.execIn"
+    },
+    {
+      "from": "branch_visible.false",
+      "to": "hide_confirm.execIn"
+    }
+  ]
+}

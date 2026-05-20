@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Append",
+  "title": "Array Append",
+  "category": "Array",
+  "description": "Returns a copy of array with another array appended.",
+  "executor": "Array.Append",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "other",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    }
+  ],
+  "properties": []
+}

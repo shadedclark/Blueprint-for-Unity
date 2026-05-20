@@ -1,0 +1,385 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryOpenCloseBehavior",
+  "category": "Inventory/Behavior",
+  "description": "Opens/closes the UI and refreshes presenters.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    },
+    {
+      "id": "var_inventory_header_presenter_blueprint",
+      "name": "inventory_header_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_grid_presenter_blueprint",
+      "name": "inventory_grid_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_detail_presenter_blueprint",
+      "name": "inventory_detail_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_confirm_presenter_blueprint",
+      "name": "inventory_confirm_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "inventory_root",
+      "type": "GameObject",
+      "required": true
+    },
+    {
+      "name": "inventory_confirm_root",
+      "type": "GameObject",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "event_open_inventory",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "OpenInventory"
+      }
+    },
+    {
+      "id": "open_set_screen_open",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "screen_open",
+        "value": true
+      }
+    },
+    {
+      "id": "open_set_confirm_false",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "confirm_drop_visible",
+        "value": false
+      }
+    },
+    {
+      "id": "open_show_root",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_root",
+        "value": true
+      }
+    },
+    {
+      "id": "open_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Inventory opened."
+      }
+    },
+    {
+      "id": "open_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        0
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        80
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        80
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        160
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        160
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_get_confirm",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        240
+      ],
+      "properties": {
+        "name": "inventory_confirm_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_confirm",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        240
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_close_inventory",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        400
+      ],
+      "properties": {
+        "eventName": "CloseInventory"
+      }
+    },
+    {
+      "id": "close_set_screen_open",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "screen_open",
+        "value": false
+      }
+    },
+    {
+      "id": "close_set_confirm_false",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "confirm_drop_visible",
+        "value": false
+      }
+    },
+    {
+      "id": "close_hide_confirm",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_confirm_root",
+        "value": false
+      }
+    },
+    {
+      "id": "close_hide_root",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_root",
+        "value": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data.value",
+      "to": "open_set_screen_open.target"
+    },
+    {
+      "from": "event_open_inventory.execOut",
+      "to": "open_set_screen_open.execIn"
+    },
+    {
+      "from": "get_data.value",
+      "to": "open_set_confirm_false.target"
+    },
+    {
+      "from": "open_set_screen_open.execOut",
+      "to": "open_set_confirm_false.execIn"
+    },
+    {
+      "from": "open_set_confirm_false.execOut",
+      "to": "open_show_root.execIn"
+    },
+    {
+      "from": "get_data.value",
+      "to": "open_set_status.target"
+    },
+    {
+      "from": "open_show_root.execOut",
+      "to": "open_set_status.execIn"
+    },
+    {
+      "from": "open_get_header.value",
+      "to": "open_refresh_header.target"
+    },
+    {
+      "from": "open_set_status.execOut",
+      "to": "open_refresh_header.execIn"
+    },
+    {
+      "from": "open_get_grid.value",
+      "to": "open_refresh_grid.target"
+    },
+    {
+      "from": "open_refresh_header.execOut",
+      "to": "open_refresh_grid.execIn"
+    },
+    {
+      "from": "open_get_detail.value",
+      "to": "open_refresh_detail.target"
+    },
+    {
+      "from": "open_refresh_grid.execOut",
+      "to": "open_refresh_detail.execIn"
+    },
+    {
+      "from": "open_get_confirm.value",
+      "to": "open_refresh_confirm.target"
+    },
+    {
+      "from": "open_refresh_detail.execOut",
+      "to": "open_refresh_confirm.execIn"
+    },
+    {
+      "from": "get_data.value",
+      "to": "close_set_screen_open.target"
+    },
+    {
+      "from": "event_close_inventory.execOut",
+      "to": "close_set_screen_open.execIn"
+    },
+    {
+      "from": "get_data.value",
+      "to": "close_set_confirm_false.target"
+    },
+    {
+      "from": "close_set_screen_open.execOut",
+      "to": "close_set_confirm_false.execIn"
+    },
+    {
+      "from": "close_set_confirm_false.execOut",
+      "to": "close_hide_confirm.execIn"
+    },
+    {
+      "from": "close_hide_confirm.execOut",
+      "to": "close_hide_root.execIn"
+    }
+  ]
+}

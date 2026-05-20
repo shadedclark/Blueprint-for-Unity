@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Variable.Get",
+  "title": "Get Variable",
+  "category": "Variables",
+  "description": "Reads a blueprint variable by name.",
+  "executor": "Variable.Get",
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "name",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

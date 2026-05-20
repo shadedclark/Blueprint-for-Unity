@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.IndexOf",
+  "title": "Array Index Of",
+  "category": "Array",
+  "description": "Returns the first index of a matching item in an array.",
+  "executor": "Array.IndexOf",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "found",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "item",
+      "required": false
+    }
+  ]
+}

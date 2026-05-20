@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Vector.BreakVector4",
+  "title": "Break Vector4",
+  "category": "Vector",
+  "description": "Splits a Vector4 into x, y, z, and w.",
+  "executor": "Vector.BreakVector4",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector4",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "x",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "y",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "z",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "w",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "Vector4",
+      "defaultValue": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

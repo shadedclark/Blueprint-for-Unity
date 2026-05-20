@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetText",
+  "title": "Set Text",
+  "category": "UI",
+  "description": "Sets text on a bound TMP_Text element.",
+  "executor": "UI.SetText",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<TMP_Text>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<TMP_Text>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "string",
+      "required": false
+    }
+  ]
+}

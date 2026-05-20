@@ -1,0 +1,809 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: ThirdPersonCameraRotationBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: ThirdPersonCameraRotationBehavior
+  sourceGuid: 3f452316c1e01462d9d9b1228df4107c
+  sourcePath: Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraRotationBehavior.blueprint.json
+  sourceHash: d0d22a0df4ade06812cc04646e433c673ac33dbdb64f6459dc1f006bc1918f38
+  manifestHash: 4ce713422414317c02615f9dddfb1a24d003657720d4b9b7db55c45908a7cef0
+  variables:
+  - Id: var_a876bd8871054df5a93b0d3df97fc19b
+    Name: third_person_camera_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json
+  bindings:
+  - Name: camera_rig_transform
+    Type: Transform
+    Required: 1
+  - Name: camera_transform
+    Type: Transform
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_late_tick
+    TypeId: Game.Event.OnTick
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: phase
+      JsonValue: '"LateUpdate"'
+  - Id: sequence_tick
+    TypeId: Flow.Sequence
+    ExecutorId: Flow.Sequence
+    Properties: []
+  - Id: get_third_person_camera_data_blueprint
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"third_person_camera_data_blueprint"'
+  - Id: set_is_rotating_false
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"is_rotating"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+    - Id: value
+      JsonValue: false
+  - Id: get_look_dead_zone
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"look_dead_zone"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: get_gamepad_look
+    TypeId: Input.GetActionVector2
+    ExecutorId: Input.GetActionVector2
+    Properties:
+    - Id: action
+      JsonValue: '"Player/CameraLookGamepad"'
+  - Id: break_gamepad_look
+    TypeId: Vector.BreakVector2
+    ExecutorId: Vector.BreakVector2
+    Properties:
+    - Id: value
+      JsonValue: '[0,0]'
+  - Id: make_gamepad_length_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 0
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: get_gamepad_length
+    TypeId: Vector.Length
+    ExecutorId: Vector.Length
+    Properties:
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: compare_gamepad_dead_zone
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Greater"'
+  - Id: branch_gamepad_has_input
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_current_gamepad_look
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_gamepad_look"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: set_current_gamepad_zero
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_gamepad_look"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+    - Id: value
+      JsonValue: '[0,0]'
+  - Id: set_is_rotating_gamepad_true
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"is_rotating"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+    - Id: value
+      JsonValue: true
+  - Id: get_gamepad_yaw_speed
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"gamepad_yaw_speed"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: get_gamepad_delta_time
+    TypeId: Game.GetDeltaTime
+    ExecutorId: Game.GetDeltaTime
+    Properties: []
+  - Id: multiply_gamepad_input_speed
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: multiply_gamepad_yaw_delta
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: make_gamepad_yaw_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 0
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: rotate_gamepad_yaw
+    TypeId: Game.RotateTransform
+    ExecutorId: Game.RotateTransform
+    Properties:
+    - Id: eulerAngles
+      JsonValue: '[0,0,0]'
+    - Id: relativeToSelf
+      JsonValue: false
+    - Id: target
+      JsonValue: '"camera_rig_transform"'
+  - Id: get_current_pitch_gamepad
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_pitch"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: get_gamepad_pitch_speed
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"gamepad_pitch_speed"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: multiply_gamepad_pitch_input_speed
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: multiply_gamepad_pitch_delta
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: add_gamepad_pitch
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: get_pitch_min_gamepad
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"pitch_min"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: get_pitch_max_gamepad
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"pitch_max"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: clamp_gamepad_pitch
+    TypeId: Math.Clamp
+    ExecutorId: Math.Clamp
+    Properties:
+    - Id: max
+      JsonValue: 70
+    - Id: min
+      JsonValue: 25
+    - Id: value
+      JsonValue: 45
+  - Id: make_gamepad_pitch_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 45
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: set_current_pitch_gamepad
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_pitch"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: set_camera_pitch_gamepad
+    TypeId: Game.SetTransformLocalEulerAngles
+    ExecutorId: Game.SetTransformLocalEulerAngles
+    Properties:
+    - Id: target
+      JsonValue: '"camera_transform"'
+    - Id: value
+      JsonValue: '[45,0,0]'
+  - Id: set_current_mouse_zero
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_mouse_look"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+    - Id: value
+      JsonValue: '[0,0]'
+  - Id: get_mouse_look
+    TypeId: Input.GetActionVector2
+    ExecutorId: Input.GetActionVector2
+    Properties:
+    - Id: action
+      JsonValue: '"Player/CameraLookMouse"'
+  - Id: break_mouse_look
+    TypeId: Vector.BreakVector2
+    ExecutorId: Vector.BreakVector2
+    Properties:
+    - Id: value
+      JsonValue: '[0,0]'
+  - Id: make_mouse_length_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 0
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: get_mouse_length
+    TypeId: Vector.Length
+    ExecutorId: Vector.Length
+    Properties:
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: compare_mouse_dead_zone
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Greater"'
+  - Id: branch_mouse_has_input
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_current_mouse_look
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_mouse_look"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: set_is_rotating_mouse_true
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"is_rotating"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+    - Id: value
+      JsonValue: true
+  - Id: get_mouse_yaw_sensitivity
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"mouse_yaw_sensitivity"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: multiply_mouse_yaw_delta
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: make_mouse_yaw_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 0
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: rotate_mouse_yaw
+    TypeId: Game.RotateTransform
+    ExecutorId: Game.RotateTransform
+    Properties:
+    - Id: eulerAngles
+      JsonValue: '[0,0,0]'
+    - Id: relativeToSelf
+      JsonValue: false
+    - Id: target
+      JsonValue: '"camera_rig_transform"'
+  - Id: get_current_pitch_mouse
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_pitch"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: get_mouse_pitch_sensitivity
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"mouse_pitch_sensitivity"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: multiply_mouse_pitch_delta
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: add_mouse_pitch
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 0
+  - Id: get_pitch_min_mouse
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"pitch_min"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: get_pitch_max_mouse
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"pitch_max"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: clamp_mouse_pitch
+    TypeId: Math.Clamp
+    ExecutorId: Math.Clamp
+    Properties:
+    - Id: max
+      JsonValue: 70
+    - Id: min
+      JsonValue: 25
+    - Id: value
+      JsonValue: 45
+  - Id: make_mouse_pitch_vector
+    TypeId: Vector.MakeVector3
+    ExecutorId: Vector.MakeVector3
+    Properties:
+    - Id: x
+      JsonValue: 45
+    - Id: y
+      JsonValue: 0
+    - Id: z
+      JsonValue: 0
+  - Id: set_current_pitch_mouse
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"current_pitch"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
+  - Id: set_camera_pitch_mouse
+    TypeId: Game.SetTransformLocalEulerAngles
+    ExecutorId: Game.SetTransformLocalEulerAngles
+    Properties:
+    - Id: target
+      JsonValue: '"camera_transform"'
+    - Id: value
+      JsonValue: '[45,0,0]'
+  execEdges:
+  - FromNodeId: branch_gamepad_has_input
+    FromPortId: false
+    ToNodeId: set_current_gamepad_zero
+    ToPortId: execIn
+  - FromNodeId: branch_gamepad_has_input
+    FromPortId: true
+    ToNodeId: set_current_gamepad_look
+    ToPortId: execIn
+  - FromNodeId: branch_mouse_has_input
+    FromPortId: false
+    ToNodeId: set_current_mouse_zero
+    ToPortId: execIn
+  - FromNodeId: branch_mouse_has_input
+    FromPortId: true
+    ToNodeId: set_current_mouse_look
+    ToPortId: execIn
+  - FromNodeId: event_late_tick
+    FromPortId: execOut
+    ToNodeId: sequence_tick
+    ToPortId: execIn
+  - FromNodeId: rotate_gamepad_yaw
+    FromPortId: execOut
+    ToNodeId: set_current_pitch_gamepad
+    ToPortId: execIn
+  - FromNodeId: rotate_mouse_yaw
+    FromPortId: execOut
+    ToNodeId: set_current_pitch_mouse
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then0
+    ToNodeId: set_is_rotating_false
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then1
+    ToNodeId: branch_gamepad_has_input
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then2
+    ToNodeId: branch_mouse_has_input
+    ToPortId: execIn
+  - FromNodeId: set_current_gamepad_look
+    FromPortId: execOut
+    ToNodeId: set_is_rotating_gamepad_true
+    ToPortId: execIn
+  - FromNodeId: set_current_mouse_look
+    FromPortId: execOut
+    ToNodeId: set_is_rotating_mouse_true
+    ToPortId: execIn
+  - FromNodeId: set_current_pitch_gamepad
+    FromPortId: execOut
+    ToNodeId: set_camera_pitch_gamepad
+    ToPortId: execIn
+  - FromNodeId: set_current_pitch_mouse
+    FromPortId: execOut
+    ToNodeId: set_camera_pitch_mouse
+    ToPortId: execIn
+  - FromNodeId: set_is_rotating_gamepad_true
+    FromPortId: execOut
+    ToNodeId: rotate_gamepad_yaw
+    ToPortId: execIn
+  - FromNodeId: set_is_rotating_mouse_true
+    FromPortId: execOut
+    ToNodeId: rotate_mouse_yaw
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: add_gamepad_pitch
+    FromPortId: result
+    ToNodeId: clamp_gamepad_pitch
+    ToPortId: value
+  - FromNodeId: add_mouse_pitch
+    FromPortId: result
+    ToNodeId: clamp_mouse_pitch
+    ToPortId: value
+  - FromNodeId: break_gamepad_look
+    FromPortId: x
+    ToNodeId: make_gamepad_length_vector
+    ToPortId: x
+  - FromNodeId: break_gamepad_look
+    FromPortId: x
+    ToNodeId: multiply_gamepad_input_speed
+    ToPortId: a
+  - FromNodeId: break_gamepad_look
+    FromPortId: y
+    ToNodeId: make_gamepad_length_vector
+    ToPortId: z
+  - FromNodeId: break_gamepad_look
+    FromPortId: y
+    ToNodeId: multiply_gamepad_pitch_input_speed
+    ToPortId: a
+  - FromNodeId: break_mouse_look
+    FromPortId: x
+    ToNodeId: make_mouse_length_vector
+    ToPortId: x
+  - FromNodeId: break_mouse_look
+    FromPortId: x
+    ToNodeId: multiply_mouse_yaw_delta
+    ToPortId: a
+  - FromNodeId: break_mouse_look
+    FromPortId: y
+    ToNodeId: make_mouse_length_vector
+    ToPortId: z
+  - FromNodeId: break_mouse_look
+    FromPortId: y
+    ToNodeId: multiply_mouse_pitch_delta
+    ToPortId: a
+  - FromNodeId: clamp_gamepad_pitch
+    FromPortId: result
+    ToNodeId: make_gamepad_pitch_vector
+    ToPortId: x
+  - FromNodeId: clamp_gamepad_pitch
+    FromPortId: result
+    ToNodeId: set_current_pitch_gamepad
+    ToPortId: value
+  - FromNodeId: clamp_mouse_pitch
+    FromPortId: result
+    ToNodeId: make_mouse_pitch_vector
+    ToPortId: x
+  - FromNodeId: clamp_mouse_pitch
+    FromPortId: result
+    ToNodeId: set_current_pitch_mouse
+    ToPortId: value
+  - FromNodeId: compare_gamepad_dead_zone
+    FromPortId: result
+    ToNodeId: branch_gamepad_has_input
+    ToPortId: condition
+  - FromNodeId: compare_mouse_dead_zone
+    FromPortId: result
+    ToNodeId: branch_mouse_has_input
+    ToPortId: condition
+  - FromNodeId: get_current_pitch_gamepad
+    FromPortId: value
+    ToNodeId: add_gamepad_pitch
+    ToPortId: a
+  - FromNodeId: get_current_pitch_mouse
+    FromPortId: value
+    ToNodeId: add_mouse_pitch
+    ToPortId: a
+  - FromNodeId: get_gamepad_delta_time
+    FromPortId: value
+    ToNodeId: multiply_gamepad_pitch_delta
+    ToPortId: b
+  - FromNodeId: get_gamepad_delta_time
+    FromPortId: value
+    ToNodeId: multiply_gamepad_yaw_delta
+    ToPortId: b
+  - FromNodeId: get_gamepad_length
+    FromPortId: result
+    ToNodeId: compare_gamepad_dead_zone
+    ToPortId: left
+  - FromNodeId: get_gamepad_look
+    FromPortId: value
+    ToNodeId: break_gamepad_look
+    ToPortId: value
+  - FromNodeId: get_gamepad_look
+    FromPortId: value
+    ToNodeId: set_current_gamepad_look
+    ToPortId: value
+  - FromNodeId: get_gamepad_pitch_speed
+    FromPortId: value
+    ToNodeId: multiply_gamepad_pitch_input_speed
+    ToPortId: b
+  - FromNodeId: get_gamepad_yaw_speed
+    FromPortId: value
+    ToNodeId: multiply_gamepad_input_speed
+    ToPortId: b
+  - FromNodeId: get_look_dead_zone
+    FromPortId: value
+    ToNodeId: compare_gamepad_dead_zone
+    ToPortId: right
+  - FromNodeId: get_look_dead_zone
+    FromPortId: value
+    ToNodeId: compare_mouse_dead_zone
+    ToPortId: right
+  - FromNodeId: get_mouse_length
+    FromPortId: result
+    ToNodeId: compare_mouse_dead_zone
+    ToPortId: left
+  - FromNodeId: get_mouse_look
+    FromPortId: value
+    ToNodeId: break_mouse_look
+    ToPortId: value
+  - FromNodeId: get_mouse_look
+    FromPortId: value
+    ToNodeId: set_current_mouse_look
+    ToPortId: value
+  - FromNodeId: get_mouse_pitch_sensitivity
+    FromPortId: value
+    ToNodeId: multiply_mouse_pitch_delta
+    ToPortId: b
+  - FromNodeId: get_mouse_yaw_sensitivity
+    FromPortId: value
+    ToNodeId: multiply_mouse_yaw_delta
+    ToPortId: b
+  - FromNodeId: get_pitch_max_gamepad
+    FromPortId: value
+    ToNodeId: clamp_gamepad_pitch
+    ToPortId: max
+  - FromNodeId: get_pitch_max_mouse
+    FromPortId: value
+    ToNodeId: clamp_mouse_pitch
+    ToPortId: max
+  - FromNodeId: get_pitch_min_gamepad
+    FromPortId: value
+    ToNodeId: clamp_gamepad_pitch
+    ToPortId: min
+  - FromNodeId: get_pitch_min_mouse
+    FromPortId: value
+    ToNodeId: clamp_mouse_pitch
+    ToPortId: min
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_current_pitch_gamepad
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_current_pitch_mouse
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_gamepad_pitch_speed
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_gamepad_yaw_speed
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_look_dead_zone
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_mouse_pitch_sensitivity
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_mouse_yaw_sensitivity
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_pitch_max_gamepad
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_pitch_max_mouse
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_pitch_min_gamepad
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: get_pitch_min_mouse
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_gamepad_look
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_gamepad_zero
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_mouse_look
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_mouse_zero
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_pitch_gamepad
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_pitch_mouse
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_rotating_false
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_rotating_gamepad_true
+    ToPortId: target
+  - FromNodeId: get_third_person_camera_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_rotating_mouse_true
+    ToPortId: target
+  - FromNodeId: make_gamepad_length_vector
+    FromPortId: value
+    ToNodeId: get_gamepad_length
+    ToPortId: value
+  - FromNodeId: make_gamepad_pitch_vector
+    FromPortId: value
+    ToNodeId: set_camera_pitch_gamepad
+    ToPortId: value
+  - FromNodeId: make_gamepad_yaw_vector
+    FromPortId: value
+    ToNodeId: rotate_gamepad_yaw
+    ToPortId: eulerAngles
+  - FromNodeId: make_mouse_length_vector
+    FromPortId: value
+    ToNodeId: get_mouse_length
+    ToPortId: value
+  - FromNodeId: make_mouse_pitch_vector
+    FromPortId: value
+    ToNodeId: set_camera_pitch_mouse
+    ToPortId: value
+  - FromNodeId: make_mouse_yaw_vector
+    FromPortId: value
+    ToNodeId: rotate_mouse_yaw
+    ToPortId: eulerAngles
+  - FromNodeId: multiply_gamepad_input_speed
+    FromPortId: result
+    ToNodeId: multiply_gamepad_yaw_delta
+    ToPortId: a
+  - FromNodeId: multiply_gamepad_pitch_delta
+    FromPortId: result
+    ToNodeId: add_gamepad_pitch
+    ToPortId: b
+  - FromNodeId: multiply_gamepad_pitch_input_speed
+    FromPortId: result
+    ToNodeId: multiply_gamepad_pitch_delta
+    ToPortId: a
+  - FromNodeId: multiply_gamepad_yaw_delta
+    FromPortId: result
+    ToNodeId: make_gamepad_yaw_vector
+    ToPortId: y
+  - FromNodeId: multiply_mouse_pitch_delta
+    FromPortId: result
+    ToNodeId: add_mouse_pitch
+    ToPortId: b
+  - FromNodeId: multiply_mouse_yaw_delta
+    FromPortId: result
+    ToNodeId: make_mouse_yaw_vector
+    ToPortId: y
+  eventEntries:
+  - EventName: OnLateTick
+    NodeId: event_late_tick

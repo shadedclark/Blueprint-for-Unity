@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "0.1",
+  "name": "PlayerMovementData",
+  "category": "PlayerMovement/Data",
+  "description": "Configuration and runtime state for local player ground movement.",
+  "variables": [
+    {
+      "id": "var_abf424c6735445f7a048f7c3a521e34e",
+      "name": "move_speed",
+      "type": "float",
+      "defaultValue": 1,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "World units per second for base ground movement."
+    },
+    {
+      "id": "var_b50164b3980a45869182ee16105cfaba",
+      "name": "input_dead_zone",
+      "type": "float",
+      "defaultValue": 0.1,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Minimum Player/Move vector length before movement starts."
+    },
+    {
+      "id": "var_3e115028cb19476fa2f0c7932cf5fe3e",
+      "name": "rotate_to_move_direction",
+      "type": "bool",
+      "defaultValue": false,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "When true, the player instantly faces the current movement direction."
+    },
+    {
+      "id": "var_7605c2d7106b4db38be2b01882fd3f2e",
+      "name": "turn_speed",
+      "type": "float",
+      "defaultValue": 720,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Reserved turn speed in degrees per second for future smoothed rotation."
+    },
+    {
+      "id": "var_364cdf7c2fbb4b8bb487816dd89c5353",
+      "name": "current_input",
+      "type": "Vector2",
+      "defaultValue": [
+        0,
+        0
+      ],
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Latest accepted Player/Move input vector after dead-zone filtering."
+    },
+    {
+      "id": "var_27122e4d462c4999923779abefbe1798",
+      "name": "current_move_direction",
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        0
+      ],
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Normalized world-space movement direction on the XZ plane."
+    },
+    {
+      "id": "var_b1bdcab43b994b448460946d1a70b95f",
+      "name": "is_moving",
+      "type": "bool",
+      "defaultValue": false,
+      "scope": "runtime",
+      "exposed": true,
+      "description": "True while the accepted input vector is outside the dead zone."
+    }
+  ],
+  "bindings": [],
+  "components": [],
+  "nodes": [],
+  "edges": []
+}

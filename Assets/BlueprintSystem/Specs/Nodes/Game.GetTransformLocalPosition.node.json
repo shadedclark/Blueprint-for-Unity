@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetTransformLocalPosition",
+  "title": "Get Transform Local Position",
+  "category": "Game/Transform",
+  "description": "Returns Transform.localPosition.",
+  "executor": "Game.GetTransformLocalPosition",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    }
+  ]
+}

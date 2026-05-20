@@ -1,0 +1,313 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: EquipmentSlotsPresenter.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: EquipmentSlotsPresenter
+  sourceGuid: c97bdaa7ae99a4f95a3ffb4cc51bd361
+  sourcePath: Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json
+  sourceHash: 0e70c1fc615ff454474d9633e0c9d61629d42a2ef22f180aeb9a154bd135df17
+  manifestHash: 7261373920129343cdf21aa83a024afe3393e5d68dc168b33c894c78b320ff8e
+  variables:
+  - Id: var_equipment_data_blueprint
+    Name: equipment_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json
+  bindings:
+  - Name: equipment_slot_head_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_slot_head_frame
+    Type: Image
+    Required: 1
+  - Name: equipment_slot_hands_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_slot_hands_frame
+    Type: Image
+    Required: 1
+  - Name: equipment_slot_body_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_slot_body_frame
+    Type: Image
+    Required: 1
+  - Name: equipment_slot_shoes_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_slot_shoes_frame
+    Type: Image
+    Required: 1
+  - Name: equipment_slot_weapon_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_slot_weapon_frame
+    Type: Image
+    Required: 1
+  - Name: equipment_slot_ring_text
+    Type: TMP_Text
+    Required: 1
+  - Name: equipment_slot_ring_frame
+    Type: Image
+    Required: 1
+  components: []
+  nodes:
+  - Id: get_data_0
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_data_blueprint"'
+  - Id: event_refresh_1
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+  - Id: get_labels_2
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: slot_0_get_label_3
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 0
+  - Id: slot_0_set_text_4
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_head_text"'
+  - Id: slot_0_set_frame_5
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_head_frame"'
+    - Id: value
+      JsonValue: '[0.42,0.46,0.52,1]'
+  - Id: slot_1_get_label_6
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 1
+  - Id: slot_1_set_text_7
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_hands_text"'
+  - Id: slot_1_set_frame_8
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_hands_frame"'
+    - Id: value
+      JsonValue: '[0.42,0.46,0.52,1]'
+  - Id: slot_2_get_label_9
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 2
+  - Id: slot_2_set_text_10
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_body_text"'
+  - Id: slot_2_set_frame_11
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_body_frame"'
+    - Id: value
+      JsonValue: '[0.42,0.46,0.52,1]'
+  - Id: slot_3_get_label_12
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 3
+  - Id: slot_3_set_text_13
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_shoes_text"'
+  - Id: slot_3_set_frame_14
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_shoes_frame"'
+    - Id: value
+      JsonValue: '[0.42,0.46,0.52,1]'
+  - Id: slot_4_get_label_15
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 4
+  - Id: slot_4_set_text_16
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_weapon_text"'
+  - Id: slot_4_set_frame_17
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_weapon_frame"'
+    - Id: value
+      JsonValue: '[0.42,0.46,0.52,1]'
+  - Id: slot_5_get_label_18
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 5
+  - Id: slot_5_set_text_19
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_ring_text"'
+  - Id: slot_5_set_frame_20
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_slot_ring_frame"'
+    - Id: value
+      JsonValue: '[0.42,0.46,0.52,1]'
+  execEdges:
+  - FromNodeId: event_refresh_1
+    FromPortId: execOut
+    ToNodeId: slot_0_set_text_4
+    ToPortId: execIn
+  - FromNodeId: slot_0_set_frame_5
+    FromPortId: execOut
+    ToNodeId: slot_1_set_text_7
+    ToPortId: execIn
+  - FromNodeId: slot_0_set_text_4
+    FromPortId: execOut
+    ToNodeId: slot_0_set_frame_5
+    ToPortId: execIn
+  - FromNodeId: slot_1_set_frame_8
+    FromPortId: execOut
+    ToNodeId: slot_2_set_text_10
+    ToPortId: execIn
+  - FromNodeId: slot_1_set_text_7
+    FromPortId: execOut
+    ToNodeId: slot_1_set_frame_8
+    ToPortId: execIn
+  - FromNodeId: slot_2_set_frame_11
+    FromPortId: execOut
+    ToNodeId: slot_3_set_text_13
+    ToPortId: execIn
+  - FromNodeId: slot_2_set_text_10
+    FromPortId: execOut
+    ToNodeId: slot_2_set_frame_11
+    ToPortId: execIn
+  - FromNodeId: slot_3_set_frame_14
+    FromPortId: execOut
+    ToNodeId: slot_4_set_text_16
+    ToPortId: execIn
+  - FromNodeId: slot_3_set_text_13
+    FromPortId: execOut
+    ToNodeId: slot_3_set_frame_14
+    ToPortId: execIn
+  - FromNodeId: slot_4_set_frame_17
+    FromPortId: execOut
+    ToNodeId: slot_5_set_text_19
+    ToPortId: execIn
+  - FromNodeId: slot_4_set_text_16
+    FromPortId: execOut
+    ToNodeId: slot_4_set_frame_17
+    ToPortId: execIn
+  - FromNodeId: slot_5_set_text_19
+    FromPortId: execOut
+    ToNodeId: slot_5_set_frame_20
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_data_0
+    FromPortId: value
+    ToNodeId: get_labels_2
+    ToPortId: target
+  - FromNodeId: get_labels_2
+    FromPortId: value
+    ToNodeId: slot_0_get_label_3
+    ToPortId: array
+  - FromNodeId: get_labels_2
+    FromPortId: value
+    ToNodeId: slot_1_get_label_6
+    ToPortId: array
+  - FromNodeId: get_labels_2
+    FromPortId: value
+    ToNodeId: slot_2_get_label_9
+    ToPortId: array
+  - FromNodeId: get_labels_2
+    FromPortId: value
+    ToNodeId: slot_3_get_label_12
+    ToPortId: array
+  - FromNodeId: get_labels_2
+    FromPortId: value
+    ToNodeId: slot_4_get_label_15
+    ToPortId: array
+  - FromNodeId: get_labels_2
+    FromPortId: value
+    ToNodeId: slot_5_get_label_18
+    ToPortId: array
+  - FromNodeId: slot_0_get_label_3
+    FromPortId: item
+    ToNodeId: slot_0_set_text_4
+    ToPortId: value
+  - FromNodeId: slot_1_get_label_6
+    FromPortId: item
+    ToNodeId: slot_1_set_text_7
+    ToPortId: value
+  - FromNodeId: slot_2_get_label_9
+    FromPortId: item
+    ToNodeId: slot_2_set_text_10
+    ToPortId: value
+  - FromNodeId: slot_3_get_label_12
+    FromPortId: item
+    ToNodeId: slot_3_set_text_13
+    ToPortId: value
+  - FromNodeId: slot_4_get_label_15
+    FromPortId: item
+    ToNodeId: slot_4_set_text_16
+    ToPortId: value
+  - FromNodeId: slot_5_get_label_18
+    FromPortId: item
+    ToNodeId: slot_5_set_text_19
+    ToPortId: value
+  eventEntries:
+  - EventName: RefreshRequested
+    NodeId: event_refresh_1

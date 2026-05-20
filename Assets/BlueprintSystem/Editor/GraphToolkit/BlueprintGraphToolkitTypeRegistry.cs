@@ -1,0 +1,87 @@
+using System;
+using System.Collections.Generic;
+
+namespace BlueprintSystem.Editor
+{
+    internal static class BlueprintGraphToolkitTypeRegistry
+    {
+        public static string[] SupportedBlueprintTypes
+        {
+            get
+            {
+                List<string> types = new List<string>(BlueprintVariableTypeRegistry.GetSupportedBlueprintTypes());
+                types.Add("Array");
+                return types.ToArray();
+            }
+        }
+
+        public static Type[] SupportedGraphTypes
+        {
+            get
+            {
+                List<Type> types = new List<Type>(BlueprintVariableTypeRegistry.GetSupportedClrTypes());
+                types.Add(typeof(Array));
+                types.Add(typeof(Blueprint));
+                return types.ToArray();
+            }
+        }
+
+        public static bool TryGetGraphType(string blueprintType, out Type graphType)
+        {
+            if (blueprintType == BlueprintGraphToolkitBlueprintTypes.TypeId)
+            {
+                graphType = typeof(Blueprint);
+                return true;
+            }
+
+            if (blueprintType == "Array")
+            {
+                graphType = typeof(Array);
+                return true;
+            }
+
+            string elementType;
+            if (BlueprintArrayUtility.TryGetElementType(blueprintType, out elementType) &&
+                BlueprintArrayUtility.IsSupportedElementType(elementType))
+            {
+                graphType = typeof(Array);
+                return true;
+            }
+
+            return BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out graphType);
+        }
+
+        public static bool TryGetBlueprintType(Type graphType, out string blueprintType)
+        {
+            if (graphType == typeof(Blueprint))
+            {
+                blueprintType = BlueprintGraphToolkitBlueprintTypes.TypeId;
+                return true;
+            }
+
+            if (graphType == typeof(Array))
+            {
+                blueprintType = BlueprintGraphToolkitArrayTypes.MakeBlueprintType(BlueprintGraphToolkitArrayTypes.DefaultElementType);
+                return true;
+            }
+
+            Type elementClrType;
+            if (BlueprintGraphToolkitArrayTypes.TryGetElementType(graphType, out elementClrType))
+            {
+                string elementType;
+                if (BlueprintVariableTypeRegistry.TryGetBlueprintType(elementClrType, out elementType))
+                {
+                    blueprintType = MakeArrayType(elementType);
+                    return true;
+                }
+            }
+
+            return BlueprintVariableTypeRegistry.TryGetBlueprintType(graphType, out blueprintType);
+        }
+
+        private static string MakeArrayType(string elementType)
+        {
+            return "Array<" + elementType + ">";
+        }
+    }
+}

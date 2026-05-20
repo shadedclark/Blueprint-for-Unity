@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Add",
+  "title": "Array Add",
+  "category": "Array",
+  "description": "Returns a copy of array with item appended.",
+  "executor": "Array.Add",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": [
+    {
+      "id": "item",
+      "required": false
+    }
+  ]
+}

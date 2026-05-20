@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.IsValid",
+  "title": "Is Blueprint Valid",
+  "category": "Blueprint",
+  "description": "Returns true when a Blueprint asset path or BlueprintRef resolves inside the current Blueprint instance tree.",
+  "executor": "Blueprint.IsValid",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Blueprint",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Blueprint",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "reference",
+    "valid"
+  ]
+}

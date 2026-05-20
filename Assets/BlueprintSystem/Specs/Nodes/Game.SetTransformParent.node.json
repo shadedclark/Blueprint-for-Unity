@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetTransformParent",
+  "title": "Set Transform Parent",
+  "category": "Game/Transform",
+  "description": "Parents a Transform to another bound Transform.",
+  "executor": "Game.SetTransformParent",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "parent",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "worldPositionStays",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    },
+    {
+      "id": "parent",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    },
+    {
+      "id": "worldPositionStays",
+      "required": false,
+      "type": "bool",
+      "defaultValue": true
+    }
+  ]
+}

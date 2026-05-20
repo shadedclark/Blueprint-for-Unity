@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryConfirmDropButtonClickInteraction",
+  "category": "Inventory/UI/Interactions",
+  "description": "Binds this UI button to ItemActionBehavior.ConfirmDropRequested.",
+  "variables": [],
+  "bindings": [
+    {
+      "name": "self_button",
+      "type": "Button",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_start",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "bind_click",
+      "typeId": "UI.BindButtonClick",
+      "position": [
+        190,
+        0
+      ],
+      "properties": {
+        "target": "self_button"
+      }
+    },
+    {
+      "id": "get_owner",
+      "typeId": "Blueprint.GetOwner",
+      "position": [
+        190,
+        120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_target_component",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        390,
+        120
+      ],
+      "properties": {
+        "name": "ItemActionBehavior"
+      }
+    },
+    {
+      "id": "trigger_intent",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        610,
+        120
+      ],
+      "properties": {
+        "eventName": "ConfirmDropRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start.execOut",
+      "to": "bind_click.execIn"
+    },
+    {
+      "from": "get_owner.target",
+      "to": "get_target_component.target"
+    },
+    {
+      "from": "get_target_component.target",
+      "to": "trigger_intent.target"
+    },
+    {
+      "from": "bind_click.clicked",
+      "to": "trigger_intent.execIn"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetTimeScale",
+  "title": "Set Time Scale",
+  "category": "Game/Time",
+  "description": "Sets Unity Time.timeScale clamped to zero or above.",
+  "executor": "Game.SetTimeScale",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

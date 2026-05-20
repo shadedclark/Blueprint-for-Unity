@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SendEvent",
+  "title": "Send Event",
+  "category": "Game",
+  "description": "Publishes a named event on the current blueprint event bus.",
+  "executor": "Game.SendEvent",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "eventName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "eventName",
+      "type": "string",
+      "required": false
+    }
+  ]
+}

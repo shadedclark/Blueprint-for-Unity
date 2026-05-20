@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.Event.OnTick",
+  "title": "On Tick",
+  "category": "Events",
+  "description": "Entry fired from BlueprintRunner Update, FixedUpdate, or LateUpdate.",
+  "executor": "Flow.Event",
+  "inputs": [
+    {
+      "id": "phase",
+      "kind": "value",
+      "type": "TickPhase",
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec",
+      "allowMultiple": true
+    }
+  ],
+  "properties": [
+    {
+      "id": "phase",
+      "required": false,
+      "type": "TickPhase",
+      "defaultValue": "Update"
+    }
+  ]
+}

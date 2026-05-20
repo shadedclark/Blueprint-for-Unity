@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.FlipFlop",
+  "title": "Flip Flop",
+  "category": "Flow",
+  "description": "Alternates execution between A and B outputs.",
+  "executor": "Flow.FlipFlop",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "a",
+      "kind": "exec"
+    },
+    {
+      "id": "b",
+      "kind": "exec"
+    },
+    {
+      "id": "isA",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": []
+}

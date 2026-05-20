@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.Replace",
+  "title": "Replace",
+  "category": "String",
+  "description": "Replaces all oldValue occurrences with newValue.",
+  "executor": "String.Replace",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "oldValue",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "newValue",
+      "kind": "value",
+      "type": "string",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "oldValue",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "newValue",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

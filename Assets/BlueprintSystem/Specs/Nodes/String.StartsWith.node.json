@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.StartsWith",
+  "title": "Starts With",
+  "category": "String",
+  "description": "Returns true when value starts with prefix.",
+  "executor": "String.StartsWith",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "prefix",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "prefix",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetGraphicRaycastTarget",
+  "title": "Set Graphic Raycast Target",
+  "category": "UI",
+  "description": "Sets raycast target state on a bound Unity UI Graphic.",
+  "executor": "UI.SetGraphicRaycastTarget",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Graphic>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Graphic>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ]
+}

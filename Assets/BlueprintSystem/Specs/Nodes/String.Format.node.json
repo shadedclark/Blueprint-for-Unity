@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.Format",
+  "title": "Format",
+  "category": "String",
+  "description": "Formats a string using {0} through {3} placeholders.",
+  "executor": "String.Format",
+  "inputs": [
+    {
+      "id": "format",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "arg0",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "arg1",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "arg2",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "arg3",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "format",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "arg0",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "arg1",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "arg2",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "arg3",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

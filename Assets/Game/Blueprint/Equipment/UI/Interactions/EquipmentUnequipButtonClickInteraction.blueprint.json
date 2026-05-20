@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "0.1",
+  "name": "EquipmentUnequipButtonClickInteraction",
+  "category": "Equipment/UI/Interactions",
+  "description": "Binds a button to UnequipSelectedRequested on the Equipment controller.",
+  "variables": [],
+  "bindings": [
+    {
+      "name": "self_button",
+      "type": "Button",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_start_0",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "bind_click_1",
+      "typeId": "UI.BindButtonClick",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "self_button"
+      }
+    },
+    {
+      "id": "get_owner_2",
+      "typeId": "Blueprint.GetOwner",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_component_3",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "EquipmentUnequipBehavior"
+      }
+    },
+    {
+      "id": "trigger_event_4",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "UnequipSelectedRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start_0.execOut",
+      "to": "bind_click_1.execIn"
+    },
+    {
+      "from": "get_owner_2.target",
+      "to": "get_component_3.target"
+    },
+    {
+      "from": "get_component_3.target",
+      "to": "trigger_event_4.target"
+    },
+    {
+      "from": "bind_click_1.clicked",
+      "to": "trigger_event_4.execIn"
+    }
+  ]
+}

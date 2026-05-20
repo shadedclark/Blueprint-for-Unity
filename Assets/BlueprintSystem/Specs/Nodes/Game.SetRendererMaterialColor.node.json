@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetRendererMaterialColor",
+  "title": "Set Renderer Material Color",
+  "category": "Game/Rendering",
+  "description": "Sets a color property on a bound Renderer's instance material.",
+  "executor": "Game.SetRendererMaterialColor",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Renderer>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Color",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "propertyName",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Renderer>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Color",
+      "required": false,
+      "defaultValue": [1, 1, 1, 1]
+    },
+    {
+      "id": "propertyName",
+      "type": "string",
+      "required": false,
+      "defaultValue": "_Color"
+    }
+  ],
+  "tags": [
+    "renderer",
+    "material",
+    "color"
+  ]
+}

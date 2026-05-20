@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Input.ListenKey",
+  "title": "Listen Key",
+  "category": "Input",
+  "description": "Polls a keyboard key when executed, usually from Game.Event.OnTick. Always continues through bound and also executes pressed, held, or released on state changes.",
+  "executor": "Input.ListenKey",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "key",
+      "kind": "value",
+      "type": "Key",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bound",
+      "kind": "exec"
+    },
+    {
+      "id": "pressed",
+      "kind": "exec"
+    },
+    {
+      "id": "held",
+      "kind": "exec"
+    },
+    {
+      "id": "released",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "key",
+      "type": "Key",
+      "required": true
+    }
+  ],
+  "tags": [
+    "keyboard",
+    "input"
+  ]
+}

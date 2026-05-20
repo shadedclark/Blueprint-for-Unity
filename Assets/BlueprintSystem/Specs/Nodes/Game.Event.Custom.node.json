@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.Event.Custom",
+  "title": "Custom Event",
+  "category": "Events",
+  "description": "Entry point for a named custom event.",
+  "executor": "Flow.Event",
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec",
+      "allowMultiple": true
+    }
+  ],
+  "properties": [
+    {
+      "id": "eventName",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

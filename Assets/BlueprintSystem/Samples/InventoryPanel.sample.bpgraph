@@ -1,0 +1,689 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 61
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 790b4d75d92f4b0984310a268dbd952f, type: 3}
+  m_Name: InventoryPanel.sample
+  m_EditorClassIdentifier: Unity.GraphToolkit.Editor::Unity.GraphToolkit.Editor.Implementation.GraphObjectImp
+  m_GraphModel:
+    rid: 2881251942076514934
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2881251942076514934
+      type: {class: GraphModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 117434173758342825
+          m_Value1: 16694318897624700496
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: a9865b43c235a10150d6024c9622aee7
+        m_Name: 
+        m_GraphNodeModels:
+        - rid: 2881251942076514937
+        - rid: 2881251942076514964
+        - rid: 2881251942076514967
+        m_GraphWireModels:
+        - rid: 2881251942076514974
+        m_GraphStickyNoteModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels:
+        - rid: 2881251942076514940
+        - rid: 2881251942076514941
+        - rid: 2881251942076514942
+        - rid: 2881251942076514943
+        - rid: 2881251942076514944
+        - rid: 2881251942076514962
+        - rid: 2881251942076514965
+        m_GraphPortalModels: []
+        m_SectionModels:
+        - rid: 2881251942076514935
+        m_LocalSubgraphs: []
+        m_LastKnownBounds:
+          serializedVersion: 2
+          x: 264
+          y: 118.5
+          width: 459
+          height: 474
+        m_GraphElementMetaData:
+        - m_Guid:
+            m_Value0: 579384203676628924
+            m_Value1: 16844406065871511625
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: bc379e10dd620a0849e0b448125ac3e9
+          m_Category: 1
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 10531006327605148714
+            m_Value1: 14518708917707743401
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 2abc4b9475a62592a9204455d6d07cc9
+          m_Category: 1
+          m_Index: 1
+        - m_Guid:
+            m_Value0: 5215244423548401730
+            m_Value1: 13817988856038950977
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 427870f22b4560484108825aa75bc3bf
+          m_Category: 1
+          m_Index: 2
+        - m_Guid:
+            m_Value0: 1386193892741937012
+            m_Value1: 6410429305778833104
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 74f7b24600c03c13d086b35c7d6bf658
+          m_Category: 1
+          m_Index: 3
+        - m_Guid:
+            m_Value0: 16124865122627308727
+            m_Value1: 10888345362500875801
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: b74c49556507c7df19f6a2136b2c1b97
+          m_Category: 1
+          m_Index: 4
+        - m_Guid:
+            m_Value0: 3732305474122210451
+            m_Value1: 17438212743543924897
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 93dc4cda0dd0cb33a128a04019fa00f2
+          m_Category: 0
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 3020401357841510007
+            m_Value1: 12409951105279432991
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 772e403d089fea291f99258ec70039ac
+          m_Category: 1
+          m_Index: 5
+        - m_Guid:
+            m_Value0: 5131663187545990081
+            m_Value1: 4595880513189331282
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: c1a3a0f87a5437475241ca0afad8c73f
+          m_Category: 0
+          m_Index: 1
+        - m_Guid:
+            m_Value0: 9244283587947795295
+            m_Value1: 15296011139122860186
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 5f139ae6f14a4a809a10d6db165946d4
+          m_Category: 1
+          m_Index: 6
+        - m_Guid:
+            m_Value0: 938858735890007499
+            m_Value1: 11672905321949493990
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: cb05ffc60b7f070de6fa906b8b7dfea1
+          m_Category: 0
+          m_Index: 2
+        - m_Guid:
+            m_Value0: 8643981159448208461
+            m_Value1: 2398581335835201048
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 4d6414161197f57718ce564704794921
+          m_Category: 2
+          m_Index: 0
+        m_EntryPoint:
+          rid: 2881251942076514937
+        m_Graph:
+          rid: 2881251942076514936
+    - rid: 2881251942076514935
+      type: {class: SectionModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 3996630932719441535
+          m_Value1: 4864588871020476127
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 7f961483a8e27637df767ef3cd7d8243
+        m_Version: 2
+        m_Items:
+        - rid: 2881251942076514940
+        - rid: 2881251942076514941
+        - rid: 2881251942076514942
+        - rid: 2881251942076514943
+        - rid: 2881251942076514944
+        - rid: 2881251942076514962
+        - rid: 2881251942076514965
+        m_Title: 
+    - rid: 2881251942076514936
+      type: {class: BlueprintVisualGraph, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        SourceBlueprintAssetPath: Assets/BlueprintSystem/Samples/InventoryPanel.sample.blueprint.json
+        SchemaVersion: 0.1
+        BlueprintName: InventoryPanelSample
+        Category: UI
+        Description: Small AI-editable sample blueprint for UI panels.
+        Variables:
+        - Id: var_81b809c365d844328a0c81c4ccb0d026
+          Name: left
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 1
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: Variable of type Float
+        - Id: var_9754163beba44d249a92a59cbce093d0
+          Name: p2
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 1
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: Variable of type Float
+        - Id: var_f2405d41fc044b9ea1d75c0cb8b159c8
+          Name: New Variable
+          Type: Test.InventoryItem
+          HasDefaultValue: 1
+          JsonDefaultValue: '{"count":32,"id":"1","position":[0,0],"rarity":"Common"}'
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: Variable of type TestInventoryItemData
+        - Id: var_0f46327f4c8e4295b432cece13193eda
+          Name: falsd
+          Type: bool
+          HasDefaultValue: 1
+          JsonDefaultValue: false
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: Variable of type Boolean
+        - Id: var_3ad57982c6d64d13bd7aa0ad101afeab
+          Name: InventoryItemCatalog
+          Type: Blueprint
+          HasDefaultValue: 1
+          JsonDefaultValue: '"Assets/Game/Blueprints/Inventory/Data/InventoryItemCatalog.blueprint.json"'
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: 
+        - Id: 
+          Name: InventoryPanel_sample
+          Type: Blueprint
+          HasDefaultValue: 1
+          JsonDefaultValue: '"Assets/BlueprintSystem/Samples/InventoryPanel.sample.blueprint.json"'
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: 
+        Bindings:
+        - Name: TitleText
+          Type: TMP_Text
+          Required: 1
+        - Name: CloseButton
+          Type: Button
+          Required: 1
+        - Name: Text_TMP
+          Type: TMP_Text
+          Required: 1
+        - Name: Button
+          Type: Button
+          Required: 1
+        - Name: Text_TMP2
+          Type: TMP_Text
+          Required: 1
+        - Name: Image
+          Type: Image
+          Required: 1
+        - Name: c1b7e0eb0a0b72d11e39a31306f08d97
+          Type: Sprite
+          Required: 1
+        Components: []
+    - rid: 2881251942076514937
+      type: {class: VariableNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 3732305474122210451
+          m_Value1: 17438212743543924897
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 93dc4cda0dd0cb33a128a04019fa00f2
+        m_Version: 2
+        m_Position: {x: 306.56, y: 118.36621}
+        m_Title: InventoryItemCatalog
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_DeclarationModel:
+          rid: 2881251942076514944
+        m_DeclarationModelHashGuid:
+          serializedVersion: 2
+          Hash: b74c49556507c7df19f6a2136b2c1b97
+    - rid: 2881251942076514940
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 579384203676628924
+          m_Value1: 16844406065871511625
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: bc379e10dd620a0849e0b448125ac3e9
+        m_Version: 2
+        m_Name: left
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514957
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251942076514941
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 10531006327605148714
+          m_Value1: 14518708917707743401
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 2abc4b9475a62592a9204455d6d07cc9
+        m_Version: 2
+        m_Name: p2
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514958
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251942076514942
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 5215244423548401730
+          m_Value1: 13817988856038950977
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 427870f22b4560484108825aa75bc3bf
+        m_Version: 2
+        m_Name: New Variable
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Tests.BlueprintSystemTests+TestInventoryItemData,
+            Assembly-CSharp-Editor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514959
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251942076514943
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1386193892741937012
+          m_Value1: 6410429305778833104
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 74f7b24600c03c13d086b35c7d6bf658
+        m_Version: 2
+        m_Name: falsd
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Boolean, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514960
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251942076514944
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 16124865122627308727
+          m_Value1: 10888345362500875801
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: b74c49556507c7df19f6a2136b2c1b97
+        m_Version: 2
+        m_Name: InventoryItemCatalog
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514961
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251942076514957
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 1
+    - rid: 2881251942076514958
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 1
+    - rid: 2881251942076514959
+      type: {class: 'Constant`1[[BlueprintSystem.Tests.BlueprintSystemTests/TestInventoryItemData, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          id: 1
+          count: 32
+          rarity: 0
+          position: {x: 0, y: 0}
+    - rid: 2881251942076514960
+      type: {class: 'Constant`1[[System.Boolean, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 0
+    - rid: 2881251942076514961
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/Game/Blueprints/Inventory/Data/InventoryItemCatalog.blueprint.json
+    - rid: 2881251942076514962
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 3020401357841510007
+          m_Value1: 12409951105279432991
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 772e403d089fea291f99258ec70039ac
+        m_Version: 2
+        m_Name: InventoryPanel_sample
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514963
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251942076514963
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/BlueprintSystem/Samples/InventoryPanel.sample.blueprint.json
+    - rid: 2881251942076514964
+      type: {class: VariableNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 5131663187545990081
+          m_Value1: 4595880513189331282
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: c1a3a0f87a5437475241ca0afad8c73f
+        m_Version: 2
+        m_Position: {x: 264.15875, y: 558.62}
+        m_Title: InventoryPanel_sample
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_DeclarationModel:
+          rid: 2881251942076514962
+        m_DeclarationModelHashGuid:
+          serializedVersion: 2
+          Hash: 772e403d089fea291f99258ec70039ac
+    - rid: 2881251942076514965
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 9244283587947795295
+          m_Value1: 15296011139122860186
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 5f139ae6f14a4a809a10d6db165946d4
+        m_Version: 2
+        m_Name: New Variable (1)
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251942076514966
+        m_Modifiers: 1
+        m_VariableFlags: 0
+    - rid: 2881251942076514966
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: 
+    - rid: 2881251942076514967
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 938858735890007499
+          m_Value1: 11672905321949493990
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: cb05ffc60b7f070de6fa906b8b7dfea1
+        m_Version: 2
+        m_Position: {x: 462, y: 247.5}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          - __option_target
+          - name
+          - value
+          m_ValueList:
+          - rid: 2881251942076514968
+          - rid: 2881251942076514969
+          - rid: 2881251942076514970
+          - rid: 2881251942076514971
+          - rid: 2881251942076514972
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881251942076514973
+    - rid: 2881251942076514968
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Set Blueprint Variable
+    - rid: 2881251942076514969
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: blueprint_setvariable
+    - rid: 2881251942076514970
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: 
+    - rid: 2881251942076514971
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 
+    - rid: 2881251942076514972
+      type: {class: 'Constant`1[[System.Object, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data: 
+    - rid: 2881251942076514973
+      type: {class: BlueprintSetVariableVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: blueprint_setvariable
+        TypeId: Blueprint.SetVariable
+        Title: Set Blueprint Variable
+        Category: Blueprint
+        Description: Writes an exposed variable on a Blueprint component resolved
+          by asset path.
+        Inputs:
+        - Id: execIn
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+        - Id: target
+          DisplayName: 
+          Kind: value
+          Type: Blueprint
+          Required: 1
+          Source: propertyOrConnection
+          AllowMultiple: 0
+        - Id: name
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 1
+          Source: propertyOrConnection
+          AllowMultiple: 0
+        - Id: value
+          DisplayName: 
+          Kind: value
+          Type: 
+          Required: 1
+          Source: propertyOrConnection
+          AllowMultiple: 0
+        Outputs:
+        - Id: execOut
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+        Properties:
+        - Id: target
+          DisplayName: 
+          Type: Blueprint
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 1
+        - Id: name
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 0
+        - Id: value
+          DisplayName: 
+          Type: 
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 0
+    - rid: 2881251942076514974
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 8643981159448208461
+          m_Value1: 2398581335835201048
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 4d6414161197f57718ce564704794921
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 3732305474122210451
+            m_Value1: 17438212743543924897
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: 93dc4cda0dd0cb33a128a04019fa00f2
+          m_UniqueId: MainPortName
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: MainPortName
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 938858735890007499
+            m_Value1: 11672905321949493990
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: cb05ffc60b7f070de6fa906b8b7dfea1
+          m_UniqueId: target
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: target

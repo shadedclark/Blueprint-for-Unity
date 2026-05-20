@@ -1,0 +1,2303 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: EquipmentUnequipBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: EquipmentUnequipBehavior
+  sourceGuid: c54b68a66bbea49fd92705efb74a986f
+  sourcePath: Assets/Game/Blueprint/Equipment/Behavior/EquipmentUnequipBehavior.blueprint.json
+  sourceHash: a8b7e8196db923acb332387bec38227e04094d983caafb8279d014cb81724998
+  manifestHash: 46c151aacc9a75a2dec18743f852a8f744671b5c327353bfabd233fc4985aecd
+  variables:
+  - Id: var_equipment_data_blueprint
+    Name: equipment_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json
+  - Id: var_equipment_slots_presenter_blueprint
+    Name: equipment_slots_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json
+  - Id: var_equipment_stats_presenter_blueprint
+    Name: equipment_stats_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json
+  - Id: var_equipment_detail_presenter_blueprint
+    Name: equipment_detail_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json
+  - Id: var_equipment_status_presenter_blueprint
+    Name: equipment_status_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json
+  - Id: var_equipment_stat_recalc_blueprint
+    Name: equipment_stat_recalc_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json
+  - Id: var_inventory_data_blueprint
+    Name: inventory_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json
+  - Id: var_inventory_header_presenter_blueprint
+    Name: inventory_header_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json
+  - Id: var_inventory_grid_presenter_blueprint
+    Name: inventory_grid_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json
+  - Id: var_inventory_detail_presenter_blueprint
+    Name: inventory_detail_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json
+  bindings: []
+  components: []
+  nodes:
+  - Id: get_eq_data_0
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_data_blueprint"'
+  - Id: get_inv_data_1
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: event_unequip_2
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"UnequipSelectedRequested"'
+  - Id: unequip_get_eq_ids_3
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_get_eq_labels_4
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_get_selected_5
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_slot_index"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_current_id_6
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 0
+  - Id: unequip_current_label_7
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 0
+  - Id: unequip_cmp_empty_8
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '""'
+  - Id: unequip_branch_empty_9
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: unequip_empty_status_10
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Selected slot is empty."'
+  - Id: unequip_empty_refresh_get_eq_detail_11
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_empty_refresh_trig_eq_detail_12
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_empty_refresh_get_eq_status_13
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_empty_refresh_trig_eq_status_14
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_get_inv_ids_15
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_item_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_get_inv_counts_16
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_counts"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_get_inv_labels_17
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_find_empty_18
+    TypeId: Array.IndexOf
+    ExecutorId: Array.IndexOf
+    Properties:
+    - Id: item
+      JsonValue: '""'
+  - Id: unequip_branch_found_empty_19
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: unequip_full_status_20
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Inventory full."'
+  - Id: unequip_full_inv_status_21
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Inventory full."'
+  - Id: unequip_full_refresh_get_eq_status_22
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_full_refresh_trig_eq_status_23
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_full_refresh_get_inv_header_24
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_full_refresh_trig_inv_header_25
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_put_inv_id_array_26
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 0
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_put_inv_count_array_27
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 0
+    - Id: item
+      JsonValue: 1
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_put_inv_label_array_28
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 0
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_set_inv_ids_29
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_item_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_set_inv_counts_30
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_counts"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_set_inv_labels_31
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_switch_slot_32
+    TypeId: Flow.SwitchInt
+    ExecutorId: Flow.SwitchInt
+    Properties:
+    - Id: case0
+      JsonValue: 0
+    - Id: case1
+      JsonValue: 1
+    - Id: case2
+      JsonValue: 2
+    - Id: case3
+      JsonValue: 3
+    - Id: case4
+      JsonValue: 4
+    - Id: case5
+      JsonValue: 5
+    - Id: case6
+      JsonValue: 6
+    - Id: case7
+      JsonValue: 7
+    - Id: caseCount
+      JsonValue: 6
+    - Id: selection
+      JsonValue: 0
+  - Id: unequip_slot_0_clear_id_array_33
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 0
+    - Id: item
+      JsonValue: '""'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_0_clear_label_array_34
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 0
+    - Id: item
+      JsonValue: '"Head: Empty"'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_0_set_eq_ids_35
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_set_eq_labels_36
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_status_37
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Head."'
+  - Id: unequip_slot_0_inv_status_38
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Head."'
+  - Id: unequip_slot_0_refresh_get_recalc_39
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stat_recalc_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_recalc_40
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RecalculateStatsRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_eq_slots_41
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_eq_slots_42
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_eq_stats_43
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stats_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_eq_stats_44
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_eq_detail_45
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_eq_detail_46
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_eq_status_47
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_eq_status_48
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_inv_header_49
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_inv_header_50
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_inv_grid_51
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_inv_grid_52
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_0_refresh_get_inv_detail_53
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: unequip_slot_0_refresh_trig_inv_detail_54
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_clear_id_array_55
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 1
+    - Id: item
+      JsonValue: '""'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_1_clear_label_array_56
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 1
+    - Id: item
+      JsonValue: '"Hands: Empty"'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_1_set_eq_ids_57
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_set_eq_labels_58
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_status_59
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Hands."'
+  - Id: unequip_slot_1_inv_status_60
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Hands."'
+  - Id: unequip_slot_1_refresh_get_recalc_61
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stat_recalc_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_recalc_62
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RecalculateStatsRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_eq_slots_63
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_eq_slots_64
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_eq_stats_65
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stats_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_eq_stats_66
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_eq_detail_67
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_eq_detail_68
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_eq_status_69
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_eq_status_70
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_inv_header_71
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_inv_header_72
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_inv_grid_73
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_inv_grid_74
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_1_refresh_get_inv_detail_75
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: unequip_slot_1_refresh_trig_inv_detail_76
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_clear_id_array_77
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 2
+    - Id: item
+      JsonValue: '""'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_2_clear_label_array_78
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 2
+    - Id: item
+      JsonValue: '"Body: Empty"'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_2_set_eq_ids_79
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_set_eq_labels_80
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_status_81
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Body."'
+  - Id: unequip_slot_2_inv_status_82
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Body."'
+  - Id: unequip_slot_2_legacy_armor_83
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_armor"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"None"'
+  - Id: unequip_slot_2_refresh_get_recalc_84
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stat_recalc_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_recalc_85
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RecalculateStatsRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_eq_slots_86
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_eq_slots_87
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_eq_stats_88
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stats_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_eq_stats_89
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_eq_detail_90
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_eq_detail_91
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_eq_status_92
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_eq_status_93
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_inv_header_94
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_inv_header_95
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_inv_grid_96
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_inv_grid_97
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_2_refresh_get_inv_detail_98
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: unequip_slot_2_refresh_trig_inv_detail_99
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_clear_id_array_100
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 3
+    - Id: item
+      JsonValue: '""'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_3_clear_label_array_101
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 3
+    - Id: item
+      JsonValue: '"Shoes: Empty"'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_3_set_eq_ids_102
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_set_eq_labels_103
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_status_104
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Shoes."'
+  - Id: unequip_slot_3_inv_status_105
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Shoes."'
+  - Id: unequip_slot_3_refresh_get_recalc_106
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stat_recalc_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_recalc_107
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RecalculateStatsRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_eq_slots_108
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_eq_slots_109
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_eq_stats_110
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stats_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_eq_stats_111
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_eq_detail_112
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_eq_detail_113
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_eq_status_114
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_eq_status_115
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_inv_header_116
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_inv_header_117
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_inv_grid_118
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_inv_grid_119
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_3_refresh_get_inv_detail_120
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: unequip_slot_3_refresh_trig_inv_detail_121
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_clear_id_array_122
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 4
+    - Id: item
+      JsonValue: '""'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_4_clear_label_array_123
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 4
+    - Id: item
+      JsonValue: '"Weapon: Empty"'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_4_set_eq_ids_124
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_set_eq_labels_125
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_status_126
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Weapon."'
+  - Id: unequip_slot_4_inv_status_127
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Weapon."'
+  - Id: unequip_slot_4_legacy_weapon_128
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_weapon"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"None"'
+  - Id: unequip_slot_4_refresh_get_recalc_129
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stat_recalc_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_recalc_130
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RecalculateStatsRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_eq_slots_131
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_eq_slots_132
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_eq_stats_133
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stats_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_eq_stats_134
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_eq_detail_135
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_eq_detail_136
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_eq_status_137
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_eq_status_138
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_inv_header_139
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_inv_header_140
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_inv_grid_141
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_inv_grid_142
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_4_refresh_get_inv_detail_143
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: unequip_slot_4_refresh_trig_inv_detail_144
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_clear_id_array_145
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 5
+    - Id: item
+      JsonValue: '""'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_5_clear_label_array_146
+    TypeId: Array.SetElement
+    ExecutorId: Array.SetElement
+    Properties:
+    - Id: index
+      JsonValue: 5
+    - Id: item
+      JsonValue: '"Ring: Empty"'
+    - Id: sizeToFit
+      JsonValue: false
+  - Id: unequip_slot_5_set_eq_ids_147
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_instance_ids"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_set_eq_labels_148
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_labels"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_status_149
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Ring."'
+  - Id: unequip_slot_5_inv_status_150
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Unequipped Ring."'
+  - Id: unequip_slot_5_legacy_ring_151
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"equipped_accessory"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"None"'
+  - Id: unequip_slot_5_refresh_get_recalc_152
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stat_recalc_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_recalc_153
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RecalculateStatsRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_eq_slots_154
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_eq_slots_155
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_eq_stats_156
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_stats_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_eq_stats_157
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_eq_detail_158
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_eq_detail_159
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_eq_status_160
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_eq_status_161
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_inv_header_162
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_inv_header_163
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_inv_grid_164
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_inv_grid_165
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: unequip_slot_5_refresh_get_inv_detail_166
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: unequip_slot_5_refresh_trig_inv_detail_167
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  execEdges:
+  - FromNodeId: event_unequip_2
+    FromPortId: execOut
+    ToNodeId: unequip_branch_empty_9
+    ToPortId: execIn
+  - FromNodeId: unequip_branch_empty_9
+    FromPortId: false
+    ToNodeId: unequip_branch_found_empty_19
+    ToPortId: execIn
+  - FromNodeId: unequip_branch_empty_9
+    FromPortId: true
+    ToNodeId: unequip_empty_status_10
+    ToPortId: execIn
+  - FromNodeId: unequip_branch_found_empty_19
+    FromPortId: false
+    ToNodeId: unequip_full_status_20
+    ToPortId: execIn
+  - FromNodeId: unequip_branch_found_empty_19
+    FromPortId: true
+    ToNodeId: unequip_set_inv_ids_29
+    ToPortId: execIn
+  - FromNodeId: unequip_empty_refresh_trig_eq_detail_12
+    FromPortId: execOut
+    ToNodeId: unequip_empty_refresh_trig_eq_status_14
+    ToPortId: execIn
+  - FromNodeId: unequip_empty_status_10
+    FromPortId: execOut
+    ToNodeId: unequip_empty_refresh_trig_eq_detail_12
+    ToPortId: execIn
+  - FromNodeId: unequip_full_inv_status_21
+    FromPortId: execOut
+    ToNodeId: unequip_full_refresh_trig_eq_status_23
+    ToPortId: execIn
+  - FromNodeId: unequip_full_refresh_trig_eq_status_23
+    FromPortId: execOut
+    ToNodeId: unequip_full_refresh_trig_inv_header_25
+    ToPortId: execIn
+  - FromNodeId: unequip_full_status_20
+    FromPortId: execOut
+    ToNodeId: unequip_full_inv_status_21
+    ToPortId: execIn
+  - FromNodeId: unequip_set_inv_counts_30
+    FromPortId: execOut
+    ToNodeId: unequip_set_inv_labels_31
+    ToPortId: execIn
+  - FromNodeId: unequip_set_inv_ids_29
+    FromPortId: execOut
+    ToNodeId: unequip_set_inv_counts_30
+    ToPortId: execIn
+  - FromNodeId: unequip_set_inv_labels_31
+    FromPortId: execOut
+    ToNodeId: unequip_switch_slot_32
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_inv_status_38
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_recalc_40
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_eq_detail_46
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_eq_status_48
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_eq_slots_42
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_eq_stats_44
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_eq_stats_44
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_eq_detail_46
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_eq_status_48
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_inv_header_50
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_inv_grid_52
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_inv_detail_54
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_inv_header_50
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_inv_grid_52
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_refresh_trig_recalc_40
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_refresh_trig_eq_slots_42
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_set_eq_ids_35
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_set_eq_labels_36
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_set_eq_labels_36
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_status_37
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_0_status_37
+    FromPortId: execOut
+    ToNodeId: unequip_slot_0_inv_status_38
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_inv_status_60
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_recalc_62
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_eq_detail_68
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_eq_status_70
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_eq_slots_64
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_eq_stats_66
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_eq_stats_66
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_eq_detail_68
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_eq_status_70
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_inv_header_72
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_inv_grid_74
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_inv_detail_76
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_inv_header_72
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_inv_grid_74
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_refresh_trig_recalc_62
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_refresh_trig_eq_slots_64
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_set_eq_ids_57
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_set_eq_labels_58
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_set_eq_labels_58
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_status_59
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_1_status_59
+    FromPortId: execOut
+    ToNodeId: unequip_slot_1_inv_status_60
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_inv_status_82
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_legacy_armor_83
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_legacy_armor_83
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_recalc_85
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_eq_detail_91
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_eq_status_93
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_eq_slots_87
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_eq_stats_89
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_eq_stats_89
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_eq_detail_91
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_eq_status_93
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_inv_header_95
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_inv_grid_97
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_inv_detail_99
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_inv_header_95
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_inv_grid_97
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_refresh_trig_recalc_85
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_refresh_trig_eq_slots_87
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_set_eq_ids_79
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_set_eq_labels_80
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_set_eq_labels_80
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_status_81
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_2_status_81
+    FromPortId: execOut
+    ToNodeId: unequip_slot_2_inv_status_82
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_inv_status_105
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_recalc_107
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_eq_detail_113
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_eq_status_115
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_eq_slots_109
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_eq_stats_111
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_eq_stats_111
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_eq_detail_113
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_eq_status_115
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_inv_header_117
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_inv_grid_119
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_inv_detail_121
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_inv_header_117
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_inv_grid_119
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_refresh_trig_recalc_107
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_refresh_trig_eq_slots_109
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_set_eq_ids_102
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_set_eq_labels_103
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_set_eq_labels_103
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_status_104
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_3_status_104
+    FromPortId: execOut
+    ToNodeId: unequip_slot_3_inv_status_105
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_inv_status_127
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_legacy_weapon_128
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_legacy_weapon_128
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_recalc_130
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_eq_detail_136
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_eq_status_138
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_eq_slots_132
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_eq_stats_134
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_eq_stats_134
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_eq_detail_136
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_eq_status_138
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_inv_header_140
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_inv_grid_142
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_inv_detail_144
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_inv_header_140
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_inv_grid_142
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_refresh_trig_recalc_130
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_refresh_trig_eq_slots_132
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_set_eq_ids_124
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_set_eq_labels_125
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_set_eq_labels_125
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_status_126
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_4_status_126
+    FromPortId: execOut
+    ToNodeId: unequip_slot_4_inv_status_127
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_inv_status_150
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_legacy_ring_151
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_legacy_ring_151
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_recalc_153
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_eq_detail_159
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_eq_status_161
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_eq_slots_155
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_eq_stats_157
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_eq_stats_157
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_eq_detail_159
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_eq_status_161
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_inv_header_163
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_inv_grid_165
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_inv_detail_167
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_inv_header_163
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_inv_grid_165
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_refresh_trig_recalc_153
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_refresh_trig_eq_slots_155
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_set_eq_ids_147
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_set_eq_labels_148
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_set_eq_labels_148
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_status_149
+    ToPortId: execIn
+  - FromNodeId: unequip_slot_5_status_149
+    FromPortId: execOut
+    ToNodeId: unequip_slot_5_inv_status_150
+    ToPortId: execIn
+  - FromNodeId: unequip_switch_slot_32
+    FromPortId: case0
+    ToNodeId: unequip_slot_0_set_eq_ids_35
+    ToPortId: execIn
+  - FromNodeId: unequip_switch_slot_32
+    FromPortId: case1
+    ToNodeId: unequip_slot_1_set_eq_ids_57
+    ToPortId: execIn
+  - FromNodeId: unequip_switch_slot_32
+    FromPortId: case2
+    ToNodeId: unequip_slot_2_set_eq_ids_79
+    ToPortId: execIn
+  - FromNodeId: unequip_switch_slot_32
+    FromPortId: case3
+    ToNodeId: unequip_slot_3_set_eq_ids_102
+    ToPortId: execIn
+  - FromNodeId: unequip_switch_slot_32
+    FromPortId: case4
+    ToNodeId: unequip_slot_4_set_eq_ids_124
+    ToPortId: execIn
+  - FromNodeId: unequip_switch_slot_32
+    FromPortId: case5
+    ToNodeId: unequip_slot_5_set_eq_ids_147
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_empty_status_10
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_full_status_20
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_get_eq_ids_3
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_get_eq_labels_4
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_get_selected_5
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_0_set_eq_ids_35
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_0_set_eq_labels_36
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_0_status_37
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_1_set_eq_ids_57
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_1_set_eq_labels_58
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_1_status_59
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_2_set_eq_ids_79
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_2_set_eq_labels_80
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_2_status_81
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_3_set_eq_ids_102
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_3_set_eq_labels_103
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_3_status_104
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_4_set_eq_ids_124
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_4_set_eq_labels_125
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_4_status_126
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_5_set_eq_ids_147
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_5_set_eq_labels_148
+    ToPortId: target
+  - FromNodeId: get_eq_data_0
+    FromPortId: value
+    ToNodeId: unequip_slot_5_status_149
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_full_inv_status_21
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_get_inv_counts_16
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_get_inv_ids_15
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_get_inv_labels_17
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_set_inv_counts_30
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_set_inv_ids_29
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_set_inv_labels_31
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_0_inv_status_38
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_1_inv_status_60
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_2_inv_status_82
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_2_legacy_armor_83
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_3_inv_status_105
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_4_inv_status_127
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_4_legacy_weapon_128
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_5_inv_status_150
+    ToPortId: target
+  - FromNodeId: get_inv_data_1
+    FromPortId: value
+    ToNodeId: unequip_slot_5_legacy_ring_151
+    ToPortId: target
+  - FromNodeId: unequip_cmp_empty_8
+    FromPortId: result
+    ToNodeId: unequip_branch_empty_9
+    ToPortId: condition
+  - FromNodeId: unequip_current_id_6
+    FromPortId: item
+    ToNodeId: unequip_cmp_empty_8
+    ToPortId: left
+  - FromNodeId: unequip_current_id_6
+    FromPortId: item
+    ToNodeId: unequip_put_inv_id_array_26
+    ToPortId: item
+  - FromNodeId: unequip_current_label_7
+    FromPortId: item
+    ToNodeId: unequip_put_inv_label_array_28
+    ToPortId: item
+  - FromNodeId: unequip_empty_refresh_get_eq_detail_11
+    FromPortId: value
+    ToNodeId: unequip_empty_refresh_trig_eq_detail_12
+    ToPortId: target
+  - FromNodeId: unequip_empty_refresh_get_eq_status_13
+    FromPortId: value
+    ToNodeId: unequip_empty_refresh_trig_eq_status_14
+    ToPortId: target
+  - FromNodeId: unequip_find_empty_18
+    FromPortId: found
+    ToNodeId: unequip_branch_found_empty_19
+    ToPortId: condition
+  - FromNodeId: unequip_find_empty_18
+    FromPortId: index
+    ToNodeId: unequip_put_inv_count_array_27
+    ToPortId: index
+  - FromNodeId: unequip_find_empty_18
+    FromPortId: index
+    ToNodeId: unequip_put_inv_id_array_26
+    ToPortId: index
+  - FromNodeId: unequip_find_empty_18
+    FromPortId: index
+    ToNodeId: unequip_put_inv_label_array_28
+    ToPortId: index
+  - FromNodeId: unequip_full_refresh_get_eq_status_22
+    FromPortId: value
+    ToNodeId: unequip_full_refresh_trig_eq_status_23
+    ToPortId: target
+  - FromNodeId: unequip_full_refresh_get_inv_header_24
+    FromPortId: value
+    ToNodeId: unequip_full_refresh_trig_inv_header_25
+    ToPortId: target
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_current_id_6
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_slot_0_clear_id_array_33
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_slot_1_clear_id_array_55
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_slot_2_clear_id_array_77
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_slot_3_clear_id_array_100
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_slot_4_clear_id_array_122
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_ids_3
+    FromPortId: value
+    ToNodeId: unequip_slot_5_clear_id_array_145
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_current_label_7
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_slot_0_clear_label_array_34
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_slot_1_clear_label_array_56
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_slot_2_clear_label_array_78
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_slot_3_clear_label_array_101
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_slot_4_clear_label_array_123
+    ToPortId: array
+  - FromNodeId: unequip_get_eq_labels_4
+    FromPortId: value
+    ToNodeId: unequip_slot_5_clear_label_array_146
+    ToPortId: array
+  - FromNodeId: unequip_get_inv_counts_16
+    FromPortId: value
+    ToNodeId: unequip_put_inv_count_array_27
+    ToPortId: array
+  - FromNodeId: unequip_get_inv_ids_15
+    FromPortId: value
+    ToNodeId: unequip_find_empty_18
+    ToPortId: array
+  - FromNodeId: unequip_get_inv_ids_15
+    FromPortId: value
+    ToNodeId: unequip_put_inv_id_array_26
+    ToPortId: array
+  - FromNodeId: unequip_get_inv_labels_17
+    FromPortId: value
+    ToNodeId: unequip_put_inv_label_array_28
+    ToPortId: array
+  - FromNodeId: unequip_get_selected_5
+    FromPortId: value
+    ToNodeId: unequip_current_id_6
+    ToPortId: index
+  - FromNodeId: unequip_get_selected_5
+    FromPortId: value
+    ToNodeId: unequip_current_label_7
+    ToPortId: index
+  - FromNodeId: unequip_get_selected_5
+    FromPortId: value
+    ToNodeId: unequip_switch_slot_32
+    ToPortId: selection
+  - FromNodeId: unequip_put_inv_count_array_27
+    FromPortId: array
+    ToNodeId: unequip_set_inv_counts_30
+    ToPortId: value
+  - FromNodeId: unequip_put_inv_id_array_26
+    FromPortId: array
+    ToNodeId: unequip_set_inv_ids_29
+    ToPortId: value
+  - FromNodeId: unequip_put_inv_label_array_28
+    FromPortId: array
+    ToNodeId: unequip_set_inv_labels_31
+    ToPortId: value
+  - FromNodeId: unequip_slot_0_clear_id_array_33
+    FromPortId: array
+    ToNodeId: unequip_slot_0_set_eq_ids_35
+    ToPortId: value
+  - FromNodeId: unequip_slot_0_clear_label_array_34
+    FromPortId: array
+    ToNodeId: unequip_slot_0_set_eq_labels_36
+    ToPortId: value
+  - FromNodeId: unequip_slot_0_refresh_get_eq_detail_45
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_eq_detail_46
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_eq_slots_41
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_eq_slots_42
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_eq_stats_43
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_eq_stats_44
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_eq_status_47
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_eq_status_48
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_inv_detail_53
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_inv_detail_54
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_inv_grid_51
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_inv_grid_52
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_inv_header_49
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_inv_header_50
+    ToPortId: target
+  - FromNodeId: unequip_slot_0_refresh_get_recalc_39
+    FromPortId: value
+    ToNodeId: unequip_slot_0_refresh_trig_recalc_40
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_clear_id_array_55
+    FromPortId: array
+    ToNodeId: unequip_slot_1_set_eq_ids_57
+    ToPortId: value
+  - FromNodeId: unequip_slot_1_clear_label_array_56
+    FromPortId: array
+    ToNodeId: unequip_slot_1_set_eq_labels_58
+    ToPortId: value
+  - FromNodeId: unequip_slot_1_refresh_get_eq_detail_67
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_eq_detail_68
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_eq_slots_63
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_eq_slots_64
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_eq_stats_65
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_eq_stats_66
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_eq_status_69
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_eq_status_70
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_inv_detail_75
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_inv_detail_76
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_inv_grid_73
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_inv_grid_74
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_inv_header_71
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_inv_header_72
+    ToPortId: target
+  - FromNodeId: unequip_slot_1_refresh_get_recalc_61
+    FromPortId: value
+    ToNodeId: unequip_slot_1_refresh_trig_recalc_62
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_clear_id_array_77
+    FromPortId: array
+    ToNodeId: unequip_slot_2_set_eq_ids_79
+    ToPortId: value
+  - FromNodeId: unequip_slot_2_clear_label_array_78
+    FromPortId: array
+    ToNodeId: unequip_slot_2_set_eq_labels_80
+    ToPortId: value
+  - FromNodeId: unequip_slot_2_refresh_get_eq_detail_90
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_eq_detail_91
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_eq_slots_86
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_eq_slots_87
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_eq_stats_88
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_eq_stats_89
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_eq_status_92
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_eq_status_93
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_inv_detail_98
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_inv_detail_99
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_inv_grid_96
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_inv_grid_97
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_inv_header_94
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_inv_header_95
+    ToPortId: target
+  - FromNodeId: unequip_slot_2_refresh_get_recalc_84
+    FromPortId: value
+    ToNodeId: unequip_slot_2_refresh_trig_recalc_85
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_clear_id_array_100
+    FromPortId: array
+    ToNodeId: unequip_slot_3_set_eq_ids_102
+    ToPortId: value
+  - FromNodeId: unequip_slot_3_clear_label_array_101
+    FromPortId: array
+    ToNodeId: unequip_slot_3_set_eq_labels_103
+    ToPortId: value
+  - FromNodeId: unequip_slot_3_refresh_get_eq_detail_112
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_eq_detail_113
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_eq_slots_108
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_eq_slots_109
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_eq_stats_110
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_eq_stats_111
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_eq_status_114
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_eq_status_115
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_inv_detail_120
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_inv_detail_121
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_inv_grid_118
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_inv_grid_119
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_inv_header_116
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_inv_header_117
+    ToPortId: target
+  - FromNodeId: unequip_slot_3_refresh_get_recalc_106
+    FromPortId: value
+    ToNodeId: unequip_slot_3_refresh_trig_recalc_107
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_clear_id_array_122
+    FromPortId: array
+    ToNodeId: unequip_slot_4_set_eq_ids_124
+    ToPortId: value
+  - FromNodeId: unequip_slot_4_clear_label_array_123
+    FromPortId: array
+    ToNodeId: unequip_slot_4_set_eq_labels_125
+    ToPortId: value
+  - FromNodeId: unequip_slot_4_refresh_get_eq_detail_135
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_eq_detail_136
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_eq_slots_131
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_eq_slots_132
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_eq_stats_133
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_eq_stats_134
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_eq_status_137
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_eq_status_138
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_inv_detail_143
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_inv_detail_144
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_inv_grid_141
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_inv_grid_142
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_inv_header_139
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_inv_header_140
+    ToPortId: target
+  - FromNodeId: unequip_slot_4_refresh_get_recalc_129
+    FromPortId: value
+    ToNodeId: unequip_slot_4_refresh_trig_recalc_130
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_clear_id_array_145
+    FromPortId: array
+    ToNodeId: unequip_slot_5_set_eq_ids_147
+    ToPortId: value
+  - FromNodeId: unequip_slot_5_clear_label_array_146
+    FromPortId: array
+    ToNodeId: unequip_slot_5_set_eq_labels_148
+    ToPortId: value
+  - FromNodeId: unequip_slot_5_refresh_get_eq_detail_158
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_eq_detail_159
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_eq_slots_154
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_eq_slots_155
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_eq_stats_156
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_eq_stats_157
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_eq_status_160
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_eq_status_161
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_inv_detail_166
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_inv_detail_167
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_inv_grid_164
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_inv_grid_165
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_inv_header_162
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_inv_header_163
+    ToPortId: target
+  - FromNodeId: unequip_slot_5_refresh_get_recalc_152
+    FromPortId: value
+    ToNodeId: unequip_slot_5_refresh_trig_recalc_153
+    ToPortId: target
+  eventEntries:
+  - EventName: UnequipSelectedRequested
+    NodeId: event_unequip_2

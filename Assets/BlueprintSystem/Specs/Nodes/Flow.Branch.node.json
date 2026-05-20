@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.Branch",
+  "title": "Branch",
+  "category": "Flow",
+  "description": "Routes execution based on a boolean condition.",
+  "executor": "Flow.Branch",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "condition",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "true",
+      "kind": "exec"
+    },
+    {
+      "id": "false",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "condition",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    }
+  ]
+}

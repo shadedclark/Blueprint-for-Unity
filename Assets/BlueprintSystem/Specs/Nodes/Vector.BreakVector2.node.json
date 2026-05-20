@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Vector.BreakVector2",
+  "title": "Break Vector2",
+  "category": "Vector",
+  "description": "Splits a Vector2 into x and y.",
+  "executor": "Vector.BreakVector2",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "x",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "y",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "Vector2",
+      "defaultValue": [
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

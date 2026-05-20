@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.LoadScene",
+  "title": "Load Scene",
+  "category": "Game",
+  "description": "Loads a Unity scene by name using SceneManager.LoadScene.",
+  "executor": "Game.LoadScene",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "sceneName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "mode",
+      "kind": "value",
+      "type": "LoadSceneMode",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "sceneName",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "mode",
+      "type": "LoadSceneMode",
+      "required": false,
+      "defaultValue": "Single"
+    }
+  ],
+  "tags": [
+    "scene",
+    "level",
+    "load"
+  ]
+}

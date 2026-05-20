@@ -1,0 +1,147 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.BoxCast",
+  "title": "Box Cast",
+  "category": "Game/Physics",
+  "description": "Casts a 3D box and returns hit data.",
+  "executor": "Game.BoxCast",
+  "inputs": [
+    {
+      "id": "center",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "halfExtents",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "direction",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "orientationEuler",
+      "kind": "value",
+      "type": "Vector3",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "maxDistance",
+      "kind": "value",
+      "type": "float",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "layerMask",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "includeTriggers",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "hit",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "point",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "normal",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "distance",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "colliderName",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "gameObjectName",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "center",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "halfExtents",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": "direction",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "id": "orientationEuler",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "maxDistance",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1000.0
+    },
+    {
+      "id": "layerMask",
+      "required": false,
+      "type": "int",
+      "defaultValue": -1
+    },
+    {
+      "id": "includeTriggers",
+      "required": false,
+      "type": "bool",
+      "defaultValue": true
+    }
+  ]
+}

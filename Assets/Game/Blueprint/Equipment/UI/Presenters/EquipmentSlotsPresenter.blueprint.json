@@ -1,0 +1,453 @@
+{
+  "schemaVersion": "0.1",
+  "name": "EquipmentSlotsPresenter",
+  "category": "Equipment/UI/Presenter",
+  "description": "Refreshes equipment slot labels and frame colors.",
+  "variables": [
+    {
+      "id": "var_equipment_data_blueprint",
+      "name": "equipment_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "equipment_slot_head_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_head_frame",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_hands_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_hands_frame",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_body_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_body_frame",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_shoes_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_shoes_frame",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_weapon_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_weapon_frame",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_ring_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_slot_ring_frame",
+      "type": "Image",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "get_data_0",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_data_blueprint"
+      }
+    },
+    {
+      "id": "event_refresh_1",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "get_labels_2",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "equipped_labels"
+      }
+    },
+    {
+      "id": "slot_0_get_label_3",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "index": 0
+      }
+    },
+    {
+      "id": "slot_0_set_text_4",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_head_text"
+      }
+    },
+    {
+      "id": "slot_0_set_frame_5",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_head_frame",
+        "value": [
+          0.42,
+          0.46,
+          0.52,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_1_get_label_6",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "index": 1
+      }
+    },
+    {
+      "id": "slot_1_set_text_7",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_hands_text"
+      }
+    },
+    {
+      "id": "slot_1_set_frame_8",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_hands_frame",
+        "value": [
+          0.42,
+          0.46,
+          0.52,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_2_get_label_9",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "index": 2
+      }
+    },
+    {
+      "id": "slot_2_set_text_10",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_body_text"
+      }
+    },
+    {
+      "id": "slot_2_set_frame_11",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_body_frame",
+        "value": [
+          0.42,
+          0.46,
+          0.52,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_3_get_label_12",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "index": 3
+      }
+    },
+    {
+      "id": "slot_3_set_text_13",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_shoes_text"
+      }
+    },
+    {
+      "id": "slot_3_set_frame_14",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_shoes_frame",
+        "value": [
+          0.42,
+          0.46,
+          0.52,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_4_get_label_15",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "index": 4
+      }
+    },
+    {
+      "id": "slot_4_set_text_16",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_weapon_text"
+      }
+    },
+    {
+      "id": "slot_4_set_frame_17",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_weapon_frame",
+        "value": [
+          0.42,
+          0.46,
+          0.52,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_5_get_label_18",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "index": 5
+      }
+    },
+    {
+      "id": "slot_5_set_text_19",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_ring_text"
+      }
+    },
+    {
+      "id": "slot_5_set_frame_20",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_slot_ring_frame",
+        "value": [
+          0.42,
+          0.46,
+          0.52,
+          1
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data_0.value",
+      "to": "get_labels_2.target"
+    },
+    {
+      "from": "get_labels_2.value",
+      "to": "slot_0_get_label_3.array"
+    },
+    {
+      "from": "slot_0_get_label_3.item",
+      "to": "slot_0_set_text_4.value"
+    },
+    {
+      "from": "event_refresh_1.execOut",
+      "to": "slot_0_set_text_4.execIn"
+    },
+    {
+      "from": "slot_0_set_text_4.execOut",
+      "to": "slot_0_set_frame_5.execIn"
+    },
+    {
+      "from": "get_labels_2.value",
+      "to": "slot_1_get_label_6.array"
+    },
+    {
+      "from": "slot_1_get_label_6.item",
+      "to": "slot_1_set_text_7.value"
+    },
+    {
+      "from": "slot_0_set_frame_5.execOut",
+      "to": "slot_1_set_text_7.execIn"
+    },
+    {
+      "from": "slot_1_set_text_7.execOut",
+      "to": "slot_1_set_frame_8.execIn"
+    },
+    {
+      "from": "get_labels_2.value",
+      "to": "slot_2_get_label_9.array"
+    },
+    {
+      "from": "slot_2_get_label_9.item",
+      "to": "slot_2_set_text_10.value"
+    },
+    {
+      "from": "slot_1_set_frame_8.execOut",
+      "to": "slot_2_set_text_10.execIn"
+    },
+    {
+      "from": "slot_2_set_text_10.execOut",
+      "to": "slot_2_set_frame_11.execIn"
+    },
+    {
+      "from": "get_labels_2.value",
+      "to": "slot_3_get_label_12.array"
+    },
+    {
+      "from": "slot_3_get_label_12.item",
+      "to": "slot_3_set_text_13.value"
+    },
+    {
+      "from": "slot_2_set_frame_11.execOut",
+      "to": "slot_3_set_text_13.execIn"
+    },
+    {
+      "from": "slot_3_set_text_13.execOut",
+      "to": "slot_3_set_frame_14.execIn"
+    },
+    {
+      "from": "get_labels_2.value",
+      "to": "slot_4_get_label_15.array"
+    },
+    {
+      "from": "slot_4_get_label_15.item",
+      "to": "slot_4_set_text_16.value"
+    },
+    {
+      "from": "slot_3_set_frame_14.execOut",
+      "to": "slot_4_set_text_16.execIn"
+    },
+    {
+      "from": "slot_4_set_text_16.execOut",
+      "to": "slot_4_set_frame_17.execIn"
+    },
+    {
+      "from": "get_labels_2.value",
+      "to": "slot_5_get_label_18.array"
+    },
+    {
+      "from": "slot_5_get_label_18.item",
+      "to": "slot_5_set_text_19.value"
+    },
+    {
+      "from": "slot_4_set_frame_17.execOut",
+      "to": "slot_5_set_text_19.execIn"
+    },
+    {
+      "from": "slot_5_set_text_19.execOut",
+      "to": "slot_5_set_frame_20.execIn"
+    }
+  ]
+}

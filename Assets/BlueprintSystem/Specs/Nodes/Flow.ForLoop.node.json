@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.ForLoop",
+  "title": "For Loop",
+  "category": "Flow",
+  "description": "Executes loopBody for each integer index from firstIndex through lastIndex.",
+  "executor": "Flow.ForLoop",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "firstIndex",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "lastIndex",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "loopBody",
+      "kind": "exec"
+    },
+    {
+      "id": "completed",
+      "kind": "exec"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": [
+    {
+      "id": "firstIndex",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "lastIndex",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    }
+  ]
+}

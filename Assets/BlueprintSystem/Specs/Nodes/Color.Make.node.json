@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Color.Make",
+  "title": "Make Color",
+  "category": "Color",
+  "description": "Creates a Color from r, g, b, and a.",
+  "executor": "Color.Make",
+  "inputs": [
+    {
+      "id": "r",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "g",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Color"
+    }
+  ],
+  "properties": [
+    {
+      "id": "r",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    },
+    {
+      "id": "g",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    },
+    {
+      "id": "a",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

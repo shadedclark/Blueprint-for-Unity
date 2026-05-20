@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Get",
+  "title": "Array Get",
+  "category": "Array",
+  "description": "Returns an item from an array by index.",
+  "executor": "Array.Get",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "item",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "index",
+      "type": "int",
+      "required": false,
+      "defaultValue": 0
+    }
+  ]
+}

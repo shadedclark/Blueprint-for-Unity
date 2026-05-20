@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.RandomBool",
+  "title": "Random Bool",
+  "category": "Math",
+  "description": "Returns a random boolean value.",
+  "executor": "Math.RandomBool",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": []
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.RandomInt",
+  "title": "Random Int",
+  "category": "Math",
+  "description": "Returns a random int between min and max inclusive.",
+  "executor": "Math.RandomInt",
+  "inputs": [
+    {
+      "id": "min",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "max",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": [
+    {
+      "id": "min",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "max",
+      "required": false,
+      "type": "int",
+      "defaultValue": 1
+    }
+  ]
+}

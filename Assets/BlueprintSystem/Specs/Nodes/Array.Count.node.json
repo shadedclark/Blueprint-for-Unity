@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Count",
+  "title": "Array Count",
+  "category": "Array",
+  "description": "Returns the number of items in an array value.",
+  "executor": "Array.Count",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "count",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": []
+}

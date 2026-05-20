@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Logic.Or",
+  "title": "Or",
+  "category": "Logic",
+  "description": "Returns true when either boolean input is true.",
+  "executor": "Logic.Or",
+  "inputs": [
+    {
+      "id": "left",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "right",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "left",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "id": "right",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    }
+  ],
+  "tags": [
+    "boolean",
+    "condition"
+  ]
+}

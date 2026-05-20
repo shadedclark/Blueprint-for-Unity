@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Input.GetAxisRaw",
+  "title": "Get Axis Raw",
+  "category": "Input",
+  "description": "Returns Unity legacy Input Manager Input.GetAxisRaw value for an axis name without smoothing.",
+  "executor": "Input.GetAxisRaw",
+  "inputs": [
+    {
+      "id": "axisName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "axisName",
+      "required": false,
+      "type": "string",
+      "defaultValue": "Horizontal"
+    }
+  ],
+  "tags": [
+    "input",
+    "axis",
+    "raw",
+    "legacy"
+  ]
+}

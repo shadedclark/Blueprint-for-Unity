@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.GetVariable",
+  "title": "Get Blueprint Variable",
+  "category": "Blueprint",
+  "description": "Reads an exposed variable from a Blueprint component resolved by asset path or BlueprintRef.",
+  "executor": "Blueprint.GetVariable",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Blueprint",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "name",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Blueprint",
+      "required": false
+    },
+    {
+      "id": "name",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "variable",
+    "get"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.DoOnce",
+  "title": "Do Once",
+  "category": "Flow",
+  "description": "Allows execution through once until reset is triggered.",
+  "executor": "Flow.DoOnce",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "reset",
+      "kind": "exec"
+    },
+    {
+      "id": "startClosed",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "startClosed",
+      "required": false,
+      "type": "bool",
+      "defaultValue": false
+    }
+  ]
+}

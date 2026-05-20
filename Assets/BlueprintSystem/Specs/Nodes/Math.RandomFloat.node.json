@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.RandomFloat",
+  "title": "Random Float",
+  "category": "Math",
+  "description": "Returns a random float between min and max.",
+  "executor": "Math.RandomFloat",
+  "inputs": [
+    {
+      "id": "min",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "max",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "min",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "max",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

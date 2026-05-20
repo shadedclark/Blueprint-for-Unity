@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.Gate",
+  "title": "Gate",
+  "category": "Flow",
+  "description": "Lets enter execution pass through exit only while the gate is open.",
+  "executor": "Flow.Gate",
+  "inputs": [
+    {
+      "id": "enter",
+      "kind": "exec"
+    },
+    {
+      "id": "open",
+      "kind": "exec"
+    },
+    {
+      "id": "close",
+      "kind": "exec"
+    },
+    {
+      "id": "toggle",
+      "kind": "exec"
+    },
+    {
+      "id": "startClosed",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "exit",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "startClosed",
+      "required": false,
+      "type": "bool",
+      "defaultValue": false
+    }
+  ]
+}

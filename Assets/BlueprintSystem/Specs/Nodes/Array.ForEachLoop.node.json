@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.ForEachLoop",
+  "title": "For Each Loop",
+  "category": "Array",
+  "description": "Executes the loop body once for each item in an array.",
+  "executor": "Array.ForEachLoop",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "loopBody",
+      "kind": "exec"
+    },
+    {
+      "id": "completed",
+      "kind": "exec"
+    },
+    {
+      "id": "arrayElement",
+      "kind": "value"
+    },
+    {
+      "id": "arrayIndex",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": []
+}

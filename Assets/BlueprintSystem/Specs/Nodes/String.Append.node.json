@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.Append",
+  "title": "Append",
+  "category": "String",
+  "description": "Concatenates up to four values as text.",
+  "executor": "String.Append",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "c",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "d",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "b",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "c",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "d",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

@@ -1,0 +1,2119 @@
+# BlueprintSystem Node Guide
+
+This guide is for developers and coding agents extending the current BlueprintSystem.
+Use it before adding a new node so existing functionality is not duplicated.
+
+Current source of truth:
+
+```text
+Blueprint JSON behavior: Assets/BlueprintSystem/Sources/**/*.blueprint.json
+Node manifests: Assets/BlueprintSystem/Specs/Nodes/*.node.json
+Compiled runtime assets: *.compiled.asset generated from blueprint JSON + node manifests
+Runtime executors: Assets/BlueprintSystem/Executors/**/*.cs
+Executor registry: Assets/BlueprintSystem/Runtime/BlueprintExecutor.cs
+Graph Toolkit visual nodes: Assets/BlueprintSystem/Editor/GraphToolkit/*.cs
+```
+
+Important rule:
+
+```text
+Adding an executor alone does not make a user-facing node.
+A user-facing node needs a .node.json manifest and, for Graph Toolkit UX, a visual node class.
+```
+
+## Runtime Model
+
+Each blueprint node is identified by `typeId`. In the editor, the compiler finds a matching node manifest, bakes manifest defaults into a `BlueprintCompiledAsset`, then stores each node's executor id for runtime hydration. At runtime, `BlueprintRunner.compiledBlueprint` is the root blueprint asset reference and may include compiled component blueprint references; executor ids resolve through `BlueprintExecutorRegistry.CreateDefault()` without loading source JSON or node manifests.
+
+Value input resolution order:
+
+```text
+connected value edge -> compiled node property -> null
+```
+
+`UIBinding<T>` values are stored in JSON as string binding names. At runtime, `UIBlueprintBinder` resolves the binding name to a Unity object and can also call `GetComponent<T>()` when the binding target is a `GameObject` or `Component`.
+
+## Current Node Summary
+
+| Type ID | Title | Category | Executor ID | Executor Class | Purpose |
+| --- | --- | --- | --- | --- | --- |
+| `Game.Event.OnStart` | On Start | Events | `Flow.Event` | `FlowEventExecutor` | Entry fired by `BlueprintRunner.Start`. |
+| `Game.Event.Custom` | Custom Event | Events | `Flow.Event` | `FlowEventExecutor` | Entry fired by a named event. |
+| `UI.Event.OnOpen` | On Open | Events | `Flow.Event` | `FlowEventExecutor` | Entry fired by `UIBlueprintBinder.OnEnable` by default. |
+| `UI.Event.OnClose` | On Close | Events | `Flow.Event` | `FlowEventExecutor` | Entry fired by `UIBlueprintBinder.OnDisable` by default. |
+| `Flow.Branch` | Branch | Flow | `Flow.Branch` | `FlowBranchExecutor` | Routes execution by a bool condition. |
+| `Flow.Sequence` | Sequence | Flow | `Flow.Sequence` | `FlowSequenceExecutor` | Runs up to four exec outputs in order. |
+| `Flow.Delay` | Delay | Flow | `Flow.Delay` | `FlowDelayExecutor` | Suspends execution before continuing. |
+| `Game.Log` | Log | Game | `Game.Log` | `GameLogExecutor` | Logs a string message. |
+| `Game.SendEvent` | Send Event | Game | `Game.SendEvent` | `GameSendEventExecutor` | Publishes a named event to the blueprint event bus. |
+| `Game.LoadScene` | Load Scene | Game | `Game.LoadScene` | `GameLoadSceneExecutor` | Loads a Unity scene by name. |
+| `Game.LoadSceneAsync` | Load Scene Async | Game | `Game.LoadSceneAsync` | `GameLoadSceneAsyncExecutor` | Loads a Unity scene by name and continues from `complete` after the async operation finishes. |
+| `Blueprint.IsValid` | Is Blueprint Valid | Blueprint | `Blueprint.IsValid` | `BlueprintIsValidExecutor` | Returns true when a `Blueprint` asset path or runtime `BlueprintRef` resolves inside the current Blueprint instance tree. |
+| `Blueprint.GetOwner` | Get Blueprint Owner | Blueprint | `Blueprint.GetOwner` | `BlueprintGetOwnerExecutor` | Returns the owner `BlueprintRef` for the current component or supplied `BlueprintRef`. |
+| `Blueprint.GetComponent` | Get Blueprint Component | Blueprint | `Blueprint.GetComponent` | `BlueprintGetComponentExecutor` | Finds a named component from the current instance or supplied `BlueprintRef`, walking owner instances outward. |
+| `Blueprint.TriggerEvent` | Trigger Blueprint Event | Blueprint | `Blueprint.TriggerEvent` | `BlueprintTriggerEventExecutor` | Calls `TriggerEvent` on a Blueprint instance resolved by asset path or `BlueprintRef`. |
+| `Blueprint.GetVariable` | Get Blueprint Variable | Blueprint | `Blueprint.GetVariable` | `BlueprintGetVariableExecutor` | Reads an exposed variable from a Blueprint instance resolved by asset path or `BlueprintRef`. |
+| `Blueprint.SetVariable` | Set Blueprint Variable | Blueprint | `Blueprint.SetVariable` | `BlueprintSetVariableExecutor` | Writes an exposed variable on a Blueprint instance resolved by asset path or `BlueprintRef`. |
+| `Game.IsColliding` | Is Colliding | Game/Physics | `Game.IsColliding` | `GameIsCollidingExecutor` | Returns true when two bound GameObjects have overlapping colliders. |
+| `Game.SetTransformPosition` | Set Transform Position | Game/Transform | `Game.SetTransformPosition` | `GameSetTransformPositionExecutor` | Sets world `Transform.position`. |
+| `Game.SetTransformEulerAngles` | Set Transform Euler Angles | Game/Transform | `Game.SetTransformEulerAngles` | `GameSetTransformEulerAnglesExecutor` | Sets world `Transform.eulerAngles`. |
+| `Game.SetTransformLocalScale` | Set Transform Local Scale | Game/Transform | `Game.SetTransformLocalScale` | `GameSetTransformLocalScaleExecutor` | Sets `Transform.localScale`. |
+| `Game.SetRigidbodyLinearVelocity` | Set Rigidbody Linear Velocity | Game/Physics | `Game.SetRigidbodyLinearVelocity` | `GameSetRigidbodyLinearVelocityExecutor` | Sets 3D `Rigidbody.linearVelocity`. |
+| `Game.AddRigidbodyForce` | Add Rigidbody Force | Game/Physics | `Game.AddRigidbodyForce` | `GameAddRigidbodyForceExecutor` | Adds force to a 3D `Rigidbody`. |
+| `Game.SetColliderEnabled` | Set Collider Enabled | Game/Physics | `Game.SetColliderEnabled` | `GameSetColliderEnabledExecutor` | Sets 3D `Collider.enabled`. |
+| `Game.SetColliderIsTrigger` | Set Collider Is Trigger | Game/Physics | `Game.SetColliderIsTrigger` | `GameSetColliderIsTriggerExecutor` | Sets 3D `Collider.isTrigger`. |
+| `Game.SetRigidbody2DLinearVelocity` | Set Rigidbody2D Linear Velocity | Game/Physics2D | `Game.SetRigidbody2DLinearVelocity` | `GameSetRigidbody2DLinearVelocityExecutor` | Sets `Rigidbody2D.linearVelocity`. |
+| `Game.AddRigidbody2DForce` | Add Rigidbody2D Force | Game/Physics2D | `Game.AddRigidbody2DForce` | `GameAddRigidbody2DForceExecutor` | Adds force to a `Rigidbody2D`. |
+| `Game.SetCollider2DEnabled` | Set Collider2D Enabled | Game/Physics2D | `Game.SetCollider2DEnabled` | `GameSetCollider2DEnabledExecutor` | Sets `Collider2D.enabled`. |
+| `Game.SetCollider2DIsTrigger` | Set Collider2D Is Trigger | Game/Physics2D | `Game.SetCollider2DIsTrigger` | `GameSetCollider2DIsTriggerExecutor` | Sets `Collider2D.isTrigger`. |
+| `Game.SetRendererMaterial` | Set Renderer Material | Game/Rendering | `Game.SetRendererMaterial` | `GameSetRendererMaterialExecutor` | Sets an instance material slot on a `Renderer`. |
+| `Game.SetRendererMaterialColor` | Set Renderer Material Color | Game/Rendering | `Game.SetRendererMaterialColor` | `GameSetRendererMaterialColorExecutor` | Sets a color property on `renderer.material`. |
+| `Game.SetRendererTexture` | Set Renderer Texture | Game/Rendering | `Game.SetRendererTexture` | `GameSetRendererTextureExecutor` | Sets a texture property on `renderer.material`. |
+| `Input.GetAxis` | Get Axis | Input | `Input.GetAxis` | `InputGetAxisExecutor` | Reads a smoothed legacy Input Manager axis value. |
+| `Input.GetAxisRaw` | Get Axis Raw | Input | `Input.GetAxisRaw` | `InputGetAxisRawExecutor` | Reads an unsmoothed legacy Input Manager axis value. |
+| `Input.GetActionVector2` | Get Action Vector2 | Input | `Input.GetActionVector2` | `InputGetActionVector2Executor` | Reads a `Vector2` from a project-wide Input System action. |
+| `Input.ListenKey` | Listen Key | Input | `Input.ListenKey` | `InputListenKeyExecutor` | Polls a keyboard key when executed and emits input-state exec outputs. |
+| `Input.ListenAction` | Listen Action | Input | `Input.ListenAction` | `InputListenActionExecutor` | Polls a project-wide Input System action when executed and emits input-state exec outputs. |
+| `UI.SetText` | Set Text | UI | `UI.SetText` | `UISetTextExecutor` | Sets text on a bound `TMP_Text`. |
+| `UI.SpriteBinding` | Sprite Binding | UI | `UI.SpriteBinding` | `UISpriteBindingExecutor` | Outputs a bound Sprite name for image nodes. |
+| `UI.SetImageSprite` | Set Image Sprite | UI | `UI.SetImageSprite` | `UISetImageSpriteExecutor` | Sets `Image.sprite` from a bound `Sprite`. |
+| `UI.SetVisible` | Set Visible | UI | `UI.SetVisible` | `UISetVisibleExecutor` | Sets active state on a bound `GameObject` or component owner. |
+| `UI.SetInteractable` | Set Interactable | UI | `UI.SetInteractable` | `UISetInteractableExecutor` | Sets `Selectable.interactable`. |
+| `UI.SetGraphicColor` | Set Graphic Color | UI | `UI.SetGraphicColor` | `UISetGraphicColorExecutor` | Sets `Graphic.color`. |
+| `UI.SetGraphicEnabled` | Set Graphic Enabled | UI | `UI.SetGraphicEnabled` | `UISetGraphicEnabledExecutor` | Sets `Graphic.enabled`. |
+| `UI.SetGraphicRaycastTarget` | Set Graphic Raycast Target | UI | `UI.SetGraphicRaycastTarget` | `UISetGraphicRaycastTargetExecutor` | Sets `Graphic.raycastTarget`. |
+| `UI.SetImageFillAmount` | Set Image Fill Amount | UI | `UI.SetImageFillAmount` | `UISetImageFillAmountExecutor` | Sets clamped `Image.fillAmount`. |
+| `UI.SetCanvasGroupAlpha` | Set Canvas Group Alpha | UI | `UI.SetCanvasGroupAlpha` | `UISetCanvasGroupAlphaExecutor` | Sets clamped `CanvasGroup.alpha`. |
+| `UI.SetCanvasGroupInteractable` | Set Canvas Group Interactable | UI | `UI.SetCanvasGroupInteractable` | `UISetCanvasGroupInteractableExecutor` | Sets `CanvasGroup.interactable`. |
+| `UI.SetCanvasGroupBlocksRaycasts` | Set Canvas Group Blocks Raycasts | UI | `UI.SetCanvasGroupBlocksRaycasts` | `UISetCanvasGroupBlocksRaycastsExecutor` | Sets `CanvasGroup.blocksRaycasts`. |
+| `UI.SetRectAnchoredPosition` | Set Rect Anchored Position | UI | `UI.SetRectAnchoredPosition` | `UISetRectAnchoredPositionExecutor` | Sets `RectTransform.anchoredPosition`. |
+| `UI.SetRectSizeDelta` | Set Rect Size Delta | UI | `UI.SetRectSizeDelta` | `UISetRectSizeDeltaExecutor` | Sets `RectTransform.sizeDelta`. |
+| `UI.SetRectLocalScale` | Set Rect Local Scale | UI | `UI.SetRectLocalScale` | `UISetRectLocalScaleExecutor` | Sets `RectTransform.localScale`. |
+| `UI.BindButtonClick` | Bind Button Click | UI | `UI.BindButtonClick` | `UIBindButtonClickExecutor` | Executes the `clicked` output when a bound `Button` is clicked. |
+| `UI.BindButtonEvents` | Bind Button Events | UI | `UI.BindButtonEvents` | `UIBindButtonEventsExecutor` | Executes mutually exclusive click, double-click, and long-press outputs from a bound `Button`. |
+| `UI.BindToggleChanged` | Bind Toggle Changed | UI | `UI.BindToggleChanged` | `UIBindToggleChangedExecutor` | Executes toggle changed/on/off outputs and exposes current `Toggle.isOn`. |
+| `UI.RefreshLoopScrollView` | Refresh Loop Scroll View | UI | `UI.RefreshLoopScrollView` | `UIRefreshLoopScrollViewExecutor` | Refreshes a bound `BlueprintLoopScrollView` from an array value or variable. |
+| `Variable.Get` | Get Variable | Variables | `Variable.Get` | `VariableGetExecutor` | Reads a blueprint variable. |
+| `Variable.Set` | Set Variable | Variables | `Variable.Set` | `VariableSetExecutor` | Writes a blueprint variable. |
+| `Variable.Compare` | Compare | Variables | `Variable.Compare` | `VariableCompareExecutor` | Compares two values and outputs bool. |
+| `Variable.GetField` | Get Field | Variables | `Variable.GetField` | `VariableGetFieldExecutor` | Reads a field or nested field path from a structured value. |
+| `Array.Count` | Array Count | Array | `Array.Count` | `ArrayCountExecutor` | Returns item count from an array value. |
+| `Array.Get` | Array Get | Array | `Array.Get` | `ArrayGetExecutor` | Returns an item from an array by index. |
+| `Array.ForEachLoop` | For Each Loop | Array | `Array.ForEachLoop` | `ArrayForEachLoopExecutor` | Executes a loop body once per array item. |
+| `Array.ForEachLoopWithBreak` | For Each Loop with Break | Array | `Array.ForEachLoopWithBreak` | `ArrayForEachLoopWithBreakExecutor` | Executes a loop body once per array item and supports early break. |
+| `Array.IsValidIndex` | Array Is Valid Index | Array | `Array.IsValidIndex` | `ArrayIsValidIndexExecutor` | Returns true when an index is inside array bounds. |
+| `Array.Contains` | Array Contains | Array | `Array.Contains` | `ArrayContainsExecutor` | Returns true when an array contains a matching basic value. |
+| `Array.IndexOf` | Array Index Of | Array | `Array.IndexOf` | `ArrayIndexOfExecutor` | Returns the first index of a matching basic value. |
+| `Array.First` | Array First | Array | `Array.First` | `ArrayFirstExecutor` | Returns the first item and validity flag from an array. |
+| `Array.Last` | Array Last | Array | `Array.Last` | `ArrayLastExecutor` | Returns the last item and validity flag from an array. |
+
+## Cross-Blueprint Access Nodes
+
+These nodes mirror the common Unreal Blueprint access pattern: the parent declares components as separate blueprint assets, the runner creates runtime component instances, and graphs pass runtime references when they need to talk across that instance tree.
+
+`Blueprint` target values store `.blueprint.json` asset paths as strings. At runtime, `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable` resolve that path only inside the current `BlueprintRunner` instance tree. The resolver starts from `context.Instance`, walks up to the root owner runner, then recursively checks the root compiled asset source path and each declared component's blueprint path. It does not search tags, UI bindings, prefabs, or other scene runners.
+
+`BlueprintRef` is a runtime-only handle around `IBlueprintInstance`. `Blueprint.GetOwner` returns the owner of the current component, supplied `BlueprintRef`, or a scene `BlueprintRunner` assigned in the runner's `ownerRunner` field. `Blueprint.GetComponent` takes a component name and searches from the current instance or supplied `BlueprintRef`, then walks owner instances outward so sibling components can be found through their shared owner. This lets interactable UI GameObjects run their own `UIBlueprintBinder` while sending intent to a shared panel runner. `BlueprintRef` values can connect into `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable`; they are not valid `.blueprint.json` variable defaults or blackboard variable types.
+
+If the same asset path appears more than once in the current component tree, asset-path resolution fails and logs a warning so a cross-blueprint read/write/event cannot silently hit the wrong instance. `Blueprint.GetByBinding` and `Blueprint.FindByTag` must not be used as cross-blueprint resolvers; migrate old scene-bound UI graphs to component declarations plus `GetOwner`/`GetComponent` or direct `Blueprint` asset-path target properties.
+
+Blueprint components follow the Unreal Actor Component pattern. The parent blueprint stores a component declaration and a reference to another blueprint asset; runtime instances are created in memory by the parent runner and do not require child GameObjects:
+
+```json
+"components": [
+  {
+    "name": "AddItemBehavior",
+    "blueprint": "Assets/Game/Blueprints/Inventory/Behavior/InventoryAddItemBehavior.blueprint.json",
+    "required": true
+  }
+]
+```
+
+Create a blackboard variable of type `Blueprint` and set its default value to the target `.blueprint.json` path when a serialized asset-path reference is needed. Connect a normal `Variable.Get` for that variable into the cross-blueprint node's `target` input, set the node's `target` property directly to the same asset path, or connect a runtime `BlueprintRef` from `GetOwner`/`GetComponent`. In Graph Toolkit, direct `target` path values are edited through the Inspector and the `target` input hides its inline path editor so long asset paths do not expand the node body.
+
+Graph Toolkit stores the component list as editor metadata on the `.bpgraph`, but `.blueprint.json` remains the source of truth. Auto-export skips a `.bpgraph` cache when it is older than the JSON source so stale visual graphs do not erase component declarations.
+
+Only variables declared with `"exposed": true` on the target blueprint can be read or written by `Blueprint.GetVariable` and `Blueprint.SetVariable`. Non-exposed variables, missing variables, invalid targets, duplicate target paths, and uncompiled targets fail. `Blueprint.TriggerEvent` forwards the event name to the resolved target instance; if the target blueprint has no matching custom event, the existing VM warning is used.
+
+Avoid duplicates:
+
+```text
+Use Blueprint component declarations, `BlueprintRef` nodes, and `Blueprint` asset variables for owner-owned behavior modules before adding one-off direct-object access nodes.
+Use UI bindings only for Unity object/component access nodes, not for cross-blueprint target resolution.
+Use `Blueprint.TriggerEvent` before adding specialized cross-blueprint event nodes.
+Use exposed variables for small public state only; prefer custom events when another blueprint should own the mutation.
+```
+
+## Blueprint Asset Variables
+
+Graph Toolkit supports a `Blueprint` blackboard variable type for `.blueprint.json` asset references. This is an editor-friendly path value: the JSON default value is the blueprint asset path string, not a `BlueprintRef`, `BlueprintRunner`, `TextAsset`, or other Unity object reference. Dragging a `.blueprint.json` asset into a visual graph can create a `Blueprint` variable and then a normal `Variable.Get` or `Variable.Set` node for that variable. Cross-blueprint access nodes accept this same `Blueprint` type on their `target` input, and the same target input can also receive runtime `BlueprintRef` output from `Blueprint.GetOwner` or `Blueprint.GetComponent`.
+
+## High Priority Unreal Parity Nodes
+
+The following nodes extend the system with high-priority Unreal Blueprint-style flow, math, vector/color, string, and array operations.
+
+| Family | Type IDs | Purpose |
+| --- | --- | --- |
+| Flow loops | `Flow.ForLoop`, `Flow.ForLoopWithBreak` | Execute `loopBody` for inclusive integer ranges and expose current `index`; the break variant stops when its `break` exec input is triggered during the active loop. |
+| Flow gates | `Flow.DoOnce`, `Flow.DoN`, `Flow.FlipFlop`, `Flow.Gate`, `Flow.MultiGate` | Stateful execution helpers for one-shot, limited-count, alternating, open/closed, and multi-output routing. `Flow.MultiGate` has fixed `out0`-`out7` pins and uses `outputCount` to choose the active subset. |
+| Flow switches | `Flow.SwitchInt`, `Flow.SwitchString`, `Flow.SwitchEnum` | Route execution to `case0`-`case7` or `default`. `Flow.SwitchEnum` compares enum names as strings so project-specific enum types do not need separate manifests. |
+| Float math | `Math.Add`, `Math.Subtract`, `Math.Multiply`, `Math.Divide`, `Math.Modulo`, `Math.Abs`, `Math.Clamp`, `Math.Min`, `Math.Max`, `Math.Round`, `Math.Floor`, `Math.Ceil`, `Math.Lerp`, `Math.MapRangeClamped`, `Math.RandomFloat`, `Math.RandomInt`, `Math.RandomBool` | Common scalar math and random value nodes. Divide/modulo return `0` when the divisor is zero. Random int is inclusive on both ends. |
+| Vector constructors | `Vector.MakeVector2`, `Vector.BreakVector2`, `Vector.MakeVector3`, `Vector.BreakVector3`, `Vector.MakeVector4`, `Vector.BreakVector4` | Build or split Unity vector values from scalar components. |
+| Vector math | `Vector.Add`, `Vector.Subtract`, `Vector.Multiply`, `Vector.Divide`, `Vector.Dot`, `Vector.Cross`, `Vector.Length`, `Vector.Normalize`, `Vector.Distance`, `Vector.Lerp` | Vector operations currently target `Vector3`; multiply/divide use a scalar input. |
+| Color math | `Color.Make`, `Color.Break`, `Color.Lerp` | Build, split, and interpolate Unity `Color` values. |
+| String utilities | `String.Append`, `String.Format`, `String.ToString`, `String.Contains`, `String.StartsWith`, `String.EndsWith`, `String.Replace`, `String.Split`, `String.Length`, `String.Substring`, `String.EqualIgnoreCase` | Text construction, formatting, comparison, replacement, splitting, and substring helpers. `String.Split` outputs `Array<string>`. |
+| Array construction | `Array.Make`, `Array.Append`, `Array.Clear`, `Array.Resize`, `Array.Shuffle` | Create or transform array values. These nodes return a new array value instead of mutating a variable directly. |
+| Array mutation-style values | `Array.Add`, `Array.AddUnique`, `Array.Insert`, `Array.RemoveIndex`, `Array.RemoveItem`, `Array.SetElement`, `Array.RandomItem`, `Array.LastIndex` | Return changed array copies plus useful metadata such as index, removed, added, success, or validity flags. Connect the returned `array` output into `Variable.Set.value` when persistent variable changes are needed. |
+| Tick and time | `Game.Event.OnTick`, `Game.GetDeltaTime`, `Game.GetFixedDeltaTime`, `Game.GetTimeSeconds`, `Game.GetUnscaledTime`, `Game.GetTimeScale`, `Game.SetTimeScale` | Frame tick entry and common Unity time values/actions. `Game.Event.OnTick.phase` chooses `Update`, `FixedUpdate`, or `LateUpdate`; Runner only fires tick events that exist, so blueprints without Tick do not log every frame. |
+| Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `UIBinding<Transform>` strings resolved at runtime. |
+| Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
+
+Avoid duplicates:
+
+```text
+Use these math/vector/string/array nodes before adding domain-specific one-off helper nodes.
+Use `Flow.SwitchString` or `Flow.SwitchEnum` before creating specialized enum switch nodes unless the enum needs a custom editor dropdown.
+Array mutation-style nodes are pure value transforms; do not add hidden variable side effects to them.
+Use Transform binding nodes before creating domain-specific movement helpers.
+Use physics query result names or follow-up bindings before adding JSON-stored Unity object references.
+```
+
+## Tick, Time, Transform, and Physics Nodes
+
+### Tick and Time
+
+| Type ID | Purpose | Ports and notes |
+| --- | --- | --- |
+| `Game.Event.OnTick` | Entry fired by `BlueprintRunner.Update`, `FixedUpdate`, or `LateUpdate`. | Node input/property `phase: TickPhase` defaults to `Update` and is shown as a dropdown in Graph Toolkit; older serialized visual nodes backfill the missing `phase` input when Graph Toolkit defines ports/options. `Update` maps to event name `OnTick`, `FixedUpdate` maps to `OnFixedTick`, and `LateUpdate` maps to `OnLateTick`. Output `execOut`. Runner checks `RuntimeBlueprint.EventEntries` before firing so missing tick events stay quiet. |
+| `Game.GetDeltaTime` | Reads `Time.deltaTime`. | Output `value: float`. |
+| `Game.GetFixedDeltaTime` | Reads `Time.fixedDeltaTime`. | Output `value: float`. |
+| `Game.GetTimeSeconds` | Reads `Time.time`. | Output `value: float`. |
+| `Game.GetUnscaledTime` | Reads `Time.unscaledTime`. | Output `value: float`. |
+| `Game.GetTimeScale` | Reads `Time.timeScale`. | Output `value: float`. |
+| `Game.SetTimeScale` | Sets `Time.timeScale`. | Input `value: float`; negative values are clamped to `0`; output `execOut`. |
+
+Avoid duplicates:
+
+```text
+Use `Game.Event.OnTick.phase` for Update, FixedUpdate, and LateUpdate behavior before adding specialized update events.
+Use the time getter nodes instead of reading Unity Time directly in domain-specific executors.
+```
+
+### Transform
+
+Getter nodes:
+
+| Type IDs | Output |
+| --- | --- |
+| `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp` | Input `target: UIBinding<Transform>`; output `value: Vector3`. Missing bindings log an error and return a safe default. |
+
+Action nodes:
+
+| Type ID | Purpose | Ports and notes |
+| --- | --- | --- |
+| `Game.SetTransformLocalPosition` | Sets `Transform.localPosition`. | `target: UIBinding<Transform>`, `value: Vector3`, `execOut`. |
+| `Game.SetTransformLocalEulerAngles` | Sets `Transform.localEulerAngles`. | `target: UIBinding<Transform>`, `value: Vector3`, `execOut`. |
+| `Game.TranslateTransform` | Calls `Transform.Translate`. | `translation: Vector3`, `relativeToSelf: bool`; true uses `Space.Self`, false uses `Space.World`. |
+| `Game.RotateTransform` | Calls `Transform.Rotate`. | `eulerAngles: Vector3`, `relativeToSelf: bool`; true uses `Space.Self`, false uses `Space.World`. |
+| `Game.LookAtTransform` | Calls `Transform.LookAt`. | Uses optional `lookTarget: UIBinding<Transform>` when present, otherwise `targetPosition: Vector3`; `worldUp` defaults to `[0,1,0]`. |
+| `Game.SetTransformParent` | Calls `Transform.SetParent(parent, worldPositionStays)`. | `parent: UIBinding<Transform>` is required. |
+| `Game.DetachTransform` | Clears the parent via `SetParent(null, worldPositionStays)`. | Keeps world position by default. |
+
+Avoid duplicates:
+
+```text
+Use `UIBinding<Transform>` strings for targets and parents.
+Do not store direct Transform, GameObject, or Component references in `.blueprint.json`.
+```
+
+### Physics Queries
+
+3D query nodes:
+
+| Type ID | Inputs | Outputs |
+| --- | --- | --- |
+| `Game.Raycast` | `origin`, `direction`, `maxDistance`, `layerMask`, `includeTriggers` | `hit`, `point`, `normal`, `distance`, `colliderName`, `gameObjectName` |
+| `Game.SphereCast` | `origin`, `radius`, `direction`, `maxDistance`, `layerMask`, `includeTriggers` | Same raycast outputs. |
+| `Game.BoxCast` | `center`, `halfExtents`, `direction`, `orientationEuler`, `maxDistance`, `layerMask`, `includeTriggers` | Same raycast outputs. |
+| `Game.OverlapSphere` | `center`, `radius`, `layerMask`, `includeTriggers` | `hasAny`, `count`, `firstName`, `names: Array<string>` |
+| `Game.OverlapBox` | `center`, `halfExtents`, `orientationEuler`, `layerMask`, `includeTriggers` | Same overlap outputs. |
+
+2D query nodes:
+
+| Type ID | Inputs | Outputs |
+| --- | --- | --- |
+| `Game.Raycast2D` | `origin`, `direction`, `distance`, `layerMask` | `hit`, `point: Vector2`, `normal: Vector2`, `distance`, `colliderName`, `gameObjectName` |
+| `Game.OverlapCircle2D` | `point`, `radius`, `layerMask` | `hasAny`, `count`, `firstName`, `names: Array<string>` |
+| `Game.OverlapBox2D` | `point`, `size`, `angle`, `layerMask` | Same overlap outputs. |
+
+Notes:
+
+```text
+Layer mask defaults to `-1` (all layers).
+3D query `includeTriggers` defaults to true and maps to Unity `QueryTriggerInteraction.Collide`.
+Ray/cast distance values <= 0 are treated as infinite.
+Query nodes return primitive values and object names, not serialized Unity object references.
+```
+
+## Event Nodes
+
+### `Game.Event.OnStart`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.Event.OnStart.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Event
+Class: FlowEventExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Entry point for the `OnStart` event.
+BlueprintRunner.Start triggers `startEventName`, default `OnStart`, when `triggerOnStart` is true.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execOut` | output exec | none | none | no | Allows multiple outgoing exec edges. |
+
+Avoid duplicates:
+
+```text
+Do not add another startup event node unless it has different lifecycle semantics.
+For a different event name, use `Game.Event.Custom`.
+```
+
+### `Game.Event.Custom`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.Event.Custom.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Event
+Class: FlowEventExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Entry point for any named event.
+Can be triggered by `BlueprintRunner.TriggerEvent` or `Game.SendEvent`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `eventName` | property | string | property | yes | Name registered in `RuntimeBlueprint.EventEntries`. |
+| `execOut` | output exec | none | none | no | Allows multiple outgoing exec edges. |
+
+Graph Toolkit labels `eventName` as `Event`, shows the listened event on the node title as `Custom Event: Ping`, and mirrors it on the `execOut` port so custom event entries can be identified directly on the graph.
+
+Avoid duplicates:
+
+```text
+Use this for any domain-specific event name before creating a specialized event node.
+Specialized event nodes are only useful when the event name is implied by lifecycle or UI semantics.
+```
+
+### `UI.Event.OnOpen`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.Event.OnOpen.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Event
+Class: FlowEventExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Entry point for `OnOpen`.
+UIBlueprintBinder.OnEnable triggers `enableEventName`, default `OnOpen`, when `triggerOnEnable` is true.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execOut` | output exec | none | none | no | Allows multiple outgoing exec edges. |
+
+Avoid duplicates:
+
+```text
+Reuse this for panel-open behavior.
+For a custom panel event, use `Game.Event.Custom`.
+```
+
+### `UI.Event.OnClose`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.Event.OnClose.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Event
+Class: FlowEventExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Entry point for `OnClose`.
+UIBlueprintBinder.OnDisable triggers `disableEventName`, default `OnClose`, when `triggerOnDisable` is true.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execOut` | output exec | none | none | no | Allows multiple outgoing exec edges. |
+
+Avoid duplicates:
+
+```text
+Reuse this for panel-close behavior.
+For button click close actions, connect `UI.BindButtonClick.clicked` directly to the close behavior.
+```
+
+## Flow Nodes
+
+### `Flow.Branch`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Flow.Branch.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Branch
+Class: FlowBranchExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Reads `condition`.
+Continues through output `true` when true, otherwise output `false`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts the branch. |
+| `condition` | input value | bool | propertyOrConnection | yes | `false` | Connection overrides property. |
+| `condition` | property | bool | property | no | `false` | Used when no value edge is connected. |
+| `true` | output exec | none | none | no | none | Executed when condition is true. |
+| `false` | output exec | none | none | no | none | Executed when condition is false. |
+
+Avoid duplicates:
+
+```text
+Use this for all boolean branching.
+Do not create `If`, `BoolBranch`, or `Conditional` unless a new comparison/evaluation feature is needed.
+```
+
+### `Flow.Sequence`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Flow.Sequence.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Sequence
+Class: FlowSequenceExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Queues `then0`, `then1`, `then2`, and `then3` in order.
+Unconnected outputs are harmless.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts the sequence. |
+| `then0` | output exec | none | none | no | First branch. |
+| `then1` | output exec | none | none | no | Second branch. |
+| `then2` | output exec | none | none | no | Third branch. |
+| `then3` | output exec | none | none | no | Fourth branch. |
+
+Avoid duplicates:
+
+```text
+Use this for simple multi-step fan-out.
+If more than four outputs are needed, extend this node deliberately instead of adding `Sequence5`, `MultiExec`, etc.
+```
+
+### `Flow.Delay`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Flow.Delay.node.json
+```
+
+Executor:
+
+```text
+ID: Flow.Delay
+Class: FlowDelayExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Function:
+
+```text
+Reads `seconds`.
+Suspends execution and resumes through `execOut` after `WaitForSeconds(seconds)`.
+If there is no MonoBehaviour coroutine host, or seconds <= 0, continuation happens immediately.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts delay. |
+| `seconds` | input value | float | propertyOrConnection | yes | `0` | Delay duration in seconds. |
+| `seconds` | property | float | property | no | `0` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Resumed continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for basic time delays.
+Do not create timer/wait nodes unless they need cancellation, unscaled time, repeated ticks, or another distinct timing model.
+```
+
+## Game Nodes
+
+### `Game.Log`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.Log.node.json
+```
+
+Executor:
+
+```text
+ID: Game.Log
+Class: GameLogExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+```
+
+Function:
+
+```text
+Logs `message` through `context.Logger.Log`, then continues through `execOut`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts log action. |
+| `message` | input value | string | propertyOrConnection | yes | Text to log. |
+| `message` | property | string | property | no | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | Continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for debug/runtime blueprint logging.
+Only add specialized logging nodes if they route to a different service or severity.
+```
+
+### `Game.SendEvent`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.SendEvent.node.json
+```
+
+Executor:
+
+```text
+ID: Game.SendEvent
+Class: GameSendEventExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+```
+
+Function:
+
+```text
+Reads `eventName`, publishes it to `context.EventBus`, then continues through `execOut`.
+Returns an error when `eventName` is empty.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts event publish. |
+| `eventName` | input value | string | propertyOrConnection | yes | Event name to publish. |
+| `eventName` | property | string | property | no | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | Continuation after publish. |
+
+Avoid duplicates:
+
+```text
+Use this for intra-blueprint events.
+For UI button clicks, prefer `UI.BindButtonClick`, which executes its `clicked` output directly.
+```
+
+### `Game.LoadScene`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.LoadScene.node.json
+```
+
+Executor:
+
+```text
+ID: Game.LoadScene
+Class: GameLoadSceneExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+```
+
+Function:
+
+```text
+Reads `sceneName` and `mode`, calls `SceneManager.LoadScene(sceneName, mode)`, then continues through `execOut`.
+Returns an error when `sceneName` is empty or Unity rejects the load request.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts scene loading. |
+| `sceneName` | input value | string | propertyOrConnection | yes | Name of a scene included in Build Settings. |
+| `mode` | input value | LoadSceneMode | propertyOrConnection | no | `Single` or `Additive`; defaults to `Single`. |
+| `sceneName` | property | string | property | yes | Used when no value edge is connected. |
+| `mode` | property | LoadSceneMode | property | no | Graph Toolkit enum dropdown; exports `Single` or `Additive`. |
+| `execOut` | output exec | none | none | no | Continuation after the load request is accepted. |
+
+Avoid duplicates:
+
+```text
+Use this for direct scene changes by name.
+Only add async scene nodes when the blueprint must wait for progress, completion, or activation control.
+```
+
+### `Game.LoadSceneAsync`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.LoadSceneAsync.node.json
+```
+
+Executor:
+
+```text
+ID: Game.LoadSceneAsync
+Class: GameLoadSceneAsyncExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+```
+
+Function:
+
+```text
+Reads `sceneName` and `mode`, calls `SceneManager.LoadSceneAsync(sceneName, mode)`, and stops immediate execution.
+When Unity reports the async operation as completed, the node resumes blueprint execution through the `complete` output.
+Returns an error when `sceneName` is empty, Unity rejects the load request, or no async operation is created.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts async scene loading. |
+| `sceneName` | input value | string | propertyOrConnection | yes | Name of a scene included in Build Settings. |
+| `mode` | input value | LoadSceneMode | propertyOrConnection | no | `Single` or `Additive`; defaults to `Single`. |
+| `sceneName` | property | string | property | yes | Used when no value edge is connected. |
+| `mode` | property | LoadSceneMode | property | no | Graph Toolkit enum dropdown; exports `Single` or `Additive`. |
+| `complete` | output exec | none | none | no | Fires after the async load operation completes. |
+
+Avoid duplicates:
+
+```text
+Use `Game.LoadScene` when the blueprint should continue immediately after requesting a scene load.
+Use `Game.LoadSceneAsync` when downstream blueprint work must wait for Unity's async load completion.
+For `Single` scene loads, keep the blueprint runner alive if the `complete` continuation needs to run after the old scene unloads.
+```
+
+### Transform Setters
+
+Manifests:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.SetTransformPosition.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetTransformEulerAngles.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetTransformLocalScale.node.json
+```
+
+Executors:
+
+```text
+IDs: Game.SetTransformPosition, Game.SetTransformEulerAngles, Game.SetTransformLocalScale
+Classes: GameSetTransformPositionExecutor, GameSetTransformEulerAnglesExecutor, GameSetTransformLocalScaleExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameTransformExecutors.cs
+```
+
+Function:
+
+```text
+Resolve `target` as Transform, including from a bound GameObject or Component.
+Set world position, world eulerAngles, or localScale, then continue through `execOut`.
+Return an error if the Transform binding cannot be resolved.
+```
+
+Ports and parameters:
+
+| Node | Target | Value | Default |
+| --- | --- | --- | --- |
+| `Game.SetTransformPosition` | `target: UIBinding<Transform>` | `value: Vector3` | `[0, 0, 0]` |
+| `Game.SetTransformEulerAngles` | `target: UIBinding<Transform>` | `value: Vector3` | `[0, 0, 0]` |
+| `Game.SetTransformLocalScale` | `target: UIBinding<Transform>` | `value: Vector3` | `[1, 1, 1]` |
+
+All three nodes have `execIn` and `execOut`. `target` is property-only; `value` is property-or-connection.
+
+### 3D Physics Nodes
+
+Manifests:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.SetRigidbodyLinearVelocity.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.AddRigidbodyForce.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetColliderEnabled.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetColliderIsTrigger.node.json
+```
+
+Executors:
+
+```text
+IDs: Game.SetRigidbodyLinearVelocity, Game.AddRigidbodyForce, Game.SetColliderEnabled, Game.SetColliderIsTrigger
+Classes: GameSetRigidbodyLinearVelocityExecutor, GameAddRigidbodyForceExecutor, GameSetColliderEnabledExecutor, GameSetColliderIsTriggerExecutor
+File: Assets/BlueprintSystem/Executors/Game/GamePhysicsExecutors.cs
+```
+
+Function:
+
+```text
+Resolve `target` as Rigidbody or Collider, including from a bound GameObject or Component.
+Set `Rigidbody.linearVelocity`, call `Rigidbody.AddForce`, or set Collider flags.
+Return an error if the binding cannot resolve or if force `mode` is invalid.
+```
+
+Ports and parameters:
+
+| Node | Target | Value/Force | Extra | Default |
+| --- | --- | --- | --- | --- |
+| `Game.SetRigidbodyLinearVelocity` | `UIBinding<Rigidbody>` | `value: Vector3` | none | `[0, 0, 0]` |
+| `Game.AddRigidbodyForce` | `UIBinding<Rigidbody>` | `force: Vector3` | `mode: ForceMode` | force `[0, 0, 0]`, mode `Force` |
+| `Game.SetColliderEnabled` | `UIBinding<Collider>` | `value: bool` | none | `true` |
+| `Game.SetColliderIsTrigger` | `UIBinding<Collider>` | `value: bool` | none | `true` |
+
+`Game.AddRigidbodyForce.mode` is a Graph Toolkit enum field and exports as one of `Force`, `Acceleration`, `Impulse`, or `VelocityChange`.
+
+### 2D Physics Nodes
+
+Manifests:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.SetRigidbody2DLinearVelocity.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.AddRigidbody2DForce.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetCollider2DEnabled.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetCollider2DIsTrigger.node.json
+```
+
+Executors:
+
+```text
+IDs: Game.SetRigidbody2DLinearVelocity, Game.AddRigidbody2DForce, Game.SetCollider2DEnabled, Game.SetCollider2DIsTrigger
+Classes: GameSetRigidbody2DLinearVelocityExecutor, GameAddRigidbody2DForceExecutor, GameSetCollider2DEnabledExecutor, GameSetCollider2DIsTriggerExecutor
+File: Assets/BlueprintSystem/Executors/Game/GamePhysicsExecutors.cs
+```
+
+Function:
+
+```text
+Resolve `target` as Rigidbody2D or Collider2D, including from a bound GameObject or Component.
+Set `Rigidbody2D.linearVelocity`, call `Rigidbody2D.AddForce`, or set Collider2D flags.
+Return an error if the binding cannot resolve or if force `mode` is invalid.
+```
+
+Ports and parameters:
+
+| Node | Target | Value/Force | Extra | Default |
+| --- | --- | --- | --- | --- |
+| `Game.SetRigidbody2DLinearVelocity` | `UIBinding<Rigidbody2D>` | `value: Vector2` | none | `[0, 0]` |
+| `Game.AddRigidbody2DForce` | `UIBinding<Rigidbody2D>` | `force: Vector2` | `mode: ForceMode2D` | force `[0, 0]`, mode `Force` |
+| `Game.SetCollider2DEnabled` | `UIBinding<Collider2D>` | `value: bool` | none | `true` |
+| `Game.SetCollider2DIsTrigger` | `UIBinding<Collider2D>` | `value: bool` | none | `true` |
+
+`Game.AddRigidbody2DForce.mode` is a Graph Toolkit enum field and exports as `Force` or `Impulse`.
+
+### Rendering Material Nodes
+
+Manifests:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.SetRendererMaterial.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetRendererMaterialColor.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetRendererTexture.node.json
+```
+
+Executors:
+
+```text
+IDs: Game.SetRendererMaterial, Game.SetRendererMaterialColor, Game.SetRendererTexture
+Classes: GameSetRendererMaterialExecutor, GameSetRendererMaterialColorExecutor, GameSetRendererTextureExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameRenderingExecutors.cs
+```
+
+Function:
+
+```text
+Resolve `target` as Renderer, including from a bound GameObject or Component.
+Use `renderer.material` / `renderer.materials` so runtime edits affect the instance material, not shared assets.
+Return an error when bindings fail, the renderer has no material slot/material, the material index is out of range, or the shader property is missing.
+```
+
+Ports and parameters:
+
+| Node | Target | Value | Extra | Default |
+| --- | --- | --- | --- | --- |
+| `Game.SetRendererMaterial` | `UIBinding<Renderer>` | `value: UIBinding<Material>` | `materialIndex: int` | `0` |
+| `Game.SetRendererMaterialColor` | `UIBinding<Renderer>` | `value: Color` | `propertyName: string` | `_Color` |
+| `Game.SetRendererTexture` | `UIBinding<Renderer>` | `value: UIBinding<Texture>` | `propertyName: string` | `_MainTex` |
+
+All three nodes have `execIn` and `execOut`. `target` is property-only; value-like fields are property-or-connection where the manifest exposes them as inputs.
+
+## Input Nodes
+
+### `Input.GetAxis`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Input.GetAxis.node.json
+```
+
+Executor:
+
+```text
+ID: Input.GetAxis
+Class: InputGetAxisExecutor
+File: Assets/BlueprintSystem/Executors/Input/InputExecutors.cs
+```
+
+Function:
+
+```text
+Reads `UnityEngine.Input.GetAxis(axisName)` and outputs the current smoothed float value. Use this with legacy Input Manager axes such as `Horizontal` or `Vertical`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `axisName` | input value | string | propertyOrConnection | yes | Legacy Input Manager axis name. Default property value is `Horizontal`. |
+| `axisName` | property | string | property | no | Stored in blueprint JSON; may be overridden by a connected value. |
+| `value` | output value | float | none | no | Smoothed axis value returned by Unity. Missing or invalid axes log an error and return `0`. |
+
+### `Input.GetAxisRaw`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Input.GetAxisRaw.node.json
+```
+
+Executor:
+
+```text
+ID: Input.GetAxisRaw
+Class: InputGetAxisRawExecutor
+File: Assets/BlueprintSystem/Executors/Input/InputExecutors.cs
+```
+
+Function:
+
+```text
+Reads `UnityEngine.Input.GetAxisRaw(axisName)` and outputs the current unsmoothed float value.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `axisName` | input value | string | propertyOrConnection | yes | Legacy Input Manager axis name. Default property value is `Horizontal`. |
+| `axisName` | property | string | property | no | Stored in blueprint JSON; may be overridden by a connected value. |
+| `value` | output value | float | none | no | Raw axis value returned by Unity. Missing or invalid axes log an error and return `0`. |
+
+Avoid duplicates:
+
+```text
+Use `Input.GetAxis` when smoothed legacy axis values are desired.
+Use `Input.GetAxisRaw` when immediate -1/0/1 style legacy axis values are desired.
+Use `Input.ListenAction` for project-wide Input System actions that should follow modern action bindings.
+Axis names are free-form strings and must match Project Settings > Input Manager entries when the legacy Input Manager is enabled.
+```
+
+### `Input.GetActionVector2`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Input.GetActionVector2.node.json
+```
+
+Executor:
+
+```text
+ID: Input.GetActionVector2
+Class: InputGetActionVector2Executor
+File: Assets/BlueprintSystem/Executors/Input/InputExecutors.cs
+```
+
+Function:
+
+```text
+Finds a project-wide Input System action by name or `Map/Action` path, enables it when needed, and outputs `action.ReadValue<Vector2>()`.
+Use this from Tick-visible gameplay graphs for movement, look, navigation, or other continuous 2D input values.
+Missing actions, missing project-wide actions, or non-Vector2 action values log an error and output `Vector2.zero`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `action` | input value | string | property | yes | Project-wide Input System action name or `Map/Action` path. Default property value is `Player/Move`. |
+| `action` | property | string | property | yes | Stored in blueprint JSON. |
+| `value` | output value | Vector2 | none | no | Current Vector2 value returned by the action. |
+
+Avoid duplicates:
+
+```text
+Use this when the graph needs the actual 2D value from a modern Input System action.
+Use `Input.ListenAction` when only pressed, held, and released exec outputs are needed.
+Do not store InputActionAsset object references in blueprint JSON.
+```
+
+### `Input.ListenKey`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Input.ListenKey.node.json
+```
+
+Executor:
+
+```text
+ID: Input.ListenKey
+Class: InputListenKeyExecutor
+File: Assets/BlueprintSystem/Executors/Input/InputExecutors.cs
+```
+
+Function:
+
+```text
+Polls a keyboard key immediately when the node is executed.
+Wire this from `Game.Event.OnTick` when you need per-frame input handling. The node always emits `bound` so multiple input polling nodes can be chained in one Tick flow. It also emits `pressed` on the transition into pressed, `held` on later pressed polls, and `released` on the transition out of pressed.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Polls the key state. Usually driven by `Game.Event.OnTick`. |
+| `key` | input value | Key | property | yes | Unity Input System `Key` enum value such as `Space`, `Escape`, `W`, or `LeftShift`. |
+| `key` | property | Key | property | yes | Stored in blueprint JSON as an exact enum member name. |
+| `bound` | output exec | none | none | no | Continuation after every poll; chain the next input polling node here. |
+| `pressed` | output exec | none | none | no | Fired once when the key becomes pressed. |
+| `held` | output exec | none | none | no | Fired on later polls while the key remains pressed. |
+| `released` | output exec | none | none | no | Fired once when the key is released. |
+
+Avoid duplicates:
+
+```text
+Use this for direct keyboard keys.
+Hand-written JSON must use exact `Key` enum member names; aliases such as `w` or `esc` are invalid.
+Use `Input.ListenAction` when the behavior should follow Input System action bindings.
+Do not wire this only from `Game.Event.OnStart`; that polls once and will miss later input. Chain multiple input polling nodes from a single Tick using `bound`.
+```
+
+### `Input.ListenAction`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Input.ListenAction.node.json
+```
+
+Executor:
+
+```text
+ID: Input.ListenAction
+Class: InputListenActionExecutor
+File: Assets/BlueprintSystem/Executors/Input/InputExecutors.cs
+```
+
+Function:
+
+```text
+Finds an action in `InputSystem.actions`, enables it when needed, and polls it immediately when the node is executed.
+Wire this from `Game.Event.OnTick` when you need per-frame input handling. The node always emits `bound` so multiple input polling nodes can be chained in one Tick flow.
+Action names may be simple unique names like `Jump` or paths like `Player/Jump`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Polls the action state. Usually driven by `Game.Event.OnTick`. |
+| `action` | input value | string | property | yes | Project-wide Input System action name or `Map/Action` path. |
+| `action` | property | string | property | yes | Stored in blueprint JSON. |
+| `bound` | output exec | none | none | no | Continuation after every poll; chain the next input polling node here. |
+| `pressed` | output exec | none | none | no | Fired once when the action becomes pressed. |
+| `held` | output exec | none | none | no | Fired on later polls while the action remains pressed. |
+| `released` | output exec | none | none | no | Fired once when the action is released. |
+
+Avoid duplicates:
+
+```text
+Use this for gameplay/UI actions that should respect Input System bindings.
+Do not store InputActionAsset object references in blueprint JSON.
+Do not wire this only from `Game.Event.OnStart`; that polls once and will miss later input. Chain multiple input polling nodes from a single Tick using `bound`.
+```
+
+## UI Nodes
+
+### `UI.SetText`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetText.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetText
+Class: UISetTextExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `TMP_Text`.
+Sets `target.text = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a TMP_Text.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts set text action. |
+| `target` | input value | UIBinding<TMP_Text> | property | yes | Binding name string. Must resolve to TMP_Text or owner with TMP_Text. |
+| `value` | input value | string | propertyOrConnection | yes | New text. |
+| `target` | property | UIBinding<TMP_Text> | property | yes | Stored as binding name string in JSON. |
+| `value` | property | string | property | no | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | Continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for all TMP text assignment.
+Do not add `SetLabel`, `SetTitle`, or `SetTextMeshProText`; use different binding names instead.
+```
+
+### `UI.SpriteBinding`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SpriteBinding.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SpriteBinding
+Class: UISpriteBindingExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Value node.
+Reads `sprite` as a UIBinding<Sprite> string.
+Outputs the binding name through `value` so it can connect to `UI.SetImageSprite.value`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `sprite` | property | UIBinding<Sprite> | property | yes | Stored as binding name string in JSON. |
+| `value` | output value | UIBinding<Sprite> | none | no | Binding name for a Sprite asset. |
+
+Avoid duplicates:
+
+```text
+Use this when dragging a Sprite asset into a graph or when a Sprite binding needs to feed another node.
+Do not turn Sprite assets into normal variables unless the variable system is deliberately extended for asset references.
+```
+
+### `UI.SetImageSprite`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetImageSprite.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetImageSprite
+Class: UISetImageSpriteExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Image`.
+Resolves `value` as `Sprite`.
+Sets `target.sprite = value`.
+Continues through `execOut`.
+Returns an error if either binding cannot be resolved.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts set image sprite action. |
+| `target` | input value | UIBinding<Image> | property | yes | Binding name string. Must resolve to Image or owner with Image. |
+| `value` | input value | UIBinding<Sprite> | propertyOrConnection | yes | Binding name string for the Sprite asset. |
+| `target` | property | UIBinding<Image> | property | yes | Stored as binding name string in JSON. |
+| `value` | property | UIBinding<Sprite> | property | no | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | Continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for Unity UI Image sprite assignment.
+Do not use it for SpriteRenderer; add a separate node if non-UI sprite rendering is needed.
+```
+
+### `UI.SetVisible`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetVisible.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetVisible
+Class: UISetVisibleExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as a Unity object.
+If it is a GameObject, uses it directly.
+If it is a Component, uses `component.gameObject`.
+Calls `gameObject.SetActive(value)`.
+Continues through `execOut`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts visibility action. |
+| `target` | input value | UIBinding<GameObject> | property | yes | Binding name string. Can bind GameObject or Component. |
+| `value` | input value | bool | propertyOrConnection | yes | `true` | Active state. |
+| `target` | property | UIBinding<GameObject> | property | yes | Stored as binding name string in JSON. |
+| `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for showing/hiding UI objects through active state.
+Only add a separate node if visibility means CanvasGroup alpha, Graphic.enabled, or another distinct mechanism.
+```
+
+### `UI.SetGraphicColor`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetGraphicColor.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetGraphicColor
+Class: UISetGraphicColorExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Graphic`.
+Sets `graphic.color = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a Graphic.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts graphic color action. |
+| `target` | input value | UIBinding<Graphic> | property | yes | none | Binding name string. Image and TMP text are valid Graphics. |
+| `value` | input value | Color | propertyOrConnection | yes | `[1,1,1,1]` | New color. |
+| `target` | property | UIBinding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | Color | property | no | `[1,1,1,1]` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetGraphicEnabled`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetGraphicEnabled.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetGraphicEnabled
+Class: UISetGraphicEnabledExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Graphic`.
+Sets `graphic.enabled = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a Graphic.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts graphic enabled action. |
+| `target` | input value | UIBinding<Graphic> | property | yes | none | Binding name string. |
+| `value` | input value | bool | propertyOrConnection | yes | `true` | Enabled state. |
+| `target` | property | UIBinding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetGraphicRaycastTarget`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetGraphicRaycastTarget.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetGraphicRaycastTarget
+Class: UISetGraphicRaycastTargetExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Graphic`.
+Sets `graphic.raycastTarget = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a Graphic.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts graphic raycast target action. |
+| `target` | input value | UIBinding<Graphic> | property | yes | none | Binding name string. |
+| `value` | input value | bool | propertyOrConnection | yes | `true` | Raycast target state. |
+| `target` | property | UIBinding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetImageFillAmount`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetImageFillAmount.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetImageFillAmount
+Class: UISetImageFillAmountExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Image`.
+Sets `image.fillAmount = Mathf.Clamp01(value)`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve an Image.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts image fill amount action. |
+| `target` | input value | UIBinding<Image> | property | yes | none | Binding name string. |
+| `value` | input value | float | propertyOrConnection | yes | `1` | Fill amount, clamped to 0..1. |
+| `target` | property | UIBinding<Image> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | float | property | no | `1` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetCanvasGroupAlpha`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetCanvasGroupAlpha.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetCanvasGroupAlpha
+Class: UISetCanvasGroupAlphaExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `CanvasGroup`.
+Sets `canvasGroup.alpha = Mathf.Clamp01(value)`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a CanvasGroup.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts canvas group alpha action. |
+| `target` | input value | UIBinding<CanvasGroup> | property | yes | none | Binding name string. |
+| `value` | input value | float | propertyOrConnection | yes | `1` | Alpha, clamped to 0..1. |
+| `target` | property | UIBinding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | float | property | no | `1` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetCanvasGroupInteractable`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetCanvasGroupInteractable.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetCanvasGroupInteractable
+Class: UISetCanvasGroupInteractableExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `CanvasGroup`.
+Sets `canvasGroup.interactable = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a CanvasGroup.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts canvas group interactable action. |
+| `target` | input value | UIBinding<CanvasGroup> | property | yes | none | Binding name string. |
+| `value` | input value | bool | propertyOrConnection | yes | `true` | Interactable state. |
+| `target` | property | UIBinding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetCanvasGroupBlocksRaycasts`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetCanvasGroupBlocksRaycasts.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetCanvasGroupBlocksRaycasts
+Class: UISetCanvasGroupBlocksRaycastsExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `CanvasGroup`.
+Sets `canvasGroup.blocksRaycasts = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a CanvasGroup.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts canvas group blocks raycasts action. |
+| `target` | input value | UIBinding<CanvasGroup> | property | yes | none | Binding name string. |
+| `value` | input value | bool | propertyOrConnection | yes | `true` | Blocks raycasts state. |
+| `target` | property | UIBinding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetRectAnchoredPosition`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetRectAnchoredPosition.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetRectAnchoredPosition
+Class: UISetRectAnchoredPositionExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `RectTransform`.
+Sets `rectTransform.anchoredPosition = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a RectTransform.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts rect anchored position action. |
+| `target` | input value | UIBinding<RectTransform> | property | yes | none | Binding name string. |
+| `value` | input value | Vector2 | propertyOrConnection | yes | `[0,0]` | New anchored position. |
+| `target` | property | UIBinding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | Vector2 | property | no | `[0,0]` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetRectSizeDelta`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetRectSizeDelta.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetRectSizeDelta
+Class: UISetRectSizeDeltaExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `RectTransform`.
+Sets `rectTransform.sizeDelta = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a RectTransform.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts rect size delta action. |
+| `target` | input value | UIBinding<RectTransform> | property | yes | none | Binding name string. |
+| `value` | input value | Vector2 | propertyOrConnection | yes | `[0,0]` | New size delta. |
+| `target` | property | UIBinding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | Vector2 | property | no | `[0,0]` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetRectLocalScale`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetRectLocalScale.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetRectLocalScale
+Class: UISetRectLocalScaleExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `RectTransform`.
+Sets `rectTransform.localScale = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a RectTransform.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts rect local scale action. |
+| `target` | input value | UIBinding<RectTransform> | property | yes | none | Binding name string. |
+| `value` | input value | Vector3 | propertyOrConnection | yes | `[1,1,1]` | New local scale. |
+| `target` | property | UIBinding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
+| `value` | property | Vector3 | property | no | `[1,1,1]` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+### `UI.SetInteractable`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.SetInteractable.node.json
+```
+
+Executor:
+
+```text
+ID: UI.SetInteractable
+Class: UISetInteractableExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Selectable`.
+Sets `selectable.interactable = value`.
+Continues through `execOut`.
+Returns an error if the binding cannot resolve a Selectable.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts interactable action. |
+| `target` | input value | UIBinding<Selectable> | property | yes | Binding name string. Button is valid because Button derives from Selectable. |
+| `value` | input value | bool | propertyOrConnection | yes | `true` | Interactable state. |
+| `target` | property | UIBinding<Selectable> | property | yes | Stored as binding name string in JSON. |
+| `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | none | Continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for Button, Toggle, Slider, Dropdown, InputField, and other Selectable-derived UI.
+Do not add Button-specific interactable nodes unless behavior must differ by component type.
+```
+
+### `UI.BindButtonClick`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.BindButtonClick.node.json
+```
+
+Executor:
+
+```text
+ID: UI.BindButtonClick
+Class: UIBindButtonClickExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Button`.
+Adds a listener to `button.onClick` that executes nodes connected to this node's `clicked` output.
+The listener is added only once per node/target in the current execution context.
+Continues through `bound` after the listener is installed.
+Returns an error when target cannot resolve a Button.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Run this once before clicks should be handled. |
+| `target` | input value | UIBinding<Button> | property | yes | Binding name string. |
+| `target` | property | UIBinding<Button> | property | yes | Stored as binding name string in JSON. |
+| `bound` | output exec | none | none | no | Continuation after binding is installed. |
+| `clicked` | output exec | none | none | no | Executed each time the Button is clicked. |
+
+Avoid duplicates:
+
+```text
+Use this for all Unity UI Button click wiring inside the current blueprint.
+Do not create `OnButtonClick` event nodes for each button; connect from `clicked` to the desired behavior.
+```
+
+Legacy migration:
+
+```text
+Older graphs used `eventName` plus `Game.Event.Custom`.
+Compiler and Graph Toolkit import/export migrate old `eventName` links to `clicked` when a matching custom event entry exists.
+Older `execOut` edges from this node are migrated to `bound`.
+```
+
+### `UI.BindButtonEvents`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.BindButtonEvents.node.json
+```
+
+Executor:
+
+```text
+ID: UI.BindButtonEvents
+Class: UIBindButtonEventsExecutor
+File: Assets/BlueprintSystem/Executors/UI/BlueprintUIComponentExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Button`.
+Adds a `BlueprintButtonGestureListener` component to the Button GameObject when missing.
+Executes `clicked`, `doubleClicked`, or `longPressed` as mutually exclusive gestures.
+Uses unscaled time. Defaults: `longPressSeconds` 0.5, `doubleClickSeconds` 0.3.
+Continues through `bound` after the listener is installed.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Run once before gestures should be handled. |
+| `target` | input value | UIBinding<Button> | property | yes | none | Binding name string. |
+| `longPressSeconds` | input value | float | propertyOrConnection | no | `0.5` | Long-press threshold. |
+| `doubleClickSeconds` | input value | float | propertyOrConnection | no | `0.3` | Double-click window. |
+| `target` | property | UIBinding<Button> | property | yes | none | Stored as binding name string. |
+| `bound` | output exec | none | none | no | none | Continuation after binding is installed. |
+| `clicked` | output exec | none | none | no | none | Single click after the double-click window expires. |
+| `doubleClicked` | output exec | none | none | no | none | Second click inside the double-click window. |
+| `longPressed` | output exec | none | none | no | none | Pointer held past the long-press threshold. |
+
+### `UI.BindToggleChanged`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.BindToggleChanged.node.json
+```
+
+Executor:
+
+```text
+ID: UI.BindToggleChanged
+Class: UIBindToggleChangedExecutor
+File: Assets/BlueprintSystem/Executors/UI/BlueprintUIComponentExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `Toggle`.
+Adds a `BlueprintToggleListener` component to the Toggle GameObject when missing.
+Executes `changed` for every value change, plus `turnedOn` or `turnedOff`.
+Value output `value` returns current `Toggle.isOn`.
+Continues through `bound` after the listener is installed.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Run once before changes should be handled. |
+| `target` | input value | UIBinding<Toggle> | property | yes | Binding name string. |
+| `target` | property | UIBinding<Toggle> | property | yes | Stored as binding name string. |
+| `bound` | output exec | none | none | no | Continuation after binding is installed. |
+| `changed` | output exec | none | none | no | Executed on every Toggle value change. |
+| `turnedOn` | output exec | none | none | no | Executed when `isOn` becomes true. |
+| `turnedOff` | output exec | none | none | no | Executed when `isOn` becomes false. |
+| `value` | output value | bool | none | no | Current Toggle state. |
+
+### `UI.RefreshLoopScrollView`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.RefreshLoopScrollView.node.json
+```
+
+Executor:
+
+```text
+ID: UI.RefreshLoopScrollView
+Class: UIRefreshLoopScrollViewExecutor
+File: Assets/BlueprintSystem/Executors/UI/BlueprintUIComponentExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `BlueprintLoopScrollView`.
+Refreshes from connected `items` when present; otherwise reads array variable named by `itemsVariable`.
+The runtime component lives under `Assets/BlueprintSystem/UI/Components`.
+Each visible item prefab may include a child `BlueprintRunner`/`UIBlueprintBinder`.
+During refresh the row runner receives variables `item`, `index`, and `count`, then event `OnBindItem`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts refresh. |
+| `target` | input value | UIBinding<BlueprintLoopScrollView> | property | yes | Binding name string. |
+| `items` | input value | untyped array | connection | no | Preferred data source when connected. |
+| `itemsVariable` | input value | string | propertyOrConnection | no | Fallback variable name. |
+| `target` | property | UIBinding<BlueprintLoopScrollView> | property | yes | Stored as binding name string. |
+| `execOut` | output exec | none | none | no | Continuation after refresh. |
+
+## Variable Nodes
+
+### `Variable.Get`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Variable.Get.node.json
+```
+
+Executor:
+
+```text
+ID: Variable.Get
+Class: VariableGetExecutor
+File: Assets/BlueprintSystem/Executors/Variables/VariableExecutors.cs
+```
+
+Function:
+
+```text
+Value node.
+Reads variable `name` from `context.Variables`.
+Returns the value through output `value`.
+Logs an error and returns null if `name` is empty.
+Validator reports an error if `name` is missing or not declared in `variables[]`.
+Graph Toolkit imports display as native Blackboard variable nodes when the variable type is supported.
+Dragging a Blackboard variable into the graph offers `Get <variableName>` and `Set <variableName>` choices.
+Native Graph Toolkit Blackboard variable nodes are exported as `Variable.Get` nodes.
+Valid imported `Variable.Get` JSON nodes are restored as native Blackboard variable nodes.
+`Array<T>` variables appear in the Blackboard as a single `Array` type. Select the element type inside the array field and edit the default value as JSON text; dragged nodes and exported JSON retain the original `Array<T>` type.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `name` | property | string | property | yes | Variable name. |
+| `value` | output value | untyped | none | no | Current variable value. |
+
+Avoid duplicates:
+
+```text
+Use this for all variable reads.
+Do not add type-specific get nodes unless the type system needs stronger editor/runtime enforcement.
+```
+
+### `Variable.Set`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Variable.Set.node.json
+```
+
+Executor:
+
+```text
+ID: Variable.Set
+Class: VariableSetExecutor
+File: Assets/BlueprintSystem/Executors/Variables/VariableExecutors.cs
+```
+
+Function:
+
+```text
+Reads `name` and `value`.
+Writes value into `context.Variables`.
+Continues through `execOut`.
+Returns an error if `name` is empty.
+Validator reports an error if `name` is missing, not declared in `variables[]`, or the literal `value` is not assignable.
+Graph Toolkit imports and Blackboard drag-created nodes display as `Set <variableName>`.
+The `value` input is displayed as `New Value` and typed from the Blackboard variable declaration.
+Dragging from the Blackboard initializes `value` from the variable default value, or from the type default if none exists.
+This writes to `context.Variables` at runtime and does not edit the Blackboard default value.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts variable write. |
+| `name` | property | string | property | yes | Target variable name, shown as `Variable` in the editor. |
+| `value` | input value | untyped | propertyOrConnection | yes | Value to write, shown as `New Value` in the editor. |
+| `value` | property | untyped | property | no | Used when no value edge is connected. |
+| `execOut` | output exec | none | none | no | Continuation. |
+
+Avoid duplicates:
+
+```text
+Use this for all variable writes.
+Do not add `SetString`, `SetBool`, etc. unless typed variables become explicitly enforced in manifests and UI.
+```
+
+### `Variable.Compare`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Variable.Compare.node.json
+```
+
+Executor:
+
+```text
+ID: Variable.Compare
+Class: VariableCompareExecutor
+File: Assets/BlueprintSystem/Executors/Variables/VariableExecutors.cs
+```
+
+Function:
+
+```text
+Value node.
+Reads `left`, `right`, and `comparison`.
+Returns bool through output `result`.
+For numeric comparisons, values are converted to double; failed conversion becomes 0.
+```
+
+Supported `comparison` values:
+
+```text
+Equals
+NotEquals
+Greater
+GreaterOrEqual
+Less
+LessOrEqual
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `left` | input value | untyped | propertyOrConnection | yes | none | Left operand. |
+| `right` | input value | untyped | propertyOrConnection | yes | none | Right operand. |
+| `comparison` | input value | ComparisonMode | propertyOrConnection | no | `Equals` | Operator enum; can be set by the node dropdown or connected from an enum variable. |
+| `comparison` | property | ComparisonMode | property | no | `Equals` | Default operator enum; Graph Toolkit displays it as a dropdown when no value edge is connected. |
+| `left` | property | untyped | property | no | none | Used when no value edge is connected. |
+| `right` | property | untyped | property | no | none | Used when no value edge is connected. |
+| `result` | output value | bool | none | no | none | Comparison result. |
+
+Avoid duplicates:
+
+```text
+Use this for simple equality and numeric comparisons.
+Only add dedicated comparison/math nodes when they improve type safety, editor UX, or support operations not expressible here.
+```
+
+### `Variable.GetField`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Variable.GetField.node.json
+```
+
+Executor:
+
+```text
+ID: Variable.GetField
+Class: VariableGetFieldExecutor
+File: Assets/BlueprintSystem/Executors/Variables/BlueprintArrayExecutors.cs
+```
+
+Function:
+
+```text
+Reads `target` and a dot-separated `path`.
+Supports dictionaries, serializable fields/properties, list indexes, and Vector2/Vector3 x/y/z fields.
+Returns the resolved value through output `value`; logs an error when the path cannot be read.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `target` | input value | untyped | connection | yes | Structured object, dictionary, or item from `Array.Get`. |
+| `path` | input value | string | propertyOrConnection | yes | Field path such as `count` or `stats.attack`. |
+| `path` | property | string | property | yes | Stored path when no value edge is connected. |
+| `value` | output value | untyped | none | no | Resolved field value. |
+
+## Array Nodes
+
+Blueprint variables support `Array<T>` where `T` is a supported built-in type, enum, or `[BlueprintVariableType]` structured type. Nested arrays and `UIBinding<T>` elements are not supported.
+In Graph Toolkit, `Array<T>` appears as one Blackboard type named `Array`. The array field contains an element type dropdown plus a JSON text field for defaults such as `["A","B"]`; `Variable.Get`, `Variable.Set`, validation, and export preserve the selected `Array<T>` blueprint type.
+
+### `Array.Count`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Array.Count.node.json
+```
+
+Executor:
+
+```text
+ID: Array.Count
+Class: ArrayCountExecutor
+File: Assets/BlueprintSystem/Executors/Variables/BlueprintArrayExecutors.cs
+```
+
+Function:
+
+```text
+Returns item count from connected `array`.
+Invalid or null values count as 0.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `array` | input value | untyped array | connection | yes | Usually from `Variable.Get`. |
+| `count` | output value | int | none | no | Number of items. |
+
+### `Array.Get`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Array.Get.node.json
+```
+
+Executor:
+
+```text
+ID: Array.Get
+Class: ArrayGetExecutor
+File: Assets/BlueprintSystem/Executors/Variables/BlueprintArrayExecutors.cs
+```
+
+Function:
+
+```text
+Reads `array` and `index`.
+Returns the item through output `item`, or null when the index is out of range.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `array` | input value | untyped array | connection | yes | none | Usually from `Variable.Get`. |
+| `index` | input value | int | propertyOrConnection | yes | `0` | Zero-based item index. |
+| `index` | property | int | property | no | `0` | Used when no value edge is connected. |
+| `item` | output value | untyped | none | no | none | Item value. |
+
+## Registered Executor Without Public Manifest
+
+### `Flow.Pass`
+
+Executor:
+
+```text
+ID: Flow.Pass
+Class: FlowPassExecutor
+File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
+```
+
+Current status:
+
+```text
+Registered in BlueprintExecutorRegistry.CreateDefault().
+No matching Assets/BlueprintSystem/Specs/Nodes/*.node.json manifest currently exists.
+No dedicated Graph Toolkit visual node currently exists.
+Not available as a normal user-facing node through current validation/import workflows.
+```
+
+Behavior:
+
+```text
+Inherits BlueprintNodeExecutor default Execute behavior: Continue("execOut").
+```
+
+Avoid duplicates:
+
+```text
+If a no-op/pass-through execution node is needed, promote `Flow.Pass` by adding a manifest and visual node.
+Do not create another executor called NoOp, PassThrough, or Continue.
+```
+
+## Existing Node Families Not Yet Implemented
+
+Before adding nodes in these areas, check whether a current node plus variables/events can solve the case. If not, add a new node deliberately and update this guide.
+
+Currently not implemented as first-class nodes:
+
+```text
+Math arithmetic
+String formatting
+Animation/tweening
+Scene loading
+Audio playback
+HTTP/networking
+Async asset loading
+```
+
+## Adding A New Node
+
+Before creating a new node:
+
+1. Search this guide for the intended behavior.
+2. Search `Assets/BlueprintSystem/Specs/Nodes` for a similar `typeId`.
+3. Search `BlueprintExecutorRegistry.CreateDefault()` for an existing executor.
+4. Prefer extending an existing node only when the semantics remain the same.
+5. Prefer a new node when the runtime side effect, lifecycle, or target Unity API differs.
+
+Required files for a new public node:
+
+```text
+1. Assets/BlueprintSystem/Specs/Nodes/<TypeId>.node.json
+2. Executor class under Assets/BlueprintSystem/Executors/
+3. Registration in BlueprintExecutorRegistry.CreateDefault()
+4. Graph Toolkit visual node class under Assets/BlueprintSystem/Editor/GraphToolkit/
+5. Tests in Assets/BlueprintSystem/Tests/Editor/BlueprintSystemTests.cs
+6. Update this GUIDE.md
+```
+
+Naming conventions:
+
+```text
+typeId: Category.Action or Category.Event.Name
+executor id: usually same as typeId, except event entries use Flow.Event
+property IDs: match context.GetInputValue(node, "<id>") calls
+exec input: usually execIn
+exec continuation: usually execOut
+UI target property: usually target
+```
+
+Manifest consistency checklist:
+
+```text
+manifest.typeId == blueprint JSON node typeId
+manifest.executor == executor.ExecutorId
+manifest input/property IDs == executor GetInputValue IDs
+manifest output IDs == BlueprintExecResult.Continue IDs
+UIBinding<T> property stores a binding name string in JSON
+```

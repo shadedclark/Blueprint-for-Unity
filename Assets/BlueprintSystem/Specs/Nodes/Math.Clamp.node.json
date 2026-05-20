@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Clamp",
+  "title": "Clamp",
+  "category": "Math",
+  "description": "Clamps a value between min and max.",
+  "executor": "Math.Clamp",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "min",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "max",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "min",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "max",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetImageFillAmount",
+  "title": "Set Image Fill Amount",
+  "category": "UI",
+  "description": "Sets fillAmount on a bound Unity UI Image.",
+  "executor": "UI.SetImageFillAmount",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Image>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Image>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "float",
+      "required": false,
+      "defaultValue": 1
+    }
+  ]
+}

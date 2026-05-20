@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Logic.And",
+  "title": "And",
+  "category": "Logic",
+  "description": "Returns true when both boolean inputs are true.",
+  "executor": "Logic.And",
+  "inputs": [
+    {
+      "id": "left",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "right",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "left",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    },
+    {
+      "id": "right",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    }
+  ],
+  "tags": [
+    "boolean",
+    "condition"
+  ]
+}

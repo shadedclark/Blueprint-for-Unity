@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Logic.Not",
+  "title": "Not",
+  "category": "Logic",
+  "description": "Inverts a boolean input.",
+  "executor": "Logic.Not",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "type": "bool",
+      "required": false,
+      "defaultValue": false
+    }
+  ],
+  "tags": [
+    "boolean",
+    "condition"
+  ]
+}

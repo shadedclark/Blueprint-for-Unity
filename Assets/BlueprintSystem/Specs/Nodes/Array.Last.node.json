@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Last",
+  "title": "Array Last",
+  "category": "Array",
+  "description": "Returns the last item from an array.",
+  "executor": "Array.Last",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "item",
+      "kind": "value"
+    },
+    {
+      "id": "isValid",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": []
+}

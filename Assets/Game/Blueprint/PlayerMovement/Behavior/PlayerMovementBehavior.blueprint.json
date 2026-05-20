@@ -1,0 +1,554 @@
+{
+  "schemaVersion": "0.1",
+  "name": "PlayerMovementBehavior",
+  "category": "PlayerMovement/Behavior",
+  "description": "Tick-driven local movement from the Player/Move Input System action.",
+  "variables": [
+    {
+      "id": "var_0b628bedd5754a4f836fdc9e90b9d9e0",
+      "name": "player_movement_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "player_transform",
+      "type": "Transform",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_tick",
+      "typeId": "Game.Event.OnTick",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "phase": "Update"
+      }
+    },
+    {
+      "id": "get_move_input",
+      "typeId": "Input.GetActionVector2",
+      "position": [
+        0,
+        160
+      ],
+      "properties": {
+        "action": "Player/Move"
+      }
+    },
+    {
+      "id": "break_move_input",
+      "typeId": "Vector.BreakVector2",
+      "position": [
+        220,
+        160
+      ],
+      "properties": {
+        "value": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "make_move_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        440,
+        160
+      ],
+      "properties": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "get_move_length",
+      "typeId": "Vector.Length",
+      "position": [
+        660,
+        160
+      ],
+      "properties": {
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "get_player_movement_data_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        440,
+        320
+      ],
+      "properties": {
+        "name": "player_movement_data_blueprint"
+      }
+    },
+    {
+      "id": "get_dead_zone",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        660,
+        320
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "input_dead_zone"
+      }
+    },
+    {
+      "id": "compare_input_dead_zone",
+      "typeId": "Variable.Compare",
+      "position": [
+        880,
+        160
+      ],
+      "properties": {
+        "comparison": "Greater"
+      }
+    },
+    {
+      "id": "branch_has_input",
+      "typeId": "Flow.Branch",
+      "position": [
+        1100,
+        0
+      ],
+      "properties": {
+        "condition": false
+      }
+    },
+    {
+      "id": "normalize_move_direction",
+      "typeId": "Vector.Normalize",
+      "position": [
+        880,
+        360
+      ],
+      "properties": {
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "get_move_speed",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        880,
+        520
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "move_speed"
+      }
+    },
+    {
+      "id": "get_delta_time",
+      "typeId": "Game.GetDeltaTime",
+      "position": [
+        880,
+        640
+      ],
+      "properties": {}
+    },
+    {
+      "id": "multiply_speed_delta",
+      "typeId": "Math.Multiply",
+      "position": [
+        1100,
+        560
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "multiply_move_delta",
+      "typeId": "Vector.Multiply",
+      "position": [
+        1320,
+        420
+      ],
+      "properties": {
+        "vector": [
+          0,
+          0,
+          0
+        ],
+        "scalar": 1
+      }
+    },
+    {
+      "id": "set_current_input_active",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1320,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "current_input"
+      }
+    },
+    {
+      "id": "set_move_direction_active",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1540,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "current_move_direction"
+      }
+    },
+    {
+      "id": "set_is_moving_true",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1760,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "is_moving",
+        "value": true
+      }
+    },
+    {
+      "id": "get_rotate_enabled",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        1760,
+        200
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "rotate_to_move_direction"
+      }
+    },
+    {
+      "id": "branch_rotate_enabled",
+      "typeId": "Flow.Branch",
+      "position": [
+        1980,
+        0
+      ],
+      "properties": {
+        "condition": false
+      }
+    },
+    {
+      "id": "get_player_position",
+      "typeId": "Game.GetTransformPosition",
+      "position": [
+        1980,
+        260
+      ],
+      "properties": {
+        "target": "player_transform"
+      }
+    },
+    {
+      "id": "make_look_target_position",
+      "typeId": "Vector.Add",
+      "position": [
+        2200,
+        260
+      ],
+      "properties": {
+        "a": [
+          0,
+          0,
+          0
+        ],
+        "b": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "look_at_move_direction",
+      "typeId": "Game.LookAtTransform",
+      "position": [
+        2200,
+        0
+      ],
+      "properties": {
+        "target": "player_transform",
+        "lookTarget": "",
+        "targetPosition": [
+          0,
+          0,
+          0
+        ],
+        "worldUp": [
+          0,
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "id": "translate_player_after_look",
+      "typeId": "Game.TranslateTransform",
+      "position": [
+        2420,
+        0
+      ],
+      "properties": {
+        "target": "player_transform",
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "relativeToSelf": false
+      }
+    },
+    {
+      "id": "translate_player_direct",
+      "typeId": "Game.TranslateTransform",
+      "position": [
+        2200,
+        -120
+      ],
+      "properties": {
+        "target": "player_transform",
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "relativeToSelf": false
+      }
+    },
+    {
+      "id": "set_current_input_zero",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1320,
+        -220
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "current_input",
+        "value": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "set_move_direction_zero",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1540,
+        -220
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "current_move_direction",
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "set_is_moving_false",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1760,
+        -220
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+        "name": "is_moving",
+        "value": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_tick.execOut",
+      "to": "branch_has_input.execIn"
+    },
+    {
+      "from": "get_move_input.value",
+      "to": "break_move_input.value"
+    },
+    {
+      "from": "get_move_input.value",
+      "to": "set_current_input_active.value"
+    },
+    {
+      "from": "break_move_input.x",
+      "to": "make_move_vector.x"
+    },
+    {
+      "from": "break_move_input.y",
+      "to": "make_move_vector.z"
+    },
+    {
+      "from": "make_move_vector.value",
+      "to": "get_move_length.value"
+    },
+    {
+      "from": "make_move_vector.value",
+      "to": "normalize_move_direction.value"
+    },
+    {
+      "from": "get_move_length.result",
+      "to": "compare_input_dead_zone.left"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "get_dead_zone.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "set_current_input_active.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "set_move_direction_active.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "set_is_moving_true.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "get_rotate_enabled.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "get_move_speed.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "set_current_input_zero.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "set_move_direction_zero.target"
+    },
+    {
+      "from": "get_player_movement_data_blueprint.value",
+      "to": "set_is_moving_false.target"
+    },
+    {
+      "from": "get_dead_zone.value",
+      "to": "compare_input_dead_zone.right"
+    },
+    {
+      "from": "compare_input_dead_zone.result",
+      "to": "branch_has_input.condition"
+    },
+    {
+      "from": "branch_has_input.true",
+      "to": "set_current_input_active.execIn"
+    },
+    {
+      "from": "branch_has_input.false",
+      "to": "set_current_input_zero.execIn"
+    },
+    {
+      "from": "normalize_move_direction.result",
+      "to": "set_move_direction_active.value"
+    },
+    {
+      "from": "normalize_move_direction.result",
+      "to": "make_look_target_position.b"
+    },
+    {
+      "from": "normalize_move_direction.result",
+      "to": "multiply_move_delta.vector"
+    },
+    {
+      "from": "get_move_speed.value",
+      "to": "multiply_speed_delta.a"
+    },
+    {
+      "from": "get_delta_time.value",
+      "to": "multiply_speed_delta.b"
+    },
+    {
+      "from": "multiply_speed_delta.result",
+      "to": "multiply_move_delta.scalar"
+    },
+    {
+      "from": "multiply_move_delta.result",
+      "to": "translate_player_after_look.translation"
+    },
+    {
+      "from": "multiply_move_delta.result",
+      "to": "translate_player_direct.translation"
+    },
+    {
+      "from": "set_current_input_active.execOut",
+      "to": "set_move_direction_active.execIn"
+    },
+    {
+      "from": "set_move_direction_active.execOut",
+      "to": "set_is_moving_true.execIn"
+    },
+    {
+      "from": "set_is_moving_true.execOut",
+      "to": "branch_rotate_enabled.execIn"
+    },
+    {
+      "from": "get_rotate_enabled.value",
+      "to": "branch_rotate_enabled.condition"
+    },
+    {
+      "from": "branch_rotate_enabled.true",
+      "to": "look_at_move_direction.execIn"
+    },
+    {
+      "from": "branch_rotate_enabled.false",
+      "to": "translate_player_direct.execIn"
+    },
+    {
+      "from": "get_player_position.value",
+      "to": "make_look_target_position.a"
+    },
+    {
+      "from": "make_look_target_position.result",
+      "to": "look_at_move_direction.targetPosition"
+    },
+    {
+      "from": "look_at_move_direction.execOut",
+      "to": "translate_player_after_look.execIn"
+    },
+    {
+      "from": "set_current_input_zero.execOut",
+      "to": "set_move_direction_zero.execIn"
+    },
+    {
+      "from": "set_move_direction_zero.execOut",
+      "to": "set_is_moving_false.execIn"
+    }
+  ]
+}

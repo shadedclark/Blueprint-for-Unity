@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.RefreshLoopScrollView",
+  "title": "Refresh Loop Scroll View",
+  "category": "UI",
+  "description": "Refreshes a bound BlueprintLoopScrollView from an array value or variable.",
+  "executor": "UI.RefreshLoopScrollView",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<BlueprintLoopScrollView>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "items",
+      "kind": "value",
+      "required": false,
+      "source": "connection"
+    },
+    {
+      "id": "itemsVariable",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<BlueprintLoopScrollView>",
+      "required": true
+    },
+    {
+      "id": "itemsVariable",
+      "type": "string",
+      "required": false
+    }
+  ]
+}

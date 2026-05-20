@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetInteractable",
+  "title": "Set Interactable",
+  "category": "UI",
+  "description": "Sets interactable state on a bound Selectable.",
+  "executor": "UI.SetInteractable",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Selectable>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Selectable>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ]
+}

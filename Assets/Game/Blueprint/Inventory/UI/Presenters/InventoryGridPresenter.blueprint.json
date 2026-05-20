@@ -1,0 +1,4839 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryGridPresenter",
+  "category": "Inventory/UI/Presenter",
+  "description": "Refreshes 40 fixed inventory slot labels and selected borders.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "inventory_slot_00_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_00_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_01_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_01_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_02_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_02_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_03_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_03_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_04_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_04_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_05_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_05_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_06_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_06_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_07_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_07_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_08_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_08_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_09_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_09_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_10_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_10_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_11_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_11_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_12_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_12_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_13_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_13_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_14_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_14_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_15_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_15_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_16_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_16_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_17_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_17_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_18_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_18_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_19_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_19_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_20_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_20_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_21_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_21_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_22_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_22_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_23_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_23_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_24_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_24_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_25_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_25_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_26_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_26_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_27_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_27_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_28_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_28_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_29_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_29_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_30_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_30_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_31_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_31_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_32_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_32_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_33_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_33_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_34_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_34_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_35_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_35_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_36_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_36_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_37_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_37_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_38_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_38_frame_image",
+      "type": "Image",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_39_label_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_slot_39_frame_image",
+      "type": "Image",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_refresh",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "get_slot_labels",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "slot_labels"
+      }
+    },
+    {
+      "id": "get_selected_index",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "slot_00_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        80
+      ],
+      "properties": {
+        "index": 0
+      }
+    },
+    {
+      "id": "slot_00_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        80
+      ],
+      "properties": {
+        "target": "inventory_slot_00_label_text"
+      }
+    },
+    {
+      "id": "slot_00_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        80
+      ],
+      "properties": {
+        "right": 0,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_00_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        80
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_00_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        80
+      ],
+      "properties": {
+        "target": "inventory_slot_00_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_00_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        100
+      ],
+      "properties": {
+        "target": "inventory_slot_00_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_01_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        120
+      ],
+      "properties": {
+        "index": 1
+      }
+    },
+    {
+      "id": "slot_01_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        120
+      ],
+      "properties": {
+        "target": "inventory_slot_01_label_text"
+      }
+    },
+    {
+      "id": "slot_01_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        120
+      ],
+      "properties": {
+        "right": 1,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_01_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_01_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        120
+      ],
+      "properties": {
+        "target": "inventory_slot_01_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_01_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        140
+      ],
+      "properties": {
+        "target": "inventory_slot_01_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_02_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        160
+      ],
+      "properties": {
+        "index": 2
+      }
+    },
+    {
+      "id": "slot_02_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        160
+      ],
+      "properties": {
+        "target": "inventory_slot_02_label_text"
+      }
+    },
+    {
+      "id": "slot_02_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        160
+      ],
+      "properties": {
+        "right": 2,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_02_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        160
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_02_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        160
+      ],
+      "properties": {
+        "target": "inventory_slot_02_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_02_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        180
+      ],
+      "properties": {
+        "target": "inventory_slot_02_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_03_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        200
+      ],
+      "properties": {
+        "index": 3
+      }
+    },
+    {
+      "id": "slot_03_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        200
+      ],
+      "properties": {
+        "target": "inventory_slot_03_label_text"
+      }
+    },
+    {
+      "id": "slot_03_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        200
+      ],
+      "properties": {
+        "right": 3,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_03_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        200
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_03_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        200
+      ],
+      "properties": {
+        "target": "inventory_slot_03_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_03_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        220
+      ],
+      "properties": {
+        "target": "inventory_slot_03_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_04_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        240
+      ],
+      "properties": {
+        "index": 4
+      }
+    },
+    {
+      "id": "slot_04_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        240
+      ],
+      "properties": {
+        "target": "inventory_slot_04_label_text"
+      }
+    },
+    {
+      "id": "slot_04_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        240
+      ],
+      "properties": {
+        "right": 4,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_04_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        240
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_04_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        240
+      ],
+      "properties": {
+        "target": "inventory_slot_04_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_04_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        260
+      ],
+      "properties": {
+        "target": "inventory_slot_04_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_05_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        280
+      ],
+      "properties": {
+        "index": 5
+      }
+    },
+    {
+      "id": "slot_05_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        280
+      ],
+      "properties": {
+        "target": "inventory_slot_05_label_text"
+      }
+    },
+    {
+      "id": "slot_05_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        280
+      ],
+      "properties": {
+        "right": 5,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_05_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        280
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_05_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        280
+      ],
+      "properties": {
+        "target": "inventory_slot_05_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_05_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        300
+      ],
+      "properties": {
+        "target": "inventory_slot_05_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_06_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        320
+      ],
+      "properties": {
+        "index": 6
+      }
+    },
+    {
+      "id": "slot_06_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        320
+      ],
+      "properties": {
+        "target": "inventory_slot_06_label_text"
+      }
+    },
+    {
+      "id": "slot_06_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        320
+      ],
+      "properties": {
+        "right": 6,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_06_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        320
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_06_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        320
+      ],
+      "properties": {
+        "target": "inventory_slot_06_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_06_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        340
+      ],
+      "properties": {
+        "target": "inventory_slot_06_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_07_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        360
+      ],
+      "properties": {
+        "index": 7
+      }
+    },
+    {
+      "id": "slot_07_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        360
+      ],
+      "properties": {
+        "target": "inventory_slot_07_label_text"
+      }
+    },
+    {
+      "id": "slot_07_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        360
+      ],
+      "properties": {
+        "right": 7,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_07_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        360
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_07_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        360
+      ],
+      "properties": {
+        "target": "inventory_slot_07_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_07_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        380
+      ],
+      "properties": {
+        "target": "inventory_slot_07_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_08_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        400
+      ],
+      "properties": {
+        "index": 8
+      }
+    },
+    {
+      "id": "slot_08_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        400
+      ],
+      "properties": {
+        "target": "inventory_slot_08_label_text"
+      }
+    },
+    {
+      "id": "slot_08_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        400
+      ],
+      "properties": {
+        "right": 8,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_08_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        400
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_08_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        400
+      ],
+      "properties": {
+        "target": "inventory_slot_08_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_08_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        420
+      ],
+      "properties": {
+        "target": "inventory_slot_08_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_09_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        440
+      ],
+      "properties": {
+        "index": 9
+      }
+    },
+    {
+      "id": "slot_09_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        440
+      ],
+      "properties": {
+        "target": "inventory_slot_09_label_text"
+      }
+    },
+    {
+      "id": "slot_09_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        440
+      ],
+      "properties": {
+        "right": 9,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_09_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        440
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_09_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        440
+      ],
+      "properties": {
+        "target": "inventory_slot_09_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_09_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        460
+      ],
+      "properties": {
+        "target": "inventory_slot_09_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_10_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        480
+      ],
+      "properties": {
+        "index": 10
+      }
+    },
+    {
+      "id": "slot_10_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        480
+      ],
+      "properties": {
+        "target": "inventory_slot_10_label_text"
+      }
+    },
+    {
+      "id": "slot_10_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        480
+      ],
+      "properties": {
+        "right": 10,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_10_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        480
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_10_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        480
+      ],
+      "properties": {
+        "target": "inventory_slot_10_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_10_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        500
+      ],
+      "properties": {
+        "target": "inventory_slot_10_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_11_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        520
+      ],
+      "properties": {
+        "index": 11
+      }
+    },
+    {
+      "id": "slot_11_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        520
+      ],
+      "properties": {
+        "target": "inventory_slot_11_label_text"
+      }
+    },
+    {
+      "id": "slot_11_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        520
+      ],
+      "properties": {
+        "right": 11,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_11_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        520
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_11_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        520
+      ],
+      "properties": {
+        "target": "inventory_slot_11_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_11_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        540
+      ],
+      "properties": {
+        "target": "inventory_slot_11_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_12_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        560
+      ],
+      "properties": {
+        "index": 12
+      }
+    },
+    {
+      "id": "slot_12_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        560
+      ],
+      "properties": {
+        "target": "inventory_slot_12_label_text"
+      }
+    },
+    {
+      "id": "slot_12_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        560
+      ],
+      "properties": {
+        "right": 12,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_12_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        560
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_12_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        560
+      ],
+      "properties": {
+        "target": "inventory_slot_12_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_12_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        580
+      ],
+      "properties": {
+        "target": "inventory_slot_12_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_13_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        600
+      ],
+      "properties": {
+        "index": 13
+      }
+    },
+    {
+      "id": "slot_13_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        600
+      ],
+      "properties": {
+        "target": "inventory_slot_13_label_text"
+      }
+    },
+    {
+      "id": "slot_13_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        600
+      ],
+      "properties": {
+        "right": 13,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_13_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        600
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_13_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        600
+      ],
+      "properties": {
+        "target": "inventory_slot_13_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_13_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        620
+      ],
+      "properties": {
+        "target": "inventory_slot_13_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_14_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        640
+      ],
+      "properties": {
+        "index": 14
+      }
+    },
+    {
+      "id": "slot_14_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        640
+      ],
+      "properties": {
+        "target": "inventory_slot_14_label_text"
+      }
+    },
+    {
+      "id": "slot_14_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        640
+      ],
+      "properties": {
+        "right": 14,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_14_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        640
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_14_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        640
+      ],
+      "properties": {
+        "target": "inventory_slot_14_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_14_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        660
+      ],
+      "properties": {
+        "target": "inventory_slot_14_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_15_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        680
+      ],
+      "properties": {
+        "index": 15
+      }
+    },
+    {
+      "id": "slot_15_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        680
+      ],
+      "properties": {
+        "target": "inventory_slot_15_label_text"
+      }
+    },
+    {
+      "id": "slot_15_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        680
+      ],
+      "properties": {
+        "right": 15,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_15_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        680
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_15_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        680
+      ],
+      "properties": {
+        "target": "inventory_slot_15_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_15_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        700
+      ],
+      "properties": {
+        "target": "inventory_slot_15_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_16_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        720
+      ],
+      "properties": {
+        "index": 16
+      }
+    },
+    {
+      "id": "slot_16_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        720
+      ],
+      "properties": {
+        "target": "inventory_slot_16_label_text"
+      }
+    },
+    {
+      "id": "slot_16_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        720
+      ],
+      "properties": {
+        "right": 16,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_16_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        720
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_16_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        720
+      ],
+      "properties": {
+        "target": "inventory_slot_16_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_16_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        740
+      ],
+      "properties": {
+        "target": "inventory_slot_16_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_17_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        760
+      ],
+      "properties": {
+        "index": 17
+      }
+    },
+    {
+      "id": "slot_17_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        760
+      ],
+      "properties": {
+        "target": "inventory_slot_17_label_text"
+      }
+    },
+    {
+      "id": "slot_17_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        760
+      ],
+      "properties": {
+        "right": 17,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_17_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        760
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_17_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        760
+      ],
+      "properties": {
+        "target": "inventory_slot_17_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_17_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        780
+      ],
+      "properties": {
+        "target": "inventory_slot_17_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_18_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        800
+      ],
+      "properties": {
+        "index": 18
+      }
+    },
+    {
+      "id": "slot_18_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        800
+      ],
+      "properties": {
+        "target": "inventory_slot_18_label_text"
+      }
+    },
+    {
+      "id": "slot_18_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        800
+      ],
+      "properties": {
+        "right": 18,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_18_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        800
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_18_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        800
+      ],
+      "properties": {
+        "target": "inventory_slot_18_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_18_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        820
+      ],
+      "properties": {
+        "target": "inventory_slot_18_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_19_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        840
+      ],
+      "properties": {
+        "index": 19
+      }
+    },
+    {
+      "id": "slot_19_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        840
+      ],
+      "properties": {
+        "target": "inventory_slot_19_label_text"
+      }
+    },
+    {
+      "id": "slot_19_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        840
+      ],
+      "properties": {
+        "right": 19,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_19_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        840
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_19_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        840
+      ],
+      "properties": {
+        "target": "inventory_slot_19_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_19_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        860
+      ],
+      "properties": {
+        "target": "inventory_slot_19_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_20_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        880
+      ],
+      "properties": {
+        "index": 20
+      }
+    },
+    {
+      "id": "slot_20_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        880
+      ],
+      "properties": {
+        "target": "inventory_slot_20_label_text"
+      }
+    },
+    {
+      "id": "slot_20_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        880
+      ],
+      "properties": {
+        "right": 20,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_20_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        880
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_20_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        880
+      ],
+      "properties": {
+        "target": "inventory_slot_20_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_20_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        900
+      ],
+      "properties": {
+        "target": "inventory_slot_20_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_21_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        920
+      ],
+      "properties": {
+        "index": 21
+      }
+    },
+    {
+      "id": "slot_21_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        920
+      ],
+      "properties": {
+        "target": "inventory_slot_21_label_text"
+      }
+    },
+    {
+      "id": "slot_21_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        920
+      ],
+      "properties": {
+        "right": 21,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_21_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        920
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_21_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        920
+      ],
+      "properties": {
+        "target": "inventory_slot_21_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_21_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        940
+      ],
+      "properties": {
+        "target": "inventory_slot_21_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_22_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        960
+      ],
+      "properties": {
+        "index": 22
+      }
+    },
+    {
+      "id": "slot_22_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        960
+      ],
+      "properties": {
+        "target": "inventory_slot_22_label_text"
+      }
+    },
+    {
+      "id": "slot_22_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        960
+      ],
+      "properties": {
+        "right": 22,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_22_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        960
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_22_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        960
+      ],
+      "properties": {
+        "target": "inventory_slot_22_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_22_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        980
+      ],
+      "properties": {
+        "target": "inventory_slot_22_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_23_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1000
+      ],
+      "properties": {
+        "index": 23
+      }
+    },
+    {
+      "id": "slot_23_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1000
+      ],
+      "properties": {
+        "target": "inventory_slot_23_label_text"
+      }
+    },
+    {
+      "id": "slot_23_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1000
+      ],
+      "properties": {
+        "right": 23,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_23_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1000
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_23_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1000
+      ],
+      "properties": {
+        "target": "inventory_slot_23_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_23_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1020
+      ],
+      "properties": {
+        "target": "inventory_slot_23_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_24_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1040
+      ],
+      "properties": {
+        "index": 24
+      }
+    },
+    {
+      "id": "slot_24_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1040
+      ],
+      "properties": {
+        "target": "inventory_slot_24_label_text"
+      }
+    },
+    {
+      "id": "slot_24_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1040
+      ],
+      "properties": {
+        "right": 24,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_24_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1040
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_24_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1040
+      ],
+      "properties": {
+        "target": "inventory_slot_24_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_24_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1060
+      ],
+      "properties": {
+        "target": "inventory_slot_24_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_25_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1080
+      ],
+      "properties": {
+        "index": 25
+      }
+    },
+    {
+      "id": "slot_25_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1080
+      ],
+      "properties": {
+        "target": "inventory_slot_25_label_text"
+      }
+    },
+    {
+      "id": "slot_25_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1080
+      ],
+      "properties": {
+        "right": 25,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_25_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1080
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_25_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1080
+      ],
+      "properties": {
+        "target": "inventory_slot_25_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_25_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1100
+      ],
+      "properties": {
+        "target": "inventory_slot_25_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_26_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1120
+      ],
+      "properties": {
+        "index": 26
+      }
+    },
+    {
+      "id": "slot_26_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1120
+      ],
+      "properties": {
+        "target": "inventory_slot_26_label_text"
+      }
+    },
+    {
+      "id": "slot_26_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1120
+      ],
+      "properties": {
+        "right": 26,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_26_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_26_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1120
+      ],
+      "properties": {
+        "target": "inventory_slot_26_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_26_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1140
+      ],
+      "properties": {
+        "target": "inventory_slot_26_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_27_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1160
+      ],
+      "properties": {
+        "index": 27
+      }
+    },
+    {
+      "id": "slot_27_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1160
+      ],
+      "properties": {
+        "target": "inventory_slot_27_label_text"
+      }
+    },
+    {
+      "id": "slot_27_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1160
+      ],
+      "properties": {
+        "right": 27,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_27_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1160
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_27_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1160
+      ],
+      "properties": {
+        "target": "inventory_slot_27_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_27_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1180
+      ],
+      "properties": {
+        "target": "inventory_slot_27_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_28_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1200
+      ],
+      "properties": {
+        "index": 28
+      }
+    },
+    {
+      "id": "slot_28_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1200
+      ],
+      "properties": {
+        "target": "inventory_slot_28_label_text"
+      }
+    },
+    {
+      "id": "slot_28_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1200
+      ],
+      "properties": {
+        "right": 28,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_28_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1200
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_28_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1200
+      ],
+      "properties": {
+        "target": "inventory_slot_28_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_28_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1220
+      ],
+      "properties": {
+        "target": "inventory_slot_28_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_29_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1240
+      ],
+      "properties": {
+        "index": 29
+      }
+    },
+    {
+      "id": "slot_29_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1240
+      ],
+      "properties": {
+        "target": "inventory_slot_29_label_text"
+      }
+    },
+    {
+      "id": "slot_29_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1240
+      ],
+      "properties": {
+        "right": 29,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_29_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1240
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_29_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1240
+      ],
+      "properties": {
+        "target": "inventory_slot_29_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_29_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1260
+      ],
+      "properties": {
+        "target": "inventory_slot_29_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_30_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1280
+      ],
+      "properties": {
+        "index": 30
+      }
+    },
+    {
+      "id": "slot_30_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1280
+      ],
+      "properties": {
+        "target": "inventory_slot_30_label_text"
+      }
+    },
+    {
+      "id": "slot_30_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1280
+      ],
+      "properties": {
+        "right": 30,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_30_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1280
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_30_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1280
+      ],
+      "properties": {
+        "target": "inventory_slot_30_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_30_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1300
+      ],
+      "properties": {
+        "target": "inventory_slot_30_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_31_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1320
+      ],
+      "properties": {
+        "index": 31
+      }
+    },
+    {
+      "id": "slot_31_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1320
+      ],
+      "properties": {
+        "target": "inventory_slot_31_label_text"
+      }
+    },
+    {
+      "id": "slot_31_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1320
+      ],
+      "properties": {
+        "right": 31,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_31_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1320
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_31_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1320
+      ],
+      "properties": {
+        "target": "inventory_slot_31_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_31_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1340
+      ],
+      "properties": {
+        "target": "inventory_slot_31_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_32_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1360
+      ],
+      "properties": {
+        "index": 32
+      }
+    },
+    {
+      "id": "slot_32_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1360
+      ],
+      "properties": {
+        "target": "inventory_slot_32_label_text"
+      }
+    },
+    {
+      "id": "slot_32_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1360
+      ],
+      "properties": {
+        "right": 32,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_32_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1360
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_32_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1360
+      ],
+      "properties": {
+        "target": "inventory_slot_32_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_32_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1380
+      ],
+      "properties": {
+        "target": "inventory_slot_32_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_33_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1400
+      ],
+      "properties": {
+        "index": 33
+      }
+    },
+    {
+      "id": "slot_33_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1400
+      ],
+      "properties": {
+        "target": "inventory_slot_33_label_text"
+      }
+    },
+    {
+      "id": "slot_33_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1400
+      ],
+      "properties": {
+        "right": 33,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_33_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1400
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_33_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1400
+      ],
+      "properties": {
+        "target": "inventory_slot_33_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_33_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1420
+      ],
+      "properties": {
+        "target": "inventory_slot_33_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_34_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1440
+      ],
+      "properties": {
+        "index": 34
+      }
+    },
+    {
+      "id": "slot_34_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1440
+      ],
+      "properties": {
+        "target": "inventory_slot_34_label_text"
+      }
+    },
+    {
+      "id": "slot_34_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1440
+      ],
+      "properties": {
+        "right": 34,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_34_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1440
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_34_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1440
+      ],
+      "properties": {
+        "target": "inventory_slot_34_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_34_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1460
+      ],
+      "properties": {
+        "target": "inventory_slot_34_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_35_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1480
+      ],
+      "properties": {
+        "index": 35
+      }
+    },
+    {
+      "id": "slot_35_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1480
+      ],
+      "properties": {
+        "target": "inventory_slot_35_label_text"
+      }
+    },
+    {
+      "id": "slot_35_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1480
+      ],
+      "properties": {
+        "right": 35,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_35_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1480
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_35_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1480
+      ],
+      "properties": {
+        "target": "inventory_slot_35_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_35_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1500
+      ],
+      "properties": {
+        "target": "inventory_slot_35_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_36_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1520
+      ],
+      "properties": {
+        "index": 36
+      }
+    },
+    {
+      "id": "slot_36_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1520
+      ],
+      "properties": {
+        "target": "inventory_slot_36_label_text"
+      }
+    },
+    {
+      "id": "slot_36_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1520
+      ],
+      "properties": {
+        "right": 36,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_36_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1520
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_36_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1520
+      ],
+      "properties": {
+        "target": "inventory_slot_36_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_36_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1540
+      ],
+      "properties": {
+        "target": "inventory_slot_36_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_37_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1560
+      ],
+      "properties": {
+        "index": 37
+      }
+    },
+    {
+      "id": "slot_37_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1560
+      ],
+      "properties": {
+        "target": "inventory_slot_37_label_text"
+      }
+    },
+    {
+      "id": "slot_37_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1560
+      ],
+      "properties": {
+        "right": 37,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_37_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1560
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_37_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1560
+      ],
+      "properties": {
+        "target": "inventory_slot_37_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_37_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1580
+      ],
+      "properties": {
+        "target": "inventory_slot_37_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_38_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1600
+      ],
+      "properties": {
+        "index": 38
+      }
+    },
+    {
+      "id": "slot_38_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1600
+      ],
+      "properties": {
+        "target": "inventory_slot_38_label_text"
+      }
+    },
+    {
+      "id": "slot_38_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1600
+      ],
+      "properties": {
+        "right": 38,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_38_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1600
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_38_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1600
+      ],
+      "properties": {
+        "target": "inventory_slot_38_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_38_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1620
+      ],
+      "properties": {
+        "target": "inventory_slot_38_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_39_get_label",
+      "typeId": "Array.Get",
+      "position": [
+        200,
+        1640
+      ],
+      "properties": {
+        "index": 39
+      }
+    },
+    {
+      "id": "slot_39_set_label",
+      "typeId": "UI.SetText",
+      "position": [
+        380,
+        1640
+      ],
+      "properties": {
+        "target": "inventory_slot_39_label_text"
+      }
+    },
+    {
+      "id": "slot_39_is_selected",
+      "typeId": "Variable.Compare",
+      "position": [
+        560,
+        1640
+      ],
+      "properties": {
+        "right": 39,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "slot_39_branch_selected",
+      "typeId": "Flow.Branch",
+      "position": [
+        720,
+        1640
+      ],
+      "properties": {}
+    },
+    {
+      "id": "slot_39_set_selected_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1640
+      ],
+      "properties": {
+        "target": "inventory_slot_39_frame_image",
+        "value": [
+          1,
+          0.78,
+          0.22,
+          1
+        ]
+      }
+    },
+    {
+      "id": "slot_39_set_base_color",
+      "typeId": "UI.SetGraphicColor",
+      "position": [
+        900,
+        1660
+      ],
+      "properties": {
+        "target": "inventory_slot_39_frame_image",
+        "value": [
+          0.25,
+          0.28,
+          0.34,
+          1
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data.value",
+      "to": "get_slot_labels.target"
+    },
+    {
+      "from": "get_data.value",
+      "to": "get_selected_index.target"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_00_get_label.array"
+    },
+    {
+      "from": "event_refresh.execOut",
+      "to": "slot_00_set_label.execIn"
+    },
+    {
+      "from": "slot_00_get_label.item",
+      "to": "slot_00_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_00_is_selected.left"
+    },
+    {
+      "from": "slot_00_set_label.execOut",
+      "to": "slot_00_branch_selected.execIn"
+    },
+    {
+      "from": "slot_00_is_selected.result",
+      "to": "slot_00_branch_selected.condition"
+    },
+    {
+      "from": "slot_00_branch_selected.true",
+      "to": "slot_00_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_00_branch_selected.false",
+      "to": "slot_00_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_01_get_label.array"
+    },
+    {
+      "from": "slot_00_set_label.execOut",
+      "to": "slot_01_set_label.execIn"
+    },
+    {
+      "from": "slot_01_get_label.item",
+      "to": "slot_01_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_01_is_selected.left"
+    },
+    {
+      "from": "slot_01_set_label.execOut",
+      "to": "slot_01_branch_selected.execIn"
+    },
+    {
+      "from": "slot_01_is_selected.result",
+      "to": "slot_01_branch_selected.condition"
+    },
+    {
+      "from": "slot_01_branch_selected.true",
+      "to": "slot_01_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_01_branch_selected.false",
+      "to": "slot_01_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_02_get_label.array"
+    },
+    {
+      "from": "slot_01_set_label.execOut",
+      "to": "slot_02_set_label.execIn"
+    },
+    {
+      "from": "slot_02_get_label.item",
+      "to": "slot_02_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_02_is_selected.left"
+    },
+    {
+      "from": "slot_02_set_label.execOut",
+      "to": "slot_02_branch_selected.execIn"
+    },
+    {
+      "from": "slot_02_is_selected.result",
+      "to": "slot_02_branch_selected.condition"
+    },
+    {
+      "from": "slot_02_branch_selected.true",
+      "to": "slot_02_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_02_branch_selected.false",
+      "to": "slot_02_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_03_get_label.array"
+    },
+    {
+      "from": "slot_02_set_label.execOut",
+      "to": "slot_03_set_label.execIn"
+    },
+    {
+      "from": "slot_03_get_label.item",
+      "to": "slot_03_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_03_is_selected.left"
+    },
+    {
+      "from": "slot_03_set_label.execOut",
+      "to": "slot_03_branch_selected.execIn"
+    },
+    {
+      "from": "slot_03_is_selected.result",
+      "to": "slot_03_branch_selected.condition"
+    },
+    {
+      "from": "slot_03_branch_selected.true",
+      "to": "slot_03_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_03_branch_selected.false",
+      "to": "slot_03_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_04_get_label.array"
+    },
+    {
+      "from": "slot_03_set_label.execOut",
+      "to": "slot_04_set_label.execIn"
+    },
+    {
+      "from": "slot_04_get_label.item",
+      "to": "slot_04_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_04_is_selected.left"
+    },
+    {
+      "from": "slot_04_set_label.execOut",
+      "to": "slot_04_branch_selected.execIn"
+    },
+    {
+      "from": "slot_04_is_selected.result",
+      "to": "slot_04_branch_selected.condition"
+    },
+    {
+      "from": "slot_04_branch_selected.true",
+      "to": "slot_04_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_04_branch_selected.false",
+      "to": "slot_04_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_05_get_label.array"
+    },
+    {
+      "from": "slot_04_set_label.execOut",
+      "to": "slot_05_set_label.execIn"
+    },
+    {
+      "from": "slot_05_get_label.item",
+      "to": "slot_05_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_05_is_selected.left"
+    },
+    {
+      "from": "slot_05_set_label.execOut",
+      "to": "slot_05_branch_selected.execIn"
+    },
+    {
+      "from": "slot_05_is_selected.result",
+      "to": "slot_05_branch_selected.condition"
+    },
+    {
+      "from": "slot_05_branch_selected.true",
+      "to": "slot_05_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_05_branch_selected.false",
+      "to": "slot_05_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_06_get_label.array"
+    },
+    {
+      "from": "slot_05_set_label.execOut",
+      "to": "slot_06_set_label.execIn"
+    },
+    {
+      "from": "slot_06_get_label.item",
+      "to": "slot_06_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_06_is_selected.left"
+    },
+    {
+      "from": "slot_06_set_label.execOut",
+      "to": "slot_06_branch_selected.execIn"
+    },
+    {
+      "from": "slot_06_is_selected.result",
+      "to": "slot_06_branch_selected.condition"
+    },
+    {
+      "from": "slot_06_branch_selected.true",
+      "to": "slot_06_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_06_branch_selected.false",
+      "to": "slot_06_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_07_get_label.array"
+    },
+    {
+      "from": "slot_06_set_label.execOut",
+      "to": "slot_07_set_label.execIn"
+    },
+    {
+      "from": "slot_07_get_label.item",
+      "to": "slot_07_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_07_is_selected.left"
+    },
+    {
+      "from": "slot_07_set_label.execOut",
+      "to": "slot_07_branch_selected.execIn"
+    },
+    {
+      "from": "slot_07_is_selected.result",
+      "to": "slot_07_branch_selected.condition"
+    },
+    {
+      "from": "slot_07_branch_selected.true",
+      "to": "slot_07_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_07_branch_selected.false",
+      "to": "slot_07_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_08_get_label.array"
+    },
+    {
+      "from": "slot_07_set_label.execOut",
+      "to": "slot_08_set_label.execIn"
+    },
+    {
+      "from": "slot_08_get_label.item",
+      "to": "slot_08_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_08_is_selected.left"
+    },
+    {
+      "from": "slot_08_set_label.execOut",
+      "to": "slot_08_branch_selected.execIn"
+    },
+    {
+      "from": "slot_08_is_selected.result",
+      "to": "slot_08_branch_selected.condition"
+    },
+    {
+      "from": "slot_08_branch_selected.true",
+      "to": "slot_08_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_08_branch_selected.false",
+      "to": "slot_08_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_09_get_label.array"
+    },
+    {
+      "from": "slot_08_set_label.execOut",
+      "to": "slot_09_set_label.execIn"
+    },
+    {
+      "from": "slot_09_get_label.item",
+      "to": "slot_09_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_09_is_selected.left"
+    },
+    {
+      "from": "slot_09_set_label.execOut",
+      "to": "slot_09_branch_selected.execIn"
+    },
+    {
+      "from": "slot_09_is_selected.result",
+      "to": "slot_09_branch_selected.condition"
+    },
+    {
+      "from": "slot_09_branch_selected.true",
+      "to": "slot_09_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_09_branch_selected.false",
+      "to": "slot_09_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_10_get_label.array"
+    },
+    {
+      "from": "slot_09_set_label.execOut",
+      "to": "slot_10_set_label.execIn"
+    },
+    {
+      "from": "slot_10_get_label.item",
+      "to": "slot_10_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_10_is_selected.left"
+    },
+    {
+      "from": "slot_10_set_label.execOut",
+      "to": "slot_10_branch_selected.execIn"
+    },
+    {
+      "from": "slot_10_is_selected.result",
+      "to": "slot_10_branch_selected.condition"
+    },
+    {
+      "from": "slot_10_branch_selected.true",
+      "to": "slot_10_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_10_branch_selected.false",
+      "to": "slot_10_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_11_get_label.array"
+    },
+    {
+      "from": "slot_10_set_label.execOut",
+      "to": "slot_11_set_label.execIn"
+    },
+    {
+      "from": "slot_11_get_label.item",
+      "to": "slot_11_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_11_is_selected.left"
+    },
+    {
+      "from": "slot_11_set_label.execOut",
+      "to": "slot_11_branch_selected.execIn"
+    },
+    {
+      "from": "slot_11_is_selected.result",
+      "to": "slot_11_branch_selected.condition"
+    },
+    {
+      "from": "slot_11_branch_selected.true",
+      "to": "slot_11_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_11_branch_selected.false",
+      "to": "slot_11_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_12_get_label.array"
+    },
+    {
+      "from": "slot_11_set_label.execOut",
+      "to": "slot_12_set_label.execIn"
+    },
+    {
+      "from": "slot_12_get_label.item",
+      "to": "slot_12_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_12_is_selected.left"
+    },
+    {
+      "from": "slot_12_set_label.execOut",
+      "to": "slot_12_branch_selected.execIn"
+    },
+    {
+      "from": "slot_12_is_selected.result",
+      "to": "slot_12_branch_selected.condition"
+    },
+    {
+      "from": "slot_12_branch_selected.true",
+      "to": "slot_12_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_12_branch_selected.false",
+      "to": "slot_12_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_13_get_label.array"
+    },
+    {
+      "from": "slot_12_set_label.execOut",
+      "to": "slot_13_set_label.execIn"
+    },
+    {
+      "from": "slot_13_get_label.item",
+      "to": "slot_13_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_13_is_selected.left"
+    },
+    {
+      "from": "slot_13_set_label.execOut",
+      "to": "slot_13_branch_selected.execIn"
+    },
+    {
+      "from": "slot_13_is_selected.result",
+      "to": "slot_13_branch_selected.condition"
+    },
+    {
+      "from": "slot_13_branch_selected.true",
+      "to": "slot_13_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_13_branch_selected.false",
+      "to": "slot_13_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_14_get_label.array"
+    },
+    {
+      "from": "slot_13_set_label.execOut",
+      "to": "slot_14_set_label.execIn"
+    },
+    {
+      "from": "slot_14_get_label.item",
+      "to": "slot_14_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_14_is_selected.left"
+    },
+    {
+      "from": "slot_14_set_label.execOut",
+      "to": "slot_14_branch_selected.execIn"
+    },
+    {
+      "from": "slot_14_is_selected.result",
+      "to": "slot_14_branch_selected.condition"
+    },
+    {
+      "from": "slot_14_branch_selected.true",
+      "to": "slot_14_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_14_branch_selected.false",
+      "to": "slot_14_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_15_get_label.array"
+    },
+    {
+      "from": "slot_14_set_label.execOut",
+      "to": "slot_15_set_label.execIn"
+    },
+    {
+      "from": "slot_15_get_label.item",
+      "to": "slot_15_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_15_is_selected.left"
+    },
+    {
+      "from": "slot_15_set_label.execOut",
+      "to": "slot_15_branch_selected.execIn"
+    },
+    {
+      "from": "slot_15_is_selected.result",
+      "to": "slot_15_branch_selected.condition"
+    },
+    {
+      "from": "slot_15_branch_selected.true",
+      "to": "slot_15_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_15_branch_selected.false",
+      "to": "slot_15_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_16_get_label.array"
+    },
+    {
+      "from": "slot_15_set_label.execOut",
+      "to": "slot_16_set_label.execIn"
+    },
+    {
+      "from": "slot_16_get_label.item",
+      "to": "slot_16_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_16_is_selected.left"
+    },
+    {
+      "from": "slot_16_set_label.execOut",
+      "to": "slot_16_branch_selected.execIn"
+    },
+    {
+      "from": "slot_16_is_selected.result",
+      "to": "slot_16_branch_selected.condition"
+    },
+    {
+      "from": "slot_16_branch_selected.true",
+      "to": "slot_16_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_16_branch_selected.false",
+      "to": "slot_16_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_17_get_label.array"
+    },
+    {
+      "from": "slot_16_set_label.execOut",
+      "to": "slot_17_set_label.execIn"
+    },
+    {
+      "from": "slot_17_get_label.item",
+      "to": "slot_17_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_17_is_selected.left"
+    },
+    {
+      "from": "slot_17_set_label.execOut",
+      "to": "slot_17_branch_selected.execIn"
+    },
+    {
+      "from": "slot_17_is_selected.result",
+      "to": "slot_17_branch_selected.condition"
+    },
+    {
+      "from": "slot_17_branch_selected.true",
+      "to": "slot_17_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_17_branch_selected.false",
+      "to": "slot_17_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_18_get_label.array"
+    },
+    {
+      "from": "slot_17_set_label.execOut",
+      "to": "slot_18_set_label.execIn"
+    },
+    {
+      "from": "slot_18_get_label.item",
+      "to": "slot_18_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_18_is_selected.left"
+    },
+    {
+      "from": "slot_18_set_label.execOut",
+      "to": "slot_18_branch_selected.execIn"
+    },
+    {
+      "from": "slot_18_is_selected.result",
+      "to": "slot_18_branch_selected.condition"
+    },
+    {
+      "from": "slot_18_branch_selected.true",
+      "to": "slot_18_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_18_branch_selected.false",
+      "to": "slot_18_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_19_get_label.array"
+    },
+    {
+      "from": "slot_18_set_label.execOut",
+      "to": "slot_19_set_label.execIn"
+    },
+    {
+      "from": "slot_19_get_label.item",
+      "to": "slot_19_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_19_is_selected.left"
+    },
+    {
+      "from": "slot_19_set_label.execOut",
+      "to": "slot_19_branch_selected.execIn"
+    },
+    {
+      "from": "slot_19_is_selected.result",
+      "to": "slot_19_branch_selected.condition"
+    },
+    {
+      "from": "slot_19_branch_selected.true",
+      "to": "slot_19_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_19_branch_selected.false",
+      "to": "slot_19_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_20_get_label.array"
+    },
+    {
+      "from": "slot_19_set_label.execOut",
+      "to": "slot_20_set_label.execIn"
+    },
+    {
+      "from": "slot_20_get_label.item",
+      "to": "slot_20_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_20_is_selected.left"
+    },
+    {
+      "from": "slot_20_set_label.execOut",
+      "to": "slot_20_branch_selected.execIn"
+    },
+    {
+      "from": "slot_20_is_selected.result",
+      "to": "slot_20_branch_selected.condition"
+    },
+    {
+      "from": "slot_20_branch_selected.true",
+      "to": "slot_20_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_20_branch_selected.false",
+      "to": "slot_20_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_21_get_label.array"
+    },
+    {
+      "from": "slot_20_set_label.execOut",
+      "to": "slot_21_set_label.execIn"
+    },
+    {
+      "from": "slot_21_get_label.item",
+      "to": "slot_21_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_21_is_selected.left"
+    },
+    {
+      "from": "slot_21_set_label.execOut",
+      "to": "slot_21_branch_selected.execIn"
+    },
+    {
+      "from": "slot_21_is_selected.result",
+      "to": "slot_21_branch_selected.condition"
+    },
+    {
+      "from": "slot_21_branch_selected.true",
+      "to": "slot_21_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_21_branch_selected.false",
+      "to": "slot_21_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_22_get_label.array"
+    },
+    {
+      "from": "slot_21_set_label.execOut",
+      "to": "slot_22_set_label.execIn"
+    },
+    {
+      "from": "slot_22_get_label.item",
+      "to": "slot_22_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_22_is_selected.left"
+    },
+    {
+      "from": "slot_22_set_label.execOut",
+      "to": "slot_22_branch_selected.execIn"
+    },
+    {
+      "from": "slot_22_is_selected.result",
+      "to": "slot_22_branch_selected.condition"
+    },
+    {
+      "from": "slot_22_branch_selected.true",
+      "to": "slot_22_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_22_branch_selected.false",
+      "to": "slot_22_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_23_get_label.array"
+    },
+    {
+      "from": "slot_22_set_label.execOut",
+      "to": "slot_23_set_label.execIn"
+    },
+    {
+      "from": "slot_23_get_label.item",
+      "to": "slot_23_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_23_is_selected.left"
+    },
+    {
+      "from": "slot_23_set_label.execOut",
+      "to": "slot_23_branch_selected.execIn"
+    },
+    {
+      "from": "slot_23_is_selected.result",
+      "to": "slot_23_branch_selected.condition"
+    },
+    {
+      "from": "slot_23_branch_selected.true",
+      "to": "slot_23_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_23_branch_selected.false",
+      "to": "slot_23_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_24_get_label.array"
+    },
+    {
+      "from": "slot_23_set_label.execOut",
+      "to": "slot_24_set_label.execIn"
+    },
+    {
+      "from": "slot_24_get_label.item",
+      "to": "slot_24_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_24_is_selected.left"
+    },
+    {
+      "from": "slot_24_set_label.execOut",
+      "to": "slot_24_branch_selected.execIn"
+    },
+    {
+      "from": "slot_24_is_selected.result",
+      "to": "slot_24_branch_selected.condition"
+    },
+    {
+      "from": "slot_24_branch_selected.true",
+      "to": "slot_24_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_24_branch_selected.false",
+      "to": "slot_24_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_25_get_label.array"
+    },
+    {
+      "from": "slot_24_set_label.execOut",
+      "to": "slot_25_set_label.execIn"
+    },
+    {
+      "from": "slot_25_get_label.item",
+      "to": "slot_25_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_25_is_selected.left"
+    },
+    {
+      "from": "slot_25_set_label.execOut",
+      "to": "slot_25_branch_selected.execIn"
+    },
+    {
+      "from": "slot_25_is_selected.result",
+      "to": "slot_25_branch_selected.condition"
+    },
+    {
+      "from": "slot_25_branch_selected.true",
+      "to": "slot_25_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_25_branch_selected.false",
+      "to": "slot_25_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_26_get_label.array"
+    },
+    {
+      "from": "slot_25_set_label.execOut",
+      "to": "slot_26_set_label.execIn"
+    },
+    {
+      "from": "slot_26_get_label.item",
+      "to": "slot_26_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_26_is_selected.left"
+    },
+    {
+      "from": "slot_26_set_label.execOut",
+      "to": "slot_26_branch_selected.execIn"
+    },
+    {
+      "from": "slot_26_is_selected.result",
+      "to": "slot_26_branch_selected.condition"
+    },
+    {
+      "from": "slot_26_branch_selected.true",
+      "to": "slot_26_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_26_branch_selected.false",
+      "to": "slot_26_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_27_get_label.array"
+    },
+    {
+      "from": "slot_26_set_label.execOut",
+      "to": "slot_27_set_label.execIn"
+    },
+    {
+      "from": "slot_27_get_label.item",
+      "to": "slot_27_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_27_is_selected.left"
+    },
+    {
+      "from": "slot_27_set_label.execOut",
+      "to": "slot_27_branch_selected.execIn"
+    },
+    {
+      "from": "slot_27_is_selected.result",
+      "to": "slot_27_branch_selected.condition"
+    },
+    {
+      "from": "slot_27_branch_selected.true",
+      "to": "slot_27_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_27_branch_selected.false",
+      "to": "slot_27_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_28_get_label.array"
+    },
+    {
+      "from": "slot_27_set_label.execOut",
+      "to": "slot_28_set_label.execIn"
+    },
+    {
+      "from": "slot_28_get_label.item",
+      "to": "slot_28_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_28_is_selected.left"
+    },
+    {
+      "from": "slot_28_set_label.execOut",
+      "to": "slot_28_branch_selected.execIn"
+    },
+    {
+      "from": "slot_28_is_selected.result",
+      "to": "slot_28_branch_selected.condition"
+    },
+    {
+      "from": "slot_28_branch_selected.true",
+      "to": "slot_28_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_28_branch_selected.false",
+      "to": "slot_28_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_29_get_label.array"
+    },
+    {
+      "from": "slot_28_set_label.execOut",
+      "to": "slot_29_set_label.execIn"
+    },
+    {
+      "from": "slot_29_get_label.item",
+      "to": "slot_29_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_29_is_selected.left"
+    },
+    {
+      "from": "slot_29_set_label.execOut",
+      "to": "slot_29_branch_selected.execIn"
+    },
+    {
+      "from": "slot_29_is_selected.result",
+      "to": "slot_29_branch_selected.condition"
+    },
+    {
+      "from": "slot_29_branch_selected.true",
+      "to": "slot_29_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_29_branch_selected.false",
+      "to": "slot_29_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_30_get_label.array"
+    },
+    {
+      "from": "slot_29_set_label.execOut",
+      "to": "slot_30_set_label.execIn"
+    },
+    {
+      "from": "slot_30_get_label.item",
+      "to": "slot_30_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_30_is_selected.left"
+    },
+    {
+      "from": "slot_30_set_label.execOut",
+      "to": "slot_30_branch_selected.execIn"
+    },
+    {
+      "from": "slot_30_is_selected.result",
+      "to": "slot_30_branch_selected.condition"
+    },
+    {
+      "from": "slot_30_branch_selected.true",
+      "to": "slot_30_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_30_branch_selected.false",
+      "to": "slot_30_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_31_get_label.array"
+    },
+    {
+      "from": "slot_30_set_label.execOut",
+      "to": "slot_31_set_label.execIn"
+    },
+    {
+      "from": "slot_31_get_label.item",
+      "to": "slot_31_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_31_is_selected.left"
+    },
+    {
+      "from": "slot_31_set_label.execOut",
+      "to": "slot_31_branch_selected.execIn"
+    },
+    {
+      "from": "slot_31_is_selected.result",
+      "to": "slot_31_branch_selected.condition"
+    },
+    {
+      "from": "slot_31_branch_selected.true",
+      "to": "slot_31_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_31_branch_selected.false",
+      "to": "slot_31_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_32_get_label.array"
+    },
+    {
+      "from": "slot_31_set_label.execOut",
+      "to": "slot_32_set_label.execIn"
+    },
+    {
+      "from": "slot_32_get_label.item",
+      "to": "slot_32_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_32_is_selected.left"
+    },
+    {
+      "from": "slot_32_set_label.execOut",
+      "to": "slot_32_branch_selected.execIn"
+    },
+    {
+      "from": "slot_32_is_selected.result",
+      "to": "slot_32_branch_selected.condition"
+    },
+    {
+      "from": "slot_32_branch_selected.true",
+      "to": "slot_32_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_32_branch_selected.false",
+      "to": "slot_32_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_33_get_label.array"
+    },
+    {
+      "from": "slot_32_set_label.execOut",
+      "to": "slot_33_set_label.execIn"
+    },
+    {
+      "from": "slot_33_get_label.item",
+      "to": "slot_33_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_33_is_selected.left"
+    },
+    {
+      "from": "slot_33_set_label.execOut",
+      "to": "slot_33_branch_selected.execIn"
+    },
+    {
+      "from": "slot_33_is_selected.result",
+      "to": "slot_33_branch_selected.condition"
+    },
+    {
+      "from": "slot_33_branch_selected.true",
+      "to": "slot_33_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_33_branch_selected.false",
+      "to": "slot_33_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_34_get_label.array"
+    },
+    {
+      "from": "slot_33_set_label.execOut",
+      "to": "slot_34_set_label.execIn"
+    },
+    {
+      "from": "slot_34_get_label.item",
+      "to": "slot_34_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_34_is_selected.left"
+    },
+    {
+      "from": "slot_34_set_label.execOut",
+      "to": "slot_34_branch_selected.execIn"
+    },
+    {
+      "from": "slot_34_is_selected.result",
+      "to": "slot_34_branch_selected.condition"
+    },
+    {
+      "from": "slot_34_branch_selected.true",
+      "to": "slot_34_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_34_branch_selected.false",
+      "to": "slot_34_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_35_get_label.array"
+    },
+    {
+      "from": "slot_34_set_label.execOut",
+      "to": "slot_35_set_label.execIn"
+    },
+    {
+      "from": "slot_35_get_label.item",
+      "to": "slot_35_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_35_is_selected.left"
+    },
+    {
+      "from": "slot_35_set_label.execOut",
+      "to": "slot_35_branch_selected.execIn"
+    },
+    {
+      "from": "slot_35_is_selected.result",
+      "to": "slot_35_branch_selected.condition"
+    },
+    {
+      "from": "slot_35_branch_selected.true",
+      "to": "slot_35_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_35_branch_selected.false",
+      "to": "slot_35_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_36_get_label.array"
+    },
+    {
+      "from": "slot_35_set_label.execOut",
+      "to": "slot_36_set_label.execIn"
+    },
+    {
+      "from": "slot_36_get_label.item",
+      "to": "slot_36_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_36_is_selected.left"
+    },
+    {
+      "from": "slot_36_set_label.execOut",
+      "to": "slot_36_branch_selected.execIn"
+    },
+    {
+      "from": "slot_36_is_selected.result",
+      "to": "slot_36_branch_selected.condition"
+    },
+    {
+      "from": "slot_36_branch_selected.true",
+      "to": "slot_36_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_36_branch_selected.false",
+      "to": "slot_36_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_37_get_label.array"
+    },
+    {
+      "from": "slot_36_set_label.execOut",
+      "to": "slot_37_set_label.execIn"
+    },
+    {
+      "from": "slot_37_get_label.item",
+      "to": "slot_37_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_37_is_selected.left"
+    },
+    {
+      "from": "slot_37_set_label.execOut",
+      "to": "slot_37_branch_selected.execIn"
+    },
+    {
+      "from": "slot_37_is_selected.result",
+      "to": "slot_37_branch_selected.condition"
+    },
+    {
+      "from": "slot_37_branch_selected.true",
+      "to": "slot_37_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_37_branch_selected.false",
+      "to": "slot_37_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_38_get_label.array"
+    },
+    {
+      "from": "slot_37_set_label.execOut",
+      "to": "slot_38_set_label.execIn"
+    },
+    {
+      "from": "slot_38_get_label.item",
+      "to": "slot_38_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_38_is_selected.left"
+    },
+    {
+      "from": "slot_38_set_label.execOut",
+      "to": "slot_38_branch_selected.execIn"
+    },
+    {
+      "from": "slot_38_is_selected.result",
+      "to": "slot_38_branch_selected.condition"
+    },
+    {
+      "from": "slot_38_branch_selected.true",
+      "to": "slot_38_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_38_branch_selected.false",
+      "to": "slot_38_set_base_color.execIn"
+    },
+    {
+      "from": "get_slot_labels.value",
+      "to": "slot_39_get_label.array"
+    },
+    {
+      "from": "slot_38_set_label.execOut",
+      "to": "slot_39_set_label.execIn"
+    },
+    {
+      "from": "slot_39_get_label.item",
+      "to": "slot_39_set_label.value"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "slot_39_is_selected.left"
+    },
+    {
+      "from": "slot_39_set_label.execOut",
+      "to": "slot_39_branch_selected.execIn"
+    },
+    {
+      "from": "slot_39_is_selected.result",
+      "to": "slot_39_branch_selected.condition"
+    },
+    {
+      "from": "slot_39_branch_selected.true",
+      "to": "slot_39_set_selected_color.execIn"
+    },
+    {
+      "from": "slot_39_branch_selected.false",
+      "to": "slot_39_set_base_color.execIn"
+    }
+  ]
+}

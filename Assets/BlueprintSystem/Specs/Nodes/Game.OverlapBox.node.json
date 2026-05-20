@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.OverlapBox",
+  "title": "Overlap Box",
+  "category": "Game/Physics",
+  "description": "Finds 3D colliders inside an oriented box.",
+  "executor": "Game.OverlapBox",
+  "inputs": [
+    {
+      "id": "center",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "halfExtents",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "orientationEuler",
+      "kind": "value",
+      "type": "Vector3",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "layerMask",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "includeTriggers",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "hasAny",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "count",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "firstName",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "names",
+      "kind": "value",
+      "type": "Array<string>"
+    }
+  ],
+  "properties": [
+    {
+      "id": "center",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "halfExtents",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "id": "orientationEuler",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "layerMask",
+      "required": false,
+      "type": "int",
+      "defaultValue": -1
+    },
+    {
+      "id": "includeTriggers",
+      "required": false,
+      "type": "bool",
+      "defaultValue": true
+    }
+  ]
+}

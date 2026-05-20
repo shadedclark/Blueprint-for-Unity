@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.GetComponent",
+  "title": "Get Blueprint Component",
+  "category": "Blueprint",
+  "description": "Finds a named runtime Blueprint component from the current instance or supplied BlueprintRef, walking owner instances outward.",
+  "executor": "Blueprint.GetComponent",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "BlueprintRef",
+      "required": false,
+      "source": "connection"
+    },
+    {
+      "id": "name",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "BlueprintRef"
+    },
+    {
+      "id": "isValid",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "name",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "component",
+    "reference"
+  ]
+}

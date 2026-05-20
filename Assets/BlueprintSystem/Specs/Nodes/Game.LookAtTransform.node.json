@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.LookAtTransform",
+  "title": "Look At Transform",
+  "category": "Game/Transform",
+  "description": "Rotates a Transform to look at another Transform binding or a world position.",
+  "executor": "Game.LookAtTransform",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "lookTarget",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "targetPosition",
+      "kind": "value",
+      "type": "Vector3",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "worldUp",
+      "kind": "value",
+      "type": "Vector3",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    },
+    {
+      "id": "lookTarget",
+      "required": false,
+      "type": "UIBinding<Transform>"
+    },
+    {
+      "id": "targetPosition",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "worldUp",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        1,
+        0
+      ]
+    }
+  ]
+}

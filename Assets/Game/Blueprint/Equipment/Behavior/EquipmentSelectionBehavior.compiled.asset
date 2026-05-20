@@ -1,0 +1,173 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: EquipmentSelectionBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: EquipmentSelectionBehavior
+  sourceGuid: f44d369f862db487f88d9165fd6500ad
+  sourcePath: Assets/Game/Blueprint/Equipment/Behavior/EquipmentSelectionBehavior.blueprint.json
+  sourceHash: 37de58c52ef02713dbee2e5374e298d5f0f12e6aea22e5e77b715f6421a3ba64
+  manifestHash: d42998a70c22671d807d8352cfa9f1e10376460b601af3e0cd8aebdd6cda9e63
+  variables:
+  - Id: var_equipment_data_blueprint
+    Name: equipment_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json
+  - Id: var_equipment_slots_presenter_blueprint
+    Name: equipment_slots_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json
+  - Id: var_equipment_stats_presenter_blueprint
+    Name: equipment_stats_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json
+  - Id: var_equipment_detail_presenter_blueprint
+    Name: equipment_detail_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json
+  - Id: var_equipment_status_presenter_blueprint
+    Name: equipment_status_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json
+  - Id: var_equipment_stat_recalc_blueprint
+    Name: equipment_stat_recalc_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json
+  bindings: []
+  components: []
+  nodes:
+  - Id: get_data_0
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_data_blueprint"'
+  - Id: event_select_1
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"SelectSlotRequested"'
+  - Id: select_status_2
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+    - Id: value
+      JsonValue: '"Equipment slot selected."'
+  - Id: select_refresh_get_eq_slots_3
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_slots_presenter_blueprint"'
+  - Id: select_refresh_trig_eq_slots_4
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: select_refresh_get_eq_detail_5
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_detail_presenter_blueprint"'
+  - Id: select_refresh_trig_eq_detail_6
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: select_refresh_get_eq_status_7
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_status_presenter_blueprint"'
+  - Id: select_refresh_trig_eq_status_8
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  execEdges:
+  - FromNodeId: event_select_1
+    FromPortId: execOut
+    ToNodeId: select_status_2
+    ToPortId: execIn
+  - FromNodeId: select_refresh_trig_eq_detail_6
+    FromPortId: execOut
+    ToNodeId: select_refresh_trig_eq_status_8
+    ToPortId: execIn
+  - FromNodeId: select_refresh_trig_eq_slots_4
+    FromPortId: execOut
+    ToNodeId: select_refresh_trig_eq_detail_6
+    ToPortId: execIn
+  - FromNodeId: select_status_2
+    FromPortId: execOut
+    ToNodeId: select_refresh_trig_eq_slots_4
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_data_0
+    FromPortId: value
+    ToNodeId: select_status_2
+    ToPortId: target
+  - FromNodeId: select_refresh_get_eq_detail_5
+    FromPortId: value
+    ToNodeId: select_refresh_trig_eq_detail_6
+    ToPortId: target
+  - FromNodeId: select_refresh_get_eq_slots_3
+    FromPortId: value
+    ToNodeId: select_refresh_trig_eq_slots_4
+    ToPortId: target
+  - FromNodeId: select_refresh_get_eq_status_7
+    FromPortId: value
+    ToNodeId: select_refresh_trig_eq_status_8
+    ToPortId: target
+  eventEntries:
+  - EventName: SelectSlotRequested
+    NodeId: event_select_1

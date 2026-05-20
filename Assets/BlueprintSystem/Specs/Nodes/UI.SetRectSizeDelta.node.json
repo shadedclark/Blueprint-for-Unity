@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetRectSizeDelta",
+  "title": "Set Rect Size Delta",
+  "category": "UI",
+  "description": "Sets sizeDelta on a bound RectTransform.",
+  "executor": "UI.SetRectSizeDelta",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<RectTransform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<RectTransform>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Vector2",
+      "required": false,
+      "defaultValue": [0, 0]
+    }
+  ]
+}

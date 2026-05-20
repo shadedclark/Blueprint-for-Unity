@@ -1,0 +1,768 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryFocusMoveBehavior",
+  "category": "Inventory/Behavior",
+  "description": "Moves selected slot focus using existing math nodes.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    },
+    {
+      "id": "var_inventory_header_presenter_blueprint",
+      "name": "inventory_header_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_grid_presenter_blueprint",
+      "name": "inventory_grid_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_detail_presenter_blueprint",
+      "name": "inventory_detail_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_confirm_presenter_blueprint",
+      "name": "inventory_confirm_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"
+    }
+  ],
+  "bindings": [],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_move_left",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "MoveLeftRequested"
+      }
+    },
+    {
+      "id": "move_left_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "move_left_get_selected",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        300,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_left_add_delta",
+      "typeId": "Math.Add",
+      "position": [
+        480,
+        0
+      ],
+      "properties": {
+        "b": -1
+      }
+    },
+    {
+      "id": "move_left_clamp",
+      "typeId": "Math.Clamp",
+      "position": [
+        640,
+        0
+      ],
+      "properties": {
+        "min": 0,
+        "max": 39
+      }
+    },
+    {
+      "id": "move_left_set_selected",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_left_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Selection moved."
+      }
+    },
+    {
+      "id": "move_left_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        80
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_left_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        80
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "move_left_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        160
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_left_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        160
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_move_right",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        340
+      ],
+      "properties": {
+        "eventName": "MoveRightRequested"
+      }
+    },
+    {
+      "id": "move_right_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        340
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "move_right_get_selected",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        300,
+        340
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_right_add_delta",
+      "typeId": "Math.Add",
+      "position": [
+        480,
+        340
+      ],
+      "properties": {
+        "b": 1
+      }
+    },
+    {
+      "id": "move_right_clamp",
+      "typeId": "Math.Clamp",
+      "position": [
+        640,
+        340
+      ],
+      "properties": {
+        "min": 0,
+        "max": 39
+      }
+    },
+    {
+      "id": "move_right_set_selected",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        340
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_right_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        340
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Selection moved."
+      }
+    },
+    {
+      "id": "move_right_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        420
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_right_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        420
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "move_right_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        500
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_right_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        500
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_move_up",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        680
+      ],
+      "properties": {
+        "eventName": "MoveUpRequested"
+      }
+    },
+    {
+      "id": "move_up_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        680
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "move_up_get_selected",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        300,
+        680
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_up_add_delta",
+      "typeId": "Math.Add",
+      "position": [
+        480,
+        680
+      ],
+      "properties": {
+        "b": -8
+      }
+    },
+    {
+      "id": "move_up_clamp",
+      "typeId": "Math.Clamp",
+      "position": [
+        640,
+        680
+      ],
+      "properties": {
+        "min": 0,
+        "max": 39
+      }
+    },
+    {
+      "id": "move_up_set_selected",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        680
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_up_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        680
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Selection moved."
+      }
+    },
+    {
+      "id": "move_up_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        760
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_up_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        760
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "move_up_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        840
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_up_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        840
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_move_down",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        1020
+      ],
+      "properties": {
+        "eventName": "MoveDownRequested"
+      }
+    },
+    {
+      "id": "move_down_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        1020
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "move_down_get_selected",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        300,
+        1020
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_down_add_delta",
+      "typeId": "Math.Add",
+      "position": [
+        480,
+        1020
+      ],
+      "properties": {
+        "b": 8
+      }
+    },
+    {
+      "id": "move_down_clamp",
+      "typeId": "Math.Clamp",
+      "position": [
+        640,
+        1020
+      ],
+      "properties": {
+        "min": 0,
+        "max": 39
+      }
+    },
+    {
+      "id": "move_down_set_selected",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        1020
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "move_down_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        1020
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Selection moved."
+      }
+    },
+    {
+      "id": "move_down_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        1100
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_down_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        1100
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "move_down_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        1180
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "move_down_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        1180
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "move_left_get_data.value",
+      "to": "move_left_get_selected.target"
+    },
+    {
+      "from": "move_left_get_selected.value",
+      "to": "move_left_add_delta.a"
+    },
+    {
+      "from": "move_left_add_delta.result",
+      "to": "move_left_clamp.value"
+    },
+    {
+      "from": "move_left_get_data.value",
+      "to": "move_left_set_selected.target"
+    },
+    {
+      "from": "event_move_left.execOut",
+      "to": "move_left_set_selected.execIn"
+    },
+    {
+      "from": "move_left_clamp.result",
+      "to": "move_left_set_selected.value"
+    },
+    {
+      "from": "move_left_get_data.value",
+      "to": "move_left_set_status.target"
+    },
+    {
+      "from": "move_left_set_selected.execOut",
+      "to": "move_left_set_status.execIn"
+    },
+    {
+      "from": "move_left_get_grid.value",
+      "to": "move_left_refresh_grid.target"
+    },
+    {
+      "from": "move_left_set_status.execOut",
+      "to": "move_left_refresh_grid.execIn"
+    },
+    {
+      "from": "move_left_get_detail.value",
+      "to": "move_left_refresh_detail.target"
+    },
+    {
+      "from": "move_left_refresh_grid.execOut",
+      "to": "move_left_refresh_detail.execIn"
+    },
+    {
+      "from": "move_right_get_data.value",
+      "to": "move_right_get_selected.target"
+    },
+    {
+      "from": "move_right_get_selected.value",
+      "to": "move_right_add_delta.a"
+    },
+    {
+      "from": "move_right_add_delta.result",
+      "to": "move_right_clamp.value"
+    },
+    {
+      "from": "move_right_get_data.value",
+      "to": "move_right_set_selected.target"
+    },
+    {
+      "from": "event_move_right.execOut",
+      "to": "move_right_set_selected.execIn"
+    },
+    {
+      "from": "move_right_clamp.result",
+      "to": "move_right_set_selected.value"
+    },
+    {
+      "from": "move_right_get_data.value",
+      "to": "move_right_set_status.target"
+    },
+    {
+      "from": "move_right_set_selected.execOut",
+      "to": "move_right_set_status.execIn"
+    },
+    {
+      "from": "move_right_get_grid.value",
+      "to": "move_right_refresh_grid.target"
+    },
+    {
+      "from": "move_right_set_status.execOut",
+      "to": "move_right_refresh_grid.execIn"
+    },
+    {
+      "from": "move_right_get_detail.value",
+      "to": "move_right_refresh_detail.target"
+    },
+    {
+      "from": "move_right_refresh_grid.execOut",
+      "to": "move_right_refresh_detail.execIn"
+    },
+    {
+      "from": "move_up_get_data.value",
+      "to": "move_up_get_selected.target"
+    },
+    {
+      "from": "move_up_get_selected.value",
+      "to": "move_up_add_delta.a"
+    },
+    {
+      "from": "move_up_add_delta.result",
+      "to": "move_up_clamp.value"
+    },
+    {
+      "from": "move_up_get_data.value",
+      "to": "move_up_set_selected.target"
+    },
+    {
+      "from": "event_move_up.execOut",
+      "to": "move_up_set_selected.execIn"
+    },
+    {
+      "from": "move_up_clamp.result",
+      "to": "move_up_set_selected.value"
+    },
+    {
+      "from": "move_up_get_data.value",
+      "to": "move_up_set_status.target"
+    },
+    {
+      "from": "move_up_set_selected.execOut",
+      "to": "move_up_set_status.execIn"
+    },
+    {
+      "from": "move_up_get_grid.value",
+      "to": "move_up_refresh_grid.target"
+    },
+    {
+      "from": "move_up_set_status.execOut",
+      "to": "move_up_refresh_grid.execIn"
+    },
+    {
+      "from": "move_up_get_detail.value",
+      "to": "move_up_refresh_detail.target"
+    },
+    {
+      "from": "move_up_refresh_grid.execOut",
+      "to": "move_up_refresh_detail.execIn"
+    },
+    {
+      "from": "move_down_get_data.value",
+      "to": "move_down_get_selected.target"
+    },
+    {
+      "from": "move_down_get_selected.value",
+      "to": "move_down_add_delta.a"
+    },
+    {
+      "from": "move_down_add_delta.result",
+      "to": "move_down_clamp.value"
+    },
+    {
+      "from": "move_down_get_data.value",
+      "to": "move_down_set_selected.target"
+    },
+    {
+      "from": "event_move_down.execOut",
+      "to": "move_down_set_selected.execIn"
+    },
+    {
+      "from": "move_down_clamp.result",
+      "to": "move_down_set_selected.value"
+    },
+    {
+      "from": "move_down_get_data.value",
+      "to": "move_down_set_status.target"
+    },
+    {
+      "from": "move_down_set_selected.execOut",
+      "to": "move_down_set_status.execIn"
+    },
+    {
+      "from": "move_down_get_grid.value",
+      "to": "move_down_refresh_grid.target"
+    },
+    {
+      "from": "move_down_set_status.execOut",
+      "to": "move_down_refresh_grid.execIn"
+    },
+    {
+      "from": "move_down_get_detail.value",
+      "to": "move_down_refresh_detail.target"
+    },
+    {
+      "from": "move_down_refresh_grid.execOut",
+      "to": "move_down_refresh_detail.execIn"
+    }
+  ]
+}

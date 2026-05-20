@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetTimeScale",
+  "title": "Get Time Scale",
+  "category": "Game/Time",
+  "description": "Returns Unity Time.timeScale.",
+  "executor": "Game.GetTimeScale",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": []
+}

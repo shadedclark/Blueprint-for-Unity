@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.BindToggleChanged",
+  "title": "Bind Toggle Changed",
+  "category": "UI",
+  "description": "Binds value-changed events from a Unity Toggle.",
+  "executor": "UI.BindToggleChanged",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Toggle>",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bound",
+      "kind": "exec"
+    },
+    {
+      "id": "changed",
+      "kind": "exec"
+    },
+    {
+      "id": "turnedOn",
+      "kind": "exec"
+    },
+    {
+      "id": "turnedOff",
+      "kind": "exec"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Toggle>",
+      "required": true
+    }
+  ]
+}

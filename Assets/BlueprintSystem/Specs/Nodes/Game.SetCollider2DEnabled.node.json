@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetCollider2DEnabled",
+  "title": "Set Collider2D Enabled",
+  "category": "Game/Physics2D",
+  "description": "Sets enabled on a bound Collider2D.",
+  "executor": "Game.SetCollider2DEnabled",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Collider2D>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Collider2D>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "tags": [
+    "physics2d",
+    "collider2d"
+  ]
+}

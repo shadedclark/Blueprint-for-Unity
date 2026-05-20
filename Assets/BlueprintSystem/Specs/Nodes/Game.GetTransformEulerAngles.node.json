@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetTransformEulerAngles",
+  "title": "Get Transform Euler Angles",
+  "category": "Game/Transform",
+  "description": "Returns world Transform.eulerAngles.",
+  "executor": "Game.GetTransformEulerAngles",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    }
+  ]
+}

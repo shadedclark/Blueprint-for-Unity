@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Resize",
+  "title": "Array Resize",
+  "category": "Array",
+  "description": "Returns a copy resized to size, padding new entries with fillValue.",
+  "executor": "Array.Resize",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "size",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "fillValue",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "size",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "fillValue",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetRendererTexture",
+  "title": "Set Renderer Texture",
+  "category": "Game/Rendering",
+  "description": "Sets a texture property on a bound Renderer's instance material.",
+  "executor": "Game.SetRendererTexture",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Renderer>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "UIBinding<Texture>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "propertyName",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Renderer>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "UIBinding<Texture>",
+      "required": false
+    },
+    {
+      "id": "propertyName",
+      "type": "string",
+      "required": false,
+      "defaultValue": "_MainTex"
+    }
+  ],
+  "tags": [
+    "renderer",
+    "material",
+    "texture"
+  ]
+}

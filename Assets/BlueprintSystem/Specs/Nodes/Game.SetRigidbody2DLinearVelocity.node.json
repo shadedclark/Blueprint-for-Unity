@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetRigidbody2DLinearVelocity",
+  "title": "Set Rigidbody2D Linear Velocity",
+  "category": "Game/Physics2D",
+  "description": "Sets linearVelocity on a bound Rigidbody2D.",
+  "executor": "Game.SetRigidbody2DLinearVelocity",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Rigidbody2D>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Rigidbody2D>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Vector2",
+      "required": false,
+      "defaultValue": [0, 0]
+    }
+  ],
+  "tags": [
+    "physics2d",
+    "rigidbody2d",
+    "velocity"
+  ]
+}

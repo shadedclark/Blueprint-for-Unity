@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetTimeSeconds",
+  "title": "Get Time Seconds",
+  "category": "Game/Time",
+  "description": "Returns Unity Time.time.",
+  "executor": "Game.GetTimeSeconds",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": []
+}

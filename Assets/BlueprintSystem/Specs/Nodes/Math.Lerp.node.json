@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Lerp",
+  "title": "Lerp",
+  "category": "Math",
+  "description": "Linearly interpolates between two float values.",
+  "executor": "Math.Lerp",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "t",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    },
+    {
+      "id": "t",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    }
+  ]
+}

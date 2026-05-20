@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.Event.OnClose",
+  "title": "On Close",
+  "category": "Events",
+  "description": "Entry point fired when a UI panel closes.",
+  "executor": "Flow.Event",
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec",
+      "allowMultiple": true
+    }
+  ],
+  "properties": []
+}

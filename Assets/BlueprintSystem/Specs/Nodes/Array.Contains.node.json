@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Contains",
+  "title": "Array Contains",
+  "category": "Array",
+  "description": "Returns true when an array contains a matching item.",
+  "executor": "Array.Contains",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "item",
+      "required": false
+    }
+  ]
+}

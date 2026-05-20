@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.ToString",
+  "title": "To String",
+  "category": "String",
+  "description": "Converts any value to a string.",
+  "executor": "String.ToString",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "defaultValue": ""
+    }
+  ]
+}

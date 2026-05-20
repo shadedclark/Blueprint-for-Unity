@@ -1,0 +1,196 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ThirdPersonCameraFollowBehavior",
+  "category": "ThirdPersonCamera/Behavior",
+  "description": "LateUpdate camera rig follow behavior for the local player target.",
+  "variables": [
+    {
+      "id": "var_86db5cc57448480da31ed6108c8c05f5",
+      "name": "third_person_camera_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "player_transform",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "camera_rig_transform",
+      "type": "Transform",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_late_tick",
+      "typeId": "Game.Event.OnTick",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "phase": "LateUpdate"
+      }
+    },
+    {
+      "id": "get_third_person_camera_data_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        180
+      ],
+      "properties": {
+        "name": "third_person_camera_data_blueprint"
+      }
+    },
+    {
+      "id": "get_player_position",
+      "typeId": "Game.GetTransformPosition",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {
+        "target": "player_transform"
+      }
+    },
+    {
+      "id": "get_camera_rig_position",
+      "typeId": "Game.GetTransformPosition",
+      "position": [
+        220,
+        140
+      ],
+      "properties": {
+        "target": "camera_rig_transform"
+      }
+    },
+    {
+      "id": "get_follow_lerp_speed",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        220,
+        300
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "follow_lerp_speed"
+      }
+    },
+    {
+      "id": "get_delta_time",
+      "typeId": "Game.GetDeltaTime",
+      "position": [
+        220,
+        440
+      ],
+      "properties": {}
+    },
+    {
+      "id": "multiply_follow_t",
+      "typeId": "Math.Multiply",
+      "position": [
+        440,
+        360
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "clamp_follow_t",
+      "typeId": "Math.Clamp",
+      "position": [
+        660,
+        360
+      ],
+      "properties": {
+        "value": 0,
+        "min": 0,
+        "max": 1
+      }
+    },
+    {
+      "id": "lerp_camera_rig_position",
+      "typeId": "Vector.Lerp",
+      "position": [
+        880,
+        120
+      ],
+      "properties": {
+        "a": [
+          0,
+          0,
+          0
+        ],
+        "b": [
+          0,
+          0,
+          0
+        ],
+        "t": 1
+      }
+    },
+    {
+      "id": "set_camera_rig_position",
+      "typeId": "Game.SetTransformPosition",
+      "position": [
+        1100,
+        0
+      ],
+      "properties": {
+        "target": "camera_rig_transform",
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_late_tick.execOut",
+      "to": "set_camera_rig_position.execIn"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_follow_lerp_speed.target"
+    },
+    {
+      "from": "get_player_position.value",
+      "to": "lerp_camera_rig_position.b"
+    },
+    {
+      "from": "get_camera_rig_position.value",
+      "to": "lerp_camera_rig_position.a"
+    },
+    {
+      "from": "get_follow_lerp_speed.value",
+      "to": "multiply_follow_t.a"
+    },
+    {
+      "from": "get_delta_time.value",
+      "to": "multiply_follow_t.b"
+    },
+    {
+      "from": "multiply_follow_t.result",
+      "to": "clamp_follow_t.value"
+    },
+    {
+      "from": "clamp_follow_t.result",
+      "to": "lerp_camera_rig_position.t"
+    },
+    {
+      "from": "lerp_camera_rig_position.result",
+      "to": "set_camera_rig_position.value"
+    }
+  ]
+}

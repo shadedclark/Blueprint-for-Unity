@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetGraphicColor",
+  "title": "Set Graphic Color",
+  "category": "UI",
+  "description": "Sets color on a bound Unity UI Graphic.",
+  "executor": "UI.SetGraphicColor",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Graphic>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Color",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Graphic>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Color",
+      "required": false,
+      "defaultValue": [1, 1, 1, 1]
+    }
+  ]
+}

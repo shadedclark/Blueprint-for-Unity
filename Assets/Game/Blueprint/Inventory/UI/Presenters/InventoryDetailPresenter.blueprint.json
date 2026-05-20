@@ -1,0 +1,876 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryDetailPresenter",
+  "category": "Inventory/UI/Presenter",
+  "description": "Refreshes selected item details and action button states.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "inventory_detail_name_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_detail_type_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_detail_quality_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_detail_count_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_detail_description_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_action_use_button",
+      "type": "Button",
+      "required": true
+    },
+    {
+      "name": "inventory_action_equip_button",
+      "type": "Button",
+      "required": true
+    },
+    {
+      "name": "inventory_action_drop_button",
+      "type": "Button",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_refresh",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "get_slot_ids",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "slot_item_ids"
+      }
+    },
+    {
+      "id": "get_slot_counts",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "slot_counts"
+      }
+    },
+    {
+      "id": "get_selected_index",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "get_current_item_id",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_current_count",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "format_count",
+      "typeId": "String.Format",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "format": "Count: {0}"
+      }
+    },
+    {
+      "id": "switch_item_id",
+      "typeId": "Flow.SwitchString",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "caseCount": 5,
+        "case0": "",
+        "case1": "potion_small",
+        "case2": "iron_ore",
+        "case3": "iron_sword",
+        "case4": "quest_badge"
+      }
+    },
+    {
+      "id": "empty_set_name",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_name_text",
+        "value": "Empty Slot"
+      }
+    },
+    {
+      "id": "empty_set_type",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_type_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_set_quality",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_quality_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_set_count",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_count_text",
+        "value": ""
+      }
+    },
+    {
+      "id": "empty_set_desc",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_description_text",
+        "value": "Select a slot with an item to inspect it."
+      }
+    },
+    {
+      "id": "empty_use_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_use_button",
+        "value": false
+      }
+    },
+    {
+      "id": "empty_equip_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_equip_button",
+        "value": false
+      }
+    },
+    {
+      "id": "empty_drop_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_drop_button",
+        "value": false
+      }
+    },
+    {
+      "id": "potion_set_name",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_name_text",
+        "value": "Potion"
+      }
+    },
+    {
+      "id": "potion_set_type",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_type_text",
+        "value": "Consumable"
+      }
+    },
+    {
+      "id": "potion_set_quality",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_quality_text",
+        "value": "Common"
+      }
+    },
+    {
+      "id": "potion_set_count",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_count_text"
+      }
+    },
+    {
+      "id": "potion_set_desc",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_description_text",
+        "value": "Restores a small amount of health. Use consumes one."
+      }
+    },
+    {
+      "id": "potion_use_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_use_button",
+        "value": true
+      }
+    },
+    {
+      "id": "potion_equip_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_equip_button",
+        "value": false
+      }
+    },
+    {
+      "id": "potion_drop_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_drop_button",
+        "value": true
+      }
+    },
+    {
+      "id": "ore_set_name",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_name_text",
+        "value": "Iron Ore"
+      }
+    },
+    {
+      "id": "ore_set_type",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_type_text",
+        "value": "Material"
+      }
+    },
+    {
+      "id": "ore_set_quality",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_quality_text",
+        "value": "Common"
+      }
+    },
+    {
+      "id": "ore_set_count",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_count_text"
+      }
+    },
+    {
+      "id": "ore_set_desc",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_description_text",
+        "value": "Crafting material. Stackable to 99."
+      }
+    },
+    {
+      "id": "ore_use_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_use_button",
+        "value": false
+      }
+    },
+    {
+      "id": "ore_equip_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_equip_button",
+        "value": false
+      }
+    },
+    {
+      "id": "ore_drop_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_drop_button",
+        "value": true
+      }
+    },
+    {
+      "id": "sword_set_name",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_name_text",
+        "value": "Iron Sword"
+      }
+    },
+    {
+      "id": "sword_set_type",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_type_text",
+        "value": "Equipment / Weapon"
+      }
+    },
+    {
+      "id": "sword_set_quality",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_quality_text",
+        "value": "Rare"
+      }
+    },
+    {
+      "id": "sword_set_count",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_count_text"
+      }
+    },
+    {
+      "id": "sword_set_desc",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_description_text",
+        "value": "A simple weapon. Equip moves it to the weapon slot."
+      }
+    },
+    {
+      "id": "sword_use_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_use_button",
+        "value": false
+      }
+    },
+    {
+      "id": "sword_equip_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "sword_drop_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_drop_button",
+        "value": true
+      }
+    },
+    {
+      "id": "quest_set_name",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_name_text",
+        "value": "Quest Badge"
+      }
+    },
+    {
+      "id": "quest_set_type",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_type_text",
+        "value": "Quest Item"
+      }
+    },
+    {
+      "id": "quest_set_quality",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_quality_text",
+        "value": "Quest"
+      }
+    },
+    {
+      "id": "quest_set_count",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_count_text"
+      }
+    },
+    {
+      "id": "quest_set_desc",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_description_text",
+        "value": "Protected quest item. It cannot be used or dropped."
+      }
+    },
+    {
+      "id": "quest_use_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_use_button",
+        "value": false
+      }
+    },
+    {
+      "id": "quest_equip_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_equip_button",
+        "value": false
+      }
+    },
+    {
+      "id": "quest_drop_interactable",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_action_drop_button",
+        "value": false
+      }
+    },
+    {
+      "id": "unknown_set_name",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_detail_name_text",
+        "value": "Unknown Item"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data.value",
+      "to": "get_slot_ids.target"
+    },
+    {
+      "from": "get_data.value",
+      "to": "get_slot_counts.target"
+    },
+    {
+      "from": "get_data.value",
+      "to": "get_selected_index.target"
+    },
+    {
+      "from": "get_slot_ids.value",
+      "to": "get_current_item_id.array"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "get_current_item_id.index"
+    },
+    {
+      "from": "get_slot_counts.value",
+      "to": "get_current_count.array"
+    },
+    {
+      "from": "get_selected_index.value",
+      "to": "get_current_count.index"
+    },
+    {
+      "from": "get_current_count.item",
+      "to": "format_count.arg0"
+    },
+    {
+      "from": "event_refresh.execOut",
+      "to": "switch_item_id.execIn"
+    },
+    {
+      "from": "get_current_item_id.item",
+      "to": "switch_item_id.selection"
+    },
+    {
+      "from": "switch_item_id.case0",
+      "to": "empty_set_name.execIn"
+    },
+    {
+      "from": "empty_set_name.execOut",
+      "to": "empty_set_type.execIn"
+    },
+    {
+      "from": "empty_set_type.execOut",
+      "to": "empty_set_quality.execIn"
+    },
+    {
+      "from": "empty_set_quality.execOut",
+      "to": "empty_set_count.execIn"
+    },
+    {
+      "from": "empty_set_count.execOut",
+      "to": "empty_set_desc.execIn"
+    },
+    {
+      "from": "empty_set_desc.execOut",
+      "to": "empty_use_interactable.execIn"
+    },
+    {
+      "from": "empty_use_interactable.execOut",
+      "to": "empty_equip_interactable.execIn"
+    },
+    {
+      "from": "empty_equip_interactable.execOut",
+      "to": "empty_drop_interactable.execIn"
+    },
+    {
+      "from": "switch_item_id.case1",
+      "to": "potion_set_name.execIn"
+    },
+    {
+      "from": "potion_set_name.execOut",
+      "to": "potion_set_type.execIn"
+    },
+    {
+      "from": "potion_set_type.execOut",
+      "to": "potion_set_quality.execIn"
+    },
+    {
+      "from": "potion_set_quality.execOut",
+      "to": "potion_set_count.execIn"
+    },
+    {
+      "from": "format_count.result",
+      "to": "potion_set_count.value"
+    },
+    {
+      "from": "potion_set_count.execOut",
+      "to": "potion_set_desc.execIn"
+    },
+    {
+      "from": "potion_set_desc.execOut",
+      "to": "potion_use_interactable.execIn"
+    },
+    {
+      "from": "potion_use_interactable.execOut",
+      "to": "potion_equip_interactable.execIn"
+    },
+    {
+      "from": "potion_equip_interactable.execOut",
+      "to": "potion_drop_interactable.execIn"
+    },
+    {
+      "from": "switch_item_id.case2",
+      "to": "ore_set_name.execIn"
+    },
+    {
+      "from": "ore_set_name.execOut",
+      "to": "ore_set_type.execIn"
+    },
+    {
+      "from": "ore_set_type.execOut",
+      "to": "ore_set_quality.execIn"
+    },
+    {
+      "from": "ore_set_quality.execOut",
+      "to": "ore_set_count.execIn"
+    },
+    {
+      "from": "format_count.result",
+      "to": "ore_set_count.value"
+    },
+    {
+      "from": "ore_set_count.execOut",
+      "to": "ore_set_desc.execIn"
+    },
+    {
+      "from": "ore_set_desc.execOut",
+      "to": "ore_use_interactable.execIn"
+    },
+    {
+      "from": "ore_use_interactable.execOut",
+      "to": "ore_equip_interactable.execIn"
+    },
+    {
+      "from": "ore_equip_interactable.execOut",
+      "to": "ore_drop_interactable.execIn"
+    },
+    {
+      "from": "switch_item_id.case3",
+      "to": "sword_set_name.execIn"
+    },
+    {
+      "from": "sword_set_name.execOut",
+      "to": "sword_set_type.execIn"
+    },
+    {
+      "from": "sword_set_type.execOut",
+      "to": "sword_set_quality.execIn"
+    },
+    {
+      "from": "sword_set_quality.execOut",
+      "to": "sword_set_count.execIn"
+    },
+    {
+      "from": "format_count.result",
+      "to": "sword_set_count.value"
+    },
+    {
+      "from": "sword_set_count.execOut",
+      "to": "sword_set_desc.execIn"
+    },
+    {
+      "from": "sword_set_desc.execOut",
+      "to": "sword_use_interactable.execIn"
+    },
+    {
+      "from": "sword_use_interactable.execOut",
+      "to": "sword_equip_interactable.execIn"
+    },
+    {
+      "from": "sword_equip_interactable.execOut",
+      "to": "sword_drop_interactable.execIn"
+    },
+    {
+      "from": "switch_item_id.case4",
+      "to": "quest_set_name.execIn"
+    },
+    {
+      "from": "quest_set_name.execOut",
+      "to": "quest_set_type.execIn"
+    },
+    {
+      "from": "quest_set_type.execOut",
+      "to": "quest_set_quality.execIn"
+    },
+    {
+      "from": "quest_set_quality.execOut",
+      "to": "quest_set_count.execIn"
+    },
+    {
+      "from": "format_count.result",
+      "to": "quest_set_count.value"
+    },
+    {
+      "from": "quest_set_count.execOut",
+      "to": "quest_set_desc.execIn"
+    },
+    {
+      "from": "quest_set_desc.execOut",
+      "to": "quest_use_interactable.execIn"
+    },
+    {
+      "from": "quest_use_interactable.execOut",
+      "to": "quest_equip_interactable.execIn"
+    },
+    {
+      "from": "quest_equip_interactable.execOut",
+      "to": "quest_drop_interactable.execIn"
+    },
+    {
+      "from": "switch_item_id.default",
+      "to": "unknown_set_name.execIn"
+    }
+  ]
+}

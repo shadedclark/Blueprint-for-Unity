@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.LastIndex",
+  "title": "Array Last Index",
+  "category": "Array",
+  "description": "Returns the last valid index of array or -1 when empty.",
+  "executor": "Array.LastIndex",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": []
+}

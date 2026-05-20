@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.BindButtonEvents",
+  "title": "Bind Button Events",
+  "category": "UI",
+  "description": "Binds click, double-click, and long-press events from a Unity Button.",
+  "executor": "UI.BindButtonEvents",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Button>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "longPressSeconds",
+      "kind": "value",
+      "type": "float",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "doubleClickSeconds",
+      "kind": "value",
+      "type": "float",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bound",
+      "kind": "exec"
+    },
+    {
+      "id": "clicked",
+      "kind": "exec"
+    },
+    {
+      "id": "doubleClicked",
+      "kind": "exec"
+    },
+    {
+      "id": "longPressed",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Button>",
+      "required": true
+    },
+    {
+      "id": "longPressSeconds",
+      "type": "float",
+      "required": false,
+      "defaultValue": 0.5
+    },
+    {
+      "id": "doubleClickSeconds",
+      "type": "float",
+      "required": false,
+      "defaultValue": 0.3
+    }
+  ]
+}

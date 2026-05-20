@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.SwitchInt",
+  "title": "Switch on Int",
+  "category": "Flow",
+  "description": "Routes execution to the first case whose integer value matches selection.",
+  "executor": "Flow.SwitchInt",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "selection",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "caseCount",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case0",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case1",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case2",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case3",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case4",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case5",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case6",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "case7",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "case0",
+      "kind": "exec"
+    },
+    {
+      "id": "case1",
+      "kind": "exec"
+    },
+    {
+      "id": "case2",
+      "kind": "exec"
+    },
+    {
+      "id": "case3",
+      "kind": "exec"
+    },
+    {
+      "id": "case4",
+      "kind": "exec"
+    },
+    {
+      "id": "case5",
+      "kind": "exec"
+    },
+    {
+      "id": "case6",
+      "kind": "exec"
+    },
+    {
+      "id": "case7",
+      "kind": "exec"
+    },
+    {
+      "id": "default",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "selection",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "caseCount",
+      "required": false,
+      "type": "int",
+      "defaultValue": 4
+    },
+    {
+      "id": "case0",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "case1",
+      "required": false,
+      "type": "int",
+      "defaultValue": 1
+    },
+    {
+      "id": "case2",
+      "required": false,
+      "type": "int",
+      "defaultValue": 2
+    },
+    {
+      "id": "case3",
+      "required": false,
+      "type": "int",
+      "defaultValue": 3
+    },
+    {
+      "id": "case4",
+      "required": false,
+      "type": "int",
+      "defaultValue": 4
+    },
+    {
+      "id": "case5",
+      "required": false,
+      "type": "int",
+      "defaultValue": 5
+    },
+    {
+      "id": "case6",
+      "required": false,
+      "type": "int",
+      "defaultValue": 6
+    },
+    {
+      "id": "case7",
+      "required": false,
+      "type": "int",
+      "defaultValue": 7
+    }
+  ]
+}

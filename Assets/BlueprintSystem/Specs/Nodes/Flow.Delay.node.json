@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.Delay",
+  "title": "Delay",
+  "category": "Flow",
+  "description": "Suspends execution for a number of seconds before continuing.",
+  "executor": "Flow.Delay",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "seconds",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "seconds",
+      "type": "float",
+      "required": false,
+      "defaultValue": 0
+    }
+  ]
+}

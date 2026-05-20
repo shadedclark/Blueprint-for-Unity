@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Modulo",
+  "title": "Modulo",
+  "category": "Math",
+  "description": "Returns a modulo b and returns 0 when b is zero.",
+  "executor": "Math.Modulo",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

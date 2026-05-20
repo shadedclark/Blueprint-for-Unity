@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.DetachTransform",
+  "title": "Detach Transform",
+  "category": "Game/Transform",
+  "description": "Clears a Transform parent.",
+  "executor": "Game.DetachTransform",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "worldPositionStays",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "required": true,
+      "type": "UIBinding<Transform>"
+    },
+    {
+      "id": "worldPositionStays",
+      "required": false,
+      "type": "bool",
+      "defaultValue": true
+    }
+  ]
+}

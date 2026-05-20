@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.RandomItem",
+  "title": "Array Random Item",
+  "category": "Array",
+  "description": "Returns a random item, its index, and validity flag from an array.",
+  "executor": "Array.RandomItem",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "item",
+      "kind": "value"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "isValid",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": []
+}

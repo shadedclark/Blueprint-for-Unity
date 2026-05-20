@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Vector.MakeVector3",
+  "title": "Make Vector3",
+  "category": "Vector",
+  "description": "Creates a Vector3 from x, y, and z.",
+  "executor": "Vector.MakeVector3",
+  "inputs": [
+    {
+      "id": "x",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "y",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "z",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3"
+    }
+  ],
+  "properties": [
+    {
+      "id": "x",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "y",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "z",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    }
+  ]
+}

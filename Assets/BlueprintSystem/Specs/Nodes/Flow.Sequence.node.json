@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.Sequence",
+  "title": "Sequence",
+  "category": "Flow",
+  "description": "Runs up to four exec outputs in order.",
+  "executor": "Flow.Sequence",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "then0",
+      "kind": "exec"
+    },
+    {
+      "id": "then1",
+      "kind": "exec"
+    },
+    {
+      "id": "then2",
+      "kind": "exec"
+    },
+    {
+      "id": "then3",
+      "kind": "exec"
+    }
+  ],
+  "properties": []
+}

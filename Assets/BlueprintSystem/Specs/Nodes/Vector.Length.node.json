@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Vector.Length",
+  "title": "Vector Length",
+  "category": "Vector",
+  "description": "Returns the magnitude of a Vector3.",
+  "executor": "Vector.Length",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

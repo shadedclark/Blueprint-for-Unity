@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Insert",
+  "title": "Array Insert",
+  "category": "Array",
+  "description": "Returns a copy of array with item inserted at index.",
+  "executor": "Array.Insert",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "index",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "item",
+      "required": false
+    }
+  ]
+}

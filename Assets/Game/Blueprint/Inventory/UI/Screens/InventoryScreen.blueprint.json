@@ -1,0 +1,644 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryScreen",
+  "category": "Inventory/UI/Screen",
+  "description": "Root inventory screen controller: input polling, component tree, and initial UI visibility.",
+  "variables": [
+    {
+      "id": "var_a25f487bec3e4beba6c8d99217fe34e4",
+      "name": "inventory_open_close_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Behavior/InventoryOpenCloseBehavior.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/Inventory/Behavior/InventoryOpenCloseBehavior.blueprint.json"
+    },
+    {
+      "id": "var_b6e841bace8d48c8807d4765dbb4e2f9",
+      "name": "inventory_focus_move_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json"
+    },
+    {
+      "id": "var_d814ce34d54044c488ad2f8d0cb4959b",
+      "name": "inventory_item_action_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Behavior/InventoryItemActionBehavior.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/Inventory/Behavior/InventoryItemActionBehavior.blueprint.json"
+    },
+    {
+      "id": "var_62e77b86d12e4d82b07fc4bd32408aa8",
+      "name": "inventory_filter_sort_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "inventory_root",
+      "type": "GameObject",
+      "required": true
+    }
+  ],
+  "components": [
+    {
+      "name": "InventoryData",
+      "blueprint": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "OpenCloseBehavior",
+      "blueprint": "Assets/Game/Blueprint/Inventory/Behavior/InventoryOpenCloseBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "FocusMoveBehavior",
+      "blueprint": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "ItemActionBehavior",
+      "blueprint": "Assets/Game/Blueprint/Inventory/Behavior/InventoryItemActionBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "FilterSortBehavior",
+      "blueprint": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "HeaderPresenter",
+      "blueprint": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "GridPresenter",
+      "blueprint": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "DetailPresenter",
+      "blueprint": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "ConfirmPresenter",
+      "blueprint": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentData",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentOpenCloseBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentOpenCloseBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentSelectionBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentSelectionBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentEquipBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentEquipBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentUnequipBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentUnequipBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentStatRecalcBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentSlotsPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentStatsPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentDetailPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentStatusPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json",
+      "required": true
+    }
+  ],
+  "nodes": [
+    {
+      "id": "event_start",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "hide_inventory_on_start",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_root",
+        "value": false
+      }
+    },
+    {
+      "id": "event_tick",
+      "typeId": "Game.Event.OnTick",
+      "position": [
+        0,
+        100
+      ],
+      "properties": {
+        "phase": "Update"
+      }
+    },
+    {
+      "id": "listen_open",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        0
+      ],
+      "properties": {
+        "action": "Inventory/Open"
+      }
+    },
+    {
+      "id": "get_inventory_open_close_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        40
+      ],
+      "properties": {
+        "name": "inventory_open_close_blueprint"
+      }
+    },
+    {
+      "id": "listen_open_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        40
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryOpenCloseBehavior.blueprint.json",
+        "eventName": "OpenInventory"
+      }
+    },
+    {
+      "id": "listen_close",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        120
+      ],
+      "properties": {
+        "action": "Inventory/Close"
+      }
+    },
+    {
+      "id": "get_inventory_open_close_blueprint_2",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        160
+      ],
+      "properties": {
+        "name": "inventory_open_close_blueprint"
+      }
+    },
+    {
+      "id": "listen_close_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        160
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryOpenCloseBehavior.blueprint.json",
+        "eventName": "CloseInventory"
+      }
+    },
+    {
+      "id": "listen_submit",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        240
+      ],
+      "properties": {
+        "action": "Inventory/Submit"
+      }
+    },
+    {
+      "id": "get_inventory_item_action_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        280
+      ],
+      "properties": {
+        "name": "inventory_item_action_blueprint"
+      }
+    },
+    {
+      "id": "listen_submit_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        280
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryItemActionBehavior.blueprint.json",
+        "eventName": "UseSelectedRequested"
+      }
+    },
+    {
+      "id": "listen_left",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        360
+      ],
+      "properties": {
+        "action": "Inventory/MoveLeft"
+      }
+    },
+    {
+      "id": "get_inventory_focus_move_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        400
+      ],
+      "properties": {
+        "name": "inventory_focus_move_blueprint"
+      }
+    },
+    {
+      "id": "listen_left_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        400
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json",
+        "eventName": "MoveLeftRequested"
+      }
+    },
+    {
+      "id": "listen_right",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        480
+      ],
+      "properties": {
+        "action": "Inventory/MoveRight"
+      }
+    },
+    {
+      "id": "get_inventory_focus_move_blueprint_2",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        520
+      ],
+      "properties": {
+        "name": "inventory_focus_move_blueprint"
+      }
+    },
+    {
+      "id": "listen_right_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        520
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json",
+        "eventName": "MoveRightRequested"
+      }
+    },
+    {
+      "id": "listen_up",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        600
+      ],
+      "properties": {
+        "action": "Inventory/MoveUp"
+      }
+    },
+    {
+      "id": "get_inventory_focus_move_blueprint_3",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        640
+      ],
+      "properties": {
+        "name": "inventory_focus_move_blueprint"
+      }
+    },
+    {
+      "id": "listen_up_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        640
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json",
+        "eventName": "MoveUpRequested"
+      }
+    },
+    {
+      "id": "listen_down",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        720
+      ],
+      "properties": {
+        "action": "Inventory/MoveDown"
+      }
+    },
+    {
+      "id": "get_inventory_focus_move_blueprint_4",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        760
+      ],
+      "properties": {
+        "name": "inventory_focus_move_blueprint"
+      }
+    },
+    {
+      "id": "listen_down_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        760
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json",
+        "eventName": "MoveDownRequested"
+      }
+    },
+    {
+      "id": "listen_filter_prev",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        840
+      ],
+      "properties": {
+        "action": "Inventory/FilterPrev"
+      }
+    },
+    {
+      "id": "get_inventory_filter_sort_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        880
+      ],
+      "properties": {
+        "name": "inventory_filter_sort_blueprint"
+      }
+    },
+    {
+      "id": "listen_filter_prev_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        880
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json",
+        "eventName": "FilterPrevRequested"
+      }
+    },
+    {
+      "id": "listen_filter_next",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        960
+      ],
+      "properties": {
+        "action": "Inventory/FilterNext"
+      }
+    },
+    {
+      "id": "get_inventory_filter_sort_blueprint_2",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        1000
+      ],
+      "properties": {
+        "name": "inventory_filter_sort_blueprint"
+      }
+    },
+    {
+      "id": "listen_filter_next_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        1000
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json",
+        "eventName": "FilterNextRequested"
+      }
+    },
+    {
+      "id": "listen_sort",
+      "typeId": "Input.ListenAction",
+      "position": [
+        200,
+        1080
+      ],
+      "properties": {
+        "action": "Inventory/Sort"
+      }
+    },
+    {
+      "id": "get_inventory_filter_sort_blueprint_3",
+      "typeId": "Variable.Get",
+      "position": [
+        420,
+        1120
+      ],
+      "properties": {
+        "name": "inventory_filter_sort_blueprint"
+      }
+    },
+    {
+      "id": "listen_sort_trigger",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        620,
+        1120
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json",
+        "eventName": "SortRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start.execOut",
+      "to": "hide_inventory_on_start.execIn"
+    },
+    {
+      "from": "event_tick.execOut",
+      "to": "listen_open.execIn"
+    },
+    {
+      "from": "listen_open.bound",
+      "to": "listen_close.execIn"
+    },
+    {
+      "from": "listen_open.pressed",
+      "to": "listen_open_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_open_close_blueprint.value",
+      "to": "listen_open_trigger.target"
+    },
+    {
+      "from": "listen_close.bound",
+      "to": "listen_submit.execIn"
+    },
+    {
+      "from": "listen_close.pressed",
+      "to": "listen_close_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_open_close_blueprint_2.value",
+      "to": "listen_close_trigger.target"
+    },
+    {
+      "from": "listen_submit.bound",
+      "to": "listen_left.execIn"
+    },
+    {
+      "from": "listen_submit.pressed",
+      "to": "listen_submit_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_item_action_blueprint.value",
+      "to": "listen_submit_trigger.target"
+    },
+    {
+      "from": "listen_left.bound",
+      "to": "listen_right.execIn"
+    },
+    {
+      "from": "listen_left.pressed",
+      "to": "listen_left_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_focus_move_blueprint.value",
+      "to": "listen_left_trigger.target"
+    },
+    {
+      "from": "listen_right.bound",
+      "to": "listen_up.execIn"
+    },
+    {
+      "from": "listen_right.pressed",
+      "to": "listen_right_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_focus_move_blueprint_2.value",
+      "to": "listen_right_trigger.target"
+    },
+    {
+      "from": "listen_up.bound",
+      "to": "listen_down.execIn"
+    },
+    {
+      "from": "listen_up.pressed",
+      "to": "listen_up_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_focus_move_blueprint_3.value",
+      "to": "listen_up_trigger.target"
+    },
+    {
+      "from": "listen_down.bound",
+      "to": "listen_filter_prev.execIn"
+    },
+    {
+      "from": "listen_down.pressed",
+      "to": "listen_down_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_focus_move_blueprint_4.value",
+      "to": "listen_down_trigger.target"
+    },
+    {
+      "from": "listen_filter_prev.bound",
+      "to": "listen_filter_next.execIn"
+    },
+    {
+      "from": "listen_filter_prev.pressed",
+      "to": "listen_filter_prev_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_filter_sort_blueprint.value",
+      "to": "listen_filter_prev_trigger.target"
+    },
+    {
+      "from": "listen_filter_next.bound",
+      "to": "listen_sort.execIn"
+    },
+    {
+      "from": "listen_filter_next.pressed",
+      "to": "listen_filter_next_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_filter_sort_blueprint_2.value",
+      "to": "listen_filter_next_trigger.target"
+    },
+    {
+      "from": "listen_sort.pressed",
+      "to": "listen_sort_trigger.execIn"
+    },
+    {
+      "from": "get_inventory_filter_sort_blueprint_3.value",
+      "to": "listen_sort_trigger.target"
+    }
+  ]
+}

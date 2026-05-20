@@ -1,0 +1,1714 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryFilterSortBehavior",
+  "category": "Inventory/Behavior",
+  "description": "Updates filter state and reports unsupported pure-blueprint sorting.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    },
+    {
+      "id": "var_inventory_header_presenter_blueprint",
+      "name": "inventory_header_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_grid_presenter_blueprint",
+      "name": "inventory_grid_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_detail_presenter_blueprint",
+      "name": "inventory_detail_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_confirm_presenter_blueprint",
+      "name": "inventory_confirm_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"
+    }
+  ],
+  "bindings": [],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_filter_all",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "SetFilterAll"
+      }
+    },
+    {
+      "id": "filter_all_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "filter_all_set_index",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        300,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index",
+        "value": 0
+      }
+    },
+    {
+      "id": "filter_all_set_label",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        480,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "All"
+      }
+    },
+    {
+      "id": "filter_all_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Filter: All."
+      }
+    },
+    {
+      "id": "filter_all_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        0
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_all_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_all_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        80
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_all_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        80
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_all_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        160
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_all_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        160
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_filter_materials",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        360
+      ],
+      "properties": {
+        "eventName": "SetFilterMaterials"
+      }
+    },
+    {
+      "id": "filter_materials_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        360
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "filter_materials_set_index",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        300,
+        360
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index",
+        "value": 1
+      }
+    },
+    {
+      "id": "filter_materials_set_label",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        480,
+        360
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Materials"
+      }
+    },
+    {
+      "id": "filter_materials_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        360
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Filter: Materials."
+      }
+    },
+    {
+      "id": "filter_materials_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        360
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_materials_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        360
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_materials_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        440
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_materials_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        440
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_materials_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        520
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_materials_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        520
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_filter_consumables",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        720
+      ],
+      "properties": {
+        "eventName": "SetFilterConsumables"
+      }
+    },
+    {
+      "id": "filter_consumables_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        720
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "filter_consumables_set_index",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        300,
+        720
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index",
+        "value": 2
+      }
+    },
+    {
+      "id": "filter_consumables_set_label",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        480,
+        720
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Consumables"
+      }
+    },
+    {
+      "id": "filter_consumables_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        720
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Filter: Consumables."
+      }
+    },
+    {
+      "id": "filter_consumables_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        720
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_consumables_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        720
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_consumables_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        800
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_consumables_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        800
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_consumables_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        880
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_consumables_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        880
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_filter_equipment",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        1080
+      ],
+      "properties": {
+        "eventName": "SetFilterEquipment"
+      }
+    },
+    {
+      "id": "filter_equipment_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        1080
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "filter_equipment_set_index",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        300,
+        1080
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index",
+        "value": 3
+      }
+    },
+    {
+      "id": "filter_equipment_set_label",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        480,
+        1080
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Equipment"
+      }
+    },
+    {
+      "id": "filter_equipment_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        1080
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Filter: Equipment."
+      }
+    },
+    {
+      "id": "filter_equipment_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        1080
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_equipment_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        1080
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_equipment_get_grid",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        1160
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_equipment_refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        1160
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_equipment_get_detail",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        1240
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_equipment_refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        1240
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "event_filter_next",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        1500
+      ],
+      "properties": {
+        "eventName": "FilterNextRequested"
+      }
+    },
+    {
+      "id": "filter_next_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        1500
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "filter_next_get_index",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        300,
+        1500
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index"
+      }
+    },
+    {
+      "id": "filter_next_add",
+      "typeId": "Math.Add",
+      "position": [
+        460,
+        1500
+      ],
+      "properties": {
+        "b": 1
+      }
+    },
+    {
+      "id": "filter_next_mod",
+      "typeId": "Math.Modulo",
+      "position": [
+        620,
+        1500
+      ],
+      "properties": {
+        "b": 4
+      }
+    },
+    {
+      "id": "filter_next_set_index",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        780,
+        1500
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index"
+      }
+    },
+    {
+      "id": "event_filter_prev",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        2200
+      ],
+      "properties": {
+        "eventName": "FilterPrevRequested"
+      }
+    },
+    {
+      "id": "filter_prev_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        2200
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "filter_prev_get_index",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        300,
+        2200
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index"
+      }
+    },
+    {
+      "id": "filter_prev_add",
+      "typeId": "Math.Add",
+      "position": [
+        460,
+        2200
+      ],
+      "properties": {
+        "b": 3
+      }
+    },
+    {
+      "id": "filter_prev_mod",
+      "typeId": "Math.Modulo",
+      "position": [
+        620,
+        2200
+      ],
+      "properties": {
+        "b": 4
+      }
+    },
+    {
+      "id": "filter_prev_set_index",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        780,
+        2200
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_index"
+      }
+    },
+    {
+      "id": "event_sort_requested",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        3000
+      ],
+      "properties": {
+        "eventName": "SortRequested"
+      }
+    },
+    {
+      "id": "sort_get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        120,
+        3000
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "sort_set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        800,
+        3000
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message",
+        "value": "Sort requires a sort/comparator node; skipped by no-new-node constraint."
+      }
+    },
+    {
+      "id": "sort_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1000,
+        3000
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "sort_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1180,
+        3000
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_next_compare_0",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        1500
+      ],
+      "properties": {
+        "right": 0,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_next_branch_0",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        1500
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_next_set_label_0",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        1500
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "All"
+      }
+    },
+    {
+      "id": "filter_next_0_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        1500
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_next_0_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        1500
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_next_compare_1",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        1590
+      ],
+      "properties": {
+        "right": 1,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_next_branch_1",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        1590
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_next_set_label_1",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        1590
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Materials"
+      }
+    },
+    {
+      "id": "filter_next_1_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        1590
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_next_1_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        1590
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_next_compare_2",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        1680
+      ],
+      "properties": {
+        "right": 2,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_next_branch_2",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        1680
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_next_set_label_2",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        1680
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Consumables"
+      }
+    },
+    {
+      "id": "filter_next_2_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        1680
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_next_2_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        1680
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_next_compare_3",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        1770
+      ],
+      "properties": {
+        "right": 3,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_next_branch_3",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        1770
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_next_set_label_3",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        1770
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Equipment"
+      }
+    },
+    {
+      "id": "filter_next_3_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        1770
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_next_3_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        1770
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_prev_compare_0",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        2200
+      ],
+      "properties": {
+        "right": 0,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_prev_branch_0",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        2200
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_prev_set_label_0",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        2200
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "All"
+      }
+    },
+    {
+      "id": "filter_prev_0_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        2200
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_prev_0_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        2200
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_prev_compare_1",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        2290
+      ],
+      "properties": {
+        "right": 1,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_prev_branch_1",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        2290
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_prev_set_label_1",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        2290
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Materials"
+      }
+    },
+    {
+      "id": "filter_prev_1_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        2290
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_prev_1_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        2290
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_prev_compare_2",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        2380
+      ],
+      "properties": {
+        "right": 2,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_prev_branch_2",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        2380
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_prev_set_label_2",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        2380
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Consumables"
+      }
+    },
+    {
+      "id": "filter_prev_2_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        2380
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_prev_2_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        2380
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "filter_prev_compare_3",
+      "typeId": "Variable.Compare",
+      "position": [
+        940,
+        2470
+      ],
+      "properties": {
+        "right": 3,
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "filter_prev_branch_3",
+      "typeId": "Flow.Branch",
+      "position": [
+        1120,
+        2470
+      ],
+      "properties": {}
+    },
+    {
+      "id": "filter_prev_set_label_3",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1300,
+        2470
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label",
+        "value": "Equipment"
+      }
+    },
+    {
+      "id": "filter_prev_3_get_header",
+      "typeId": "Variable.Get",
+      "position": [
+        1480,
+        2470
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "filter_prev_3_refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        1660,
+        2470
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+        "eventName": "RefreshRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "filter_all_get_data.value",
+      "to": "filter_all_set_index.target"
+    },
+    {
+      "from": "event_filter_all.execOut",
+      "to": "filter_all_set_index.execIn"
+    },
+    {
+      "from": "filter_all_get_data.value",
+      "to": "filter_all_set_label.target"
+    },
+    {
+      "from": "filter_all_set_index.execOut",
+      "to": "filter_all_set_label.execIn"
+    },
+    {
+      "from": "filter_all_get_data.value",
+      "to": "filter_all_set_status.target"
+    },
+    {
+      "from": "filter_all_set_label.execOut",
+      "to": "filter_all_set_status.execIn"
+    },
+    {
+      "from": "filter_all_get_header.value",
+      "to": "filter_all_refresh_header.target"
+    },
+    {
+      "from": "filter_all_set_status.execOut",
+      "to": "filter_all_refresh_header.execIn"
+    },
+    {
+      "from": "filter_all_get_grid.value",
+      "to": "filter_all_refresh_grid.target"
+    },
+    {
+      "from": "filter_all_refresh_header.execOut",
+      "to": "filter_all_refresh_grid.execIn"
+    },
+    {
+      "from": "filter_all_get_detail.value",
+      "to": "filter_all_refresh_detail.target"
+    },
+    {
+      "from": "filter_all_refresh_grid.execOut",
+      "to": "filter_all_refresh_detail.execIn"
+    },
+    {
+      "from": "filter_materials_get_data.value",
+      "to": "filter_materials_set_index.target"
+    },
+    {
+      "from": "event_filter_materials.execOut",
+      "to": "filter_materials_set_index.execIn"
+    },
+    {
+      "from": "filter_materials_get_data.value",
+      "to": "filter_materials_set_label.target"
+    },
+    {
+      "from": "filter_materials_set_index.execOut",
+      "to": "filter_materials_set_label.execIn"
+    },
+    {
+      "from": "filter_materials_get_data.value",
+      "to": "filter_materials_set_status.target"
+    },
+    {
+      "from": "filter_materials_set_label.execOut",
+      "to": "filter_materials_set_status.execIn"
+    },
+    {
+      "from": "filter_materials_get_header.value",
+      "to": "filter_materials_refresh_header.target"
+    },
+    {
+      "from": "filter_materials_set_status.execOut",
+      "to": "filter_materials_refresh_header.execIn"
+    },
+    {
+      "from": "filter_materials_get_grid.value",
+      "to": "filter_materials_refresh_grid.target"
+    },
+    {
+      "from": "filter_materials_refresh_header.execOut",
+      "to": "filter_materials_refresh_grid.execIn"
+    },
+    {
+      "from": "filter_materials_get_detail.value",
+      "to": "filter_materials_refresh_detail.target"
+    },
+    {
+      "from": "filter_materials_refresh_grid.execOut",
+      "to": "filter_materials_refresh_detail.execIn"
+    },
+    {
+      "from": "filter_consumables_get_data.value",
+      "to": "filter_consumables_set_index.target"
+    },
+    {
+      "from": "event_filter_consumables.execOut",
+      "to": "filter_consumables_set_index.execIn"
+    },
+    {
+      "from": "filter_consumables_get_data.value",
+      "to": "filter_consumables_set_label.target"
+    },
+    {
+      "from": "filter_consumables_set_index.execOut",
+      "to": "filter_consumables_set_label.execIn"
+    },
+    {
+      "from": "filter_consumables_get_data.value",
+      "to": "filter_consumables_set_status.target"
+    },
+    {
+      "from": "filter_consumables_set_label.execOut",
+      "to": "filter_consumables_set_status.execIn"
+    },
+    {
+      "from": "filter_consumables_get_header.value",
+      "to": "filter_consumables_refresh_header.target"
+    },
+    {
+      "from": "filter_consumables_set_status.execOut",
+      "to": "filter_consumables_refresh_header.execIn"
+    },
+    {
+      "from": "filter_consumables_get_grid.value",
+      "to": "filter_consumables_refresh_grid.target"
+    },
+    {
+      "from": "filter_consumables_refresh_header.execOut",
+      "to": "filter_consumables_refresh_grid.execIn"
+    },
+    {
+      "from": "filter_consumables_get_detail.value",
+      "to": "filter_consumables_refresh_detail.target"
+    },
+    {
+      "from": "filter_consumables_refresh_grid.execOut",
+      "to": "filter_consumables_refresh_detail.execIn"
+    },
+    {
+      "from": "filter_equipment_get_data.value",
+      "to": "filter_equipment_set_index.target"
+    },
+    {
+      "from": "event_filter_equipment.execOut",
+      "to": "filter_equipment_set_index.execIn"
+    },
+    {
+      "from": "filter_equipment_get_data.value",
+      "to": "filter_equipment_set_label.target"
+    },
+    {
+      "from": "filter_equipment_set_index.execOut",
+      "to": "filter_equipment_set_label.execIn"
+    },
+    {
+      "from": "filter_equipment_get_data.value",
+      "to": "filter_equipment_set_status.target"
+    },
+    {
+      "from": "filter_equipment_set_label.execOut",
+      "to": "filter_equipment_set_status.execIn"
+    },
+    {
+      "from": "filter_equipment_get_header.value",
+      "to": "filter_equipment_refresh_header.target"
+    },
+    {
+      "from": "filter_equipment_set_status.execOut",
+      "to": "filter_equipment_refresh_header.execIn"
+    },
+    {
+      "from": "filter_equipment_get_grid.value",
+      "to": "filter_equipment_refresh_grid.target"
+    },
+    {
+      "from": "filter_equipment_refresh_header.execOut",
+      "to": "filter_equipment_refresh_grid.execIn"
+    },
+    {
+      "from": "filter_equipment_get_detail.value",
+      "to": "filter_equipment_refresh_detail.target"
+    },
+    {
+      "from": "filter_equipment_refresh_grid.execOut",
+      "to": "filter_equipment_refresh_detail.execIn"
+    },
+    {
+      "from": "filter_next_get_data.value",
+      "to": "filter_next_get_index.target"
+    },
+    {
+      "from": "filter_next_get_index.value",
+      "to": "filter_next_add.a"
+    },
+    {
+      "from": "filter_next_add.result",
+      "to": "filter_next_mod.a"
+    },
+    {
+      "from": "filter_next_get_data.value",
+      "to": "filter_next_set_index.target"
+    },
+    {
+      "from": "event_filter_next.execOut",
+      "to": "filter_next_set_index.execIn"
+    },
+    {
+      "from": "filter_next_mod.result",
+      "to": "filter_next_set_index.value"
+    },
+    {
+      "from": "filter_prev_get_data.value",
+      "to": "filter_prev_get_index.target"
+    },
+    {
+      "from": "filter_prev_get_index.value",
+      "to": "filter_prev_add.a"
+    },
+    {
+      "from": "filter_prev_add.result",
+      "to": "filter_prev_mod.a"
+    },
+    {
+      "from": "filter_prev_get_data.value",
+      "to": "filter_prev_set_index.target"
+    },
+    {
+      "from": "event_filter_prev.execOut",
+      "to": "filter_prev_set_index.execIn"
+    },
+    {
+      "from": "filter_prev_mod.result",
+      "to": "filter_prev_set_index.value"
+    },
+    {
+      "from": "sort_get_data.value",
+      "to": "sort_set_status.target"
+    },
+    {
+      "from": "event_sort_requested.execOut",
+      "to": "sort_set_status.execIn"
+    },
+    {
+      "from": "sort_get_header.value",
+      "to": "sort_refresh_header.target"
+    },
+    {
+      "from": "sort_set_status.execOut",
+      "to": "sort_refresh_header.execIn"
+    },
+    {
+      "from": "filter_next_mod.result",
+      "to": "filter_next_compare_0.left"
+    },
+    {
+      "from": "filter_next_compare_0.result",
+      "to": "filter_next_branch_0.condition"
+    },
+    {
+      "from": "filter_next_get_data.value",
+      "to": "filter_next_set_label_0.target"
+    },
+    {
+      "from": "filter_next_0_get_header.value",
+      "to": "filter_next_0_refresh_header.target"
+    },
+    {
+      "from": "filter_next_branch_0.true",
+      "to": "filter_next_set_label_0.execIn"
+    },
+    {
+      "from": "filter_next_set_label_0.execOut",
+      "to": "filter_next_0_refresh_header.execIn"
+    },
+    {
+      "from": "filter_next_set_index.execOut",
+      "to": "filter_next_branch_0.execIn"
+    },
+    {
+      "from": "filter_next_mod.result",
+      "to": "filter_next_compare_1.left"
+    },
+    {
+      "from": "filter_next_compare_1.result",
+      "to": "filter_next_branch_1.condition"
+    },
+    {
+      "from": "filter_next_get_data.value",
+      "to": "filter_next_set_label_1.target"
+    },
+    {
+      "from": "filter_next_1_get_header.value",
+      "to": "filter_next_1_refresh_header.target"
+    },
+    {
+      "from": "filter_next_branch_1.true",
+      "to": "filter_next_set_label_1.execIn"
+    },
+    {
+      "from": "filter_next_set_label_1.execOut",
+      "to": "filter_next_1_refresh_header.execIn"
+    },
+    {
+      "from": "filter_next_branch_0.false",
+      "to": "filter_next_branch_1.execIn"
+    },
+    {
+      "from": "filter_next_mod.result",
+      "to": "filter_next_compare_2.left"
+    },
+    {
+      "from": "filter_next_compare_2.result",
+      "to": "filter_next_branch_2.condition"
+    },
+    {
+      "from": "filter_next_get_data.value",
+      "to": "filter_next_set_label_2.target"
+    },
+    {
+      "from": "filter_next_2_get_header.value",
+      "to": "filter_next_2_refresh_header.target"
+    },
+    {
+      "from": "filter_next_branch_2.true",
+      "to": "filter_next_set_label_2.execIn"
+    },
+    {
+      "from": "filter_next_set_label_2.execOut",
+      "to": "filter_next_2_refresh_header.execIn"
+    },
+    {
+      "from": "filter_next_branch_1.false",
+      "to": "filter_next_branch_2.execIn"
+    },
+    {
+      "from": "filter_next_mod.result",
+      "to": "filter_next_compare_3.left"
+    },
+    {
+      "from": "filter_next_compare_3.result",
+      "to": "filter_next_branch_3.condition"
+    },
+    {
+      "from": "filter_next_get_data.value",
+      "to": "filter_next_set_label_3.target"
+    },
+    {
+      "from": "filter_next_3_get_header.value",
+      "to": "filter_next_3_refresh_header.target"
+    },
+    {
+      "from": "filter_next_branch_3.true",
+      "to": "filter_next_set_label_3.execIn"
+    },
+    {
+      "from": "filter_next_set_label_3.execOut",
+      "to": "filter_next_3_refresh_header.execIn"
+    },
+    {
+      "from": "filter_next_branch_2.false",
+      "to": "filter_next_branch_3.execIn"
+    },
+    {
+      "from": "filter_prev_mod.result",
+      "to": "filter_prev_compare_0.left"
+    },
+    {
+      "from": "filter_prev_compare_0.result",
+      "to": "filter_prev_branch_0.condition"
+    },
+    {
+      "from": "filter_prev_get_data.value",
+      "to": "filter_prev_set_label_0.target"
+    },
+    {
+      "from": "filter_prev_0_get_header.value",
+      "to": "filter_prev_0_refresh_header.target"
+    },
+    {
+      "from": "filter_prev_branch_0.true",
+      "to": "filter_prev_set_label_0.execIn"
+    },
+    {
+      "from": "filter_prev_set_label_0.execOut",
+      "to": "filter_prev_0_refresh_header.execIn"
+    },
+    {
+      "from": "filter_prev_set_index.execOut",
+      "to": "filter_prev_branch_0.execIn"
+    },
+    {
+      "from": "filter_prev_mod.result",
+      "to": "filter_prev_compare_1.left"
+    },
+    {
+      "from": "filter_prev_compare_1.result",
+      "to": "filter_prev_branch_1.condition"
+    },
+    {
+      "from": "filter_prev_get_data.value",
+      "to": "filter_prev_set_label_1.target"
+    },
+    {
+      "from": "filter_prev_1_get_header.value",
+      "to": "filter_prev_1_refresh_header.target"
+    },
+    {
+      "from": "filter_prev_branch_1.true",
+      "to": "filter_prev_set_label_1.execIn"
+    },
+    {
+      "from": "filter_prev_set_label_1.execOut",
+      "to": "filter_prev_1_refresh_header.execIn"
+    },
+    {
+      "from": "filter_prev_branch_0.false",
+      "to": "filter_prev_branch_1.execIn"
+    },
+    {
+      "from": "filter_prev_mod.result",
+      "to": "filter_prev_compare_2.left"
+    },
+    {
+      "from": "filter_prev_compare_2.result",
+      "to": "filter_prev_branch_2.condition"
+    },
+    {
+      "from": "filter_prev_get_data.value",
+      "to": "filter_prev_set_label_2.target"
+    },
+    {
+      "from": "filter_prev_2_get_header.value",
+      "to": "filter_prev_2_refresh_header.target"
+    },
+    {
+      "from": "filter_prev_branch_2.true",
+      "to": "filter_prev_set_label_2.execIn"
+    },
+    {
+      "from": "filter_prev_set_label_2.execOut",
+      "to": "filter_prev_2_refresh_header.execIn"
+    },
+    {
+      "from": "filter_prev_branch_1.false",
+      "to": "filter_prev_branch_2.execIn"
+    },
+    {
+      "from": "filter_prev_mod.result",
+      "to": "filter_prev_compare_3.left"
+    },
+    {
+      "from": "filter_prev_compare_3.result",
+      "to": "filter_prev_branch_3.condition"
+    },
+    {
+      "from": "filter_prev_get_data.value",
+      "to": "filter_prev_set_label_3.target"
+    },
+    {
+      "from": "filter_prev_3_get_header.value",
+      "to": "filter_prev_3_refresh_header.target"
+    },
+    {
+      "from": "filter_prev_branch_3.true",
+      "to": "filter_prev_set_label_3.execIn"
+    },
+    {
+      "from": "filter_prev_set_label_3.execOut",
+      "to": "filter_prev_3_refresh_header.execIn"
+    },
+    {
+      "from": "filter_prev_branch_2.false",
+      "to": "filter_prev_branch_3.execIn"
+    }
+  ]
+}

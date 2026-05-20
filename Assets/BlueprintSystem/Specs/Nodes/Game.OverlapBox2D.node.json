@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.OverlapBox2D",
+  "title": "Overlap Box 2D",
+  "category": "Game/Physics2D",
+  "description": "Finds 2D colliders inside a rotated box.",
+  "executor": "Game.OverlapBox2D",
+  "inputs": [
+    {
+      "id": "point",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "size",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "angle",
+      "kind": "value",
+      "type": "float",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "layerMask",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "hasAny",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "count",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "firstName",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "names",
+      "kind": "value",
+      "type": "Array<string>"
+    }
+  ],
+  "properties": [
+    {
+      "id": "point",
+      "required": false,
+      "type": "Vector2",
+      "defaultValue": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "size",
+      "required": false,
+      "type": "Vector2",
+      "defaultValue": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "angle",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "layerMask",
+      "required": false,
+      "type": "int",
+      "defaultValue": -1
+    }
+  ]
+}

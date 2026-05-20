@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "0.1",
+  "name": "PlayerMovementController",
+  "category": "PlayerMovement/Behavior",
+  "description": "Root player movement controller and component tree.",
+  "variables": [],
+  "bindings": [
+    {
+      "name": "player_transform",
+      "type": "Transform",
+      "required": true
+    }
+  ],
+  "components": [
+    {
+      "name": "PlayerMovementData",
+      "blueprint": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "PlayerMovementBehavior",
+      "blueprint": "Assets/Game/Blueprint/PlayerMovement/Behavior/PlayerMovementBehavior.blueprint.json",
+      "required": true
+    }
+  ],
+  "nodes": [],
+  "edges": []
+}

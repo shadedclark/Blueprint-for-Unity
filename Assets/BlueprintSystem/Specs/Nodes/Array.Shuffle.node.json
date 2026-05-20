@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.Shuffle",
+  "title": "Array Shuffle",
+  "category": "Array",
+  "description": "Returns a shuffled copy of array.",
+  "executor": "Array.Shuffle",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    }
+  ],
+  "properties": []
+}

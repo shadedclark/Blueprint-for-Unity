@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.GetFixedDeltaTime",
+  "title": "Get Fixed Delta Time",
+  "category": "Game/Time",
+  "description": "Returns Unity Time.fixedDeltaTime.",
+  "executor": "Game.GetFixedDeltaTime",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": []
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.Event.OnOpen",
+  "title": "On Open",
+  "category": "Events",
+  "description": "Entry point fired when a UI panel opens.",
+  "executor": "Flow.Event",
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec",
+      "allowMultiple": true
+    }
+  ],
+  "properties": []
+}

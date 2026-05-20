@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.TriggerEvent",
+  "title": "Trigger Blueprint Event",
+  "category": "Blueprint",
+  "description": "Triggers a named event on a Blueprint component resolved by asset path or BlueprintRef.",
+  "executor": "Blueprint.TriggerEvent",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Blueprint",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "eventName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Blueprint",
+      "required": false
+    },
+    {
+      "id": "eventName",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "event"
+  ]
+}

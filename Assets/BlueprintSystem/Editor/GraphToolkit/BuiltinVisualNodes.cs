@@ -1,0 +1,1186 @@
+using System;
+using Unity.GraphToolkit.Editor;
+
+namespace BlueprintSystem.Editor
+{
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Flow.Branch")]
+    public sealed class FlowBranchVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Flow.Branch", "Branch", "Flow", "Routes execution based on a boolean condition.");
+            AddExecInput("execIn");
+            AddValueInput("condition", "bool", true, "propertyOrConnection");
+            AddExecOutput("true");
+            AddExecOutput("false");
+            AddProperty("condition", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Flow.Delay")]
+    public sealed class FlowDelayVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Flow.Delay", "Delay", "Flow", "Suspends execution for a number of seconds before continuing.");
+            AddExecInput("execIn");
+            AddValueInput("seconds", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("seconds", "float", false, 0f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Flow.Sequence")]
+    public sealed class FlowSequenceVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Flow.Sequence", "Sequence", "Flow", "Runs up to four exec outputs in order.");
+            AddExecInput("execIn");
+            AddExecOutput("then0");
+            AddExecOutput("then1");
+            AddExecOutput("then2");
+            AddExecOutput("then3");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Logic.And")]
+    public sealed class LogicAndVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Logic.And", "And", "Logic", "Returns true when both boolean inputs are true.");
+            AddValueInput("left", "bool", true, "propertyOrConnection");
+            AddValueInput("right", "bool", true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("left", "bool", false, false);
+            AddProperty("right", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Logic.Or")]
+    public sealed class LogicOrVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Logic.Or", "Or", "Logic", "Returns true when either boolean input is true.");
+            AddValueInput("left", "bool", true, "propertyOrConnection");
+            AddValueInput("right", "bool", true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("left", "bool", false, false);
+            AddProperty("right", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Logic.Not")]
+    public sealed class LogicNotVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Logic.Not", "Not", "Logic", "Inverts a boolean input.");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("value", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.Event.Custom")]
+    public sealed class GameCustomEventVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.Event.Custom", "Custom Event", "Events", "Entry point for a named custom event.");
+            AddExecOutput("execOut", true);
+            AddProperty("eventName", "string", true, null, "Event");
+        }
+
+        protected override void OnDefineOptions(IOptionDefinitionContext context)
+        {
+            ApplyEventMetadata();
+            Title = CreateEventTitle(ReadStoredEventName());
+            base.OnDefineOptions(context);
+        }
+
+        protected override void OnDefinePorts(IPortDefinitionContext context)
+        {
+            ApplyEventMetadata();
+            string eventName = ReadEventName();
+            Title = CreateEventTitle(eventName);
+            SetExecOutDisplayName(eventName);
+            base.OnDefinePorts(context);
+        }
+
+        private void ApplyEventMetadata()
+        {
+            if (Properties == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < Properties.Count; i++)
+            {
+                BlueprintVisualPropertyData property = Properties[i];
+                if (property != null && property.Id == "eventName")
+                {
+                    property.DisplayName = "Event";
+                    return;
+                }
+            }
+        }
+
+        private void SetExecOutDisplayName(string eventName)
+        {
+            if (Outputs == null)
+            {
+                return;
+            }
+
+            string displayName = string.IsNullOrEmpty(eventName) ? "execOut" : eventName;
+            for (int i = 0; i < Outputs.Count; i++)
+            {
+                BlueprintVisualPortData output = Outputs[i];
+                if (output != null && output.Id == "execOut")
+                {
+                    output.DisplayName = displayName;
+                    return;
+                }
+            }
+        }
+
+        private string ReadEventName()
+        {
+            INodeOption option = GetNodeOptionByName("eventName");
+            object optionValue;
+            if (option != null &&
+                BlueprintVisualValueUtility.TryReadOptionValue(option, "string", out optionValue) &&
+                optionValue != null &&
+                !string.IsNullOrEmpty(optionValue.ToString()))
+            {
+                return optionValue.ToString();
+            }
+
+            return ReadStoredEventName();
+        }
+
+        private string ReadStoredEventName()
+        {
+            if (Properties == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < Properties.Count; i++)
+            {
+                BlueprintVisualPropertyData property = Properties[i];
+                if (property == null || property.Id != "eventName" || !property.HasValue)
+                {
+                    continue;
+                }
+
+                object value = BlueprintVisualValueUtility.FromJson(property.JsonValue);
+                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                {
+                    return value.ToString();
+                }
+            }
+
+            return null;
+        }
+
+        private static string CreateEventTitle(string eventName)
+        {
+            return string.IsNullOrEmpty(eventName) ? "Custom Event" : "Custom Event: " + eventName;
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.Event.OnStart")]
+    public sealed class GameOnStartEventVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.Event.OnStart", "On Start", "Events", "Entry point fired from BlueprintRunner.Start.");
+            AddExecOutput("execOut", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.Log")]
+    public sealed class GameLogVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.Log", "Log", "Game", "Writes a message to the blueprint logger.");
+            AddExecInput("execIn");
+            AddValueInput("message", "string", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("message", "string", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SendEvent")]
+    public sealed class GameSendEventVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SendEvent", "Send Event", "Game", "Publishes a named event on the current blueprint event bus.");
+            AddExecInput("execIn");
+            AddValueInput("eventName", "string", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("eventName", "string", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.LoadScene")]
+    public sealed class GameLoadSceneVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.LoadScene", "Load Scene", "Game", "Loads a Unity scene by name.");
+            AddExecInput("execIn");
+            AddValueInput("sceneName", "string", true, "propertyOrConnection");
+            AddValueInput("mode", "LoadSceneMode", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("sceneName", "string", true);
+            AddProperty("mode", "LoadSceneMode", false, "Single");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.LoadSceneAsync")]
+    public sealed class GameLoadSceneAsyncVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.LoadSceneAsync", "Load Scene Async", "Game", "Loads a Unity scene asynchronously by name.");
+            AddExecInput("execIn");
+            AddValueInput("sceneName", "string", true, "propertyOrConnection");
+            AddValueInput("mode", "LoadSceneMode", false, "propertyOrConnection");
+            AddExecOutput("complete");
+            AddProperty("sceneName", "string", true);
+            AddProperty("mode", "LoadSceneMode", false, "Single");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.IsColliding")]
+    public sealed class GameIsCollidingVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.IsColliding", "Is Colliding", "Game/Physics", "Returns true when two bound GameObjects have overlapping colliders.");
+            AddValueInput("target", "UIBinding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("other", "UIBinding<GameObject>", true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("target", "UIBinding<GameObject>", false);
+            AddProperty("other", "UIBinding<GameObject>", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetTransformPosition")]
+    public sealed class GameSetTransformPositionVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetTransformPosition", "Set Transform Position", "Game/Transform", "Sets world position on a bound Transform.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("value", "Vector3", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetTransformEulerAngles")]
+    public sealed class GameSetTransformEulerAnglesVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetTransformEulerAngles", "Set Transform Euler Angles", "Game/Transform", "Sets world eulerAngles on a bound Transform.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("value", "Vector3", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetTransformLocalScale")]
+    public sealed class GameSetTransformLocalScaleVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetTransformLocalScale", "Set Transform Local Scale", "Game/Transform", "Sets localScale on a bound Transform.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("value", "Vector3", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetRigidbodyLinearVelocity")]
+    public sealed class GameSetRigidbodyLinearVelocityVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetRigidbodyLinearVelocity", "Set Rigidbody Linear Velocity", "Game/Physics", "Sets linearVelocity on a bound 3D Rigidbody.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Rigidbody>", true, "property");
+            AddValueInput("value", "Vector3", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Rigidbody>", true);
+            AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.AddRigidbodyForce")]
+    public sealed class GameAddRigidbodyForceVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.AddRigidbodyForce", "Add Rigidbody Force", "Game/Physics", "Adds force to a bound 3D Rigidbody.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Rigidbody>", true, "property");
+            AddValueInput("force", "Vector3", true, "propertyOrConnection");
+            AddValueInput("mode", "ForceMode", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Rigidbody>", true);
+            AddProperty("force", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
+            AddProperty("mode", "ForceMode", false, "Force");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetColliderEnabled")]
+    public sealed class GameSetColliderEnabledVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetColliderEnabled", "Set Collider Enabled", "Game/Physics", "Sets enabled on a bound 3D Collider.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Collider>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Collider>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetColliderIsTrigger")]
+    public sealed class GameSetColliderIsTriggerVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetColliderIsTrigger", "Set Collider Is Trigger", "Game/Physics", "Sets isTrigger on a bound 3D Collider.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Collider>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Collider>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetRigidbody2DLinearVelocity")]
+    public sealed class GameSetRigidbody2DLinearVelocityVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetRigidbody2DLinearVelocity", "Set Rigidbody2D Linear Velocity", "Game/Physics2D", "Sets linearVelocity on a bound Rigidbody2D.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Rigidbody2D>", true, "property");
+            AddValueInput("value", "Vector2", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Rigidbody2D>", true);
+            AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.AddRigidbody2DForce")]
+    public sealed class GameAddRigidbody2DForceVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.AddRigidbody2DForce", "Add Rigidbody2D Force", "Game/Physics2D", "Adds force to a bound Rigidbody2D.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Rigidbody2D>", true, "property");
+            AddValueInput("force", "Vector2", true, "propertyOrConnection");
+            AddValueInput("mode", "ForceMode2D", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Rigidbody2D>", true);
+            AddProperty("force", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
+            AddProperty("mode", "ForceMode2D", false, "Force");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetCollider2DEnabled")]
+    public sealed class GameSetCollider2DEnabledVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetCollider2DEnabled", "Set Collider2D Enabled", "Game/Physics2D", "Sets enabled on a bound Collider2D.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Collider2D>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Collider2D>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetCollider2DIsTrigger")]
+    public sealed class GameSetCollider2DIsTriggerVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetCollider2DIsTrigger", "Set Collider2D Is Trigger", "Game/Physics2D", "Sets isTrigger on a bound Collider2D.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Collider2D>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Collider2D>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetRendererMaterial")]
+    public sealed class GameSetRendererMaterialVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetRendererMaterial", "Set Renderer Material", "Game/Rendering", "Sets an instance material slot on a bound Renderer.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Renderer>", true, "property");
+            AddValueInput("value", "UIBinding<Material>", true, "propertyOrConnection");
+            AddValueInput("materialIndex", "int", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Renderer>", true);
+            AddProperty("value", "UIBinding<Material>", false);
+            AddProperty("materialIndex", "int", false, 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetRendererMaterialColor")]
+    public sealed class GameSetRendererMaterialColorVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetRendererMaterialColor", "Set Renderer Material Color", "Game/Rendering", "Sets a color property on a bound Renderer's instance material.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Renderer>", true, "property");
+            AddValueInput("value", "Color", true, "propertyOrConnection");
+            AddValueInput("propertyName", "string", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Renderer>", true);
+            AddProperty("value", "Color", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f, 1f });
+            AddProperty("propertyName", "string", false, "_Color");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetRendererTexture")]
+    public sealed class GameSetRendererTextureVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetRendererTexture", "Set Renderer Texture", "Game/Rendering", "Sets a texture property on a bound Renderer's instance material.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Renderer>", true, "property");
+            AddValueInput("value", "UIBinding<Texture>", true, "propertyOrConnection");
+            AddValueInput("propertyName", "string", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Renderer>", true);
+            AddProperty("value", "UIBinding<Texture>", false);
+            AddProperty("propertyName", "string", false, "_MainTex");
+        }
+    }
+
+    public abstract class InputAxisVisualNode : BlueprintVisualNode
+    {
+        protected void ConfigureAxisNode(string typeId, string title, string description)
+        {
+            SetIdentity(typeId, title, "Input", description);
+            AddValueInput("axisName", "string", true, "propertyOrConnection");
+            AddValueOutput("value", "float");
+            AddProperty("axisName", "string", false, "Horizontal");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Input.GetAxis")]
+    public sealed class InputGetAxisVisualNode : InputAxisVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            ConfigureAxisNode("Input.GetAxis", "Get Axis", "Returns Unity legacy Input Manager Input.GetAxis value for an axis name.");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Input.GetAxisRaw")]
+    public sealed class InputGetAxisRawVisualNode : InputAxisVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            ConfigureAxisNode("Input.GetAxisRaw", "Get Axis Raw", "Returns Unity legacy Input Manager Input.GetAxisRaw value for an axis name without smoothing.");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Input.GetActionVector2")]
+    public sealed class InputGetActionVector2VisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Input.GetActionVector2", "Get Action Vector2", "Input", "Reads a Vector2 value from a project-wide Input System action.");
+            AddValueInput("action", "string", true, "property");
+            AddValueOutput("value", "Vector2");
+            AddProperty("action", "string", true, "Player/Move");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Input.ListenAction")]
+    public sealed class InputListenActionVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Input.ListenAction", "Listen Action", "Input", "Polls a project-wide Input System action when executed.");
+            AddExecInput("execIn");
+            AddValueInput("action", "string", true, "property");
+            AddExecOutput("bound");
+            AddExecOutput("pressed");
+            AddExecOutput("held");
+            AddExecOutput("released");
+            AddProperty("action", "string", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Input.ListenKey")]
+    public sealed class InputListenKeyVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Input.ListenKey", "Listen Key", "Input", "Polls a keyboard key when executed.");
+            AddExecInput("execIn");
+            AddValueInput("key", "Key", true, "property");
+            AddExecOutput("bound");
+            AddExecOutput("pressed");
+            AddExecOutput("held");
+            AddExecOutput("released");
+            AddProperty("key", "Key", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.BindButtonClick")]
+    public sealed class UIBindButtonClickVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.BindButtonClick", "Bind Button Click", "UI", "Binds a Unity Button click to the clicked execution output.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Button>", true, "property");
+            AddExecOutput("bound");
+            AddExecOutput("clicked");
+            AddProperty("target", "UIBinding<Button>", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.BindButtonEvents")]
+    public sealed class UIBindButtonEventsVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.BindButtonEvents", "Bind Button Events", "UI", "Binds click, double-click, and long-press events from a Unity Button.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Button>", true, "property");
+            AddValueInput("longPressSeconds", "float", false, "propertyOrConnection");
+            AddValueInput("doubleClickSeconds", "float", false, "propertyOrConnection");
+            AddExecOutput("bound");
+            AddExecOutput("clicked");
+            AddExecOutput("doubleClicked");
+            AddExecOutput("longPressed");
+            AddProperty("target", "UIBinding<Button>", true);
+            AddProperty("longPressSeconds", "float", false, 0.5f);
+            AddProperty("doubleClickSeconds", "float", false, 0.3f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.BindToggleChanged")]
+    public sealed class UIBindToggleChangedVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.BindToggleChanged", "Bind Toggle Changed", "UI", "Binds value-changed events from a Unity Toggle.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Toggle>", true, "property");
+            AddExecOutput("bound");
+            AddExecOutput("changed");
+            AddExecOutput("turnedOn");
+            AddExecOutput("turnedOff");
+            AddValueOutput("value", "bool");
+            AddProperty("target", "UIBinding<Toggle>", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.RefreshLoopScrollView")]
+    public sealed class UIRefreshLoopScrollViewVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.RefreshLoopScrollView", "Refresh Loop Scroll View", "UI", "Refreshes a BlueprintLoopScrollView from an array value or variable.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<BlueprintLoopScrollView>", true, "property");
+            AddValueInput("items", null, false, "connection");
+            AddValueInput("itemsVariable", "string", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<BlueprintLoopScrollView>", true);
+            AddProperty("itemsVariable", "string", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.Event.OnClose")]
+    public sealed class UIOnCloseEventVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.Event.OnClose", "On Close", "Events", "Entry point fired when a UI panel closes.");
+            AddExecOutput("execOut", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.Event.OnOpen")]
+    public sealed class UIOnOpenEventVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.Event.OnOpen", "On Open", "Events", "Entry point fired when a UI panel opens.");
+            AddExecOutput("execOut", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetText")]
+    public sealed class UISetTextVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(
+                "UI.SetText",
+                "Set Text",
+                "UI",
+                "Sets text on a bound TMP_Text element.");
+
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<TMP_Text>", true, "property");
+            AddValueInput("value", "string", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<TMP_Text>", true);
+            AddProperty("value", "string", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SpriteBinding")]
+    public sealed class UISpriteBindingVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SpriteBinding", "Sprite Binding", "UI", "Outputs a bound Sprite name for UI image nodes.");
+            AddValueOutput("value", "UIBinding<Sprite>");
+            AddProperty("sprite", "UIBinding<Sprite>", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetImageSprite")]
+    public sealed class UISetImageSpriteVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetImageSprite", "Set Image Sprite", "UI", "Sets sprite on a bound Unity UI Image.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Image>", true, "property");
+            AddValueInput("value", "UIBinding<Sprite>", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Image>", true);
+            AddProperty("value", "UIBinding<Sprite>", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetInteractable")]
+    public sealed class UISetInteractableVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetInteractable", "Set Interactable", "UI", "Sets interactable state on a bound Selectable.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Selectable>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Selectable>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetVisible")]
+    public sealed class UISetVisibleVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetVisible", "Set Visible", "UI", "Sets active state on a bound GameObject or Component.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<GameObject>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<GameObject>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetGraphicColor")]
+    public sealed class UISetGraphicColorVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetGraphicColor", "Set Graphic Color", "UI", "Sets color on a bound Unity UI Graphic.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Graphic>", true, "property");
+            AddValueInput("value", "Color", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Graphic>", true);
+            AddProperty("value", "Color", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f, 1f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetGraphicEnabled")]
+    public sealed class UISetGraphicEnabledVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetGraphicEnabled", "Set Graphic Enabled", "UI", "Sets enabled state on a bound Unity UI Graphic.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Graphic>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Graphic>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetGraphicRaycastTarget")]
+    public sealed class UISetGraphicRaycastTargetVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetGraphicRaycastTarget", "Set Graphic Raycast Target", "UI", "Sets raycast target state on a bound Unity UI Graphic.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Graphic>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Graphic>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetImageFillAmount")]
+    public sealed class UISetImageFillAmountVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetImageFillAmount", "Set Image Fill Amount", "UI", "Sets fillAmount on a bound Unity UI Image.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<Image>", true, "property");
+            AddValueInput("value", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<Image>", true);
+            AddProperty("value", "float", false, 1f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetCanvasGroupAlpha")]
+    public sealed class UISetCanvasGroupAlphaVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetCanvasGroupAlpha", "Set Canvas Group Alpha", "UI", "Sets alpha on a bound CanvasGroup.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<CanvasGroup>", true, "property");
+            AddValueInput("value", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<CanvasGroup>", true);
+            AddProperty("value", "float", false, 1f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetCanvasGroupInteractable")]
+    public sealed class UISetCanvasGroupInteractableVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetCanvasGroupInteractable", "Set Canvas Group Interactable", "UI", "Sets interactable state on a bound CanvasGroup.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<CanvasGroup>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<CanvasGroup>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetCanvasGroupBlocksRaycasts")]
+    public sealed class UISetCanvasGroupBlocksRaycastsVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetCanvasGroupBlocksRaycasts", "Set Canvas Group Blocks Raycasts", "UI", "Sets blocksRaycasts state on a bound CanvasGroup.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<CanvasGroup>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<CanvasGroup>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetRectAnchoredPosition")]
+    public sealed class UISetRectAnchoredPositionVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetRectAnchoredPosition", "Set Rect Anchored Position", "UI", "Sets anchoredPosition on a bound RectTransform.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<RectTransform>", true, "property");
+            AddValueInput("value", "Vector2", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<RectTransform>", true);
+            AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetRectSizeDelta")]
+    public sealed class UISetRectSizeDeltaVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetRectSizeDelta", "Set Rect Size Delta", "UI", "Sets sizeDelta on a bound RectTransform.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<RectTransform>", true, "property");
+            AddValueInput("value", "Vector2", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<RectTransform>", true);
+            AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetRectLocalScale")]
+    public sealed class UISetRectLocalScaleVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetRectLocalScale", "Set Rect Local Scale", "UI", "Sets localScale on a bound RectTransform.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<RectTransform>", true, "property");
+            AddValueInput("value", "Vector3", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "UIBinding<RectTransform>", true);
+            AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.Count")]
+    public sealed class ArrayCountVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.Count", "Array Count", "Array", "Returns the number of items in an array value.");
+            AddValueInput("array", null, true, "connection");
+            AddValueOutput("count", "int");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.Get")]
+    public sealed class ArrayGetVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.Get", "Array Get", "Array", "Returns an item from an array by index.");
+            AddValueInput("array", null, true, "connection");
+            AddValueInput("index", "int", true, "propertyOrConnection");
+            AddValueOutput("item", null);
+            AddProperty("index", "int", false, 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.ForEachLoop")]
+    public sealed class ArrayForEachLoopVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.ForEachLoop", "For Each Loop", "Array", "Executes the loop body once for each item in an array.");
+            AddExecInput("execIn");
+            AddValueInput("array", null, true, "connection");
+            AddExecOutput("loopBody");
+            AddExecOutput("completed");
+            AddValueOutput("arrayElement", null);
+            AddValueOutput("arrayIndex", "int");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.ForEachLoopWithBreak")]
+    public sealed class ArrayForEachLoopWithBreakVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.ForEachLoopWithBreak", "For Each Loop with Break", "Array", "Executes the loop body once for each item in an array and allows early stop.");
+            AddExecInput("execIn");
+            AddExecInput("break");
+            AddValueInput("array", null, true, "connection");
+            AddExecOutput("loopBody");
+            AddExecOutput("completed");
+            AddValueOutput("arrayElement", null);
+            AddValueOutput("arrayIndex", "int");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.IsValidIndex")]
+    public sealed class ArrayIsValidIndexVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.IsValidIndex", "Array Is Valid Index", "Array", "Returns true when an index is inside the bounds of an array.");
+            AddValueInput("array", null, true, "connection");
+            AddValueInput("index", "int", true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("index", "int", false, 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.Contains")]
+    public sealed class ArrayContainsVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.Contains", "Array Contains", "Array", "Returns true when an array contains a matching item.");
+            AddValueInput("array", null, true, "connection");
+            AddValueInput("item", null, true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("item", null, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.IndexOf")]
+    public sealed class ArrayIndexOfVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.IndexOf", "Array Index Of", "Array", "Returns the first index of a matching item in an array.");
+            AddValueInput("array", null, true, "connection");
+            AddValueInput("item", null, true, "propertyOrConnection");
+            AddValueOutput("index", "int");
+            AddValueOutput("found", "bool");
+            AddProperty("item", null, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.First")]
+    public sealed class ArrayFirstVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.First", "Array First", "Array", "Returns the first item from an array.");
+            AddValueInput("array", null, true, "connection");
+            AddValueOutput("item", null);
+            AddValueOutput("isValid", "bool");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Array.Last")]
+    public sealed class ArrayLastVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Array.Last", "Array Last", "Array", "Returns the last item from an array.");
+            AddValueInput("array", null, true, "connection");
+            AddValueOutput("item", null);
+            AddValueOutput("isValid", "bool");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Variable.GetField")]
+    public sealed class VariableGetFieldVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Variable.GetField", "Get Field", "Variables", "Reads a field or nested field path from a structured value.");
+            AddValueInput("target", null, true, "connection");
+            AddValueInput("path", "string", true, "propertyOrConnection");
+            AddValueOutput("value", null);
+            AddProperty("path", "string", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Variable.Compare")]
+    public sealed class VariableCompareVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Variable.Compare", "Compare", "Variables", "Compares two values and returns a boolean.");
+            AddValueInput("left", null, true, "propertyOrConnection");
+            AddValueInput("right", null, true, "propertyOrConnection");
+            AddValueInput("comparison", "ComparisonMode", false, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("left", null, false);
+            AddProperty("right", null, false);
+            AddProperty("comparison", "ComparisonMode", false, "Equals");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Variable.Get")]
+    public sealed class VariableGetVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Variable.Get", "Get Variable", "Variables", "Reads a blueprint variable by name.");
+            AddValueOutput("value", null);
+            AddProperty("name", "string", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Variable.Set")]
+    public sealed class VariableSetVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Variable.Set", "Set Variable", "Variables", "Writes a blueprint variable by name.");
+            AddExecInput("execIn");
+            AddValueInput("value", null, true, "propertyOrConnection", "New Value");
+            AddExecOutput("execOut");
+            AddProperty("name", "string", true, null, "Variable", true);
+            AddProperty("value", null, false);
+        }
+    }
+}

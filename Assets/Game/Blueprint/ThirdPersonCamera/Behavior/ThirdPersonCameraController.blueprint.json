@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ThirdPersonCameraController",
+  "category": "ThirdPersonCamera/Behavior",
+  "description": "Root third-person camera controller and component tree.",
+  "variables": [],
+  "bindings": [
+    {
+      "name": "player_transform",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "camera_rig_transform",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "camera_transform",
+      "type": "Transform",
+      "required": true
+    }
+  ],
+  "components": [
+    {
+      "name": "ThirdPersonCameraData",
+      "blueprint": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "ThirdPersonCameraFollowBehavior",
+      "blueprint": "Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraFollowBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "ThirdPersonCameraRotationBehavior",
+      "blueprint": "Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraRotationBehavior.blueprint.json",
+      "required": true
+    }
+  ],
+  "nodes": [],
+  "edges": []
+}

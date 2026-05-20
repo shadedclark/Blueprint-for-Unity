@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Divide",
+  "title": "Divide",
+  "category": "Math",
+  "description": "Divides a by b and returns 0 when b is zero.",
+  "executor": "Math.Divide",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

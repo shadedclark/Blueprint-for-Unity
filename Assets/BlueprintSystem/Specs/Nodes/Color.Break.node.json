@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Color.Break",
+  "title": "Break Color",
+  "category": "Color",
+  "description": "Splits a Color into r, g, b, and a.",
+  "executor": "Color.Break",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Color",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "r",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "g",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "Color",
+      "defaultValue": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ]
+}

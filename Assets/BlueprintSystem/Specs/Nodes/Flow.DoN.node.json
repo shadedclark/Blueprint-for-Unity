@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.DoN",
+  "title": "Do N",
+  "category": "Flow",
+  "description": "Allows execution through a limited number of times until reset is triggered.",
+  "executor": "Flow.DoN",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "reset",
+      "kind": "exec"
+    },
+    {
+      "id": "count",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "completed",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "count",
+      "required": false,
+      "type": "int",
+      "defaultValue": 1
+    }
+  ]
+}

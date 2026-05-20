@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.BindButtonClick",
+  "title": "Bind Button Click",
+  "category": "UI",
+  "description": "Binds a Unity Button click to the clicked execution output.",
+  "executor": "UI.BindButtonClick",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Button>",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bound",
+      "kind": "exec"
+    },
+    {
+      "id": "clicked",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Button>",
+      "required": true
+    }
+  ]
+}

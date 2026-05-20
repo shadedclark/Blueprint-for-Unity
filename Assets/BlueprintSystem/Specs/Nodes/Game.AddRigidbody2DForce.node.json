@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.AddRigidbody2DForce",
+  "title": "Add Rigidbody2D Force",
+  "category": "Game/Physics2D",
+  "description": "Adds force to a bound Rigidbody2D.",
+  "executor": "Game.AddRigidbody2DForce",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Rigidbody2D>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "force",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "mode",
+      "kind": "value",
+      "type": "ForceMode2D",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Rigidbody2D>",
+      "required": true
+    },
+    {
+      "id": "force",
+      "type": "Vector2",
+      "required": false,
+      "defaultValue": [0, 0]
+    },
+    {
+      "id": "mode",
+      "type": "ForceMode2D",
+      "required": false,
+      "defaultValue": "Force"
+    }
+  ],
+  "tags": [
+    "physics2d",
+    "rigidbody2d",
+    "force"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.First",
+  "title": "Array First",
+  "category": "Array",
+  "description": "Returns the first item from an array.",
+  "executor": "Array.First",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "item",
+      "kind": "value"
+    },
+    {
+      "id": "isValid",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": []
+}

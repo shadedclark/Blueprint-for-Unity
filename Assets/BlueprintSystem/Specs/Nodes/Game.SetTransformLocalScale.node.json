@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetTransformLocalScale",
+  "title": "Set Transform Local Scale",
+  "category": "Game/Transform",
+  "description": "Sets localScale on a bound Transform.",
+  "executor": "Game.SetTransformLocalScale",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Transform>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Vector3",
+      "required": false,
+      "defaultValue": [1, 1, 1]
+    }
+  ],
+  "tags": [
+    "transform",
+    "scale"
+  ]
+}

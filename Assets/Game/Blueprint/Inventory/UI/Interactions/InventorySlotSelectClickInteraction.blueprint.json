@@ -1,0 +1,276 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventorySlotSelectClickInteraction",
+  "category": "Inventory/UI/Interactions",
+  "description": "Reusable inventory slot click interaction. Each slot runner overrides slot_index.",
+  "variables": [
+    {
+      "id": "var_3e9e2de2138d458fbd95db09c68b71d2",
+      "name": "slot_index",
+      "type": "int",
+      "defaultValue": 0,
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Zero-based inventory slot index for this UI slot."
+    }
+  ],
+  "bindings": [
+    {
+      "name": "self_button",
+      "type": "Button",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_start",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "bind_click",
+      "typeId": "UI.BindButtonClick",
+      "position": [
+        190,
+        0
+      ],
+      "properties": {
+        "target": "self_button"
+      }
+    },
+    {
+      "id": "get_owner",
+      "typeId": "Blueprint.GetOwner",
+      "position": [
+        190,
+        130
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_data_component",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        400,
+        80
+      ],
+      "properties": {
+        "name": "InventoryData"
+      }
+    },
+    {
+      "id": "get_header_component",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        400,
+        210
+      ],
+      "properties": {
+        "name": "HeaderPresenter"
+      }
+    },
+    {
+      "id": "get_grid_component",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        400,
+        330
+      ],
+      "properties": {
+        "name": "GridPresenter"
+      }
+    },
+    {
+      "id": "get_detail_component",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        400,
+        450
+      ],
+      "properties": {
+        "name": "DetailPresenter"
+      }
+    },
+    {
+      "id": "get_slot_index",
+      "typeId": "Variable.Get",
+      "position": [
+        410,
+        -90
+      ],
+      "properties": {
+        "name": "slot_index"
+      }
+    },
+    {
+      "id": "set_selected",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        650,
+        80
+      ],
+      "properties": {
+        "target": "",
+        "name": "selected_index"
+      }
+    },
+    {
+      "id": "slot_display_add_one",
+      "typeId": "Math.Add",
+      "position": [
+        650,
+        -90
+      ],
+      "properties": {
+        "a": 0,
+        "b": 1
+      }
+    },
+    {
+      "id": "format_status",
+      "typeId": "String.Format",
+      "position": [
+        850,
+        -90
+      ],
+      "properties": {
+        "format": "Selected slot {0}.",
+        "arg0": "",
+        "arg1": "",
+        "arg2": "",
+        "arg3": ""
+      }
+    },
+    {
+      "id": "set_status",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        900,
+        80
+      ],
+      "properties": {
+        "target": "",
+        "name": "status_message"
+      }
+    },
+    {
+      "id": "refresh_header",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        900,
+        210
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "refresh_grid",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        900,
+        330
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "refresh_detail",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        900,
+        450
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start.execOut",
+      "to": "bind_click.execIn"
+    },
+    {
+      "from": "bind_click.clicked",
+      "to": "set_selected.execIn"
+    },
+    {
+      "from": "get_owner.target",
+      "to": "get_data_component.target"
+    },
+    {
+      "from": "get_owner.target",
+      "to": "get_header_component.target"
+    },
+    {
+      "from": "get_owner.target",
+      "to": "get_grid_component.target"
+    },
+    {
+      "from": "get_owner.target",
+      "to": "get_detail_component.target"
+    },
+    {
+      "from": "get_data_component.target",
+      "to": "set_selected.target"
+    },
+    {
+      "from": "get_data_component.target",
+      "to": "set_status.target"
+    },
+    {
+      "from": "get_header_component.target",
+      "to": "refresh_header.target"
+    },
+    {
+      "from": "get_grid_component.target",
+      "to": "refresh_grid.target"
+    },
+    {
+      "from": "get_detail_component.target",
+      "to": "refresh_detail.target"
+    },
+    {
+      "from": "get_slot_index.value",
+      "to": "set_selected.value"
+    },
+    {
+      "from": "get_slot_index.value",
+      "to": "slot_display_add_one.a"
+    },
+    {
+      "from": "set_selected.execOut",
+      "to": "set_status.execIn"
+    },
+    {
+      "from": "slot_display_add_one.result",
+      "to": "format_status.arg0"
+    },
+    {
+      "from": "format_status.result",
+      "to": "set_status.value"
+    },
+    {
+      "from": "set_status.execOut",
+      "to": "refresh_header.execIn"
+    },
+    {
+      "from": "refresh_header.execOut",
+      "to": "refresh_grid.execIn"
+    },
+    {
+      "from": "refresh_grid.execOut",
+      "to": "refresh_detail.execIn"
+    }
+  ]
+}

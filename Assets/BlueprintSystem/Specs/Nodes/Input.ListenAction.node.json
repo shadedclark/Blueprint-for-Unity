@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Input.ListenAction",
+  "title": "Listen Action",
+  "category": "Input",
+  "description": "Polls a project-wide Input System action when executed, usually from Game.Event.OnTick. Always continues through bound and also executes pressed, held, or released on state changes.",
+  "executor": "Input.ListenAction",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "action",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "property"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "bound",
+      "kind": "exec"
+    },
+    {
+      "id": "pressed",
+      "kind": "exec"
+    },
+    {
+      "id": "held",
+      "kind": "exec"
+    },
+    {
+      "id": "released",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "action",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "tags": [
+    "keyboard",
+    "input",
+    "action"
+  ]
+}

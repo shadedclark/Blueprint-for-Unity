@@ -1,0 +1,1808 @@
+{
+  "schemaVersion": "0.1",
+  "name": "EquipmentDetailPresenter",
+  "category": "Equipment/UI/Presenter",
+  "description": "Refreshes selected equipment details and action state.",
+  "variables": [
+    {
+      "id": "var_equipment_data_blueprint",
+      "name": "equipment_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "equipment_detail_name_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_slot_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_quality_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_level_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_class_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_stats_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_affix_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_detail_enhance_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "equipment_action_equip_button",
+      "type": "Button",
+      "required": true
+    },
+    {
+      "name": "equipment_action_unequip_button",
+      "type": "Button",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "get_data_0",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_data_blueprint"
+      }
+    },
+    {
+      "id": "event_refresh_1",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "get_equipped_ids_2",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "equipped_instance_ids"
+      }
+    },
+    {
+      "id": "get_selected_3",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "selected_slot_index"
+      }
+    },
+    {
+      "id": "get_current_id_4",
+      "typeId": "Array.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "cmp_empty_5",
+      "typeId": "Variable.Compare",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "right": "",
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "branch_empty_6",
+      "typeId": "Flow.Branch",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "condition": false
+      }
+    },
+    {
+      "id": "switch_item_7",
+      "typeId": "Flow.SwitchString",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "caseCount": 8,
+        "case0": "training_helm",
+        "case1": "cloth_gloves",
+        "case2": "training_armor",
+        "case3": "scout_boots",
+        "case4": "iron_sword",
+        "case5": "copper_ring",
+        "case6": "veteran_blade",
+        "case7": "mage_ring"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_name_text_8",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Empty Slot"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_slot_text_9",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_quality_text_10",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_level_text_11",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_class_text_12",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_stats_text_13",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Select an inventory equipment item, then press Equip."
+      }
+    },
+    {
+      "id": "empty_equipment_detail_affix_text_14",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_equipment_detail_enhance_text_15",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "empty_equip_on_16",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "empty_unequip_on_17",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": false
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_name_text_18",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Training Helm"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_slot_text_19",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Head"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_quality_text_20",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Common"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_level_text_21",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_class_text_22",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Any"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_stats_text_23",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +0 / Defense +3 / HP +12"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_affix_text_24",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Padded Lining: +1 Defense"
+      }
+    },
+    {
+      "id": "item_training_helm_equipment_detail_enhance_text_25",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+0"
+      }
+    },
+    {
+      "id": "item_training_helm_equip_on_26",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_training_helm_unequip_on_27",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_name_text_28",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Cloth Gloves"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_slot_text_29",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Hands"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_quality_text_30",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Common"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_level_text_31",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_class_text_32",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Any"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_stats_text_33",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +1 / Defense +0 / HP +0"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_affix_text_34",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Grip Wrap: +1 Attack"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equipment_detail_enhance_text_35",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+0"
+      }
+    },
+    {
+      "id": "item_cloth_gloves_equip_on_36",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_cloth_gloves_unequip_on_37",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_name_text_38",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Training Armor"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_slot_text_39",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Body"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_quality_text_40",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Uncommon"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_level_text_41",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_class_text_42",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Warrior"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_stats_text_43",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +0 / Defense +6 / HP +40"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_affix_text_44",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Sturdy Padding: +10 HP"
+      }
+    },
+    {
+      "id": "item_training_armor_equipment_detail_enhance_text_45",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+1: +1 Defense, +5 HP"
+      }
+    },
+    {
+      "id": "item_training_armor_equip_on_46",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_training_armor_unequip_on_47",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_name_text_48",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Scout Boots"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_slot_text_49",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Shoes"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_quality_text_50",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Common"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_level_text_51",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_class_text_52",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Any"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_stats_text_53",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +0 / Defense +1 / HP +8"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_affix_text_54",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Soft Step: +8 HP"
+      }
+    },
+    {
+      "id": "item_scout_boots_equipment_detail_enhance_text_55",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+0"
+      }
+    },
+    {
+      "id": "item_scout_boots_equip_on_56",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_scout_boots_unequip_on_57",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_name_text_58",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Iron Sword"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_slot_text_59",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Weapon"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_quality_text_60",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Rare"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_level_text_61",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_class_text_62",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Warrior"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_stats_text_63",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +10 / Defense +0 / HP +0"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_affix_text_64",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Keen Edge: +2 Attack"
+      }
+    },
+    {
+      "id": "item_iron_sword_equipment_detail_enhance_text_65",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+1: +1 Attack"
+      }
+    },
+    {
+      "id": "item_iron_sword_equip_on_66",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_iron_sword_unequip_on_67",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_name_text_68",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Copper Ring"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_slot_text_69",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Ring"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_quality_text_70",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Uncommon"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_level_text_71",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_class_text_72",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Any"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_stats_text_73",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +1 / Defense +1 / HP +15"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_affix_text_74",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Warm Band: +15 HP"
+      }
+    },
+    {
+      "id": "item_copper_ring_equipment_detail_enhance_text_75",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+0"
+      }
+    },
+    {
+      "id": "item_copper_ring_equip_on_76",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_copper_ring_unequip_on_77",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_name_text_78",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Veteran Blade"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_slot_text_79",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Weapon"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_quality_text_80",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Epic"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_level_text_81",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 20"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_class_text_82",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Warrior"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_stats_text_83",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +17 / Defense +0 / HP +0"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_affix_text_84",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Veteran Focus: +3 Attack"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equipment_detail_enhance_text_85",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+2: +2 Attack"
+      }
+    },
+    {
+      "id": "item_veteran_blade_equip_on_86",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_veteran_blade_unequip_on_87",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_name_text_88",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Mage Ring"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_slot_text_89",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "Slot: Ring"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_quality_text_90",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "Quality: Rare"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_level_text_91",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "Requires Lv. 1"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_class_text_92",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "Class: Mage"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_stats_text_93",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "Attack +3 / Defense +0 / HP +10"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_affix_text_94",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "Arcane Thread: +3 Attack"
+      }
+    },
+    {
+      "id": "item_mage_ring_equipment_detail_enhance_text_95",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "+0"
+      }
+    },
+    {
+      "id": "item_mage_ring_equip_on_96",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "item_mage_ring_unequip_on_97",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_name_text_98",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_name_text",
+        "value": "Unknown Equipment"
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_slot_text_99",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_slot_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_quality_text_100",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_quality_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_level_text_101",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_level_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_class_text_102",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_class_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_stats_text_103",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_stats_text",
+        "value": "No config found."
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_affix_text_104",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_affix_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "unknown_equipment_detail_enhance_text_105",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_detail_enhance_text",
+        "value": "-"
+      }
+    },
+    {
+      "id": "unknown_equip_on_106",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_equip_button",
+        "value": true
+      }
+    },
+    {
+      "id": "unknown_unequip_on_107",
+      "typeId": "UI.SetInteractable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_action_unequip_button",
+        "value": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data_0.value",
+      "to": "get_equipped_ids_2.target"
+    },
+    {
+      "from": "get_data_0.value",
+      "to": "get_selected_3.target"
+    },
+    {
+      "from": "get_equipped_ids_2.value",
+      "to": "get_current_id_4.array"
+    },
+    {
+      "from": "get_selected_3.value",
+      "to": "get_current_id_4.index"
+    },
+    {
+      "from": "get_current_id_4.item",
+      "to": "cmp_empty_5.left"
+    },
+    {
+      "from": "cmp_empty_5.result",
+      "to": "branch_empty_6.condition"
+    },
+    {
+      "from": "get_current_id_4.item",
+      "to": "switch_item_7.selection"
+    },
+    {
+      "from": "event_refresh_1.execOut",
+      "to": "branch_empty_6.execIn"
+    },
+    {
+      "from": "branch_empty_6.false",
+      "to": "switch_item_7.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_name_text_8.execOut",
+      "to": "empty_equipment_detail_slot_text_9.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_slot_text_9.execOut",
+      "to": "empty_equipment_detail_quality_text_10.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_quality_text_10.execOut",
+      "to": "empty_equipment_detail_level_text_11.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_level_text_11.execOut",
+      "to": "empty_equipment_detail_class_text_12.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_class_text_12.execOut",
+      "to": "empty_equipment_detail_stats_text_13.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_stats_text_13.execOut",
+      "to": "empty_equipment_detail_affix_text_14.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_affix_text_14.execOut",
+      "to": "empty_equipment_detail_enhance_text_15.execIn"
+    },
+    {
+      "from": "empty_equipment_detail_enhance_text_15.execOut",
+      "to": "empty_equip_on_16.execIn"
+    },
+    {
+      "from": "empty_equip_on_16.execOut",
+      "to": "empty_unequip_on_17.execIn"
+    },
+    {
+      "from": "branch_empty_6.true",
+      "to": "empty_equipment_detail_name_text_8.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_name_text_18.execOut",
+      "to": "item_training_helm_equipment_detail_slot_text_19.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_slot_text_19.execOut",
+      "to": "item_training_helm_equipment_detail_quality_text_20.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_quality_text_20.execOut",
+      "to": "item_training_helm_equipment_detail_level_text_21.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_level_text_21.execOut",
+      "to": "item_training_helm_equipment_detail_class_text_22.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_class_text_22.execOut",
+      "to": "item_training_helm_equipment_detail_stats_text_23.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_stats_text_23.execOut",
+      "to": "item_training_helm_equipment_detail_affix_text_24.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_affix_text_24.execOut",
+      "to": "item_training_helm_equipment_detail_enhance_text_25.execIn"
+    },
+    {
+      "from": "item_training_helm_equipment_detail_enhance_text_25.execOut",
+      "to": "item_training_helm_equip_on_26.execIn"
+    },
+    {
+      "from": "item_training_helm_equip_on_26.execOut",
+      "to": "item_training_helm_unequip_on_27.execIn"
+    },
+    {
+      "from": "switch_item_7.case0",
+      "to": "item_training_helm_equipment_detail_name_text_18.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_name_text_28.execOut",
+      "to": "item_cloth_gloves_equipment_detail_slot_text_29.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_slot_text_29.execOut",
+      "to": "item_cloth_gloves_equipment_detail_quality_text_30.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_quality_text_30.execOut",
+      "to": "item_cloth_gloves_equipment_detail_level_text_31.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_level_text_31.execOut",
+      "to": "item_cloth_gloves_equipment_detail_class_text_32.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_class_text_32.execOut",
+      "to": "item_cloth_gloves_equipment_detail_stats_text_33.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_stats_text_33.execOut",
+      "to": "item_cloth_gloves_equipment_detail_affix_text_34.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_affix_text_34.execOut",
+      "to": "item_cloth_gloves_equipment_detail_enhance_text_35.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equipment_detail_enhance_text_35.execOut",
+      "to": "item_cloth_gloves_equip_on_36.execIn"
+    },
+    {
+      "from": "item_cloth_gloves_equip_on_36.execOut",
+      "to": "item_cloth_gloves_unequip_on_37.execIn"
+    },
+    {
+      "from": "switch_item_7.case1",
+      "to": "item_cloth_gloves_equipment_detail_name_text_28.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_name_text_38.execOut",
+      "to": "item_training_armor_equipment_detail_slot_text_39.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_slot_text_39.execOut",
+      "to": "item_training_armor_equipment_detail_quality_text_40.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_quality_text_40.execOut",
+      "to": "item_training_armor_equipment_detail_level_text_41.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_level_text_41.execOut",
+      "to": "item_training_armor_equipment_detail_class_text_42.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_class_text_42.execOut",
+      "to": "item_training_armor_equipment_detail_stats_text_43.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_stats_text_43.execOut",
+      "to": "item_training_armor_equipment_detail_affix_text_44.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_affix_text_44.execOut",
+      "to": "item_training_armor_equipment_detail_enhance_text_45.execIn"
+    },
+    {
+      "from": "item_training_armor_equipment_detail_enhance_text_45.execOut",
+      "to": "item_training_armor_equip_on_46.execIn"
+    },
+    {
+      "from": "item_training_armor_equip_on_46.execOut",
+      "to": "item_training_armor_unequip_on_47.execIn"
+    },
+    {
+      "from": "switch_item_7.case2",
+      "to": "item_training_armor_equipment_detail_name_text_38.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_name_text_48.execOut",
+      "to": "item_scout_boots_equipment_detail_slot_text_49.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_slot_text_49.execOut",
+      "to": "item_scout_boots_equipment_detail_quality_text_50.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_quality_text_50.execOut",
+      "to": "item_scout_boots_equipment_detail_level_text_51.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_level_text_51.execOut",
+      "to": "item_scout_boots_equipment_detail_class_text_52.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_class_text_52.execOut",
+      "to": "item_scout_boots_equipment_detail_stats_text_53.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_stats_text_53.execOut",
+      "to": "item_scout_boots_equipment_detail_affix_text_54.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_affix_text_54.execOut",
+      "to": "item_scout_boots_equipment_detail_enhance_text_55.execIn"
+    },
+    {
+      "from": "item_scout_boots_equipment_detail_enhance_text_55.execOut",
+      "to": "item_scout_boots_equip_on_56.execIn"
+    },
+    {
+      "from": "item_scout_boots_equip_on_56.execOut",
+      "to": "item_scout_boots_unequip_on_57.execIn"
+    },
+    {
+      "from": "switch_item_7.case3",
+      "to": "item_scout_boots_equipment_detail_name_text_48.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_name_text_58.execOut",
+      "to": "item_iron_sword_equipment_detail_slot_text_59.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_slot_text_59.execOut",
+      "to": "item_iron_sword_equipment_detail_quality_text_60.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_quality_text_60.execOut",
+      "to": "item_iron_sword_equipment_detail_level_text_61.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_level_text_61.execOut",
+      "to": "item_iron_sword_equipment_detail_class_text_62.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_class_text_62.execOut",
+      "to": "item_iron_sword_equipment_detail_stats_text_63.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_stats_text_63.execOut",
+      "to": "item_iron_sword_equipment_detail_affix_text_64.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_affix_text_64.execOut",
+      "to": "item_iron_sword_equipment_detail_enhance_text_65.execIn"
+    },
+    {
+      "from": "item_iron_sword_equipment_detail_enhance_text_65.execOut",
+      "to": "item_iron_sword_equip_on_66.execIn"
+    },
+    {
+      "from": "item_iron_sword_equip_on_66.execOut",
+      "to": "item_iron_sword_unequip_on_67.execIn"
+    },
+    {
+      "from": "switch_item_7.case4",
+      "to": "item_iron_sword_equipment_detail_name_text_58.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_name_text_68.execOut",
+      "to": "item_copper_ring_equipment_detail_slot_text_69.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_slot_text_69.execOut",
+      "to": "item_copper_ring_equipment_detail_quality_text_70.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_quality_text_70.execOut",
+      "to": "item_copper_ring_equipment_detail_level_text_71.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_level_text_71.execOut",
+      "to": "item_copper_ring_equipment_detail_class_text_72.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_class_text_72.execOut",
+      "to": "item_copper_ring_equipment_detail_stats_text_73.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_stats_text_73.execOut",
+      "to": "item_copper_ring_equipment_detail_affix_text_74.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_affix_text_74.execOut",
+      "to": "item_copper_ring_equipment_detail_enhance_text_75.execIn"
+    },
+    {
+      "from": "item_copper_ring_equipment_detail_enhance_text_75.execOut",
+      "to": "item_copper_ring_equip_on_76.execIn"
+    },
+    {
+      "from": "item_copper_ring_equip_on_76.execOut",
+      "to": "item_copper_ring_unequip_on_77.execIn"
+    },
+    {
+      "from": "switch_item_7.case5",
+      "to": "item_copper_ring_equipment_detail_name_text_68.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_name_text_78.execOut",
+      "to": "item_veteran_blade_equipment_detail_slot_text_79.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_slot_text_79.execOut",
+      "to": "item_veteran_blade_equipment_detail_quality_text_80.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_quality_text_80.execOut",
+      "to": "item_veteran_blade_equipment_detail_level_text_81.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_level_text_81.execOut",
+      "to": "item_veteran_blade_equipment_detail_class_text_82.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_class_text_82.execOut",
+      "to": "item_veteran_blade_equipment_detail_stats_text_83.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_stats_text_83.execOut",
+      "to": "item_veteran_blade_equipment_detail_affix_text_84.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_affix_text_84.execOut",
+      "to": "item_veteran_blade_equipment_detail_enhance_text_85.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equipment_detail_enhance_text_85.execOut",
+      "to": "item_veteran_blade_equip_on_86.execIn"
+    },
+    {
+      "from": "item_veteran_blade_equip_on_86.execOut",
+      "to": "item_veteran_blade_unequip_on_87.execIn"
+    },
+    {
+      "from": "switch_item_7.case6",
+      "to": "item_veteran_blade_equipment_detail_name_text_78.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_name_text_88.execOut",
+      "to": "item_mage_ring_equipment_detail_slot_text_89.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_slot_text_89.execOut",
+      "to": "item_mage_ring_equipment_detail_quality_text_90.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_quality_text_90.execOut",
+      "to": "item_mage_ring_equipment_detail_level_text_91.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_level_text_91.execOut",
+      "to": "item_mage_ring_equipment_detail_class_text_92.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_class_text_92.execOut",
+      "to": "item_mage_ring_equipment_detail_stats_text_93.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_stats_text_93.execOut",
+      "to": "item_mage_ring_equipment_detail_affix_text_94.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_affix_text_94.execOut",
+      "to": "item_mage_ring_equipment_detail_enhance_text_95.execIn"
+    },
+    {
+      "from": "item_mage_ring_equipment_detail_enhance_text_95.execOut",
+      "to": "item_mage_ring_equip_on_96.execIn"
+    },
+    {
+      "from": "item_mage_ring_equip_on_96.execOut",
+      "to": "item_mage_ring_unequip_on_97.execIn"
+    },
+    {
+      "from": "switch_item_7.case7",
+      "to": "item_mage_ring_equipment_detail_name_text_88.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_name_text_98.execOut",
+      "to": "unknown_equipment_detail_slot_text_99.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_slot_text_99.execOut",
+      "to": "unknown_equipment_detail_quality_text_100.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_quality_text_100.execOut",
+      "to": "unknown_equipment_detail_level_text_101.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_level_text_101.execOut",
+      "to": "unknown_equipment_detail_class_text_102.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_class_text_102.execOut",
+      "to": "unknown_equipment_detail_stats_text_103.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_stats_text_103.execOut",
+      "to": "unknown_equipment_detail_affix_text_104.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_affix_text_104.execOut",
+      "to": "unknown_equipment_detail_enhance_text_105.execIn"
+    },
+    {
+      "from": "unknown_equipment_detail_enhance_text_105.execOut",
+      "to": "unknown_equip_on_106.execIn"
+    },
+    {
+      "from": "unknown_equip_on_106.execOut",
+      "to": "unknown_unequip_on_107.execIn"
+    },
+    {
+      "from": "switch_item_7.default",
+      "to": "unknown_equipment_detail_name_text_98.execIn"
+    }
+  ]
+}

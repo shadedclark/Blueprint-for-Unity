@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.SetElement",
+  "title": "Array Set Element",
+  "category": "Array",
+  "description": "Returns a copy with item assigned at index.",
+  "executor": "Array.SetElement",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "sizeToFit",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "index",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "item",
+      "required": false
+    },
+    {
+      "id": "sizeToFit",
+      "required": false,
+      "type": "bool",
+      "defaultValue": false
+    }
+  ]
+}

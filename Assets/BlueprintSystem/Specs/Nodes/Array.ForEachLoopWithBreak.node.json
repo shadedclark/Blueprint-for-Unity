@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.ForEachLoopWithBreak",
+  "title": "For Each Loop with Break",
+  "category": "Array",
+  "description": "Executes the loop body once for each item in an array and allows the loop to be stopped early.",
+  "executor": "Array.ForEachLoopWithBreak",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "break",
+      "kind": "exec"
+    },
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "loopBody",
+      "kind": "exec"
+    },
+    {
+      "id": "completed",
+      "kind": "exec"
+    },
+    {
+      "id": "arrayElement",
+      "kind": "value"
+    },
+    {
+      "id": "arrayIndex",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": []
+}

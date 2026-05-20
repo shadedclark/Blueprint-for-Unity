@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.SetImageSprite",
+  "title": "Set Image Sprite",
+  "category": "UI",
+  "description": "Sets sprite on a bound Unity UI Image.",
+  "executor": "UI.SetImageSprite",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Image>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "UIBinding<Sprite>",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Image>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "UIBinding<Sprite>",
+      "required": false
+    }
+  ]
+}

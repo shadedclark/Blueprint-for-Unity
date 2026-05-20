@@ -1,0 +1,224 @@
+{
+  "schemaVersion": "0.1",
+  "name": "InventoryHeaderPresenter",
+  "category": "Inventory/UI/Presenter",
+  "description": "Refreshes header, filter, status, and equipment summary.",
+  "variables": [
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "inventory_header_title_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_header_status_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_header_filter_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_header_capacity_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "inventory_header_equipped_text",
+      "type": "TMP_Text",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_refresh",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "get_data",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_data_blueprint"
+      }
+    },
+    {
+      "id": "get_status",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "status_message"
+      }
+    },
+    {
+      "id": "get_filter",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "filter_label"
+      }
+    },
+    {
+      "id": "get_weapon",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+        "name": "equipped_weapon"
+      }
+    },
+    {
+      "id": "set_title",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_header_title_text",
+        "value": "Inventory"
+      }
+    },
+    {
+      "id": "set_capacity",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_header_capacity_text",
+        "value": "40 Slots"
+      }
+    },
+    {
+      "id": "set_status",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_header_status_text"
+      }
+    },
+    {
+      "id": "set_filter",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_header_filter_text"
+      }
+    },
+    {
+      "id": "format_weapon",
+      "typeId": "String.Format",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "format": "Weapon: {0}"
+      }
+    },
+    {
+      "id": "set_weapon",
+      "typeId": "UI.SetText",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "inventory_header_equipped_text"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data.value",
+      "to": "get_status.target"
+    },
+    {
+      "from": "get_data.value",
+      "to": "get_filter.target"
+    },
+    {
+      "from": "get_data.value",
+      "to": "get_weapon.target"
+    },
+    {
+      "from": "event_refresh.execOut",
+      "to": "set_title.execIn"
+    },
+    {
+      "from": "set_title.execOut",
+      "to": "set_capacity.execIn"
+    },
+    {
+      "from": "set_capacity.execOut",
+      "to": "set_status.execIn"
+    },
+    {
+      "from": "get_status.value",
+      "to": "set_status.value"
+    },
+    {
+      "from": "set_status.execOut",
+      "to": "set_filter.execIn"
+    },
+    {
+      "from": "get_filter.value",
+      "to": "set_filter.value"
+    },
+    {
+      "from": "get_weapon.value",
+      "to": "format_weapon.arg0"
+    },
+    {
+      "from": "set_filter.execOut",
+      "to": "set_weapon.execIn"
+    },
+    {
+      "from": "format_weapon.result",
+      "to": "set_weapon.value"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.Event.OnStart",
+  "title": "On Start",
+  "category": "Events",
+  "description": "Entry point fired from BlueprintRunner.Start.",
+  "executor": "Flow.Event",
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec",
+      "allowMultiple": true
+    }
+  ],
+  "properties": []
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Variable.GetField",
+  "title": "Get Field",
+  "category": "Variables",
+  "description": "Reads a field or nested field path from a structured value.",
+  "executor": "Variable.GetField",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "path",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "path",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

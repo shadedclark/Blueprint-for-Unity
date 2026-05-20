@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Node Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "typeId", "title", "executor"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "typeId": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "executor": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "array"
+    },
+    "outputs": {
+      "type": "array"
+    },
+    "properties": {
+      "type": "array"
+    },
+    "tags": {
+      "type": "array"
+    }
+  }
+}

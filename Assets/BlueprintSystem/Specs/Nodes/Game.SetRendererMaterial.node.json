@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetRendererMaterial",
+  "title": "Set Renderer Material",
+  "category": "Game/Rendering",
+  "description": "Sets an instance material slot on a bound Renderer.",
+  "executor": "Game.SetRendererMaterial",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Renderer>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "UIBinding<Material>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "materialIndex",
+      "kind": "value",
+      "type": "int",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Renderer>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "UIBinding<Material>",
+      "required": false
+    },
+    {
+      "id": "materialIndex",
+      "type": "int",
+      "required": false,
+      "defaultValue": 0
+    }
+  ],
+  "tags": [
+    "renderer",
+    "material"
+  ]
+}

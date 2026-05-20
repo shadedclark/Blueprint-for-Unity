@@ -1,0 +1,1050 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ThirdPersonCameraRotationBehavior",
+  "category": "ThirdPersonCamera/Behavior",
+  "description": "Tick-visible camera yaw and pitch rotation from gamepad right stick and right-mouse drag.",
+  "variables": [
+    {
+      "id": "var_a876bd8871054df5a93b0d3df97fc19b",
+      "name": "third_person_camera_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "camera_rig_transform",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "camera_transform",
+      "type": "Transform",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_late_tick",
+      "typeId": "Game.Event.OnTick",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "phase": "LateUpdate"
+      }
+    },
+    {
+      "id": "sequence_tick",
+      "typeId": "Flow.Sequence",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_third_person_camera_data_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        220,
+        220
+      ],
+      "properties": {
+        "name": "third_person_camera_data_blueprint"
+      }
+    },
+    {
+      "id": "set_is_rotating_false",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        440,
+        -180
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "is_rotating",
+        "value": false
+      }
+    },
+    {
+      "id": "get_look_dead_zone",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        440,
+        220
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "look_dead_zone"
+      }
+    },
+    {
+      "id": "get_gamepad_look",
+      "typeId": "Input.GetActionVector2",
+      "position": [
+        440,
+        20
+      ],
+      "properties": {
+        "action": "Player/CameraLookGamepad"
+      }
+    },
+    {
+      "id": "break_gamepad_look",
+      "typeId": "Vector.BreakVector2",
+      "position": [
+        660,
+        20
+      ],
+      "properties": {
+        "value": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "make_gamepad_length_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        880,
+        20
+      ],
+      "properties": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "get_gamepad_length",
+      "typeId": "Vector.Length",
+      "position": [
+        1100,
+        20
+      ],
+      "properties": {
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "compare_gamepad_dead_zone",
+      "typeId": "Variable.Compare",
+      "position": [
+        1320,
+        20
+      ],
+      "properties": {
+        "comparison": "Greater"
+      }
+    },
+    {
+      "id": "branch_gamepad_has_input",
+      "typeId": "Flow.Branch",
+      "position": [
+        1540,
+        0
+      ],
+      "properties": {
+        "condition": false
+      }
+    },
+    {
+      "id": "set_current_gamepad_look",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1760,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_gamepad_look"
+      }
+    },
+    {
+      "id": "set_current_gamepad_zero",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1760,
+        -180
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_gamepad_look",
+        "value": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "set_is_rotating_gamepad_true",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1980,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "is_rotating",
+        "value": true
+      }
+    },
+    {
+      "id": "get_gamepad_yaw_speed",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        1760,
+        220
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "gamepad_yaw_speed"
+      }
+    },
+    {
+      "id": "get_gamepad_delta_time",
+      "typeId": "Game.GetDeltaTime",
+      "position": [
+        1760,
+        360
+      ],
+      "properties": {}
+    },
+    {
+      "id": "multiply_gamepad_input_speed",
+      "typeId": "Math.Multiply",
+      "position": [
+        1980,
+        220
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "multiply_gamepad_yaw_delta",
+      "typeId": "Math.Multiply",
+      "position": [
+        2200,
+        220
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "make_gamepad_yaw_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        2420,
+        220
+      ],
+      "properties": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "rotate_gamepad_yaw",
+      "typeId": "Game.RotateTransform",
+      "position": [
+        2200,
+        0
+      ],
+      "properties": {
+        "target": "camera_rig_transform",
+        "eulerAngles": [
+          0,
+          0,
+          0
+        ],
+        "relativeToSelf": false
+      }
+    },
+    {
+      "id": "get_current_pitch_gamepad",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        2420,
+        360
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_pitch"
+      }
+    },
+    {
+      "id": "get_gamepad_pitch_speed",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        2420,
+        500
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "gamepad_pitch_speed"
+      }
+    },
+    {
+      "id": "multiply_gamepad_pitch_input_speed",
+      "typeId": "Math.Multiply",
+      "position": [
+        2640,
+        500
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "multiply_gamepad_pitch_delta",
+      "typeId": "Math.Multiply",
+      "position": [
+        2860,
+        500
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "add_gamepad_pitch",
+      "typeId": "Math.Add",
+      "position": [
+        3080,
+        420
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "get_pitch_min_gamepad",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        3080,
+        620
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "pitch_min"
+      }
+    },
+    {
+      "id": "get_pitch_max_gamepad",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        3080,
+        760
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "pitch_max"
+      }
+    },
+    {
+      "id": "clamp_gamepad_pitch",
+      "typeId": "Math.Clamp",
+      "position": [
+        3300,
+        500
+      ],
+      "properties": {
+        "value": 45,
+        "min": 25,
+        "max": 70
+      }
+    },
+    {
+      "id": "make_gamepad_pitch_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        3520,
+        500
+      ],
+      "properties": {
+        "x": 45,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "set_current_pitch_gamepad",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        2420,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_pitch"
+      }
+    },
+    {
+      "id": "set_camera_pitch_gamepad",
+      "typeId": "Game.SetTransformLocalEulerAngles",
+      "position": [
+        2640,
+        0
+      ],
+      "properties": {
+        "target": "camera_transform",
+        "value": [
+          45,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "set_current_mouse_zero",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        660,
+        520
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_mouse_look",
+        "value": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "get_mouse_look",
+      "typeId": "Input.GetActionVector2",
+      "position": [
+        660,
+        700
+      ],
+      "properties": {
+        "action": "Player/CameraLookMouse"
+      }
+    },
+    {
+      "id": "break_mouse_look",
+      "typeId": "Vector.BreakVector2",
+      "position": [
+        880,
+        700
+      ],
+      "properties": {
+        "value": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "make_mouse_length_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        1100,
+        700
+      ],
+      "properties": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "get_mouse_length",
+      "typeId": "Vector.Length",
+      "position": [
+        1320,
+        700
+      ],
+      "properties": {
+        "value": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "compare_mouse_dead_zone",
+      "typeId": "Variable.Compare",
+      "position": [
+        1540,
+        700
+      ],
+      "properties": {
+        "comparison": "Greater"
+      }
+    },
+    {
+      "id": "branch_mouse_has_input",
+      "typeId": "Flow.Branch",
+      "position": [
+        1760,
+        620
+      ],
+      "properties": {
+        "condition": false
+      }
+    },
+    {
+      "id": "set_current_mouse_look",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        1980,
+        620
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_mouse_look"
+      }
+    },
+    {
+      "id": "set_is_rotating_mouse_true",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        2200,
+        620
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "is_rotating",
+        "value": true
+      }
+    },
+    {
+      "id": "get_mouse_yaw_sensitivity",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        1980,
+        840
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "mouse_yaw_sensitivity"
+      }
+    },
+    {
+      "id": "multiply_mouse_yaw_delta",
+      "typeId": "Math.Multiply",
+      "position": [
+        2200,
+        840
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "make_mouse_yaw_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        2420,
+        840
+      ],
+      "properties": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "rotate_mouse_yaw",
+      "typeId": "Game.RotateTransform",
+      "position": [
+        2420,
+        620
+      ],
+      "properties": {
+        "target": "camera_rig_transform",
+        "eulerAngles": [
+          0,
+          0,
+          0
+        ],
+        "relativeToSelf": false
+      }
+    },
+    {
+      "id": "get_current_pitch_mouse",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        2640,
+        980
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_pitch"
+      }
+    },
+    {
+      "id": "get_mouse_pitch_sensitivity",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        2640,
+        1120
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "mouse_pitch_sensitivity"
+      }
+    },
+    {
+      "id": "multiply_mouse_pitch_delta",
+      "typeId": "Math.Multiply",
+      "position": [
+        2860,
+        1120
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "add_mouse_pitch",
+      "typeId": "Math.Add",
+      "position": [
+        3080,
+        1040
+      ],
+      "properties": {
+        "a": 0,
+        "b": 0
+      }
+    },
+    {
+      "id": "get_pitch_min_mouse",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        3080,
+        1240
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "pitch_min"
+      }
+    },
+    {
+      "id": "get_pitch_max_mouse",
+      "typeId": "Blueprint.GetVariable",
+      "position": [
+        3080,
+        1380
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "pitch_max"
+      }
+    },
+    {
+      "id": "clamp_mouse_pitch",
+      "typeId": "Math.Clamp",
+      "position": [
+        3300,
+        1120
+      ],
+      "properties": {
+        "value": 45,
+        "min": 25,
+        "max": 70
+      }
+    },
+    {
+      "id": "make_mouse_pitch_vector",
+      "typeId": "Vector.MakeVector3",
+      "position": [
+        3520,
+        1120
+      ],
+      "properties": {
+        "x": 45,
+        "y": 0,
+        "z": 0
+      }
+    },
+    {
+      "id": "set_current_pitch_mouse",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        2640,
+        620
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
+        "name": "current_pitch"
+      }
+    },
+    {
+      "id": "set_camera_pitch_mouse",
+      "typeId": "Game.SetTransformLocalEulerAngles",
+      "position": [
+        2860,
+        620
+      ],
+      "properties": {
+        "target": "camera_transform",
+        "value": [
+          45,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_late_tick.execOut",
+      "to": "sequence_tick.execIn"
+    },
+    {
+      "from": "sequence_tick.then0",
+      "to": "set_is_rotating_false.execIn"
+    },
+    {
+      "from": "sequence_tick.then1",
+      "to": "branch_gamepad_has_input.execIn"
+    },
+    {
+      "from": "sequence_tick.then2",
+      "to": "branch_mouse_has_input.execIn"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_is_rotating_false.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_look_dead_zone.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_current_gamepad_look.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_current_gamepad_zero.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_is_rotating_gamepad_true.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_gamepad_yaw_speed.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_gamepad_pitch_speed.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_current_pitch_gamepad.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_pitch_min_gamepad.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_pitch_max_gamepad.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_current_pitch_gamepad.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_current_mouse_zero.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_current_mouse_look.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_is_rotating_mouse_true.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_mouse_yaw_sensitivity.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_mouse_pitch_sensitivity.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_current_pitch_mouse.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_pitch_min_mouse.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "get_pitch_max_mouse.target"
+    },
+    {
+      "from": "get_third_person_camera_data_blueprint.value",
+      "to": "set_current_pitch_mouse.target"
+    },
+    {
+      "from": "get_look_dead_zone.value",
+      "to": "compare_gamepad_dead_zone.right"
+    },
+    {
+      "from": "get_look_dead_zone.value",
+      "to": "compare_mouse_dead_zone.right"
+    },
+    {
+      "from": "get_gamepad_look.value",
+      "to": "break_gamepad_look.value"
+    },
+    {
+      "from": "get_gamepad_look.value",
+      "to": "set_current_gamepad_look.value"
+    },
+    {
+      "from": "break_gamepad_look.x",
+      "to": "make_gamepad_length_vector.x"
+    },
+    {
+      "from": "break_gamepad_look.x",
+      "to": "multiply_gamepad_input_speed.a"
+    },
+    {
+      "from": "break_gamepad_look.y",
+      "to": "make_gamepad_length_vector.z"
+    },
+    {
+      "from": "break_gamepad_look.y",
+      "to": "multiply_gamepad_pitch_input_speed.a"
+    },
+    {
+      "from": "make_gamepad_length_vector.value",
+      "to": "get_gamepad_length.value"
+    },
+    {
+      "from": "get_gamepad_length.result",
+      "to": "compare_gamepad_dead_zone.left"
+    },
+    {
+      "from": "compare_gamepad_dead_zone.result",
+      "to": "branch_gamepad_has_input.condition"
+    },
+    {
+      "from": "branch_gamepad_has_input.true",
+      "to": "set_current_gamepad_look.execIn"
+    },
+    {
+      "from": "branch_gamepad_has_input.false",
+      "to": "set_current_gamepad_zero.execIn"
+    },
+    {
+      "from": "set_current_gamepad_look.execOut",
+      "to": "set_is_rotating_gamepad_true.execIn"
+    },
+    {
+      "from": "set_is_rotating_gamepad_true.execOut",
+      "to": "rotate_gamepad_yaw.execIn"
+    },
+    {
+      "from": "get_gamepad_yaw_speed.value",
+      "to": "multiply_gamepad_input_speed.b"
+    },
+    {
+      "from": "get_gamepad_delta_time.value",
+      "to": "multiply_gamepad_yaw_delta.b"
+    },
+    {
+      "from": "get_gamepad_delta_time.value",
+      "to": "multiply_gamepad_pitch_delta.b"
+    },
+    {
+      "from": "multiply_gamepad_input_speed.result",
+      "to": "multiply_gamepad_yaw_delta.a"
+    },
+    {
+      "from": "multiply_gamepad_yaw_delta.result",
+      "to": "make_gamepad_yaw_vector.y"
+    },
+    {
+      "from": "make_gamepad_yaw_vector.value",
+      "to": "rotate_gamepad_yaw.eulerAngles"
+    },
+    {
+      "from": "rotate_gamepad_yaw.execOut",
+      "to": "set_current_pitch_gamepad.execIn"
+    },
+    {
+      "from": "get_current_pitch_gamepad.value",
+      "to": "add_gamepad_pitch.a"
+    },
+    {
+      "from": "get_gamepad_pitch_speed.value",
+      "to": "multiply_gamepad_pitch_input_speed.b"
+    },
+    {
+      "from": "multiply_gamepad_pitch_input_speed.result",
+      "to": "multiply_gamepad_pitch_delta.a"
+    },
+    {
+      "from": "multiply_gamepad_pitch_delta.result",
+      "to": "add_gamepad_pitch.b"
+    },
+    {
+      "from": "add_gamepad_pitch.result",
+      "to": "clamp_gamepad_pitch.value"
+    },
+    {
+      "from": "get_pitch_min_gamepad.value",
+      "to": "clamp_gamepad_pitch.min"
+    },
+    {
+      "from": "get_pitch_max_gamepad.value",
+      "to": "clamp_gamepad_pitch.max"
+    },
+    {
+      "from": "clamp_gamepad_pitch.result",
+      "to": "set_current_pitch_gamepad.value"
+    },
+    {
+      "from": "clamp_gamepad_pitch.result",
+      "to": "make_gamepad_pitch_vector.x"
+    },
+    {
+      "from": "make_gamepad_pitch_vector.value",
+      "to": "set_camera_pitch_gamepad.value"
+    },
+    {
+      "from": "set_current_pitch_gamepad.execOut",
+      "to": "set_camera_pitch_gamepad.execIn"
+    },
+    {
+      "from": "get_mouse_look.value",
+      "to": "break_mouse_look.value"
+    },
+    {
+      "from": "get_mouse_look.value",
+      "to": "set_current_mouse_look.value"
+    },
+    {
+      "from": "break_mouse_look.x",
+      "to": "make_mouse_length_vector.x"
+    },
+    {
+      "from": "break_mouse_look.x",
+      "to": "multiply_mouse_yaw_delta.a"
+    },
+    {
+      "from": "break_mouse_look.y",
+      "to": "make_mouse_length_vector.z"
+    },
+    {
+      "from": "break_mouse_look.y",
+      "to": "multiply_mouse_pitch_delta.a"
+    },
+    {
+      "from": "make_mouse_length_vector.value",
+      "to": "get_mouse_length.value"
+    },
+    {
+      "from": "get_mouse_length.result",
+      "to": "compare_mouse_dead_zone.left"
+    },
+    {
+      "from": "compare_mouse_dead_zone.result",
+      "to": "branch_mouse_has_input.condition"
+    },
+    {
+      "from": "branch_mouse_has_input.true",
+      "to": "set_current_mouse_look.execIn"
+    },
+    {
+      "from": "branch_mouse_has_input.false",
+      "to": "set_current_mouse_zero.execIn"
+    },
+    {
+      "from": "set_current_mouse_look.execOut",
+      "to": "set_is_rotating_mouse_true.execIn"
+    },
+    {
+      "from": "set_is_rotating_mouse_true.execOut",
+      "to": "rotate_mouse_yaw.execIn"
+    },
+    {
+      "from": "get_mouse_yaw_sensitivity.value",
+      "to": "multiply_mouse_yaw_delta.b"
+    },
+    {
+      "from": "multiply_mouse_yaw_delta.result",
+      "to": "make_mouse_yaw_vector.y"
+    },
+    {
+      "from": "make_mouse_yaw_vector.value",
+      "to": "rotate_mouse_yaw.eulerAngles"
+    },
+    {
+      "from": "rotate_mouse_yaw.execOut",
+      "to": "set_current_pitch_mouse.execIn"
+    },
+    {
+      "from": "get_current_pitch_mouse.value",
+      "to": "add_mouse_pitch.a"
+    },
+    {
+      "from": "get_mouse_pitch_sensitivity.value",
+      "to": "multiply_mouse_pitch_delta.b"
+    },
+    {
+      "from": "multiply_mouse_pitch_delta.result",
+      "to": "add_mouse_pitch.b"
+    },
+    {
+      "from": "add_mouse_pitch.result",
+      "to": "clamp_mouse_pitch.value"
+    },
+    {
+      "from": "get_pitch_min_mouse.value",
+      "to": "clamp_mouse_pitch.min"
+    },
+    {
+      "from": "get_pitch_max_mouse.value",
+      "to": "clamp_mouse_pitch.max"
+    },
+    {
+      "from": "clamp_mouse_pitch.result",
+      "to": "set_current_pitch_mouse.value"
+    },
+    {
+      "from": "clamp_mouse_pitch.result",
+      "to": "make_mouse_pitch_vector.x"
+    },
+    {
+      "from": "make_mouse_pitch_vector.value",
+      "to": "set_camera_pitch_mouse.value"
+    },
+    {
+      "from": "set_current_pitch_mouse.execOut",
+      "to": "set_camera_pitch_mouse.execIn"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "0.1",
+  "name": "EquipmentScreen",
+  "category": "Equipment/UI/Screen",
+  "description": "Root equipment controller and component tree.",
+  "variables": [],
+  "bindings": [
+    {
+      "name": "equipment_root",
+      "type": "GameObject",
+      "required": true
+    }
+  ],
+  "components": [
+    {
+      "name": "EquipmentData",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentOpenCloseBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentOpenCloseBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentSelectionBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentSelectionBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentEquipBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentEquipBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentUnequipBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentUnequipBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentStatRecalcBehavior",
+      "blueprint": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentSlotsPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentStatsPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentDetailPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EquipmentStatusPresenter",
+      "blueprint": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json",
+      "required": true
+    }
+  ],
+  "nodes": [
+    {
+      "id": "event_start",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "hide_equipment_on_start",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_root",
+        "value": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start.execOut",
+      "to": "hide_equipment_on_start.execIn"
+    }
+  ]
+}

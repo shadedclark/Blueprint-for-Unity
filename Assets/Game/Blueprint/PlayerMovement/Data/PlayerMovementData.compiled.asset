@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: PlayerMovementData.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: PlayerMovementData
+  sourceGuid: a77117dad45b14afbb0fd8051100079d
+  sourcePath: Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json
+  sourceHash: 604c64ad7286d0363e02f1b52999c20abd97ff266f22b3a499a6c21739b304cf
+  manifestHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  variables:
+  - Id: var_abf424c6735445f7a048f7c3a521e34e
+    Name: move_speed
+    Type: float
+    DefaultValueJson: 1
+    Scope: runtime
+    Exposed: 1
+    Persistent: 1
+    Description: World units per second for base ground movement.
+  - Id: var_b50164b3980a45869182ee16105cfaba
+    Name: input_dead_zone
+    Type: float
+    DefaultValueJson: 0.1
+    Scope: runtime
+    Exposed: 1
+    Persistent: 1
+    Description: Minimum Player/Move vector length before movement starts.
+  - Id: var_3e115028cb19476fa2f0c7932cf5fe3e
+    Name: rotate_to_move_direction
+    Type: bool
+    DefaultValueJson: false
+    Scope: runtime
+    Exposed: 1
+    Persistent: 1
+    Description: When true, the player instantly faces the current movement direction.
+  - Id: var_7605c2d7106b4db38be2b01882fd3f2e
+    Name: turn_speed
+    Type: float
+    DefaultValueJson: 720
+    Scope: runtime
+    Exposed: 1
+    Persistent: 1
+    Description: Reserved turn speed in degrees per second for future smoothed rotation.
+  - Id: var_364cdf7c2fbb4b8bb487816dd89c5353
+    Name: current_input
+    Type: Vector2
+    DefaultValueJson: '[0,0]'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Latest accepted Player/Move input vector after dead-zone filtering.
+  - Id: var_27122e4d462c4999923779abefbe1798
+    Name: current_move_direction
+    Type: Vector3
+    DefaultValueJson: '[0,0,0]'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Normalized world-space movement direction on the XZ plane.
+  - Id: var_b1bdcab43b994b448460946d1a70b95f
+    Name: is_moving
+    Type: bool
+    DefaultValueJson: false
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: True while the accepted input vector is outside the dead zone.
+  bindings: []
+  components: []
+  nodes: []
+  execEdges: []
+  valueEdges: []
+  eventEntries: []

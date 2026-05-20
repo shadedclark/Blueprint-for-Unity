@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.EqualIgnoreCase",
+  "title": "Equal Ignore Case",
+  "category": "String",
+  "description": "Compares two strings using ordinal ignore-case comparison.",
+  "executor": "String.EqualIgnoreCase",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

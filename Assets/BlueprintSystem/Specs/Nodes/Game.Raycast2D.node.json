@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.Raycast2D",
+  "title": "Raycast 2D",
+  "category": "Game/Physics2D",
+  "description": "Casts a 2D ray and returns hit data.",
+  "executor": "Game.Raycast2D",
+  "inputs": [
+    {
+      "id": "origin",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "direction",
+      "kind": "value",
+      "type": "Vector2",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "distance",
+      "kind": "value",
+      "type": "float",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "layerMask",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "hit",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "point",
+      "kind": "value",
+      "type": "Vector2"
+    },
+    {
+      "id": "normal",
+      "kind": "value",
+      "type": "Vector2"
+    },
+    {
+      "id": "distance",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "colliderName",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "gameObjectName",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "origin",
+      "required": false,
+      "type": "Vector2",
+      "defaultValue": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "direction",
+      "required": false,
+      "type": "Vector2",
+      "defaultValue": [
+        1,
+        0
+      ]
+    },
+    {
+      "id": "distance",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1000.0
+    },
+    {
+      "id": "layerMask",
+      "required": false,
+      "type": "int",
+      "defaultValue": -1
+    }
+  ]
+}

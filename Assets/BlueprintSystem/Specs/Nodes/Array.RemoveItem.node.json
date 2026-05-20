@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.RemoveItem",
+  "title": "Array Remove Item",
+  "category": "Array",
+  "description": "Returns a copy of array with the first matching item removed.",
+  "executor": "Array.RemoveItem",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    },
+    {
+      "id": "removed",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "item",
+      "required": false
+    }
+  ]
+}

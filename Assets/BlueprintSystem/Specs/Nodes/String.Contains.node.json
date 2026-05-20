@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.Contains",
+  "title": "String Contains",
+  "category": "String",
+  "description": "Returns true when value contains search.",
+  "executor": "String.Contains",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "search",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "search",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

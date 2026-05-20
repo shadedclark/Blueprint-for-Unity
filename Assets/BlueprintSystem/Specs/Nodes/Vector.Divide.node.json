@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Vector.Divide",
+  "title": "Vector Divide",
+  "category": "Vector",
+  "description": "Divides a Vector3 by a scalar and returns zero when scalar is zero.",
+  "executor": "Vector.Divide",
+  "inputs": [
+    {
+      "id": "vector",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "scalar",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "Vector3"
+    }
+  ],
+  "properties": [
+    {
+      "id": "vector",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "id": "scalar",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

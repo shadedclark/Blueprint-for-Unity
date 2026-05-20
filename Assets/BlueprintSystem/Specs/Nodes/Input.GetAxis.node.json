@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Input.GetAxis",
+  "title": "Get Axis",
+  "category": "Input",
+  "description": "Returns Unity legacy Input Manager Input.GetAxis value for an axis name.",
+  "executor": "Input.GetAxis",
+  "inputs": [
+    {
+      "id": "axisName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "axisName",
+      "required": false,
+      "type": "string",
+      "defaultValue": "Horizontal"
+    }
+  ],
+  "tags": [
+    "input",
+    "axis",
+    "legacy"
+  ]
+}

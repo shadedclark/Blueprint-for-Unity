@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Variable.Compare",
+  "title": "Compare",
+  "category": "Variables",
+  "description": "Compares two values and returns a boolean.",
+  "executor": "Variable.Compare",
+  "inputs": [
+    {
+      "id": "left",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "right",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "comparison",
+      "kind": "value",
+      "type": "ComparisonMode",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "left",
+      "required": false
+    },
+    {
+      "id": "right",
+      "required": false
+    },
+    {
+      "id": "comparison",
+      "type": "ComparisonMode",
+      "required": false,
+      "defaultValue": "Equals"
+    }
+  ]
+}

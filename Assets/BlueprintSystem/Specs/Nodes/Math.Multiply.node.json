@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Multiply",
+  "title": "Multiply",
+  "category": "Math",
+  "description": "Multiplies two float values.",
+  "executor": "Math.Multiply",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    }
+  ]
+}

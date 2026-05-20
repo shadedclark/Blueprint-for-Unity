@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: EquipmentStatusPresenter.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: EquipmentStatusPresenter
+  sourceGuid: 3792a68eb54ce4bc6b617de5131678ac
+  sourcePath: Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json
+  sourceHash: ea28ed64c9dd91a7e177029ad8f7cd3bf9138a52cc527e21e785551ea1a68401
+  manifestHash: a980924c74f4c8bc910d08d4ddc3adbd3ee9a35b55803e95bdd3ede8b95b28d0
+  variables:
+  - Id: var_equipment_data_blueprint
+    Name: equipment_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json
+  bindings:
+  - Name: equipment_status_text
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: get_data_0
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"equipment_data_blueprint"'
+  - Id: event_refresh_1
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+  - Id: get_status_2
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+  - Id: set_status_3
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"equipment_status_text"'
+  execEdges:
+  - FromNodeId: event_refresh_1
+    FromPortId: execOut
+    ToNodeId: set_status_3
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_data_0
+    FromPortId: value
+    ToNodeId: get_status_2
+    ToPortId: target
+  - FromNodeId: get_status_2
+    FromPortId: value
+    ToNodeId: set_status_3
+    ToPortId: value
+  eventEntries:
+  - EventName: RefreshRequested
+    NodeId: event_refresh_1

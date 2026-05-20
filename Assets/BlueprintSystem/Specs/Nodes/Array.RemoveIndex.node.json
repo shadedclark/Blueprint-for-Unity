@@ -1,0 +1,42 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.RemoveIndex",
+  "title": "Array Remove Index",
+  "category": "Array",
+  "description": "Returns a copy of array with the item at index removed.",
+  "executor": "Array.RemoveIndex",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    },
+    {
+      "id": "removed",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "index",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 61
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 790b4d75d92f4b0984310a268dbd952f, type: 3}
+  m_Name: ThirdPersonCameraController
+  m_EditorClassIdentifier: Unity.GraphToolkit.Editor::Unity.GraphToolkit.Editor.Implementation.GraphObjectImp
+  m_GraphModel:
+    rid: 2881251987074318752
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2881251987074318752
+      type: {class: GraphModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1440721956708491602
+          m_Value1: 8498493708794785389
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 5221b781fc78fe136dee9a4e00b7f075
+        m_Name: 
+        m_GraphNodeModels: []
+        m_GraphWireModels: []
+        m_GraphStickyNoteModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels: []
+        m_GraphPortalModels: []
+        m_SectionModels:
+        - rid: 2881251987074318753
+        m_LocalSubgraphs: []
+        m_LastKnownBounds:
+          serializedVersion: 2
+          x: 0
+          y: 0
+          width: 0
+          height: 0
+        m_GraphElementMetaData: []
+        m_EntryPoint:
+          rid: -2
+        m_Graph:
+          rid: 2881251987074318754
+    - rid: 2881251987074318753
+      type: {class: SectionModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 6905655564054874185
+          m_Value1: 11394212655519976520
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 49c8b0d425d1d55f484c87830a60209e
+        m_Version: 2
+        m_Items: []
+        m_Title: 
+    - rid: 2881251987074318754
+      type: {class: BlueprintVisualGraph, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        SourceBlueprintAssetPath: Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraController.blueprint.json
+        SchemaVersion: 0.1
+        BlueprintName: ThirdPersonCameraController
+        Category: ThirdPersonCamera/Behavior
+        Description: Root third-person camera controller and component tree.
+        Variables: []
+        Bindings:
+        - Name: player_transform
+          Type: Transform
+          Required: 1
+        - Name: camera_rig_transform
+          Type: Transform
+          Required: 1
+        - Name: camera_transform
+          Type: Transform
+          Required: 1
+        Components:
+        - Name: ThirdPersonCameraData
+          Blueprint: Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json
+          Required: 1
+        - Name: ThirdPersonCameraFollowBehavior
+          Blueprint: Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraFollowBehavior.blueprint.json
+          Required: 1
+        - Name: ThirdPersonCameraRotationBehavior
+          Blueprint: Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraRotationBehavior.blueprint.json
+          Required: 1

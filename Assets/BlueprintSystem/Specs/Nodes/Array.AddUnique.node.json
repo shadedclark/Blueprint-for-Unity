@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Array.AddUnique",
+  "title": "Array Add Unique",
+  "category": "Array",
+  "description": "Returns a copy of array with item appended only when it is not already present.",
+  "executor": "Array.AddUnique",
+  "inputs": [
+    {
+      "id": "array",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "item",
+      "kind": "value",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "array",
+      "kind": "value"
+    },
+    {
+      "id": "index",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "added",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "item",
+      "required": false
+    }
+  ]
+}

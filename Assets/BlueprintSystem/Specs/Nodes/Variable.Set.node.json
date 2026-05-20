@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Variable.Set",
+  "title": "Set Variable",
+  "category": "Variables",
+  "description": "Writes a blueprint variable by name.",
+  "executor": "Variable.Set",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "name",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "value",
+      "required": false
+    }
+  ]
+}

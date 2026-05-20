@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.IsColliding",
+  "title": "Is Colliding",
+  "category": "Game/Physics",
+  "description": "Returns true when two bound GameObjects have overlapping 2D or 3D colliders.",
+  "executor": "Game.IsColliding",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<GameObject>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "other",
+      "kind": "value",
+      "type": "UIBinding<GameObject>",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<GameObject>",
+      "required": false
+    },
+    {
+      "id": "other",
+      "type": "UIBinding<GameObject>",
+      "required": false
+    }
+  ],
+  "tags": [
+    "collision",
+    "physics",
+    "condition"
+  ]
+}

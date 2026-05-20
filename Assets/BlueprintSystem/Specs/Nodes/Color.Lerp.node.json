@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Color.Lerp",
+  "title": "Color Lerp",
+  "category": "Color",
+  "description": "Linearly interpolates between two colors.",
+  "executor": "Color.Lerp",
+  "inputs": [
+    {
+      "id": "a",
+      "kind": "value",
+      "type": "Color",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "b",
+      "kind": "value",
+      "type": "Color",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "t",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "Color"
+    }
+  ],
+  "properties": [
+    {
+      "id": "a",
+      "required": false,
+      "type": "Color",
+      "defaultValue": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "b",
+      "required": false,
+      "type": "Color",
+      "defaultValue": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": "t",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    }
+  ]
+}

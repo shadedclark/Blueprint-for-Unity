@@ -1,0 +1,1405 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 61
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 790b4d75d92f4b0984310a268dbd952f, type: 3}
+  m_Name: EquipmentData
+  m_EditorClassIdentifier: Unity.GraphToolkit.Editor::Unity.GraphToolkit.Editor.Implementation.GraphObjectImp
+  m_GraphModel:
+    rid: 2881251971933929923
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2881251971933929923
+      type: {class: GraphModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 7219067855785566597
+          m_Value1: 17145900185134473924
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 85218a71f7472f64c4a23e216079f2ed
+        m_Name: 
+        m_GraphNodeModels: []
+        m_GraphWireModels: []
+        m_GraphStickyNoteModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels:
+        - rid: 2881251971933929926
+        - rid: 2881251971933929927
+        - rid: 2881251971933929928
+        - rid: 2881251971933929929
+        - rid: 2881251971933929930
+        - rid: 2881251971933929931
+        - rid: 2881251971933929932
+        - rid: 2881251971933929933
+        - rid: 2881251971933929934
+        - rid: 2881251971933929935
+        - rid: 2881251971933929936
+        - rid: 2881251971933929937
+        - rid: 2881251971933929938
+        - rid: 2881251971933929939
+        - rid: 2881251971933929940
+        - rid: 2881251971933929941
+        - rid: 2881251971933929942
+        - rid: 2881251971933929943
+        - rid: 2881251971933929944
+        - rid: 2881251971933929945
+        - rid: 2881251971933929946
+        - rid: 2881251971933929947
+        - rid: 2881251971933929948
+        - rid: 2881251971933929949
+        - rid: 2881251971933929950
+        - rid: 2881251971933929951
+        - rid: 2881251971933929952
+        - rid: 2881251971933929953
+        m_GraphPortalModels: []
+        m_SectionModels:
+        - rid: 2881251971933929924
+        m_LocalSubgraphs: []
+        m_LastKnownBounds:
+          serializedVersion: 2
+          x: 0
+          y: 0
+          width: 0
+          height: 0
+        m_GraphElementMetaData:
+        - m_Guid:
+            m_Value0: 7630601633790459798
+            m_Value1: 2823064385316439694
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 967f98dcc157e5698ec6d7e8198a2d27
+          m_Category: 1
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 796875210705441570
+            m_Value1: 7712066329108608177
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 22936938c8110f0bb1f4c44e77c3066b
+          m_Category: 1
+          m_Index: 1
+        - m_Guid:
+            m_Value0: 13370987744510599965
+            m_Value1: 15709826731870586920
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 1de3a7d7824a8fb9280815ac2d8404da
+          m_Category: 1
+          m_Index: 2
+        - m_Guid:
+            m_Value0: 12850542977266834283
+            m_Value1: 17810373262445322152
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 6b5be1b2c04c56b2a81f2b691e282bf7
+          m_Category: 1
+          m_Index: 3
+        - m_Guid:
+            m_Value0: 17460499129889575196
+            m_Value1: 6834584546979675462
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 1cd115ee722750f246fd182e6f52d95e
+          m_Category: 1
+          m_Index: 4
+        - m_Guid:
+            m_Value0: 15152111509365521905
+            m_Value1: 1932666793814023403
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: f1fdd670231d47d2eb5c7a923536d21a
+          m_Category: 1
+          m_Index: 5
+        - m_Guid:
+            m_Value0: 11026851049509672602
+            m_Value1: 5914138145578858843
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 9ad62a559b3e07995bb9d0174f3d1352
+          m_Category: 1
+          m_Index: 6
+        - m_Guid:
+            m_Value0: 13038396285065323706
+            m_Value1: 16191027688371277120
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: ba64174457b0f1b4404de219e615b2e0
+          m_Category: 1
+          m_Index: 7
+        - m_Guid:
+            m_Value0: 12839842107721408558
+            m_Value1: 14788141226899131889
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 2e60d65a5e4830b2f1cda14d18083acd
+          m_Category: 1
+          m_Index: 8
+        - m_Guid:
+            m_Value0: 5195162176289445552
+            m_Value1: 10556023034264367726
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: b016476479ec18486e322b7e05877e92
+          m_Category: 1
+          m_Index: 9
+        - m_Guid:
+            m_Value0: 4998425791063118215
+            m_Value1: 3394641294269779343
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 87d17730c6f95d458f8dd28445301c2f
+          m_Category: 1
+          m_Index: 10
+        - m_Guid:
+            m_Value0: 10490456185866984908
+            m_Value1: 14062391486735686184
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: cc9d66fa51969591289a5b2b8da627c3
+          m_Category: 1
+          m_Index: 11
+        - m_Guid:
+            m_Value0: 12069478037953829914
+            m_Value1: 2117391682895335507
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 1adc9d2454667fa753d05765847c621d
+          m_Category: 1
+          m_Index: 12
+        - m_Guid:
+            m_Value0: 4392295528573827270
+            m_Value1: 16588526878327617924
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: c6f82d098391f43c84b9bc594e4936e6
+          m_Category: 1
+          m_Index: 13
+        - m_Guid:
+            m_Value0: 14024131534640674955
+            m_Value1: 5297455429229265098
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 8b789ce553b99fc2cac0ac50a5578449
+          m_Category: 1
+          m_Index: 14
+        - m_Guid:
+            m_Value0: 2250271717499905345
+            m_Value1: 14811445141133787717
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 41a5b06134923a1f450277a7e1d28ccd
+          m_Category: 1
+          m_Index: 15
+        - m_Guid:
+            m_Value0: 9371291472325816976
+            m_Value1: 7370707307789097592
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 90b2a05ef1830d82781a25a83e034a66
+          m_Category: 1
+          m_Index: 16
+        - m_Guid:
+            m_Value0: 11266246871269577341
+            m_Value1: 10621936527495426063
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 7d12e199d6bf599c0f701c8cfeb26893
+          m_Category: 1
+          m_Index: 17
+        - m_Guid:
+            m_Value0: 1462975696855870092
+            m_Value1: 349195500650955951
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 8caa1f26a5884d14af04772d7597d804
+          m_Category: 1
+          m_Index: 18
+        - m_Guid:
+            m_Value0: 4393786182414946150
+            m_Value1: 13417441100990397375
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 66cfdced40ddf93cbf3b42bb975334ba
+          m_Category: 1
+          m_Index: 19
+        - m_Guid:
+            m_Value0: 14877070091731439899
+            m_Value1: 2410403360265469002
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 1b913d246df875ce4afc07d615797321
+          m_Category: 1
+          m_Index: 20
+        - m_Guid:
+            m_Value0: 18193198177927745926
+            m_Value1: 5295133201824789200
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 86d1aae359397bfcd0b2249d97177c49
+          m_Category: 1
+          m_Index: 21
+        - m_Guid:
+            m_Value0: 7657340152066217225
+            m_Value1: 10003694329689397215
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 09153e484c56446adfd7b9b2fd42d48a
+          m_Category: 1
+          m_Index: 22
+        - m_Guid:
+            m_Value0: 12570636995702660368
+            m_Value1: 13705450065933133606
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 109d3dd9bedf73ae2667cc6a388a33be
+          m_Category: 1
+          m_Index: 23
+        - m_Guid:
+            m_Value0: 3612483832127778073
+            m_Value1: 4317547896284276436
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 196dd1d2e71e2232d466c2b2ef02eb3b
+          m_Category: 1
+          m_Index: 24
+        - m_Guid:
+            m_Value0: 4146950436510471722
+            m_Value1: 7241874877094654615
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 2a965b5573ed8c3997720de5d44e8064
+          m_Category: 1
+          m_Index: 25
+        - m_Guid:
+            m_Value0: 1343276390076401678
+            m_Value1: 10758234576106369595
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 0e48ac81c246a4123b3225ef58ed4c95
+          m_Category: 1
+          m_Index: 26
+        - m_Guid:
+            m_Value0: 8584227432192884693
+            m_Value1: 13499053162601949402
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: d53f054f5e4d2177daa80091544556bb
+          m_Category: 1
+          m_Index: 27
+        m_EntryPoint:
+          rid: -2
+        m_Graph:
+          rid: 2881251971933929925
+    - rid: 2881251971933929924
+      type: {class: SectionModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1144215158771130754
+          m_Value1: 15361453365536156128
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 82a12be59f11e10fe0e9828e72d82ed5
+        m_Version: 2
+        m_Items:
+        - rid: 2881251971933929926
+        - rid: 2881251971933929927
+        - rid: 2881251971933929928
+        - rid: 2881251971933929929
+        - rid: 2881251971933929930
+        - rid: 2881251971933929931
+        - rid: 2881251971933929932
+        - rid: 2881251971933929933
+        - rid: 2881251971933929934
+        - rid: 2881251971933929935
+        - rid: 2881251971933929936
+        - rid: 2881251971933929937
+        - rid: 2881251971933929938
+        - rid: 2881251971933929939
+        - rid: 2881251971933929940
+        - rid: 2881251971933929941
+        - rid: 2881251971933929942
+        - rid: 2881251971933929943
+        - rid: 2881251971933929944
+        - rid: 2881251971933929945
+        - rid: 2881251971933929946
+        - rid: 2881251971933929947
+        - rid: 2881251971933929948
+        - rid: 2881251971933929949
+        - rid: 2881251971933929950
+        - rid: 2881251971933929951
+        - rid: 2881251971933929952
+        - rid: 2881251971933929953
+        m_Title: 
+    - rid: 2881251971933929925
+      type: {class: BlueprintVisualGraph, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        SourceBlueprintAssetPath: Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json
+        SchemaVersion: 0.1
+        BlueprintName: EquipmentData
+        Category: Equipment/Data
+        Description: Runtime source of truth for equipment slots, character stats,
+          equipment config, and selected equipment detail.
+        Variables:
+        - Id: var_screen_open
+          Name: screen_open
+          Type: bool
+          HasDefaultValue: 1
+          JsonDefaultValue: false
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: Equipment screen visibility state.
+        - Id: var_player_level
+          Name: player_level
+          Type: int
+          HasDefaultValue: 1
+          JsonDefaultValue: 10
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: MVP player level used by equip checks.
+        - Id: var_player_class
+          Name: player_class
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '"Warrior"'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: MVP player class used by equip checks.
+        - Id: var_base_attack
+          Name: base_attack
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 10
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_base_defense
+          Name: base_defense
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 5
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_base_hp
+          Name: base_hp
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 100
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_total_attack
+          Name: total_attack
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 10
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_total_defense
+          Name: total_defense
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 5
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_total_hp
+          Name: total_hp
+          Type: float
+          HasDefaultValue: 1
+          JsonDefaultValue: 100
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_selected_slot_index
+          Name: selected_slot_index
+          Type: int
+          HasDefaultValue: 1
+          JsonDefaultValue: 0
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_selected_slot_key
+          Name: selected_slot_key
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '"head"'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_status_message
+          Name: status_message
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '"Equipment ready."'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_slot_keys
+          Name: slot_keys
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["head","hands","body","shoes","weapon","ring"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_slot_names
+          Name: slot_names
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["Head","Hands","Body","Shoes","Weapon","Ring"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipped_instance_ids
+          Name: equipped_instance_ids
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["","","","","",""]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_equipped_labels
+          Name: equipped_labels
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["Head: Empty","Hands: Empty","Body: Empty","Shoes:
+            Empty","Weapon: Empty","Ring: Empty"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 1
+          Description: 
+        - Id: var_equipment_item_ids
+          Name: equipment_item_ids
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["training_helm","cloth_gloves","training_armor","scout_boots","iron_sword","copper_ring","veteran_blade","mage_ring"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_names
+          Name: equipment_names
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["Training Helm","Cloth Gloves","Training Armor","Scout
+            Boots","Iron Sword","Copper Ring","Veteran Blade","Mage Ring"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_slots
+          Name: equipment_slots
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["head","hands","body","shoes","weapon","ring","weapon","ring"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_slot_indices
+          Name: equipment_slot_indices
+          Type: Array<int>
+          HasDefaultValue: 1
+          JsonDefaultValue: '[0,1,2,3,4,5,4,5]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_qualities
+          Name: equipment_qualities
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["Common","Common","Uncommon","Common","Rare","Uncommon","Epic","Rare"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_level_requirements
+          Name: equipment_level_requirements
+          Type: Array<int>
+          HasDefaultValue: 1
+          JsonDefaultValue: '[1,1,1,1,1,1,20,1]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_class_requirements
+          Name: equipment_class_requirements
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["Any","Any","Warrior","Any","Warrior","Any","Warrior","Mage"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_attack
+          Name: equipment_attack
+          Type: Array<float>
+          HasDefaultValue: 1
+          JsonDefaultValue: '[0,1,0,0,10,1,17,3]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_defense
+          Name: equipment_defense
+          Type: Array<float>
+          HasDefaultValue: 1
+          JsonDefaultValue: '[3,0,6,1,0,1,0,0]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_hp
+          Name: equipment_hp
+          Type: Array<float>
+          HasDefaultValue: 1
+          JsonDefaultValue: '[12,0,40,8,0,15,0,10]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_affixes
+          Name: equipment_affixes
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["Padded Lining: +1 Defense","Grip Wrap: +1 Attack","Sturdy
+            Padding: +10 HP","Soft Step: +8 HP","Keen Edge: +2 Attack","Warm Band:
+            +15 HP","Veteran Focus: +3 Attack","Arcane Thread: +3 Attack"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        - Id: var_equipment_enhance_labels
+          Name: equipment_enhance_labels
+          Type: Array<string>
+          HasDefaultValue: 1
+          JsonDefaultValue: '["+0","+0","+1: +1 Defense, +5 HP","+0","+1: +1 Attack","+0","+2:
+            +2 Attack","+0"]'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: 
+        Bindings: []
+        Components: []
+    - rid: 2881251971933929926
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 7630601633790459798
+          m_Value1: 2823064385316439694
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 967f98dcc157e5698ec6d7e8198a2d27
+        m_Version: 2
+        m_Name: screen_open
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Boolean, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929954
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929927
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 796875210705441570
+          m_Value1: 7712066329108608177
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 22936938c8110f0bb1f4c44e77c3066b
+        m_Version: 2
+        m_Name: player_level
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Int32, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929955
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929928
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 13370987744510599965
+          m_Value1: 15709826731870586920
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 1de3a7d7824a8fb9280815ac2d8404da
+        m_Version: 2
+        m_Name: player_class
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929956
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929929
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12850542977266834283
+          m_Value1: 17810373262445322152
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 6b5be1b2c04c56b2a81f2b691e282bf7
+        m_Version: 2
+        m_Name: base_attack
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929957
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929930
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 17460499129889575196
+          m_Value1: 6834584546979675462
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 1cd115ee722750f246fd182e6f52d95e
+        m_Version: 2
+        m_Name: base_defense
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929958
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929931
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 15152111509365521905
+          m_Value1: 1932666793814023403
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: f1fdd670231d47d2eb5c7a923536d21a
+        m_Version: 2
+        m_Name: base_hp
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929959
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929932
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 11026851049509672602
+          m_Value1: 5914138145578858843
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 9ad62a559b3e07995bb9d0174f3d1352
+        m_Version: 2
+        m_Name: total_attack
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929960
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929933
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 13038396285065323706
+          m_Value1: 16191027688371277120
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: ba64174457b0f1b4404de219e615b2e0
+        m_Version: 2
+        m_Name: total_defense
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929961
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929934
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12839842107721408558
+          m_Value1: 14788141226899131889
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 2e60d65a5e4830b2f1cda14d18083acd
+        m_Version: 2
+        m_Name: total_hp
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Single, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929962
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929935
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 5195162176289445552
+          m_Value1: 10556023034264367726
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: b016476479ec18486e322b7e05877e92
+        m_Version: 2
+        m_Name: selected_slot_index
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.Int32, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929963
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929936
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 4998425791063118215
+          m_Value1: 3394641294269779343
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 87d17730c6f95d458f8dd28445301c2f
+        m_Version: 2
+        m_Name: selected_slot_key
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929964
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929937
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 10490456185866984908
+          m_Value1: 14062391486735686184
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: cc9d66fa51969591289a5b2b8da627c3
+        m_Version: 2
+        m_Name: status_message
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929965
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929938
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12069478037953829914
+          m_Value1: 2117391682895335507
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 1adc9d2454667fa753d05765847c621d
+        m_Version: 2
+        m_Name: slot_keys
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929966
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929939
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 4392295528573827270
+          m_Value1: 16588526878327617924
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: c6f82d098391f43c84b9bc594e4936e6
+        m_Version: 2
+        m_Name: slot_names
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929967
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929940
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 14024131534640674955
+          m_Value1: 5297455429229265098
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 8b789ce553b99fc2cac0ac50a5578449
+        m_Version: 2
+        m_Name: equipped_instance_ids
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929968
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929941
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 2250271717499905345
+          m_Value1: 14811445141133787717
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 41a5b06134923a1f450277a7e1d28ccd
+        m_Version: 2
+        m_Name: equipped_labels
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929969
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929942
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 9371291472325816976
+          m_Value1: 7370707307789097592
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 90b2a05ef1830d82781a25a83e034a66
+        m_Version: 2
+        m_Name: equipment_item_ids
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929970
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929943
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 11266246871269577341
+          m_Value1: 10621936527495426063
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 7d12e199d6bf599c0f701c8cfeb26893
+        m_Version: 2
+        m_Name: equipment_names
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929971
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929944
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1462975696855870092
+          m_Value1: 349195500650955951
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 8caa1f26a5884d14af04772d7597d804
+        m_Version: 2
+        m_Name: equipment_slots
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929972
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929945
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 4393786182414946150
+          m_Value1: 13417441100990397375
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 66cfdced40ddf93cbf3b42bb975334ba
+        m_Version: 2
+        m_Name: equipment_slot_indices
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929973
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929946
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 14877070091731439899
+          m_Value1: 2410403360265469002
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 1b913d246df875ce4afc07d615797321
+        m_Version: 2
+        m_Name: equipment_qualities
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929974
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929947
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 18193198177927745926
+          m_Value1: 5295133201824789200
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 86d1aae359397bfcd0b2249d97177c49
+        m_Version: 2
+        m_Name: equipment_level_requirements
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929975
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929948
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 7657340152066217225
+          m_Value1: 10003694329689397215
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 09153e484c56446adfd7b9b2fd42d48a
+        m_Version: 2
+        m_Name: equipment_class_requirements
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929976
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929949
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12570636995702660368
+          m_Value1: 13705450065933133606
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 109d3dd9bedf73ae2667cc6a388a33be
+        m_Version: 2
+        m_Name: equipment_attack
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929977
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929950
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 3612483832127778073
+          m_Value1: 4317547896284276436
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 196dd1d2e71e2232d466c2b2ef02eb3b
+        m_Version: 2
+        m_Name: equipment_defense
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929978
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929951
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 4146950436510471722
+          m_Value1: 7241874877094654615
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 2a965b5573ed8c3997720de5d44e8064
+        m_Version: 2
+        m_Name: equipment_hp
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929979
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929952
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1343276390076401678
+          m_Value1: 10758234576106369595
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 0e48ac81c246a4123b3225ef58ed4c95
+        m_Version: 2
+        m_Name: equipment_affixes
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929980
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929953
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 8584227432192884693
+          m_Value1: 13499053162601949402
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: d53f054f5e4d2177daa80091544556bb
+        m_Version: 2
+        m_Name: equipment_enhance_labels
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Array, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881251971933929981
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881251971933929954
+      type: {class: 'Constant`1[[System.Boolean, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 0
+    - rid: 2881251971933929955
+      type: {class: 'Constant`1[[System.Int32, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 10
+    - rid: 2881251971933929956
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Warrior
+    - rid: 2881251971933929957
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 10
+    - rid: 2881251971933929958
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 5
+    - rid: 2881251971933929959
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 100
+    - rid: 2881251971933929960
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 10
+    - rid: 2881251971933929961
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 5
+    - rid: 2881251971933929962
+      type: {class: 'Constant`1[[System.Single, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 100
+    - rid: 2881251971933929963
+      type: {class: 'Constant`1[[System.Int32, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 0
+    - rid: 2881251971933929964
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: head
+    - rid: 2881251971933929965
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Equipment ready.
+    - rid: 2881251971933929966
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["head","hands","body","shoes","weapon","ring"]'
+    - rid: 2881251971933929967
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["Head","Hands","Body","Shoes","Weapon","Ring"]'
+    - rid: 2881251971933929968
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["","","","","",""]'
+    - rid: 2881251971933929969
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["Head: Empty","Hands: Empty","Body: Empty","Shoes: Empty","Weapon:
+            Empty","Ring: Empty"]'
+    - rid: 2881251971933929970
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["training_helm","cloth_gloves","training_armor","scout_boots","iron_sword","copper_ring","veteran_blade","mage_ring"]'
+    - rid: 2881251971933929971
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["Training Helm","Cloth Gloves","Training Armor","Scout Boots","Iron
+            Sword","Copper Ring","Veteran Blade","Mage Ring"]'
+    - rid: 2881251971933929972
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["head","hands","body","shoes","weapon","ring","weapon","ring"]'
+    - rid: 2881251971933929973
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: int
+          Json: '[0,1,2,3,4,5,4,5]'
+    - rid: 2881251971933929974
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["Common","Common","Uncommon","Common","Rare","Uncommon","Epic","Rare"]'
+    - rid: 2881251971933929975
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: int
+          Json: '[1,1,1,1,1,1,20,1]'
+    - rid: 2881251971933929976
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["Any","Any","Warrior","Any","Warrior","Any","Warrior","Mage"]'
+    - rid: 2881251971933929977
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: float
+          Json: '[0,1,0,0,10,1,17,3]'
+    - rid: 2881251971933929978
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: float
+          Json: '[3,0,6,1,0,1,0,0]'
+    - rid: 2881251971933929979
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: float
+          Json: '[12,0,40,8,0,15,0,10]'
+    - rid: 2881251971933929980
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["Padded Lining: +1 Defense","Grip Wrap: +1 Attack","Sturdy Padding:
+            +10 HP","Soft Step: +8 HP","Keen Edge: +2 Attack","Warm Band: +15 HP","Veteran
+            Focus: +3 Attack","Arcane Thread: +3 Attack"]'
+    - rid: 2881251971933929981
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Array, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          ElementType: string
+          Json: '["+0","+0","+1: +1 Defense, +5 HP","+0","+1: +1 Attack","+0","+2:
+            +2 Attack","+0"]'

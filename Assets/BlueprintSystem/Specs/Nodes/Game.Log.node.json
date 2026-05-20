@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.Log",
+  "title": "Log",
+  "category": "Game",
+  "description": "Writes a message to the blueprint logger.",
+  "executor": "Game.Log",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "message",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "message",
+      "type": "string",
+      "required": false
+    }
+  ]
+}

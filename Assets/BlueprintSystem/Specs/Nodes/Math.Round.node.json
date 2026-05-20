@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Round",
+  "title": "Round",
+  "category": "Math",
+  "description": "Rounds a float to the nearest int.",
+  "executor": "Math.Round",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    }
+  ]
+}

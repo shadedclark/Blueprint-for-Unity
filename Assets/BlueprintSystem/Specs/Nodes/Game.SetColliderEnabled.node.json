@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetColliderEnabled",
+  "title": "Set Collider Enabled",
+  "category": "Game/Physics",
+  "description": "Sets enabled on a bound 3D Collider.",
+  "executor": "Game.SetColliderEnabled",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Collider>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Collider>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "tags": [
+    "physics",
+    "collider"
+  ]
+}

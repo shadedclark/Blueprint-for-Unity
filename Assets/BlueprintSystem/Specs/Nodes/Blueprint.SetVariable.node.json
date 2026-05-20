@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.SetVariable",
+  "title": "Set Blueprint Variable",
+  "category": "Blueprint",
+  "description": "Writes an exposed variable on a Blueprint component resolved by asset path or BlueprintRef.",
+  "executor": "Blueprint.SetVariable",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Blueprint",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "name",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Blueprint",
+      "required": false
+    },
+    {
+      "id": "name",
+      "type": "string",
+      "required": false
+    },
+    {
+      "id": "value",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "variable",
+    "set"
+  ]
+}

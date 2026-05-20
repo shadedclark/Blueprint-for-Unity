@@ -1,0 +1,1503 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
+
+namespace BlueprintSystem.Editor
+{
+    public static class BlueprintCompiledAssetCompiler
+    {
+        private const string NodeManifestRoot = "Assets/BlueprintSystem/Specs/Nodes";
+        private const string CompiledAssetSuffix = ".compiled.asset";
+
+        public static bool CompileBlueprintAtPath(string sourcePath, bool log, out BlueprintCompiledAsset compiledAsset)
+        {
+            return CompileBlueprintAtPath(sourcePath, log, out compiledAsset, new HashSet<string>(StringComparer.Ordinal));
+        }
+
+        private static bool CompileBlueprintAtPath(
+            string sourcePath,
+            bool log,
+            out BlueprintCompiledAsset compiledAsset,
+            HashSet<string> compilationStack)
+        {
+            compiledAsset = null;
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                return false;
+            }
+
+            sourcePath = NormalizeAssetPath(sourcePath);
+            TextAsset blueprintJson = AssetDatabase.LoadAssetAtPath<TextAsset>(sourcePath);
+            if (blueprintJson == null)
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Select a .blueprint.json TextAsset before compiling.");
+                }
+
+                return false;
+            }
+
+            return CompileBlueprint(blueprintJson, log, out compiledAsset, compilationStack);
+        }
+
+        public static bool CompileBlueprint(TextAsset blueprintJson, bool log, out BlueprintCompiledAsset compiledAsset)
+        {
+            return CompileBlueprint(blueprintJson, log, out compiledAsset, new HashSet<string>(StringComparer.Ordinal));
+        }
+
+        private static bool CompileBlueprint(
+            TextAsset blueprintJson,
+            bool log,
+            out BlueprintCompiledAsset compiledAsset,
+            HashSet<string> compilationStack)
+        {
+            compiledAsset = null;
+            if (blueprintJson == null)
+            {
+                return false;
+            }
+
+            string sourcePath = AssetDatabase.GetAssetPath(blueprintJson);
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Blueprint JSON must be an asset before it can be compiled.", blueprintJson);
+                }
+
+                return false;
+            }
+
+            CompilationData data;
+            if (!TryBuildCompilationData(blueprintJson, sourcePath, log, compilationStack, out data))
+            {
+                return false;
+            }
+
+            string assetPath = GetCompiledAssetPath(sourcePath);
+            bool created = false;
+            compiledAsset = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(assetPath);
+            if (compiledAsset == null && !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)))
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Cannot create compiled blueprint at '" + assetPath + "' because another asset already exists there.", blueprintJson);
+                }
+
+                return false;
+            }
+
+            if (compiledAsset == null)
+            {
+                compiledAsset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+                created = true;
+            }
+
+            ApplyCompiledData(compiledAsset, data);
+            if (created)
+            {
+                AssetDatabase.CreateAsset(compiledAsset, assetPath);
+            }
+
+            EditorUtility.SetDirty(compiledAsset);
+            AssetDatabase.ImportAsset(assetPath);
+            AssetDatabase.SaveAssets();
+
+            if (log)
+            {
+                Debug.Log("[Blueprint] Compiled '" + data.Source.Name + "' to " + assetPath + ".", compiledAsset);
+            }
+
+            return true;
+        }
+
+        public static bool IsCompiledAssetCurrent(BlueprintCompiledAsset compiledAsset, TextAsset blueprintJson, out string reason)
+        {
+            reason = null;
+            if (compiledAsset == null)
+            {
+                reason = "Missing compiled asset.";
+                return false;
+            }
+
+            if (blueprintJson == null)
+            {
+                reason = "Missing source blueprint JSON.";
+                return false;
+            }
+
+            string sourcePath = AssetDatabase.GetAssetPath(blueprintJson);
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                reason = "Source blueprint JSON is not an asset.";
+                return false;
+            }
+
+            CompilationData data;
+            if (!TryBuildCompilationData(blueprintJson, sourcePath, false, new HashSet<string>(StringComparer.Ordinal), out data))
+            {
+                reason = "Source blueprint cannot be compiled.";
+                return false;
+            }
+
+            if (!compiledAsset.IsCurrent(data.SourceHash, data.ManifestHash))
+            {
+                reason = "Compiled asset hash is stale.";
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool IsCompiledAssetCurrent(BlueprintCompiledAsset compiledAsset, out string reason)
+        {
+            reason = null;
+            if (compiledAsset == null)
+            {
+                reason = "Missing compiled asset.";
+                return false;
+            }
+
+            string sourcePath = GetCompiledAssetSourcePath(compiledAsset);
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                return true;
+            }
+
+            TextAsset sourceAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(sourcePath);
+            if (sourceAsset == null)
+            {
+                return true;
+            }
+
+            return IsCompiledAssetCurrent(compiledAsset, sourceAsset, out reason);
+        }
+
+        public static string GetCompiledAssetSourcePath(BlueprintCompiledAsset compiledAsset)
+        {
+            if (compiledAsset == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrEmpty(compiledAsset.SourcePath))
+            {
+                return compiledAsset.SourcePath.Replace('\\', '/');
+            }
+
+            return string.IsNullOrEmpty(compiledAsset.SourceGuid)
+                ? null
+                : AssetDatabase.GUIDToAssetPath(compiledAsset.SourceGuid);
+        }
+
+        public static string GetCompiledAssetPath(string blueprintPath)
+        {
+            string directory = Path.GetDirectoryName(blueprintPath);
+            string fileName = Path.GetFileName(blueprintPath);
+            if (fileName.EndsWith(".blueprint.json", StringComparison.OrdinalIgnoreCase))
+            {
+                fileName = fileName.Substring(0, fileName.Length - ".blueprint.json".Length);
+            }
+            else
+            {
+                fileName = Path.GetFileNameWithoutExtension(blueprintPath);
+            }
+
+            return string.IsNullOrEmpty(directory)
+                ? fileName + CompiledAssetSuffix
+                : directory.Replace('\\', '/') + "/" + fileName + CompiledAssetSuffix;
+        }
+
+        private static string ResolveComponentAssetPath(string ownerSourcePath, string componentPath)
+        {
+            componentPath = NormalizeAssetPath(componentPath);
+            if (string.IsNullOrEmpty(componentPath))
+            {
+                return null;
+            }
+
+            if (componentPath.StartsWith("Assets/", StringComparison.Ordinal) ||
+                componentPath.StartsWith("Packages/", StringComparison.Ordinal))
+            {
+                return componentPath;
+            }
+
+            string directory = Path.GetDirectoryName(ownerSourcePath);
+            return NormalizeAssetPath(string.IsNullOrEmpty(directory)
+                ? componentPath
+                : directory + "/" + componentPath);
+        }
+
+        private static string NormalizeAssetPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
+        }
+
+        internal static BlueprintNodeManifestCollection LoadProjectManifests(out Dictionary<string, string> manifestTextsByTypeId)
+        {
+            manifestTextsByTypeId = new Dictionary<string, string>(StringComparer.Ordinal);
+            BlueprintNodeManifestCollection manifests = new BlueprintNodeManifestCollection();
+            if (!AssetDatabase.IsValidFolder(NodeManifestRoot))
+            {
+                return manifests;
+            }
+
+            string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { NodeManifestRoot });
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                if (!path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                TextAsset manifestAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                if (manifestAsset == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    BlueprintNodeManifest manifest = BlueprintNodeManifest.FromJson(manifestAsset.text);
+                    if (manifest != null && !string.IsNullOrEmpty(manifest.TypeId))
+                    {
+                        manifests.Add(manifest);
+                        manifestTextsByTypeId[manifest.TypeId] = manifestAsset.text;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning("[Blueprint] Could not parse node manifest at '" + path + "': " + exception.Message, manifestAsset);
+                }
+            }
+
+            return manifests;
+        }
+
+        private static bool TryBuildCompilationData(
+            TextAsset blueprintJson,
+            string sourcePath,
+            bool log,
+            HashSet<string> compilationStack,
+            out CompilationData data)
+        {
+            data = null;
+            sourcePath = NormalizeAssetPath(sourcePath);
+            compilationStack = compilationStack ?? new HashSet<string>(StringComparer.Ordinal);
+            if (compilationStack.Contains(sourcePath))
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Component blueprint cycle detected at '" + sourcePath + "'.", blueprintJson);
+                }
+
+                return false;
+            }
+
+            compilationStack.Add(sourcePath);
+            string sourceText = blueprintJson.text;
+            BlueprintSource source;
+            try
+            {
+                source = BlueprintSource.FromJson(sourceText);
+                if (BlueprintVariableIdUtility.EnsureVariableIds(source))
+                {
+                    sourceText = source.ToJson();
+                    File.WriteAllText(sourcePath, sourceText, new UTF8Encoding(false));
+                    AssetDatabase.ImportAsset(sourcePath);
+                }
+            }
+            catch (Exception exception)
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Could not parse blueprint JSON at '" + sourcePath + "': " + exception.Message, blueprintJson);
+                }
+
+                compilationStack.Remove(sourcePath);
+                return false;
+            }
+
+            Dictionary<string, string> manifestTextsByTypeId;
+            BlueprintNodeManifestCollection manifests = LoadProjectManifests(out manifestTextsByTypeId);
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, manifests, BlueprintExecutorRegistry.CreateDefault());
+            if (!compileResult.Success)
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Compile failed for " + blueprintJson.name + "\n" + compileResult.Diagnostics.ToDisplayString(), blueprintJson);
+                }
+
+                compilationStack.Remove(sourcePath);
+                return false;
+            }
+
+            List<BlueprintCompiledComponent> compiledComponents;
+            string componentHash;
+            if (!BuildComponents(source, sourcePath, log, compilationStack, out compiledComponents, out componentHash))
+            {
+                compilationStack.Remove(sourcePath);
+                return false;
+            }
+
+            data = new CompilationData();
+            data.Source = source;
+            data.Runtime = compileResult.Blueprint;
+            data.Manifests = manifests;
+            data.SourceGuid = AssetDatabase.AssetPathToGUID(sourcePath);
+            data.SourcePath = sourcePath;
+            data.SourceHash = ComputeHash(sourceText + "\ncomponents:" + componentHash);
+            data.ManifestHash = ComputeRequiredManifestHash(source, manifestTextsByTypeId);
+            data.Components = compiledComponents;
+            compilationStack.Remove(sourcePath);
+            return true;
+        }
+
+        private static void ApplyCompiledData(BlueprintCompiledAsset compiledAsset, CompilationData data)
+        {
+            compiledAsset.SetCompiledData(
+                data.Source.SchemaVersion,
+                data.Source.Name,
+                data.SourceGuid,
+                data.SourcePath,
+                data.SourceHash,
+                data.ManifestHash,
+                BuildVariables(data.Source),
+                BuildBindings(data.Source),
+                data.Components,
+                BuildNodes(data.Source, data.Manifests),
+                BuildExecEdges(data.Runtime),
+                BuildValueEdges(data.Runtime),
+                BuildEventEntries(data.Runtime));
+        }
+
+        private static List<BlueprintCompiledVariable> BuildVariables(BlueprintSource source)
+        {
+            List<BlueprintCompiledVariable> result = new List<BlueprintCompiledVariable>();
+            for (int i = 0; i < source.Variables.Count; i++)
+            {
+                BlueprintVariableDeclaration variable = source.Variables[i];
+                if (variable == null)
+                {
+                    continue;
+                }
+
+                result.Add(new BlueprintCompiledVariable
+                {
+                    Id = variable.Id,
+                    Name = variable.Name,
+                    Type = variable.Type,
+                    DefaultValueJson = SerializeValueForType(variable.DefaultValue, variable.Type),
+                    Scope = variable.Scope,
+                    Exposed = variable.Exposed,
+                    Persistent = variable.Persistent,
+                    Description = variable.Description
+                });
+            }
+
+            return result;
+        }
+
+        private static List<BlueprintCompiledBinding> BuildBindings(BlueprintSource source)
+        {
+            List<BlueprintCompiledBinding> result = new List<BlueprintCompiledBinding>();
+            for (int i = 0; i < source.Bindings.Count; i++)
+            {
+                BlueprintBindingDeclaration binding = source.Bindings[i];
+                if (binding == null)
+                {
+                    continue;
+                }
+
+                result.Add(new BlueprintCompiledBinding
+                {
+                    Name = binding.Name,
+                    Type = binding.Type,
+                    Required = binding.Required
+                });
+            }
+
+            return result;
+        }
+
+        private static bool BuildComponents(
+            BlueprintSource source,
+            string sourcePath,
+            bool log,
+            HashSet<string> compilationStack,
+            out List<BlueprintCompiledComponent> result,
+            out string componentHash)
+        {
+            result = new List<BlueprintCompiledComponent>();
+            componentHash = string.Empty;
+            StringBuilder hashBuilder = new StringBuilder();
+            for (int i = 0; i < source.Components.Count; i++)
+            {
+                BlueprintComponentDeclaration component = source.Components[i];
+                if (component == null || string.IsNullOrEmpty(component.Name))
+                {
+                    continue;
+                }
+
+                string componentPath = ResolveComponentAssetPath(sourcePath, component.Blueprint);
+                BlueprintCompiledAsset compiledComponent = null;
+                string componentSourcePath = null;
+                if (!string.IsNullOrEmpty(componentPath) && componentPath.EndsWith(CompiledAssetSuffix, StringComparison.OrdinalIgnoreCase))
+                {
+                    compiledComponent = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(componentPath);
+                    componentSourcePath = GetCompiledAssetSourcePath(compiledComponent);
+                }
+                else if (!string.IsNullOrEmpty(componentPath))
+                {
+                    componentSourcePath = componentPath;
+                    if (!CompileBlueprintAtPath(componentSourcePath, log, out compiledComponent, compilationStack))
+                    {
+                        compiledComponent = null;
+                    }
+                }
+
+                if (compiledComponent == null)
+                {
+                    if (component.Required)
+                    {
+                        if (log)
+                        {
+                            Debug.LogError("[Blueprint] Required component '" + component.Name + "' could not compile or load blueprint '" + component.Blueprint + "'.");
+                        }
+
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                componentSourcePath = NormalizeAssetPath(string.IsNullOrEmpty(componentSourcePath)
+                    ? GetCompiledAssetSourcePath(compiledComponent)
+                    : componentSourcePath);
+
+                result.Add(new BlueprintCompiledComponent
+                {
+                    Name = component.Name,
+                    BlueprintPath = componentSourcePath,
+                    BlueprintGuid = string.IsNullOrEmpty(componentSourcePath) ? null : AssetDatabase.AssetPathToGUID(componentSourcePath),
+                    Required = component.Required,
+                    CompiledBlueprint = compiledComponent
+                });
+
+                hashBuilder.Append(component.Name);
+                hashBuilder.Append('|');
+                hashBuilder.Append(componentSourcePath ?? string.Empty);
+                hashBuilder.Append('|');
+                hashBuilder.Append(compiledComponent.SourceHash ?? string.Empty);
+                hashBuilder.Append('|');
+                hashBuilder.Append(compiledComponent.ManifestHash ?? string.Empty);
+                hashBuilder.Append('\n');
+            }
+
+            componentHash = ComputeHash(hashBuilder.ToString());
+            return true;
+        }
+
+        private static List<BlueprintCompiledNode> BuildNodes(BlueprintSource source, BlueprintNodeManifestCollection manifests)
+        {
+            List<BlueprintCompiledNode> result = new List<BlueprintCompiledNode>();
+            for (int i = 0; i < source.Nodes.Count; i++)
+            {
+                BlueprintNodeSource sourceNode = source.Nodes[i];
+                BlueprintNodeManifest manifest;
+                manifests.TryGet(sourceNode.TypeId, out manifest);
+
+                Dictionary<string, object> propertyValues = new Dictionary<string, object>(sourceNode.Properties, StringComparer.Ordinal);
+                Dictionary<string, string> propertyTypes = new Dictionary<string, string>(StringComparer.Ordinal);
+                if (manifest != null)
+                {
+                    for (int p = 0; p < manifest.Properties.Count; p++)
+                    {
+                        BlueprintPropertySpec property = manifest.Properties[p];
+                        if (property == null || string.IsNullOrEmpty(property.Id))
+                        {
+                            continue;
+                        }
+
+                        propertyTypes[property.Id] = property.Type;
+                        if (!propertyValues.ContainsKey(property.Id) && property.DefaultValue != null)
+                        {
+                            propertyValues[property.Id] = property.DefaultValue;
+                        }
+                    }
+                }
+
+                BlueprintCompiledNode compiledNode = new BlueprintCompiledNode();
+                compiledNode.Id = sourceNode.Id;
+                compiledNode.TypeId = sourceNode.TypeId;
+                compiledNode.ExecutorId = manifest == null ? null : manifest.Executor;
+
+                List<string> propertyIds = new List<string>(propertyValues.Keys);
+                propertyIds.Sort(StringComparer.Ordinal);
+                for (int p = 0; p < propertyIds.Count; p++)
+                {
+                    string propertyId = propertyIds[p];
+                    string propertyType;
+                    propertyTypes.TryGetValue(propertyId, out propertyType);
+                    compiledNode.Properties.Add(new BlueprintCompiledProperty
+                    {
+                        Id = propertyId,
+                        JsonValue = SerializeValueForType(propertyValues[propertyId], propertyType)
+                    });
+                }
+
+                result.Add(compiledNode);
+            }
+
+            return result;
+        }
+
+        private static List<BlueprintCompiledEdge> BuildExecEdges(RuntimeBlueprint runtime)
+        {
+            List<RuntimeEdge> edges = new List<RuntimeEdge>();
+            foreach (List<RuntimeEdge> edgeList in runtime.ExecOutputs.Values)
+            {
+                edges.AddRange(edgeList);
+            }
+
+            edges.Sort((left, right) => string.Compare(left.ToString(), right.ToString(), StringComparison.Ordinal));
+            return BuildEdges(edges);
+        }
+
+        private static List<BlueprintCompiledEdge> BuildValueEdges(RuntimeBlueprint runtime)
+        {
+            List<RuntimeEdge> edges = new List<RuntimeEdge>(runtime.ValueInputs.Values);
+            edges.Sort((left, right) => string.Compare(left.ToString(), right.ToString(), StringComparison.Ordinal));
+            return BuildEdges(edges);
+        }
+
+        private static List<BlueprintCompiledEdge> BuildEdges(List<RuntimeEdge> edges)
+        {
+            List<BlueprintCompiledEdge> result = new List<BlueprintCompiledEdge>();
+            for (int i = 0; i < edges.Count; i++)
+            {
+                RuntimeEdge edge = edges[i];
+                result.Add(new BlueprintCompiledEdge
+                {
+                    FromNodeId = edge.From.NodeId,
+                    FromPortId = edge.From.PortId,
+                    ToNodeId = edge.To.NodeId,
+                    ToPortId = edge.To.PortId
+                });
+            }
+
+            return result;
+        }
+
+        private static List<BlueprintCompiledEventEntry> BuildEventEntries(RuntimeBlueprint runtime)
+        {
+            List<string> eventNames = new List<string>(runtime.EventEntries.Keys);
+            eventNames.Sort(StringComparer.Ordinal);
+
+            List<BlueprintCompiledEventEntry> result = new List<BlueprintCompiledEventEntry>();
+            for (int i = 0; i < eventNames.Count; i++)
+            {
+                string eventName = eventNames[i];
+                result.Add(new BlueprintCompiledEventEntry
+                {
+                    EventName = eventName,
+                    NodeId = runtime.EventEntries[eventName]
+                });
+            }
+
+            return result;
+        }
+
+        private static string ComputeRequiredManifestHash(BlueprintSource source, Dictionary<string, string> manifestTextsByTypeId)
+        {
+            List<string> typeIds = new List<string>();
+            HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = 0; i < source.Nodes.Count; i++)
+            {
+                string typeId = source.Nodes[i].TypeId;
+                if (!string.IsNullOrEmpty(typeId) && seen.Add(typeId))
+                {
+                    typeIds.Add(typeId);
+                }
+            }
+
+            typeIds.Sort(StringComparer.Ordinal);
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < typeIds.Count; i++)
+            {
+                string typeId = typeIds[i];
+                string text;
+                manifestTextsByTypeId.TryGetValue(typeId, out text);
+                builder.Append(typeId);
+                builder.Append('\n');
+                builder.Append(text ?? string.Empty);
+                builder.Append('\n');
+            }
+
+            return ComputeHash(builder.ToString());
+        }
+
+        private static string ComputeHash(string text)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(text ?? string.Empty);
+                byte[] hash = sha256.ComputeHash(bytes);
+                StringBuilder builder = new StringBuilder(hash.Length * 2);
+                for (int i = 0; i < hash.Length; i++)
+                {
+                    builder.Append(hash[i].ToString("x2"));
+                }
+
+                return builder.ToString();
+            }
+        }
+
+        internal static string SerializeValueForType(object value, string blueprintType)
+        {
+            return BlueprintJson.Serialize(NormalizeValueForJson(value, blueprintType), false);
+        }
+
+        private static object NormalizeValueForJson(object value, string blueprintType)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            object jsonValue;
+            if (!string.IsNullOrEmpty(blueprintType))
+            {
+                if (BlueprintArrayUtility.TryConvertToJsonArray(value, blueprintType, out jsonValue))
+                {
+                    return jsonValue;
+                }
+
+                if (BlueprintStructuredValueUtility.TryConvertToJsonValue(value, blueprintType, out jsonValue))
+                {
+                    return jsonValue;
+                }
+            }
+
+            Type valueType = value.GetType();
+            if (valueType.IsEnum)
+            {
+                return value.ToString();
+            }
+
+            if (value is Vector2)
+            {
+                Vector2 vector = (Vector2)value;
+                return new List<object> { vector.x, vector.y };
+            }
+
+            if (value is Vector3)
+            {
+                Vector3 vector = (Vector3)value;
+                return new List<object> { vector.x, vector.y, vector.z };
+            }
+
+            if (value is Vector4)
+            {
+                Vector4 vector = (Vector4)value;
+                return new List<object> { vector.x, vector.y, vector.z, vector.w };
+            }
+
+            if (value is Rect)
+            {
+                Rect rect = (Rect)value;
+                return new List<object> { rect.x, rect.y, rect.width, rect.height };
+            }
+
+            if (value is Color)
+            {
+                Color color = (Color)value;
+                return new List<object> { color.r, color.g, color.b, color.a };
+            }
+
+            return value;
+        }
+
+        private sealed class CompilationData
+        {
+            public BlueprintSource Source;
+            public RuntimeBlueprint Runtime;
+            public BlueprintNodeManifestCollection Manifests;
+            public string SourceGuid;
+            public string SourcePath;
+            public string SourceHash;
+            public string ManifestHash;
+            public List<BlueprintCompiledComponent> Components;
+        }
+    }
+
+    public static class BlueprintRunnerCompiledAssetMigration
+    {
+        [MenuItem("Tools/Blueprint System/Migrate Legacy Runner JSON References")]
+        public static void MigrateProjectAssets()
+        {
+            Dictionary<string, string> compiledGuidBySourceGuid = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            int migratedFiles = 0;
+            int migratedReferences = 0;
+
+            string[] assetPaths = FindSceneAndPrefabAssetPaths();
+            for (int i = 0; i < assetPaths.Length; i++)
+            {
+                int fileReferences;
+                if (MigrateAssetFile(assetPaths[i], compiledGuidBySourceGuid, out fileReferences))
+                {
+                    migratedFiles++;
+                    migratedReferences += fileReferences;
+                }
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[Blueprint] Migrated " + migratedReferences + " legacy blueprint JSON references in " + migratedFiles + " asset files.");
+        }
+
+        private static string[] FindSceneAndPrefabAssetPaths()
+        {
+            List<string> assetPaths = new List<string>();
+            string dataPath = Application.dataPath.Replace('\\', '/');
+            AddAssetPaths(assetPaths, dataPath, "*.unity");
+            AddAssetPaths(assetPaths, dataPath, "*.prefab");
+            assetPaths.Sort(StringComparer.OrdinalIgnoreCase);
+            return assetPaths.ToArray();
+        }
+
+        private static void AddAssetPaths(List<string> assetPaths, string dataPath, string pattern)
+        {
+            string[] files = Directory.GetFiles(dataPath, pattern, SearchOption.AllDirectories);
+            for (int i = 0; i < files.Length; i++)
+            {
+                string fullPath = files[i].Replace('\\', '/');
+                if (fullPath.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    assetPaths.Add("Assets" + fullPath.Substring(dataPath.Length));
+                }
+            }
+        }
+
+        private static bool MigrateAssetFile(string assetPath, Dictionary<string, string> compiledGuidBySourceGuid, out int migratedReferences)
+        {
+            migratedReferences = 0;
+            string text = File.ReadAllText(assetPath);
+            string[] lines = text.Replace("\r\n", "\n").Split('\n');
+            StringBuilder builder = new StringBuilder(text.Length);
+            bool changed = false;
+            bool skippingNodeManifests = false;
+            bool skipExistingCompiledBlueprint = false;
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                string trimmed = line.TrimStart();
+                string indent = line.Substring(0, line.Length - trimmed.Length);
+
+                if (trimmed.StartsWith("--- !u!", StringComparison.Ordinal))
+                {
+                    skipExistingCompiledBlueprint = false;
+                }
+
+                if (skippingNodeManifests)
+                {
+                    if (trimmed.StartsWith("- ", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    skippingNodeManifests = false;
+                }
+
+                if (trimmed.StartsWith("nodeManifests:", StringComparison.Ordinal))
+                {
+                    skippingNodeManifests = true;
+                    changed = true;
+                    continue;
+                }
+
+                if (trimmed.StartsWith("blueprintJson:", StringComparison.Ordinal))
+                {
+                    string sourceGuid = ExtractGuid(trimmed);
+                    string compiledGuid;
+                    if (!string.IsNullOrEmpty(sourceGuid) && TryGetCompiledGuid(sourceGuid, compiledGuidBySourceGuid, out compiledGuid))
+                    {
+                        AppendLine(builder, indent + "compiledBlueprint: {fileID: 11400000, guid: " + compiledGuid + ", type: 2}", i < lines.Length - 1);
+                        changed = true;
+                        skipExistingCompiledBlueprint = true;
+                        migratedReferences++;
+                        continue;
+                    }
+                }
+
+                if (skipExistingCompiledBlueprint && trimmed.StartsWith("compiledBlueprint:", StringComparison.Ordinal))
+                {
+                    changed = true;
+                    continue;
+                }
+
+                AppendLine(builder, line, i < lines.Length - 1);
+            }
+
+            if (!changed)
+            {
+                return false;
+            }
+
+            File.WriteAllText(assetPath, builder.ToString());
+            AssetDatabase.ImportAsset(assetPath);
+            return true;
+        }
+
+        private static void AppendLine(StringBuilder builder, string line, bool appendNewLine)
+        {
+            builder.Append(line);
+            if (appendNewLine)
+            {
+                builder.Append('\n');
+            }
+        }
+
+        private static string ExtractGuid(string text)
+        {
+            const string marker = "guid: ";
+            int start = text.IndexOf(marker, StringComparison.Ordinal);
+            if (start < 0)
+            {
+                return null;
+            }
+
+            start += marker.Length;
+            int end = text.IndexOfAny(new[] { ',', '}' }, start);
+            return end < 0 ? text.Substring(start).Trim() : text.Substring(start, end - start).Trim();
+        }
+
+        private static bool TryGetCompiledGuid(string sourceGuid, Dictionary<string, string> compiledGuidBySourceGuid, out string compiledGuid)
+        {
+            if (compiledGuidBySourceGuid.TryGetValue(sourceGuid, out compiledGuid))
+            {
+                return !string.IsNullOrEmpty(compiledGuid);
+            }
+
+            compiledGuid = null;
+            string sourcePath = AssetDatabase.GUIDToAssetPath(sourceGuid);
+            if (string.IsNullOrEmpty(sourcePath) || !sourcePath.EndsWith(".blueprint.json", StringComparison.OrdinalIgnoreCase))
+            {
+                compiledGuidBySourceGuid[sourceGuid] = null;
+                return false;
+            }
+
+            BlueprintCompiledAsset compiledAsset;
+            if (!BlueprintCompiledAssetCompiler.CompileBlueprintAtPath(sourcePath, true, out compiledAsset) || compiledAsset == null)
+            {
+                compiledGuidBySourceGuid[sourceGuid] = null;
+                return false;
+            }
+
+            string compiledPath = AssetDatabase.GetAssetPath(compiledAsset);
+            compiledGuid = AssetDatabase.AssetPathToGUID(compiledPath);
+            compiledGuidBySourceGuid[sourceGuid] = compiledGuid;
+            return !string.IsNullOrEmpty(compiledGuid);
+        }
+    }
+
+    internal sealed class BlueprintCompiledAssetBuildPreprocessor : IPreprocessBuildWithReport
+    {
+        public int callbackOrder
+        {
+            get { return 0; }
+        }
+
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            BlueprintRunner[] runners = Resources.FindObjectsOfTypeAll<BlueprintRunner>();
+            List<string> failures = new List<string>();
+            for (int i = 0; i < runners.Length; i++)
+            {
+                BlueprintRunner runner = runners[i];
+                if (runner == null || EditorUtility.IsPersistent(runner) || !runner.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                BlueprintCompiledAsset compiledAsset = runner.CompiledBlueprint;
+                if (compiledAsset == null)
+                {
+                    failures.Add(runner.name + " (missing compiled blueprint)");
+                    continue;
+                }
+
+                string reason;
+                if (!BlueprintCompiledAssetCompiler.IsCompiledAssetCurrent(compiledAsset, out reason))
+                {
+                    failures.Add(runner.name + " (" + reason + ")");
+                }
+            }
+
+            if (failures.Count > 0)
+            {
+                throw new BuildFailedException("[Blueprint] BlueprintRunner components must reference current compiled assets. Recompile in the Blueprint editor: " + string.Join(", ", failures));
+            }
+        }
+    }
+
+    [CustomEditor(typeof(BlueprintRunner), true)]
+    [CanEditMultipleObjects]
+    internal sealed class BlueprintRunnerInspector : UnityEditor.Editor
+    {
+        private const float NameWidth = 150f;
+        private const float TypeWidth = 95f;
+        private const float ModeWidth = 80f;
+        private const float ResetWidth = 52f;
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            SerializedProperty compiledProperty = serializedObject.FindProperty("compiledBlueprint");
+            EditorGUILayout.PropertyField(compiledProperty);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnStart"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnTick"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnFixedTick"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnLateTick"));
+
+            EditorGUILayout.Space();
+            DrawExposedVariableOverrides(compiledProperty == null ? null : compiledProperty.objectReferenceValue as BlueprintCompiledAsset);
+
+            EditorGUILayout.Space();
+            bool syncClicked = GUILayout.Button("Sync Exposed Variable Overrides");
+
+            serializedObject.ApplyModifiedProperties();
+            if (syncClicked)
+            {
+                SyncVariableOverrides();
+            }
+        }
+
+        private void DrawExposedVariableOverrides(BlueprintCompiledAsset compiledAsset)
+        {
+            EditorGUILayout.LabelField("Exposed Variables", EditorStyles.boldLabel);
+
+            if (targets.Length != 1)
+            {
+                EditorGUILayout.HelpBox("Select one BlueprintRunner to edit exposed variable overrides.", MessageType.Info);
+                return;
+            }
+
+            if (compiledAsset == null)
+            {
+                EditorGUILayout.HelpBox("Assign a compiled blueprint asset to edit exposed variables.", MessageType.Info);
+                return;
+            }
+
+            SerializedProperty overridesProperty = serializedObject.FindProperty("variableOverrides");
+            if (overridesProperty == null || !overridesProperty.isArray)
+            {
+                EditorGUILayout.HelpBox("Variable override storage is unavailable.", MessageType.Warning);
+                return;
+            }
+
+            bool drewAny = false;
+            IReadOnlyList<BlueprintCompiledVariable> variables = compiledAsset.Variables;
+            for (int i = 0; i < variables.Count; i++)
+            {
+                BlueprintCompiledVariable variable = variables[i];
+                if (variable == null || string.IsNullOrEmpty(variable.Name) || !variable.Exposed)
+                {
+                    continue;
+                }
+
+                drewAny = true;
+                DrawVariableOverrideRow(overridesProperty, variable);
+            }
+
+            if (!drewAny)
+            {
+                EditorGUILayout.HelpBox("This blueprint has no exposed variables.", MessageType.None);
+            }
+        }
+
+        private static void DrawVariableOverrideRow(SerializedProperty overridesProperty, BlueprintCompiledVariable variable)
+        {
+            SerializedProperty entry = FindOverrideEntry(overridesProperty, variable.Id, variable.Name);
+            bool enabled = IsOverrideEnabled(entry);
+            string currentJson = enabled ? GetString(entry, "JsonValue") : variable.DefaultValueJson;
+            string error;
+            string editedJson;
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField(variable.Name, GUILayout.Width(NameWidth));
+                EditorGUILayout.LabelField(variable.Type, GUILayout.Width(TypeWidth));
+
+                if (DrawValueField(variable.Type, currentJson, out editedJson, out error))
+                {
+                    entry = EnsureOverrideEntry(overridesProperty, variable);
+                    SetBool(entry, "Enabled", true);
+                    SetString(entry, "JsonValue", editedJson);
+                    enabled = true;
+                }
+
+                bool newEnabled = GUILayout.Toggle(enabled, enabled ? "Override" : "Inherited", EditorStyles.miniButton, GUILayout.Width(ModeWidth));
+                if (newEnabled != enabled)
+                {
+                    entry = EnsureOverrideEntry(overridesProperty, variable);
+                    SetBool(entry, "Enabled", newEnabled);
+                    if (newEnabled && string.IsNullOrEmpty(GetString(entry, "JsonValue")))
+                    {
+                        SetString(entry, "JsonValue", variable.DefaultValueJson ?? string.Empty);
+                    }
+                    else if (!newEnabled)
+                    {
+                        SetString(entry, "JsonValue", string.Empty);
+                    }
+                }
+
+                using (new EditorGUI.DisabledScope(!enabled && entry == null))
+                {
+                    if (GUILayout.Button("Reset", EditorStyles.miniButton, GUILayout.Width(ResetWidth)))
+                    {
+                        entry = EnsureOverrideEntry(overridesProperty, variable);
+                        SetBool(entry, "Enabled", false);
+                        SetString(entry, "JsonValue", string.Empty);
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                EditorGUILayout.HelpBox(variable.Name + ": " + error, MessageType.Warning);
+            }
+        }
+
+        private void SyncVariableOverrides()
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                BlueprintRunner runner = targets[i] as BlueprintRunner;
+                if (runner == null)
+                {
+                    continue;
+                }
+
+                SerializedObject runnerObject = new SerializedObject(runner);
+                SerializedProperty overridesProperty = runnerObject.FindProperty("variableOverrides");
+                if (overridesProperty == null || !overridesProperty.isArray)
+                {
+                    continue;
+                }
+
+                BlueprintCompiledAsset compiledAsset = runner.CompiledBlueprint;
+                if (compiledAsset == null)
+                {
+                    Debug.LogWarning("[Blueprint] Cannot sync variable overrides for '" + runner.name + "' because it has no compiled blueprint asset.", runner);
+                    continue;
+                }
+
+                SyncOverrideArray(runnerObject, overridesProperty, compiledAsset.Variables);
+                EditorUtility.SetDirty(runner);
+                if (!EditorUtility.IsPersistent(runner) && runner.gameObject.scene.IsValid())
+                {
+                    UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(runner.gameObject.scene);
+                }
+            }
+        }
+
+        private static void SyncOverrideArray(SerializedObject runnerObject, SerializedProperty overridesProperty, IReadOnlyList<BlueprintCompiledVariable> variables)
+        {
+            runnerObject.Update();
+            for (int i = 0; i < variables.Count; i++)
+            {
+                BlueprintCompiledVariable variable = variables[i];
+                if (variable == null || string.IsNullOrEmpty(variable.Name) || !variable.Exposed)
+                {
+                    continue;
+                }
+
+                SerializedProperty entry = FindOverrideEntry(overridesProperty, variable.Id, variable.Name);
+                if (entry == null)
+                {
+                    int newIndex = overridesProperty.arraySize;
+                    overridesProperty.InsertArrayElementAtIndex(newIndex);
+                    entry = overridesProperty.GetArrayElementAtIndex(newIndex);
+                    SetBool(entry, "Enabled", false);
+                    SetString(entry, "JsonValue", string.Empty);
+                }
+
+                SetString(entry, "VariableId", variable.Id);
+                SetString(entry, "Name", variable.Name);
+                SetString(entry, "Type", variable.Type);
+            }
+
+            runnerObject.ApplyModifiedProperties();
+        }
+
+        private static SerializedProperty FindOverrideEntry(SerializedProperty overridesProperty, string variableId, string variableName)
+        {
+            if (!string.IsNullOrEmpty(variableId))
+            {
+                for (int i = 0; i < overridesProperty.arraySize; i++)
+                {
+                    SerializedProperty entry = overridesProperty.GetArrayElementAtIndex(i);
+                    SerializedProperty idProperty = entry.FindPropertyRelative("VariableId");
+                    if (idProperty != null && idProperty.stringValue == variableId)
+                    {
+                        return entry;
+                    }
+                }
+            }
+
+            for (int i = 0; i < overridesProperty.arraySize; i++)
+            {
+                SerializedProperty entry = overridesProperty.GetArrayElementAtIndex(i);
+                SerializedProperty nameProperty = entry.FindPropertyRelative("Name");
+                if (nameProperty != null && nameProperty.stringValue == variableName)
+                {
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        private static SerializedProperty EnsureOverrideEntry(SerializedProperty overridesProperty, BlueprintCompiledVariable variable)
+        {
+            SerializedProperty entry = FindOverrideEntry(overridesProperty, variable.Id, variable.Name);
+            if (entry == null)
+            {
+                int newIndex = overridesProperty.arraySize;
+                overridesProperty.InsertArrayElementAtIndex(newIndex);
+                entry = overridesProperty.GetArrayElementAtIndex(newIndex);
+            }
+
+            SetString(entry, "VariableId", variable.Id);
+            SetString(entry, "Name", variable.Name);
+            SetString(entry, "Type", variable.Type);
+            return entry;
+        }
+
+        private static bool DrawValueField(string blueprintType, string jsonValue, out string editedJson, out string error)
+        {
+            editedJson = jsonValue ?? string.Empty;
+            error = null;
+
+            if (ShouldUseJsonField(blueprintType))
+            {
+                EditorGUI.BeginChangeCheck();
+                string newJson = EditorGUILayout.TextField(jsonValue ?? string.Empty);
+                bool changed = EditorGUI.EndChangeCheck();
+                if (!IsJsonAssignable(newJson, blueprintType, out error))
+                {
+                    // Keep the invalid JSON editable so the user can fix it in place.
+                }
+
+                if (changed)
+                {
+                    editedJson = newJson;
+                }
+
+                return changed;
+            }
+
+            object value;
+            bool valid = TryReadEditableValue(jsonValue, blueprintType, out value, out error);
+            EditorGUI.BeginChangeCheck();
+            object editedValue = DrawTypedValueField(blueprintType, value);
+            bool typedChanged = EditorGUI.EndChangeCheck();
+            if (typedChanged)
+            {
+                editedJson = BlueprintCompiledAssetCompiler.SerializeValueForType(editedValue, blueprintType);
+                error = null;
+            }
+            else if (!valid)
+            {
+                // The row remains editable; changing the field will replace the invalid value.
+            }
+
+            return typedChanged;
+        }
+
+        private static object DrawTypedValueField(string blueprintType, object value)
+        {
+            switch (blueprintType)
+            {
+                case "string":
+                case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
+                    return EditorGUILayout.TextField(value as string ?? string.Empty);
+                case "bool":
+                    return EditorGUILayout.Toggle(value is bool && (bool)value);
+                case "int":
+                    return EditorGUILayout.IntField(Convert.ToInt32(value ?? 0));
+                case "float":
+                    return EditorGUILayout.FloatField(Convert.ToSingle(value ?? 0f));
+                case "Vector2":
+                    return EditorGUILayout.Vector2Field(GUIContent.none, value is Vector2 ? (Vector2)value : Vector2.zero);
+                case "Vector3":
+                    return EditorGUILayout.Vector3Field(GUIContent.none, value is Vector3 ? (Vector3)value : Vector3.zero);
+                case "Vector4":
+                    return EditorGUILayout.Vector4Field(GUIContent.none, value is Vector4 ? (Vector4)value : Vector4.zero);
+                case "Rect":
+                    return EditorGUILayout.RectField(value is Rect ? (Rect)value : Rect.zero);
+                case "Color":
+                    return EditorGUILayout.ColorField(value is Color ? (Color)value : Color.white);
+                default:
+                    Type enumType;
+                    if (BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out enumType) && enumType.IsEnum)
+                    {
+                        string[] names = Enum.GetNames(enumType);
+                        int index = 0;
+                        if (value != null)
+                        {
+                            string current = value.ToString();
+                            for (int i = 0; i < names.Length; i++)
+                            {
+                                if (names[i] == current)
+                                {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        int selected = EditorGUILayout.Popup(index, names);
+                        return Enum.Parse(enumType, names[selected], false);
+                    }
+
+                    return value;
+            }
+        }
+
+        private static bool TryReadEditableValue(string jsonValue, string blueprintType, out object value, out string error)
+        {
+            value = null;
+            error = null;
+            object rawValue;
+            if (!TryDeserializeJson(jsonValue, out rawValue, out error))
+            {
+                value = GetFallbackValue(blueprintType);
+                return false;
+            }
+
+            if (!BlueprintTypeUtility.IsValueAssignableToType(rawValue, blueprintType))
+            {
+                error = "Value is not assignable to " + blueprintType + ".";
+                value = GetFallbackValue(blueprintType);
+                return false;
+            }
+
+            value = CoerceEditorValue(rawValue, blueprintType);
+            return true;
+        }
+
+        private static object CoerceEditorValue(object value, string blueprintType)
+        {
+            switch (blueprintType)
+            {
+                case "string":
+                case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
+                    return BlueprintTypeUtility.ConvertValue(value, typeof(string), string.Empty);
+                case "bool":
+                    return BlueprintTypeUtility.ConvertValue(value, typeof(bool), false);
+                case "int":
+                    return BlueprintTypeUtility.ConvertValue(value, typeof(int), 0);
+                case "float":
+                    return BlueprintTypeUtility.ConvertValue(value, typeof(float), 0f);
+                case "Vector2":
+                    return value is Vector2 ? value : BlueprintTypeUtility.ToVector2(value, Vector2.zero);
+                case "Vector3":
+                    return value is Vector3 ? value : BlueprintTypeUtility.ToVector3(value, Vector3.zero);
+                case "Vector4":
+                    return value is Vector4 ? value : BlueprintTypeUtility.ToVector4(value, Vector4.zero);
+                case "Rect":
+                    return value is Rect ? value : BlueprintTypeUtility.ToRect(value, Rect.zero);
+                case "Color":
+                    return value is Color ? value : ToColor(value, Color.white);
+                default:
+                    Type enumType;
+                    if (BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out enumType) && enumType.IsEnum)
+                    {
+                        return BlueprintTypeUtility.ConvertValue(value, enumType, Activator.CreateInstance(enumType));
+                    }
+
+                    return value;
+            }
+        }
+
+        private static object GetFallbackValue(string blueprintType)
+        {
+            switch (blueprintType)
+            {
+                case "string":
+                case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
+                    return string.Empty;
+                case "bool":
+                    return false;
+                case "int":
+                    return 0;
+                case "float":
+                    return 0f;
+                case "Vector2":
+                    return Vector2.zero;
+                case "Vector3":
+                    return Vector3.zero;
+                case "Vector4":
+                    return Vector4.zero;
+                case "Rect":
+                    return Rect.zero;
+                case "Color":
+                    return Color.white;
+                default:
+                    Type enumType;
+                    if (BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out enumType) && enumType.IsEnum)
+                    {
+                        return Activator.CreateInstance(enumType);
+                    }
+
+                    return null;
+            }
+        }
+
+        private static bool ShouldUseJsonField(string blueprintType)
+        {
+            if (BlueprintArrayUtility.IsArrayType(blueprintType) || BlueprintVariableTypeRegistry.IsCustomType(blueprintType))
+            {
+                return true;
+            }
+
+            Type enumType;
+            return !IsBuiltinEditableType(blueprintType) &&
+                   (!BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out enumType) || !enumType.IsEnum);
+        }
+
+        private static bool IsBuiltinEditableType(string blueprintType)
+        {
+            return blueprintType == "string" ||
+                   blueprintType == "bool" ||
+                   blueprintType == "int" ||
+                   blueprintType == "float" ||
+                   blueprintType == "Vector2" ||
+                   blueprintType == "Vector3" ||
+                   blueprintType == "Vector4" ||
+                   blueprintType == "Rect" ||
+                   blueprintType == "Color" ||
+                   blueprintType == BlueprintVariableTypeRegistry.BlueprintAssetTypeId;
+        }
+
+        private static bool IsJsonAssignable(string jsonValue, string blueprintType, out string error)
+        {
+            error = null;
+            object value;
+            if (!TryDeserializeJson(jsonValue, out value, out error))
+            {
+                return false;
+            }
+
+            if (!BlueprintTypeUtility.IsValueAssignableToType(value, blueprintType))
+            {
+                error = "Value is not assignable to " + blueprintType + ".";
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool TryDeserializeJson(string jsonValue, out object value, out string error)
+        {
+            value = null;
+            error = null;
+            if (string.IsNullOrEmpty(jsonValue))
+            {
+                return true;
+            }
+
+            try
+            {
+                value = BlueprintJson.Deserialize(jsonValue);
+                return true;
+            }
+            catch (BlueprintJsonException exception)
+            {
+                error = "Invalid JSON: " + exception.Message;
+                return false;
+            }
+        }
+
+        private static Color ToColor(object value, Color defaultValue)
+        {
+            if (value is Color)
+            {
+                return (Color)value;
+            }
+
+            System.Collections.IList list = value as System.Collections.IList;
+            if (list == null || (list.Count != 3 && list.Count != 4))
+            {
+                return defaultValue;
+            }
+
+            try
+            {
+                float r = Convert.ToSingle(list[0]);
+                float g = Convert.ToSingle(list[1]);
+                float b = Convert.ToSingle(list[2]);
+                float a = list.Count == 4 ? Convert.ToSingle(list[3]) : 1f;
+                return new Color(r, g, b, a);
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        private static bool IsOverrideEnabled(SerializedProperty entry)
+        {
+            if (entry == null)
+            {
+                return false;
+            }
+
+            SerializedProperty enabledProperty = entry.FindPropertyRelative("Enabled");
+            if (enabledProperty != null && enabledProperty.boolValue)
+            {
+                return true;
+            }
+
+            return string.IsNullOrEmpty(GetString(entry, "VariableId")) &&
+                   !string.IsNullOrEmpty(GetString(entry, "Name")) &&
+                   !string.IsNullOrEmpty(GetString(entry, "JsonValue"));
+        }
+
+        private static string GetString(SerializedProperty parent, string propertyName)
+        {
+            SerializedProperty property = parent == null ? null : parent.FindPropertyRelative(propertyName);
+            return property == null ? null : property.stringValue;
+        }
+
+        private static void SetString(SerializedProperty parent, string propertyName, string value)
+        {
+            SerializedProperty property = parent.FindPropertyRelative(propertyName);
+            if (property != null)
+            {
+                property.stringValue = value;
+            }
+        }
+
+        private static void SetBool(SerializedProperty parent, string propertyName, bool value)
+        {
+            SerializedProperty property = parent.FindPropertyRelative(propertyName);
+            if (property != null)
+            {
+                property.boolValue = value;
+            }
+        }
+    }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetTransformEulerAngles",
+  "title": "Set Transform Euler Angles",
+  "category": "Game/Transform",
+  "description": "Sets world eulerAngles on a bound Transform.",
+  "executor": "Game.SetTransformEulerAngles",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "UIBinding<Transform>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "UIBinding<Transform>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Vector3",
+      "required": false,
+      "defaultValue": [0, 0, 0]
+    }
+  ],
+  "tags": [
+    "transform",
+    "rotation"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "String.Substring",
+  "title": "Substring",
+  "category": "String",
+  "description": "Returns a substring starting at start with optional length; negative length means to the end.",
+  "executor": "String.Substring",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "start",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "length",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "start",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "length",
+      "required": false,
+      "type": "int",
+      "defaultValue": -1
+    }
+  ]
+}

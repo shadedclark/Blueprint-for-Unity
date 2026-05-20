@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ThirdPersonCameraData",
+  "category": "ThirdPersonCamera/Data",
+  "description": "Configuration and runtime state for a local third-person top-down camera.",
+  "variables": [
+    {
+      "id": "var_follow_lerp_speed",
+      "name": "follow_lerp_speed",
+      "type": "float",
+      "defaultValue": 12,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "How quickly the camera rig follows the player target."
+    },
+    {
+      "id": "var_gamepad_yaw_speed",
+      "name": "gamepad_yaw_speed",
+      "type": "float",
+      "defaultValue": 160,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Yaw rotation speed in degrees per second for gamepad right stick input."
+    },
+    {
+      "id": "var_gamepad_pitch_speed",
+      "name": "gamepad_pitch_speed",
+      "type": "float",
+      "defaultValue": 90,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Pitch rotation speed in degrees per second for gamepad right stick input."
+    },
+    {
+      "id": "var_mouse_yaw_sensitivity",
+      "name": "mouse_yaw_sensitivity",
+      "type": "float",
+      "defaultValue": 0.15,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Yaw rotation in degrees per mouse delta unit while the rotate mouse button is held."
+    },
+    {
+      "id": "var_mouse_pitch_sensitivity",
+      "name": "mouse_pitch_sensitivity",
+      "type": "float",
+      "defaultValue": 0.1,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Pitch rotation in degrees per mouse delta unit while the rotate mouse button is held."
+    },
+    {
+      "id": "var_pitch_min",
+      "name": "pitch_min",
+      "type": "float",
+      "defaultValue": 25,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Minimum camera local X pitch angle in degrees."
+    },
+    {
+      "id": "var_pitch_max",
+      "name": "pitch_max",
+      "type": "float",
+      "defaultValue": 70,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Maximum camera local X pitch angle in degrees."
+    },
+    {
+      "id": "var_current_pitch",
+      "name": "current_pitch",
+      "type": "float",
+      "defaultValue": 45,
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Current camera local X pitch angle in degrees."
+    },
+    {
+      "id": "var_look_dead_zone",
+      "name": "look_dead_zone",
+      "type": "float",
+      "defaultValue": 0.05,
+      "scope": "runtime",
+      "exposed": true,
+      "persistent": true,
+      "description": "Minimum look vector length before camera rotation starts."
+    },
+    {
+      "id": "var_current_gamepad_look",
+      "name": "current_gamepad_look",
+      "type": "Vector2",
+      "defaultValue": [
+        0,
+        0
+      ],
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Latest accepted gamepad look input for debugging."
+    },
+    {
+      "id": "var_current_mouse_look",
+      "name": "current_mouse_look",
+      "type": "Vector2",
+      "defaultValue": [
+        0,
+        0
+      ],
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Latest accepted mouse look input for debugging."
+    },
+    {
+      "id": "var_is_rotating",
+      "name": "is_rotating",
+      "type": "bool",
+      "defaultValue": false,
+      "scope": "runtime",
+      "exposed": true,
+      "description": "True during frames where camera rotation input is accepted."
+    }
+  ],
+  "bindings": [],
+  "components": [],
+  "nodes": [],
+  "edges": []
+}

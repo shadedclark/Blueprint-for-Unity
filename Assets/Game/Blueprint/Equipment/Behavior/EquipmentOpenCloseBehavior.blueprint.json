@@ -1,0 +1,704 @@
+{
+  "schemaVersion": "0.1",
+  "name": "EquipmentOpenCloseBehavior",
+  "category": "Equipment/Behavior",
+  "description": "Opens, closes, and refreshes the independent equipment panel.",
+  "variables": [
+    {
+      "id": "var_equipment_data_blueprint",
+      "name": "equipment_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/Data/EquipmentData.blueprint.json"
+    },
+    {
+      "id": "var_equipment_slots_presenter_blueprint",
+      "name": "equipment_slots_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentSlotsPresenter.blueprint.json"
+    },
+    {
+      "id": "var_equipment_stats_presenter_blueprint",
+      "name": "equipment_stats_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatsPresenter.blueprint.json"
+    },
+    {
+      "id": "var_equipment_detail_presenter_blueprint",
+      "name": "equipment_detail_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentDetailPresenter.blueprint.json"
+    },
+    {
+      "id": "var_equipment_status_presenter_blueprint",
+      "name": "equipment_status_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/UI/Presenters/EquipmentStatusPresenter.blueprint.json"
+    },
+    {
+      "id": "var_equipment_stat_recalc_blueprint",
+      "name": "equipment_stat_recalc_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Equipment/Behavior/EquipmentStatRecalcBehavior.blueprint.json"
+    },
+    {
+      "id": "var_inventory_data_blueprint",
+      "name": "inventory_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"
+    },
+    {
+      "id": "var_inventory_header_presenter_blueprint",
+      "name": "inventory_header_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_grid_presenter_blueprint",
+      "name": "inventory_grid_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"
+    },
+    {
+      "id": "var_inventory_detail_presenter_blueprint",
+      "name": "inventory_detail_presenter_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json",
+      "scope": "runtime",
+      "exposed": false,
+      "persistent": false,
+      "description": "Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "equipment_root",
+      "type": "GameObject",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "get_data_0",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_data_blueprint"
+      }
+    },
+    {
+      "id": "event_open_1",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "OpenEquipment"
+      }
+    },
+    {
+      "id": "event_close_2",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "CloseEquipment"
+      }
+    },
+    {
+      "id": "event_refresh_3",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_set_screen_4",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "screen_open",
+        "value": true
+      }
+    },
+    {
+      "id": "open_show_root_5",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_root",
+        "value": true
+      }
+    },
+    {
+      "id": "open_status_6",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "status_message",
+        "value": "Equipment opened."
+      }
+    },
+    {
+      "id": "open_refresh_get_recalc_7",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_stat_recalc_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_recalc_8",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RecalculateStatsRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_eq_slots_9",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_slots_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_eq_slots_10",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_eq_stats_11",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_stats_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_eq_stats_12",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_eq_detail_13",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_eq_detail_14",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_eq_status_15",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_status_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_eq_status_16",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_inv_header_17",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_header_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_inv_header_18",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_inv_grid_19",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_grid_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_inv_grid_20",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "open_refresh_get_inv_detail_21",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "inventory_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "open_refresh_trig_inv_detail_22",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "close_set_screen_23",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "screen_open",
+        "value": false
+      }
+    },
+    {
+      "id": "close_status_24",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "status_message",
+        "value": "Equipment closed."
+      }
+    },
+    {
+      "id": "close_hide_root_25",
+      "typeId": "UI.SetVisible",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "equipment_root",
+        "value": false
+      }
+    },
+    {
+      "id": "refresh_status_26",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "name": "status_message",
+        "value": "Equipment refreshed."
+      }
+    },
+    {
+      "id": "manual_refresh_get_recalc_27",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_stat_recalc_blueprint"
+      }
+    },
+    {
+      "id": "manual_refresh_trig_recalc_28",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RecalculateStatsRequested"
+      }
+    },
+    {
+      "id": "manual_refresh_get_eq_slots_29",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_slots_presenter_blueprint"
+      }
+    },
+    {
+      "id": "manual_refresh_trig_eq_slots_30",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "manual_refresh_get_eq_stats_31",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_stats_presenter_blueprint"
+      }
+    },
+    {
+      "id": "manual_refresh_trig_eq_stats_32",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "manual_refresh_get_eq_detail_33",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_detail_presenter_blueprint"
+      }
+    },
+    {
+      "id": "manual_refresh_trig_eq_detail_34",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "manual_refresh_get_eq_status_35",
+      "typeId": "Variable.Get",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "name": "equipment_status_presenter_blueprint"
+      }
+    },
+    {
+      "id": "manual_refresh_trig_eq_status_36",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "get_data_0.value",
+      "to": "open_set_screen_4.target"
+    },
+    {
+      "from": "get_data_0.value",
+      "to": "open_status_6.target"
+    },
+    {
+      "from": "event_open_1.execOut",
+      "to": "open_set_screen_4.execIn"
+    },
+    {
+      "from": "open_set_screen_4.execOut",
+      "to": "open_show_root_5.execIn"
+    },
+    {
+      "from": "open_show_root_5.execOut",
+      "to": "open_status_6.execIn"
+    },
+    {
+      "from": "open_refresh_get_recalc_7.value",
+      "to": "open_refresh_trig_recalc_8.target"
+    },
+    {
+      "from": "open_refresh_get_eq_slots_9.value",
+      "to": "open_refresh_trig_eq_slots_10.target"
+    },
+    {
+      "from": "open_refresh_get_eq_stats_11.value",
+      "to": "open_refresh_trig_eq_stats_12.target"
+    },
+    {
+      "from": "open_refresh_get_eq_detail_13.value",
+      "to": "open_refresh_trig_eq_detail_14.target"
+    },
+    {
+      "from": "open_refresh_get_eq_status_15.value",
+      "to": "open_refresh_trig_eq_status_16.target"
+    },
+    {
+      "from": "open_refresh_get_inv_header_17.value",
+      "to": "open_refresh_trig_inv_header_18.target"
+    },
+    {
+      "from": "open_refresh_get_inv_grid_19.value",
+      "to": "open_refresh_trig_inv_grid_20.target"
+    },
+    {
+      "from": "open_refresh_get_inv_detail_21.value",
+      "to": "open_refresh_trig_inv_detail_22.target"
+    },
+    {
+      "from": "open_status_6.execOut",
+      "to": "open_refresh_trig_recalc_8.execIn"
+    },
+    {
+      "from": "open_refresh_trig_recalc_8.execOut",
+      "to": "open_refresh_trig_eq_slots_10.execIn"
+    },
+    {
+      "from": "open_refresh_trig_eq_slots_10.execOut",
+      "to": "open_refresh_trig_eq_stats_12.execIn"
+    },
+    {
+      "from": "open_refresh_trig_eq_stats_12.execOut",
+      "to": "open_refresh_trig_eq_detail_14.execIn"
+    },
+    {
+      "from": "open_refresh_trig_eq_detail_14.execOut",
+      "to": "open_refresh_trig_eq_status_16.execIn"
+    },
+    {
+      "from": "open_refresh_trig_eq_status_16.execOut",
+      "to": "open_refresh_trig_inv_header_18.execIn"
+    },
+    {
+      "from": "open_refresh_trig_inv_header_18.execOut",
+      "to": "open_refresh_trig_inv_grid_20.execIn"
+    },
+    {
+      "from": "open_refresh_trig_inv_grid_20.execOut",
+      "to": "open_refresh_trig_inv_detail_22.execIn"
+    },
+    {
+      "from": "get_data_0.value",
+      "to": "close_set_screen_23.target"
+    },
+    {
+      "from": "get_data_0.value",
+      "to": "close_status_24.target"
+    },
+    {
+      "from": "event_close_2.execOut",
+      "to": "close_set_screen_23.execIn"
+    },
+    {
+      "from": "close_set_screen_23.execOut",
+      "to": "close_status_24.execIn"
+    },
+    {
+      "from": "close_status_24.execOut",
+      "to": "close_hide_root_25.execIn"
+    },
+    {
+      "from": "get_data_0.value",
+      "to": "refresh_status_26.target"
+    },
+    {
+      "from": "event_refresh_3.execOut",
+      "to": "refresh_status_26.execIn"
+    },
+    {
+      "from": "manual_refresh_get_recalc_27.value",
+      "to": "manual_refresh_trig_recalc_28.target"
+    },
+    {
+      "from": "manual_refresh_get_eq_slots_29.value",
+      "to": "manual_refresh_trig_eq_slots_30.target"
+    },
+    {
+      "from": "manual_refresh_get_eq_stats_31.value",
+      "to": "manual_refresh_trig_eq_stats_32.target"
+    },
+    {
+      "from": "manual_refresh_get_eq_detail_33.value",
+      "to": "manual_refresh_trig_eq_detail_34.target"
+    },
+    {
+      "from": "manual_refresh_get_eq_status_35.value",
+      "to": "manual_refresh_trig_eq_status_36.target"
+    },
+    {
+      "from": "refresh_status_26.execOut",
+      "to": "manual_refresh_trig_recalc_28.execIn"
+    },
+    {
+      "from": "manual_refresh_trig_recalc_28.execOut",
+      "to": "manual_refresh_trig_eq_slots_30.execIn"
+    },
+    {
+      "from": "manual_refresh_trig_eq_slots_30.execOut",
+      "to": "manual_refresh_trig_eq_stats_32.execIn"
+    },
+    {
+      "from": "manual_refresh_trig_eq_stats_32.execOut",
+      "to": "manual_refresh_trig_eq_detail_34.execIn"
+    },
+    {
+      "from": "manual_refresh_trig_eq_detail_34.execOut",
+      "to": "manual_refresh_trig_eq_status_36.execIn"
+    }
+  ]
+}

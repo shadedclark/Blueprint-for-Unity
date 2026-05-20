@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Abs",
+  "title": "Abs",
+  "category": "Math",
+  "description": "Returns the absolute value.",
+  "executor": "Math.Abs",
+  "inputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "value",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: PlayerMovementController.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: PlayerMovementController
+  sourceGuid: a74d38071524c45ddab65d8cd1511e3d
+  sourcePath: Assets/Game/Blueprint/PlayerMovement/Behavior/PlayerMovementController.blueprint.json
+  sourceHash: 43bdda98d1970a653feefea150cf9a8fb9839df3559efcd83594089f51ad7ef9
+  manifestHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  variables: []
+  bindings:
+  - Name: player_transform
+    Type: Transform
+    Required: 1
+  components:
+  - Name: PlayerMovementData
+    BlueprintPath: Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json
+    BlueprintGuid: a77117dad45b14afbb0fd8051100079d
+    Required: 1
+    CompiledBlueprint: {fileID: 11400000, guid: 80e49182fa121492fb7c3bdd3850632f, type: 2}
+  - Name: PlayerMovementBehavior
+    BlueprintPath: Assets/Game/Blueprint/PlayerMovement/Behavior/PlayerMovementBehavior.blueprint.json
+    BlueprintGuid: 098192506344845e787ea24aad615b97
+    Required: 1
+    CompiledBlueprint: {fileID: 11400000, guid: 39258c694602040ff8f0254b3151260d, type: 2}
+  nodes: []
+  execEdges: []
+  valueEdges: []
+  eventEntries: []

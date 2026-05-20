@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: InventoryConfirmPresenter.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: InventoryConfirmPresenter
+  sourceGuid: 4194d52e3ab2b44dcacc9fae4efe8702
+  sourcePath: Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json
+  sourceHash: 1f05a635cbac3841a6b63baa717750b2e9ea63e13c19516ba02d3db6667aed48
+  manifestHash: f06d1fbf51bde2644dff48ff98a29d78b6ba378d61bbd3d64df19db756ef0223
+  variables:
+  - Id: var_inventory_data_blueprint
+    Name: inventory_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json
+  bindings:
+  - Name: inventory_confirm_root
+    Type: GameObject
+    Required: 1
+  - Name: inventory_confirm_message_text
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_refresh
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+  - Id: get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: get_confirm_visible
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"confirm_drop_visible"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: set_confirm_message
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_confirm_message_text"'
+    - Id: value
+      JsonValue: '"Drop selected item? This cannot be undone."'
+  - Id: branch_visible
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: show_confirm
+    TypeId: UI.SetVisible
+    ExecutorId: UI.SetVisible
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_confirm_root"'
+    - Id: value
+      JsonValue: true
+  - Id: hide_confirm
+    TypeId: UI.SetVisible
+    ExecutorId: UI.SetVisible
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_confirm_root"'
+    - Id: value
+      JsonValue: false
+  execEdges:
+  - FromNodeId: branch_visible
+    FromPortId: false
+    ToNodeId: hide_confirm
+    ToPortId: execIn
+  - FromNodeId: branch_visible
+    FromPortId: true
+    ToNodeId: show_confirm
+    ToPortId: execIn
+  - FromNodeId: event_refresh
+    FromPortId: execOut
+    ToNodeId: set_confirm_message
+    ToPortId: execIn
+  - FromNodeId: set_confirm_message
+    FromPortId: execOut
+    ToNodeId: branch_visible
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_confirm_visible
+    FromPortId: value
+    ToNodeId: branch_visible
+    ToPortId: condition
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: get_confirm_visible
+    ToPortId: target
+  eventEntries:
+  - EventName: RefreshRequested
+    NodeId: event_refresh

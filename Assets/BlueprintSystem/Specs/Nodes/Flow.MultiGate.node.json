@@ -1,0 +1,103 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Flow.MultiGate",
+  "title": "Multi Gate",
+  "category": "Flow",
+  "description": "Routes each execution to one of up to eight output pins in sequence or random order.",
+  "executor": "Flow.MultiGate",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "reset",
+      "kind": "exec"
+    },
+    {
+      "id": "outputCount",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "startIndex",
+      "kind": "value",
+      "type": "int",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "loop",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "random",
+      "kind": "value",
+      "type": "bool",
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "out0",
+      "kind": "exec"
+    },
+    {
+      "id": "out1",
+      "kind": "exec"
+    },
+    {
+      "id": "out2",
+      "kind": "exec"
+    },
+    {
+      "id": "out3",
+      "kind": "exec"
+    },
+    {
+      "id": "out4",
+      "kind": "exec"
+    },
+    {
+      "id": "out5",
+      "kind": "exec"
+    },
+    {
+      "id": "out6",
+      "kind": "exec"
+    },
+    {
+      "id": "out7",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "outputCount",
+      "required": false,
+      "type": "int",
+      "defaultValue": 2
+    },
+    {
+      "id": "startIndex",
+      "required": false,
+      "type": "int",
+      "defaultValue": 0
+    },
+    {
+      "id": "loop",
+      "required": false,
+      "type": "bool",
+      "defaultValue": false
+    },
+    {
+      "id": "random",
+      "required": false,
+      "type": "bool",
+      "defaultValue": false
+    }
+  ]
+}
