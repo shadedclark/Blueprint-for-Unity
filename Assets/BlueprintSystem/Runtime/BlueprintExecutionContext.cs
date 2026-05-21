@@ -10,6 +10,7 @@ namespace BlueprintSystem
         private readonly HashSet<BlueprintPortKey> _evaluationStack = new HashSet<BlueprintPortKey>();
         private readonly Dictionary<string, object> _state = new Dictionary<string, object>();
         private readonly Action<RuntimeNode, string> _executeFromOutput;
+        private int _executionGeneration = 1;
 
         public RuntimeBlueprint Blueprint { get; private set; }
         public IBlueprintInstance Instance { get; private set; }
@@ -21,6 +22,10 @@ namespace BlueprintSystem
         public IBlueprintEventBus EventBus { get; private set; }
         public IBlueprintLogger Logger { get; private set; }
         public string CurrentExecInputPortId { get; private set; }
+        public int ExecutionGeneration
+        {
+            get { return _executionGeneration; }
+        }
 
         public BlueprintExecutionContext(
             RuntimeBlueprint blueprint,
@@ -177,6 +182,23 @@ namespace BlueprintSystem
         public void RemoveState(string key)
         {
             _state.Remove(key);
+        }
+
+        public void InvalidateScheduledExecution()
+        {
+            unchecked
+            {
+                _executionGeneration++;
+                if (_executionGeneration == 0)
+                {
+                    _executionGeneration = 1;
+                }
+            }
+        }
+
+        public bool IsExecutionGenerationCurrent(int generation)
+        {
+            return _executionGeneration == generation;
         }
 
         private static string CreateLoopValueKey(RuntimeNode node, string outputPortId)

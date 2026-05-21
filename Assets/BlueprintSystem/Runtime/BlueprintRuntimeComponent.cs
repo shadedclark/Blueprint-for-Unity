@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -73,35 +74,140 @@ namespace BlueprintSystem
 
         public bool Compile()
         {
-            if (_compiledBlueprint == null)
+            return Compile(null, false, true);
+        }
+
+        internal bool Compile(BlueprintReloadSnapshot snapshot, bool preserveVariables, bool log)
+        {
+            BlueprintRuntimeState state;
+            if (!TryCreateRuntimeState(snapshot, preserveVariables, log, out state))
             {
-                _logger.Warning("[Blueprint] Missing compiled component blueprint asset for " + _name + ".");
                 return false;
             }
 
-            RuntimeBlueprint runtimeBlueprint = _compiledBlueprint.CreateRuntimeBlueprint(BlueprintExecutorRegistry.CreateDefault());
+            InvalidateRuntimeState();
+            ApplyRuntimeState(state);
+            return true;
+        }
+
+        public bool ReloadBlueprint(BlueprintReloadOptions options = null)
+        {
+            options = options ?? new BlueprintReloadOptions();
+            BlueprintReloadSnapshot snapshot = options.PreserveVariables ? CaptureReloadSnapshot() : null;
+
+            BlueprintRuntimeState state;
+            if (!TryCreateRuntimeState(snapshot, options.PreserveVariables, options.Log, out state))
+            {
+                return false;
+            }
+
+            InvalidateRuntimeState();
+            ApplyRuntimeState(state);
+
+            if (options.Log)
+            {
+                _logger.Log("Hot reloaded component " + _name + ".");
+            }
+
+            if (options.TriggerReloadEvent)
+            {
+                TriggerLifecycleEvent("OnReload");
+            }
+
+            return true;
+        }
+
+        internal BlueprintReloadSnapshot CaptureReloadSnapshot()
+        {
+            return BlueprintReloadUtility.Capture(
+                _blueprint,
+                _context == null ? null : _context.Variables,
+                _componentsByName);
+        }
+
+        internal void InvalidateRuntimeState()
+        {
+            if (_context != null)
+            {
+                _context.InvalidateScheduledExecution();
+            }
+
+            foreach (IBlueprintInstance component in _componentsByName.Values)
+            {
+                BlueprintRuntimeComponent runtimeComponent = component as BlueprintRuntimeComponent;
+                if (runtimeComponent != null)
+                {
+                    runtimeComponent.InvalidateRuntimeState();
+                }
+            }
+        }
+
+        private bool TryCreateRuntimeState(
+            BlueprintReloadSnapshot snapshot,
+            bool preserveVariables,
+            bool log,
+            out BlueprintRuntimeState state)
+        {
+            state = null;
+            if (_compiledBlueprint == null)
+            {
+                if (log)
+                {
+                    _logger.Warning("[Blueprint] Missing compiled component blueprint asset for " + _name + ".");
+                }
+
+                return false;
+            }
+
+            RuntimeBlueprint runtimeBlueprint;
+            try
+            {
+                runtimeBlueprint = _compiledBlueprint.CreateRuntimeBlueprint(BlueprintExecutorRegistry.CreateDefault());
+            }
+            catch (Exception exception)
+            {
+                if (log)
+                {
+                    _logger.Error("[Blueprint] Compile failed for component " + _name + "\n" + exception.Message);
+                }
+
+                return false;
+            }
+
             BlueprintDiagnosticList diagnostics = ValidateRuntimeBlueprint(runtimeBlueprint);
             if (diagnostics.HasErrors)
             {
-                _logger.Error("[Blueprint] Compile failed for component " + _name + "\n" + diagnostics.ToDisplayString());
+                if (log)
+                {
+                    _logger.Error("[Blueprint] Compile failed for component " + _name + "\n" + diagnostics.ToDisplayString());
+                }
+
                 return false;
             }
 
-            _blueprint = runtimeBlueprint;
-            _vm = new BlueprintVM();
-            _context = new BlueprintExecutionContext(
-                _blueprint,
+            IBlueprintVariableStore variables = new DictionaryBlueprintVariableStore(runtimeBlueprint);
+            if (preserveVariables)
+            {
+                BlueprintReloadUtility.RestoreVariables(runtimeBlueprint, variables, snapshot);
+            }
+
+            BlueprintRuntimeState newState = new BlueprintRuntimeState();
+            newState.Blueprint = runtimeBlueprint;
+            newState.Vm = new BlueprintVM();
+            newState.Context = new BlueprintExecutionContext(
+                runtimeBlueprint,
                 _owner,
                 _ownerComponent,
                 _bindingResolver,
-                new DictionaryBlueprintVariableStore(_blueprint),
+                variables,
                 new ActionBlueprintEventBus(TriggerEvent),
                 _logger,
                 ExecuteFromOutput,
                 this,
                 _ownerInstance);
 
-            BuildComponents();
+            BuildComponents(newState, snapshot, preserveVariables, log);
+            state = newState;
             return true;
         }
 
@@ -172,17 +278,28 @@ namespace BlueprintSystem
             }
         }
 
-        private void BuildComponents()
+        private void ApplyRuntimeState(BlueprintRuntimeState state)
         {
-            _componentsByName.Clear();
-            if (_blueprint == null)
+            _blueprint = state.Blueprint;
+            _vm = state.Vm;
+            _context = state.Context;
+            BlueprintReloadUtility.ReplaceComponents(_componentsByName, state.ComponentsByName);
+        }
+
+        private void BuildComponents(
+            BlueprintRuntimeState state,
+            BlueprintReloadSnapshot snapshot,
+            bool preserveVariables,
+            bool log)
+        {
+            if (state == null || state.Blueprint == null)
             {
                 return;
             }
 
-            for (int i = 0; i < _blueprint.Components.Count; i++)
+            for (int i = 0; i < state.Blueprint.Components.Count; i++)
             {
-                BlueprintComponentDeclaration declaration = _blueprint.Components[i];
+                BlueprintComponentDeclaration declaration = state.Blueprint.Components[i];
                 if (declaration == null || string.IsNullOrEmpty(declaration.Name) || declaration.CompiledBlueprint == null)
                 {
                     continue;
@@ -197,9 +314,15 @@ namespace BlueprintSystem
                     _bindingResolver,
                     _logger);
 
-                if (component.Compile())
+                BlueprintReloadSnapshot componentSnapshot = null;
+                if (preserveVariables && snapshot != null)
                 {
-                    _componentsByName[declaration.Name] = component;
+                    snapshot.TryGetComponent(declaration.Name, out componentSnapshot);
+                }
+
+                if (component.Compile(componentSnapshot, preserveVariables, log))
+                {
+                    state.ComponentsByName[declaration.Name] = component;
                 }
             }
         }

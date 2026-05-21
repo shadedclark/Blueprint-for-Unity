@@ -5,17 +5,17 @@
   "description": "Configuration and runtime state for local player ground movement.",
   "variables": [
     {
-      "id": "var_abf424c6735445f7a048f7c3a521e34e",
+      "id": "var_9b8f504c17b94128bc3b9438bc8b1062",
       "name": "move_speed",
       "type": "float",
-      "defaultValue": 1,
+      "defaultValue": 10,
       "scope": "runtime",
       "exposed": true,
       "persistent": true,
       "description": "World units per second for base ground movement."
     },
     {
-      "id": "var_b50164b3980a45869182ee16105cfaba",
+      "id": "var_92c352d91bb943829131d2655eb96629",
       "name": "input_dead_zone",
       "type": "float",
       "defaultValue": 0.1,
@@ -25,7 +25,7 @@
       "description": "Minimum Player/Move vector length before movement starts."
     },
     {
-      "id": "var_3e115028cb19476fa2f0c7932cf5fe3e",
+      "id": "var_a4aaaf767f1a488f83abad889418e73d",
       "name": "rotate_to_move_direction",
       "type": "bool",
       "defaultValue": false,
@@ -35,7 +35,7 @@
       "description": "When true, the player instantly faces the current movement direction."
     },
     {
-      "id": "var_7605c2d7106b4db38be2b01882fd3f2e",
+      "id": "var_8c1714f35224422692e59740a1f6f99e",
       "name": "turn_speed",
       "type": "float",
       "defaultValue": 720,
@@ -45,7 +45,7 @@
       "description": "Reserved turn speed in degrees per second for future smoothed rotation."
     },
     {
-      "id": "var_364cdf7c2fbb4b8bb487816dd89c5353",
+      "id": "var_afdb4ebf69174ea2b5dc1a13eb8afae1",
       "name": "current_input",
       "type": "Vector2",
       "defaultValue": [
@@ -57,7 +57,7 @@
       "description": "Latest accepted Player/Move input vector after dead-zone filtering."
     },
     {
-      "id": "var_27122e4d462c4999923779abefbe1798",
+      "id": "var_74a35292ddef4cb09a659aee78b21c29",
       "name": "current_move_direction",
       "type": "Vector3",
       "defaultValue": [
@@ -70,7 +70,7 @@
       "description": "Normalized world-space movement direction on the XZ plane."
     },
     {
-      "id": "var_b1bdcab43b994b448460946d1a70b95f",
+      "id": "var_fe5de0ec1512423f9646e9aa2d117ae1",
       "name": "is_moving",
       "type": "bool",
       "defaultValue": false,

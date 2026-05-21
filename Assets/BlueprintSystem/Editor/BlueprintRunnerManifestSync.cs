@@ -910,6 +910,333 @@ namespace BlueprintSystem.Editor
         }
     }
 
+    internal sealed class BlueprintHotReloadAssetPostprocessor : AssetPostprocessor
+    {
+        private static void OnPostprocessAllAssets(
+            string[] importedAssets,
+            string[] deletedAssets,
+            string[] movedAssets,
+            string[] movedFromAssetPaths,
+            bool didDomainReload)
+        {
+            BlueprintHotReloadService.OnAssetsChanged(importedAssets, deletedAssets, movedAssets);
+        }
+    }
+
+    [InitializeOnLoad]
+    internal static class BlueprintHotReloadService
+    {
+        private const string EditorPrefsKey = "BlueprintSystem.HotReloadInPlayMode";
+        private const string MenuPath = "Tools/Blueprint System/Hot Reload In Play Mode";
+        private static readonly HashSet<string> PendingBlueprintPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private static bool _pendingManifestRecompile;
+        private static bool _flushScheduled;
+
+        static BlueprintHotReloadService()
+        {
+        }
+
+        public static bool IsEnabled
+        {
+            get { return !Application.isBatchMode && (!EditorPrefs.HasKey(EditorPrefsKey) || EditorPrefs.GetBool(EditorPrefsKey, true)); }
+        }
+
+        [MenuItem(MenuPath)]
+        private static void ToggleHotReload()
+        {
+            EditorPrefs.SetBool(EditorPrefsKey, !IsEnabled);
+        }
+
+        [MenuItem(MenuPath, true)]
+        private static bool ToggleHotReloadValidate()
+        {
+            Menu.SetChecked(MenuPath, IsEnabled);
+            return true;
+        }
+
+        internal static void OnAssetsChanged(string[] importedAssets, string[] deletedAssets, string[] movedAssets)
+        {
+            if (!IsEnabled)
+            {
+                return;
+            }
+
+            bool changed = false;
+            changed |= AddChangedPaths(importedAssets, false);
+            changed |= AddChangedPaths(movedAssets, false);
+            changed |= AddChangedPaths(deletedAssets, true);
+            if (changed)
+            {
+                ScheduleFlush();
+            }
+        }
+
+        internal static bool CompileAndReload(BlueprintRunner runner, bool triggerReloadEvent)
+        {
+            if (runner == null)
+            {
+                return false;
+            }
+
+            BlueprintCompiledAsset compiledAsset = runner.CompiledBlueprint;
+            if (compiledAsset == null)
+            {
+                Debug.LogWarning("[Blueprint] Cannot compile and reload '" + runner.name + "' because it has no compiled blueprint asset.", runner);
+                return false;
+            }
+
+            string sourcePath = BlueprintCompiledAssetCompiler.GetCompiledAssetSourcePath(compiledAsset);
+            if (string.IsNullOrEmpty(sourcePath))
+            {
+                Debug.LogWarning("[Blueprint] Cannot compile and reload '" + runner.name + "' because the compiled asset has no source blueprint path.", runner);
+                return false;
+            }
+
+            BlueprintCompiledAsset recompiledAsset;
+            if (!BlueprintCompiledAssetCompiler.CompileBlueprintAtPath(sourcePath, true, out recompiledAsset))
+            {
+                return false;
+            }
+
+            if (Application.isPlaying)
+            {
+                return runner.ReloadBlueprint(new BlueprintReloadOptions
+                {
+                    PreserveVariables = true,
+                    TriggerReloadEvent = triggerReloadEvent,
+                    Log = true
+                });
+            }
+
+            Debug.Log("[Blueprint] Compiled '" + sourcePath + "' for '" + runner.name + "'.", runner);
+            return true;
+        }
+
+        internal static bool RunnerReferencesAnySourcePath(BlueprintRunner runner, HashSet<string> sourcePaths)
+        {
+            if (runner == null || sourcePaths == null || sourcePaths.Count == 0)
+            {
+                return false;
+            }
+
+            HashSet<string> normalizedSourcePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string sourcePath in sourcePaths)
+            {
+                normalizedSourcePaths.Add(NormalizeAssetPath(sourcePath));
+            }
+
+            return CompiledAssetReferencesAnySourcePath(
+                runner.CompiledBlueprint,
+                normalizedSourcePaths,
+                new HashSet<int>());
+        }
+
+        private static bool AddChangedPaths(string[] paths, bool deleted)
+        {
+            bool changed = false;
+            if (paths == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < paths.Length; i++)
+            {
+                string path = NormalizeAssetPath(paths[i]);
+                if (IsBlueprintJsonPath(path) && !deleted)
+                {
+                    PendingBlueprintPaths.Add(path);
+                    changed = true;
+                }
+                else if (IsNodeManifestPath(path))
+                {
+                    _pendingManifestRecompile = true;
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
+        private static void ScheduleFlush()
+        {
+            if (_flushScheduled)
+            {
+                return;
+            }
+
+            _flushScheduled = true;
+            EditorApplication.delayCall += FlushPendingChanges;
+        }
+
+        private static void FlushPendingChanges()
+        {
+            _flushScheduled = false;
+
+            HashSet<string> blueprintPaths = new HashSet<string>(PendingBlueprintPaths, StringComparer.OrdinalIgnoreCase);
+            bool recompileAll = _pendingManifestRecompile;
+            PendingBlueprintPaths.Clear();
+            _pendingManifestRecompile = false;
+
+            if (recompileAll)
+            {
+                AddAllBlueprintPaths(blueprintPaths);
+            }
+
+            if (blueprintPaths.Count == 0)
+            {
+                return;
+            }
+
+            HashSet<string> recompiledSourcePaths = CompileBlueprints(blueprintPaths);
+            if (Application.isPlaying && recompiledSourcePaths.Count > 0)
+            {
+                ReloadAffectedRunners(recompiledSourcePaths);
+            }
+        }
+
+        private static HashSet<string> CompileBlueprints(HashSet<string> blueprintPaths)
+        {
+            HashSet<string> recompiledSourcePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            List<string> sortedPaths = new List<string>(blueprintPaths);
+            sortedPaths.Sort(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < sortedPaths.Count; i++)
+            {
+                string path = sortedPaths[i];
+                if (!IsBlueprintJsonPath(path) || AssetDatabase.LoadAssetAtPath<TextAsset>(path) == null)
+                {
+                    continue;
+                }
+
+                BlueprintCompiledAsset compiledAsset;
+                if (!BlueprintCompiledAssetCompiler.CompileBlueprintAtPath(path, true, out compiledAsset) || compiledAsset == null)
+                {
+                    continue;
+                }
+
+                string sourcePath = BlueprintCompiledAssetCompiler.GetCompiledAssetSourcePath(compiledAsset);
+                recompiledSourcePaths.Add(NormalizeAssetPath(string.IsNullOrEmpty(sourcePath) ? path : sourcePath));
+            }
+
+            return recompiledSourcePaths;
+        }
+
+        private static void ReloadAffectedRunners(HashSet<string> recompiledSourcePaths)
+        {
+            BlueprintRunner[] runners = Resources.FindObjectsOfTypeAll<BlueprintRunner>();
+            int reloaded = 0;
+            for (int i = 0; i < runners.Length; i++)
+            {
+                BlueprintRunner runner = runners[i];
+                if (runner == null || EditorUtility.IsPersistent(runner) || !runner.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                if (!RunnerReferencesAnySourcePath(runner, recompiledSourcePaths))
+                {
+                    continue;
+                }
+
+                if (runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = true }))
+                {
+                    reloaded++;
+                }
+            }
+
+            if (reloaded > 0)
+            {
+                Debug.Log("[Blueprint] Hot reloaded " + reloaded + " runner(s).");
+            }
+        }
+
+        private static void AddAllBlueprintPaths(HashSet<string> paths)
+        {
+            string[] guids = AssetDatabase.FindAssets("t:TextAsset");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = NormalizeAssetPath(AssetDatabase.GUIDToAssetPath(guids[i]));
+                if (IsBlueprintJsonPath(path))
+                {
+                    paths.Add(path);
+                }
+            }
+        }
+
+        private static bool CompiledAssetReferencesAnySourcePath(
+            BlueprintCompiledAsset compiledAsset,
+            HashSet<string> sourcePaths,
+            HashSet<int> visited)
+        {
+            if (compiledAsset == null)
+            {
+                return false;
+            }
+
+            int instanceId = compiledAsset.GetInstanceID();
+            if (visited.Contains(instanceId))
+            {
+                return false;
+            }
+
+            visited.Add(instanceId);
+
+            string sourcePath = NormalizeAssetPath(BlueprintCompiledAssetCompiler.GetCompiledAssetSourcePath(compiledAsset));
+            if (!string.IsNullOrEmpty(sourcePath) && sourcePaths.Contains(sourcePath))
+            {
+                return true;
+            }
+
+            IReadOnlyList<BlueprintCompiledComponent> components = compiledAsset.Components;
+            for (int i = 0; i < components.Count; i++)
+            {
+                BlueprintCompiledComponent component = components[i];
+                if (component == null)
+                {
+                    continue;
+                }
+
+                string componentPath = NormalizeAssetPath(component.BlueprintPath);
+                if (!string.IsNullOrEmpty(componentPath) && sourcePaths.Contains(componentPath))
+                {
+                    return true;
+                }
+
+                if (!string.IsNullOrEmpty(component.BlueprintGuid))
+                {
+                    string guidPath = NormalizeAssetPath(AssetDatabase.GUIDToAssetPath(component.BlueprintGuid));
+                    if (!string.IsNullOrEmpty(guidPath) && sourcePaths.Contains(guidPath))
+                    {
+                        return true;
+                    }
+                }
+
+                if (CompiledAssetReferencesAnySourcePath(component.CompiledBlueprint, sourcePaths, visited))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsBlueprintJsonPath(string path)
+        {
+            return !string.IsNullOrEmpty(path) && path.EndsWith(".blueprint.json", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsNodeManifestPath(string path)
+        {
+            return !string.IsNullOrEmpty(path) &&
+                   path.StartsWith("Assets/BlueprintSystem/Specs/Nodes/", StringComparison.OrdinalIgnoreCase) &&
+                   path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeAssetPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
+        }
+    }
+
     internal sealed class BlueprintCompiledAssetBuildPreprocessor : IPreprocessBuildWithReport
     {
         public int callbackOrder
@@ -975,11 +1302,17 @@ namespace BlueprintSystem.Editor
 
             EditorGUILayout.Space();
             bool syncClicked = GUILayout.Button("Sync Exposed Variable Overrides");
+            bool compileReloadClicked = GUILayout.Button(Application.isPlaying ? "Compile & Reload" : "Compile Blueprint");
 
             serializedObject.ApplyModifiedProperties();
             if (syncClicked)
             {
                 SyncVariableOverrides();
+            }
+
+            if (compileReloadClicked)
+            {
+                CompileAndReloadTargets();
             }
         }
 
@@ -1108,6 +1441,18 @@ namespace BlueprintSystem.Editor
                 if (!EditorUtility.IsPersistent(runner) && runner.gameObject.scene.IsValid())
                 {
                     UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(runner.gameObject.scene);
+                }
+            }
+        }
+
+        private void CompileAndReloadTargets()
+        {
+            for (int i = 0; i < targets.Length; i++)
+            {
+                BlueprintRunner runner = targets[i] as BlueprintRunner;
+                if (runner != null)
+                {
+                    BlueprintHotReloadService.CompileAndReload(runner, false);
                 }
             }
         }

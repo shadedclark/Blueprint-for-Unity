@@ -16,10 +16,10 @@ MonoBehaviour:
   blueprintName: PlayerMovementBehavior
   sourceGuid: 098192506344845e787ea24aad615b97
   sourcePath: Assets/Game/Blueprint/PlayerMovement/Behavior/PlayerMovementBehavior.blueprint.json
-  sourceHash: ada84cf02d479b725c74cce62c5134ab470da68d82c94a516b434a06fff34716
+  sourceHash: 557bcd0b34ed165ad9185ff7269c786ba2b0cfb1d33be21e97663bf6bbc86892
   manifestHash: 208a0685579a81973bec00ea1c9a987e481edc234c5e9c0ca0179450451f9e2a
   variables:
-  - Id: var_player_movement_data_blueprint
+  - Id: var_0b628bedd5754a4f836fdc9e90b9d9e0
     Name: player_movement_data_blueprint
     Type: Blueprint
     DefaultValueJson: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
@@ -67,7 +67,7 @@ MonoBehaviour:
     Properties:
     - Id: value
       JsonValue: '[0,0,0]'
-  - Id: get_data_blueprint
+  - Id: get_player_movement_data_blueprint
     TypeId: Variable.Get
     ExecutorId: Variable.Get
     Properties:
@@ -185,6 +185,8 @@ MonoBehaviour:
     TypeId: Game.LookAtTransform
     ExecutorId: Game.LookAtTransform
     Properties:
+    - Id: lookTarget
+      JsonValue: '""'
     - Id: target
       JsonValue: '"player_transform"'
     - Id: targetPosition
@@ -299,42 +301,6 @@ MonoBehaviour:
     FromPortId: result
     ToNodeId: branch_has_input
     ToPortId: condition
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: get_dead_zone
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: get_move_speed
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: get_rotate_enabled
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: set_current_input_active
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: set_current_input_zero
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: set_is_moving_false
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: set_is_moving_true
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: set_move_direction_active
-    ToPortId: target
-  - FromNodeId: get_data_blueprint
-    FromPortId: value
-    ToNodeId: set_move_direction_zero
-    ToPortId: target
   - FromNodeId: get_dead_zone
     FromPortId: value
     ToNodeId: compare_input_dead_zone
@@ -359,6 +325,42 @@ MonoBehaviour:
     FromPortId: value
     ToNodeId: multiply_speed_delta
     ToPortId: a
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: get_dead_zone
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: get_move_speed
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: get_rotate_enabled
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_input_active
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: set_current_input_zero
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_moving_false
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: set_is_moving_true
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: set_move_direction_active
+    ToPortId: target
+  - FromNodeId: get_player_movement_data_blueprint
+    FromPortId: value
+    ToNodeId: set_move_direction_zero
+    ToPortId: target
   - FromNodeId: get_player_position
     FromPortId: value
     ToNodeId: make_look_target_position

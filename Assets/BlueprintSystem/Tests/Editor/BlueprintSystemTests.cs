@@ -39,6 +39,46 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void ValidatorAcceptsEmptyOptionalBinding()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "OptionalBindingTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration
+            {
+                Name = "Actor",
+                Type = "Transform",
+                Required = true
+            });
+
+            BlueprintNodeSource lookAt = AddNode(source, "look_at_position", "Game.LookAtTransform");
+            lookAt.Properties["target"] = "Actor";
+            lookAt.Properties["lookTarget"] = string.Empty;
+            lookAt.Properties["targetPosition"] = new List<object> { 0f, 0f, 1f };
+            lookAt.Properties["worldUp"] = new List<object> { 0f, 1f, 0f };
+
+            BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+            Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void ValidatorReportsEmptyRequiredBinding()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "RequiredBindingTest";
+
+            BlueprintNodeSource setPosition = AddNode(source, "set_position", "Game.SetTransformPosition");
+            setPosition.Properties["target"] = string.Empty;
+            setPosition.Properties["value"] = new List<object> { 0f, 0f, 0f };
+
+            BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+            Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BP005"), diagnostics.ToDisplayString());
+        }
+
+        [Test]
         public void SourceMapperPreservesVariableMetadata()
         {
             BlueprintSource source = LoadBlueprint("Assets/BlueprintSystem/Sources/UI/InventoryPanel.blueprint.json");
@@ -351,6 +391,410 @@ namespace BlueprintSystem.Tests
                 if (gameObject != null)
                 {
                     Object.DestroyImmediate(gameObject);
+                }
+            }
+        }
+
+        [Test]
+        public void RunnerReloadPreservesVariablesById()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset compiledAsset = null;
+
+            try
+            {
+                compiledAsset = CreateVariableOnlyCompiledAsset(
+                    "ReloadVariableTest",
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadVariableTest.blueprint.json",
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "score-id",
+                        Name = "score",
+                        Type = "int",
+                        DefaultValueJson = BlueprintJson.Serialize(1, false)
+                    });
+
+                gameObject = new GameObject("ReloadVariableRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", compiledAsset);
+
+                Assert.True(runner.Compile());
+                Assert.True(runner.TrySetVariable("score", 42));
+
+                SetVariableOnlyCompiledData(
+                    compiledAsset,
+                    "ReloadVariableTest",
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadVariableTest.blueprint.json",
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "score-id",
+                        Name = "renamedScore",
+                        Type = "int",
+                        DefaultValueJson = BlueprintJson.Serialize(0, false)
+                    });
+
+                Assert.True(runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = false }));
+
+                object value;
+                Assert.True(runner.TryGetVariable("renamedScore", out value));
+                Assert.AreEqual(42, value);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (compiledAsset != null)
+                {
+                    Object.DestroyImmediate(compiledAsset);
+                }
+            }
+        }
+
+        [Test]
+        public void RunnerReloadUsesNewDefaultForUnchangedVariable()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset compiledAsset = null;
+
+            try
+            {
+                compiledAsset = CreateVariableOnlyCompiledAsset(
+                    "ReloadDefaultTest",
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadDefaultTest.blueprint.json",
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "speed-id",
+                        Name = "move_speed",
+                        Type = "float",
+                        DefaultValueJson = BlueprintJson.Serialize(10f, false)
+                    });
+
+                gameObject = new GameObject("ReloadDefaultRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", compiledAsset);
+
+                Assert.True(runner.Compile());
+
+                SetVariableOnlyCompiledData(
+                    compiledAsset,
+                    "ReloadDefaultTest",
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadDefaultTest.blueprint.json",
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "speed-id",
+                        Name = "move_speed",
+                        Type = "float",
+                        DefaultValueJson = BlueprintJson.Serialize(1f, false)
+                    });
+
+                Assert.True(runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = false }));
+
+                object value;
+                Assert.True(runner.TryGetVariable("move_speed", out value));
+                Assert.AreEqual(1f, value);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (compiledAsset != null)
+                {
+                    Object.DestroyImmediate(compiledAsset);
+                }
+            }
+        }
+
+        [Test]
+        public void RunnerReloadFailureKeepsPreviousRuntime()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset compiledAsset = null;
+
+            try
+            {
+                compiledAsset = CreateSetBoolCompiledAsset(
+                    "ReloadFailureTest",
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadFailureTest.blueprint.json",
+                    "fired",
+                    "OnStart");
+
+                gameObject = new GameObject("ReloadFailureRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", compiledAsset);
+
+                Assert.True(runner.Compile());
+                SetInvalidCompiledData(compiledAsset, "ReloadFailureTest", "Assets/BlueprintSystem/Tests/Editor/ReloadFailureTest.blueprint.json");
+
+                Assert.False(runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = false }));
+                runner.TriggerEvent("OnStart");
+
+                object fired;
+                Assert.True(runner.TryGetVariable("fired", out fired));
+                Assert.AreEqual(true, fired);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (compiledAsset != null)
+                {
+                    Object.DestroyImmediate(compiledAsset);
+                }
+            }
+        }
+
+        [Test]
+        public void RunnerReloadPreservesComponentVariables()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset componentAsset = null;
+            BlueprintCompiledAsset ownerAsset = null;
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/ReloadComponent.blueprint.json";
+
+            try
+            {
+                componentAsset = CreateVariableOnlyCompiledAsset(
+                    "ReloadComponent",
+                    componentPath,
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "count-id",
+                        Name = "count",
+                        Type = "int",
+                        DefaultValueJson = BlueprintJson.Serialize(1, false)
+                    });
+                ownerAsset = CreateOwnerCompiledAsset(
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadComponentOwner.blueprint.json",
+                    componentAsset,
+                    componentPath,
+                    "Child");
+
+                gameObject = new GameObject("ReloadComponentRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", ownerAsset);
+
+                Assert.True(runner.Compile());
+                IBlueprintInstance component;
+                Assert.True(runner.TryGetBlueprintComponent("Child", out component));
+                Assert.True(component.TrySetVariable("count", 12));
+
+                SetVariableOnlyCompiledData(
+                    componentAsset,
+                    "ReloadComponent",
+                    componentPath,
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "count-id",
+                        Name = "renamedCount",
+                        Type = "int",
+                        DefaultValueJson = BlueprintJson.Serialize(0, false)
+                    });
+
+                Assert.True(runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = false }));
+                Assert.True(runner.TryGetBlueprintComponent("Child", out component));
+
+                object value;
+                Assert.True(component.TryGetVariable("renamedCount", out value));
+                Assert.AreEqual(12, value);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (componentAsset != null)
+                {
+                    Object.DestroyImmediate(componentAsset);
+                }
+
+                if (ownerAsset != null)
+                {
+                    Object.DestroyImmediate(ownerAsset);
+                }
+            }
+        }
+
+        [Test]
+        public void RunnerReloadUsesNewComponentDefaultForUnchangedVariable()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset componentAsset = null;
+            BlueprintCompiledAsset ownerAsset = null;
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/ReloadComponentDefault.blueprint.json";
+
+            try
+            {
+                componentAsset = CreateVariableOnlyCompiledAsset(
+                    "ReloadComponentDefault",
+                    componentPath,
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "speed-id",
+                        Name = "move_speed",
+                        Type = "float",
+                        DefaultValueJson = BlueprintJson.Serialize(10f, false)
+                    });
+                ownerAsset = CreateOwnerCompiledAsset(
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadComponentDefaultOwner.blueprint.json",
+                    componentAsset,
+                    componentPath,
+                    "Data");
+
+                gameObject = new GameObject("ReloadComponentDefaultRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", ownerAsset);
+
+                Assert.True(runner.Compile());
+
+                SetVariableOnlyCompiledData(
+                    componentAsset,
+                    "ReloadComponentDefault",
+                    componentPath,
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "speed-id",
+                        Name = "move_speed",
+                        Type = "float",
+                        DefaultValueJson = BlueprintJson.Serialize(1f, false)
+                    });
+
+                Assert.True(runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = false }));
+                IBlueprintInstance component;
+                Assert.True(runner.TryGetBlueprintComponent("Data", out component));
+
+                object value;
+                Assert.True(component.TryGetVariable("move_speed", out value));
+                Assert.AreEqual(1f, value);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (componentAsset != null)
+                {
+                    Object.DestroyImmediate(componentAsset);
+                }
+
+                if (ownerAsset != null)
+                {
+                    Object.DestroyImmediate(ownerAsset);
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RunnerReloadInvalidatesDelayedResume()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset compiledAsset = null;
+
+            try
+            {
+                compiledAsset = CreateDelayedSetBoolCompiledAsset(
+                    "ReloadDelayTest",
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadDelayTest.blueprint.json",
+                    "fired",
+                    0.05f);
+
+                gameObject = new GameObject("ReloadDelayRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", compiledAsset);
+                SetPrivateField(runner, "triggerOnStart", false);
+                gameObject.SetActive(true);
+                yield return null;
+
+                runner.TriggerEvent("OnStart");
+                Assert.True(runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = false }));
+
+                yield return new WaitForSeconds(0.12f);
+
+                object fired;
+                Assert.True(runner.TryGetVariable("fired", out fired));
+                Assert.AreEqual(false, fired);
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (compiledAsset != null)
+                {
+                    Object.DestroyImmediate(compiledAsset);
+                }
+            }
+        }
+
+        [Test]
+        public void HotReloadServiceDetectsComponentSourceReferences()
+        {
+            GameObject gameObject = null;
+            BlueprintCompiledAsset componentAsset = null;
+            BlueprintCompiledAsset ownerAsset = null;
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/HotReloadComponent.blueprint.json";
+
+            try
+            {
+                componentAsset = CreateVariableOnlyCompiledAsset(
+                    "HotReloadComponent",
+                    componentPath,
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "value-id",
+                        Name = "value",
+                        Type = "int",
+                        DefaultValueJson = BlueprintJson.Serialize(1, false)
+                    });
+                ownerAsset = CreateOwnerCompiledAsset(
+                    "Assets/BlueprintSystem/Tests/Editor/HotReloadOwner.blueprint.json",
+                    componentAsset,
+                    componentPath,
+                    "Child");
+
+                gameObject = new GameObject("HotReloadReferenceRunner");
+                gameObject.SetActive(false);
+                BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", ownerAsset);
+
+                HashSet<string> changedSources = new HashSet<string> { componentPath };
+                Assert.True(BlueprintHotReloadService.RunnerReferencesAnySourcePath(runner, changedSources));
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    Object.DestroyImmediate(gameObject);
+                }
+
+                if (componentAsset != null)
+                {
+                    Object.DestroyImmediate(componentAsset);
+                }
+
+                if (ownerAsset != null)
+                {
+                    Object.DestroyImmediate(ownerAsset);
                 }
             }
         }
@@ -3036,6 +3480,207 @@ namespace BlueprintSystem.Tests
             BlueprintCompileResult result = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
             Assert.True(result.Success, result.Diagnostics.ToDisplayString());
             return result.Blueprint;
+        }
+
+        private static BlueprintCompiledAsset CreateVariableOnlyCompiledAsset(
+            string blueprintName,
+            string sourcePath,
+            params BlueprintCompiledVariable[] variables)
+        {
+            BlueprintCompiledAsset compiledAsset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            SetVariableOnlyCompiledData(compiledAsset, blueprintName, sourcePath, variables);
+            return compiledAsset;
+        }
+
+        private static void SetVariableOnlyCompiledData(
+            BlueprintCompiledAsset compiledAsset,
+            string blueprintName,
+            string sourcePath,
+            params BlueprintCompiledVariable[] variables)
+        {
+            compiledAsset.SetCompiledData(
+                "0.1",
+                blueprintName,
+                null,
+                sourcePath,
+                blueprintName + "-source",
+                blueprintName + "-manifest",
+                variables,
+                new BlueprintCompiledBinding[0],
+                new BlueprintCompiledComponent[0],
+                new BlueprintCompiledNode[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEventEntry[0]);
+        }
+
+        private static BlueprintCompiledAsset CreateSetBoolCompiledAsset(
+            string blueprintName,
+            string sourcePath,
+            string variableName,
+            string eventName)
+        {
+            BlueprintCompiledAsset compiledAsset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            compiledAsset.SetCompiledData(
+                "0.1",
+                blueprintName,
+                null,
+                sourcePath,
+                blueprintName + "-source",
+                blueprintName + "-manifest",
+                new[]
+                {
+                    new BlueprintCompiledVariable
+                    {
+                        Id = variableName + "-id",
+                        Name = variableName,
+                        Type = "bool",
+                        DefaultValueJson = BlueprintJson.Serialize(false, false)
+                    }
+                },
+                new BlueprintCompiledBinding[0],
+                new BlueprintCompiledComponent[0],
+                new[]
+                {
+                    new BlueprintCompiledNode
+                    {
+                        Id = "event_start",
+                        TypeId = "Game.Event.Custom",
+                        ExecutorId = "Flow.Event",
+                        Properties = new List<BlueprintCompiledProperty>
+                        {
+                            new BlueprintCompiledProperty { Id = "eventName", JsonValue = BlueprintJson.Serialize(eventName, false) }
+                        }
+                    },
+                    new BlueprintCompiledNode
+                    {
+                        Id = "set_flag",
+                        TypeId = "Variable.Set",
+                        ExecutorId = "Variable.Set",
+                        Properties = new List<BlueprintCompiledProperty>
+                        {
+                            new BlueprintCompiledProperty { Id = "name", JsonValue = BlueprintJson.Serialize(variableName, false) },
+                            new BlueprintCompiledProperty { Id = "value", JsonValue = BlueprintJson.Serialize(true, false) }
+                        }
+                    }
+                },
+                new[]
+                {
+                    new BlueprintCompiledEdge { FromNodeId = "event_start", FromPortId = "execOut", ToNodeId = "set_flag", ToPortId = "execIn" }
+                },
+                new BlueprintCompiledEdge[0],
+                new[]
+                {
+                    new BlueprintCompiledEventEntry { EventName = eventName, NodeId = "event_start" }
+                });
+            return compiledAsset;
+        }
+
+        private static BlueprintCompiledAsset CreateDelayedSetBoolCompiledAsset(
+            string blueprintName,
+            string sourcePath,
+            string variableName,
+            float delaySeconds)
+        {
+            BlueprintCompiledAsset compiledAsset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            compiledAsset.SetCompiledData(
+                "0.1",
+                blueprintName,
+                null,
+                sourcePath,
+                blueprintName + "-source",
+                blueprintName + "-manifest",
+                new[]
+                {
+                    new BlueprintCompiledVariable
+                    {
+                        Id = variableName + "-id",
+                        Name = variableName,
+                        Type = "bool",
+                        DefaultValueJson = BlueprintJson.Serialize(false, false)
+                    }
+                },
+                new BlueprintCompiledBinding[0],
+                new BlueprintCompiledComponent[0],
+                new[]
+                {
+                    new BlueprintCompiledNode
+                    {
+                        Id = "event_start",
+                        TypeId = "Game.Event.OnStart",
+                        ExecutorId = "Flow.Event"
+                    },
+                    new BlueprintCompiledNode
+                    {
+                        Id = "delay",
+                        TypeId = "Flow.Delay",
+                        ExecutorId = "Flow.Delay",
+                        Properties = new List<BlueprintCompiledProperty>
+                        {
+                            new BlueprintCompiledProperty { Id = "seconds", JsonValue = BlueprintJson.Serialize(delaySeconds, false) }
+                        }
+                    },
+                    new BlueprintCompiledNode
+                    {
+                        Id = "set_flag",
+                        TypeId = "Variable.Set",
+                        ExecutorId = "Variable.Set",
+                        Properties = new List<BlueprintCompiledProperty>
+                        {
+                            new BlueprintCompiledProperty { Id = "name", JsonValue = BlueprintJson.Serialize(variableName, false) },
+                            new BlueprintCompiledProperty { Id = "value", JsonValue = BlueprintJson.Serialize(true, false) }
+                        }
+                    }
+                },
+                new[]
+                {
+                    new BlueprintCompiledEdge { FromNodeId = "event_start", FromPortId = "execOut", ToNodeId = "delay", ToPortId = "execIn" },
+                    new BlueprintCompiledEdge { FromNodeId = "delay", FromPortId = "execOut", ToNodeId = "set_flag", ToPortId = "execIn" }
+                },
+                new BlueprintCompiledEdge[0],
+                new[]
+                {
+                    new BlueprintCompiledEventEntry { EventName = "OnStart", NodeId = "event_start" }
+                });
+            return compiledAsset;
+        }
+
+        private static void SetInvalidCompiledData(BlueprintCompiledAsset compiledAsset, string blueprintName, string sourcePath)
+        {
+            compiledAsset.SetCompiledData(
+                "0.1",
+                blueprintName,
+                null,
+                sourcePath,
+                blueprintName + "-invalid-source",
+                blueprintName + "-invalid-manifest",
+                new[]
+                {
+                    new BlueprintCompiledVariable
+                    {
+                        Id = "fired-id",
+                        Name = "fired",
+                        Type = "bool",
+                        DefaultValueJson = BlueprintJson.Serialize(false, false)
+                    }
+                },
+                new BlueprintCompiledBinding[0],
+                new BlueprintCompiledComponent[0],
+                new[]
+                {
+                    new BlueprintCompiledNode
+                    {
+                        Id = "bad_node",
+                        TypeId = "Test.MissingExecutor",
+                        ExecutorId = "Test.MissingExecutor"
+                    }
+                },
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEdge[0],
+                new[]
+                {
+                    new BlueprintCompiledEventEntry { EventName = "OnStart", NodeId = "bad_node" }
+                });
         }
 
         private static BlueprintCompiledAsset CreateCrossBlueprintTargetCompiledAsset(string sourcePath)

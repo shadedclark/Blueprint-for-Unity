@@ -1,10 +1,210 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace BlueprintSystem
 {
+    public sealed class BlueprintReloadOptions
+    {
+        public bool PreserveVariables = true;
+        public bool TriggerReloadEvent;
+        public bool Log = true;
+    }
+
+    internal sealed class BlueprintReloadSnapshot
+    {
+        public readonly Dictionary<string, object> ValuesById = new Dictionary<string, object>(StringComparer.Ordinal);
+        public readonly Dictionary<string, object> ValuesByName = new Dictionary<string, object>(StringComparer.Ordinal);
+        public readonly Dictionary<string, BlueprintReloadSnapshot> ComponentsByName = new Dictionary<string, BlueprintReloadSnapshot>(StringComparer.Ordinal);
+        private readonly HashSet<string> _dirtyValueIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _dirtyValueNames = new HashSet<string>(StringComparer.Ordinal);
+        private bool _usesDirtyTracking;
+
+        public bool TryGetValue(BlueprintVariableDeclaration variable, out object value)
+        {
+            value = null;
+            if (variable == null)
+            {
+                return false;
+            }
+
+            if (_usesDirtyTracking && !IsDirtyValue(variable))
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(variable.Id) && ValuesById.TryGetValue(variable.Id, out value))
+            {
+                return true;
+            }
+
+            return !string.IsNullOrEmpty(variable.Name) && ValuesByName.TryGetValue(variable.Name, out value);
+        }
+
+        public void UseDirtyTracking()
+        {
+            _usesDirtyTracking = true;
+        }
+
+        public void MarkDirtyValue(BlueprintVariableDeclaration variable)
+        {
+            if (variable == null)
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(variable.Id))
+            {
+                _dirtyValueIds.Add(variable.Id);
+            }
+
+            if (!string.IsNullOrEmpty(variable.Name))
+            {
+                _dirtyValueNames.Add(variable.Name);
+            }
+        }
+
+        public bool IsDirtyValue(BlueprintVariableDeclaration variable)
+        {
+            if (variable == null)
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrEmpty(variable.Id) && _dirtyValueIds.Contains(variable.Id))
+            {
+                return true;
+            }
+
+            return !string.IsNullOrEmpty(variable.Name) && _dirtyValueNames.Contains(variable.Name);
+        }
+
+        public bool TryGetComponent(string componentName, out BlueprintReloadSnapshot snapshot)
+        {
+            snapshot = null;
+            return !string.IsNullOrEmpty(componentName) && ComponentsByName.TryGetValue(componentName, out snapshot);
+        }
+    }
+
+    internal sealed class BlueprintRuntimeState
+    {
+        public RuntimeBlueprint Blueprint;
+        public BlueprintExecutionContext Context;
+        public BlueprintVM Vm;
+        public readonly Dictionary<string, IBlueprintInstance> ComponentsByName = new Dictionary<string, IBlueprintInstance>(StringComparer.Ordinal);
+    }
+
+    internal static class BlueprintReloadUtility
+    {
+        public static BlueprintReloadSnapshot Capture(
+            RuntimeBlueprint blueprint,
+            IBlueprintVariableStore variables,
+            Dictionary<string, IBlueprintInstance> componentsByName)
+        {
+            BlueprintReloadSnapshot snapshot = new BlueprintReloadSnapshot();
+            DictionaryBlueprintVariableStore dictionaryStore = variables as DictionaryBlueprintVariableStore;
+            if (dictionaryStore != null)
+            {
+                snapshot.UseDirtyTracking();
+            }
+
+            if (blueprint != null && variables != null)
+            {
+                for (int i = 0; i < blueprint.Variables.Count; i++)
+                {
+                    BlueprintVariableDeclaration variable = blueprint.Variables[i];
+                    if (variable == null || string.IsNullOrEmpty(variable.Name))
+                    {
+                        continue;
+                    }
+
+                    object value;
+                    if (!variables.TryGet(variable.Name, out value))
+                    {
+                        continue;
+                    }
+
+                    if (dictionaryStore != null && dictionaryStore.IsDirty(variable.Name))
+                    {
+                        snapshot.MarkDirtyValue(variable);
+                    }
+
+                    if (!string.IsNullOrEmpty(variable.Id))
+                    {
+                        snapshot.ValuesById[variable.Id] = value;
+                    }
+
+                    snapshot.ValuesByName[variable.Name] = value;
+                }
+            }
+
+            if (componentsByName != null)
+            {
+                foreach (KeyValuePair<string, IBlueprintInstance> pair in componentsByName)
+                {
+                    BlueprintRuntimeComponent runtimeComponent = pair.Value as BlueprintRuntimeComponent;
+                    if (runtimeComponent != null)
+                    {
+                        snapshot.ComponentsByName[pair.Key] = runtimeComponent.CaptureReloadSnapshot();
+                    }
+                }
+            }
+
+            return snapshot;
+        }
+
+        public static void RestoreVariables(RuntimeBlueprint blueprint, IBlueprintVariableStore variables, BlueprintReloadSnapshot snapshot)
+        {
+            if (blueprint == null || variables == null || snapshot == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < blueprint.Variables.Count; i++)
+            {
+                BlueprintVariableDeclaration variable = blueprint.Variables[i];
+                if (variable == null || string.IsNullOrEmpty(variable.Name))
+                {
+                    continue;
+                }
+
+                object value;
+                if (snapshot.TryGetValue(variable, out value))
+                {
+                    DictionaryBlueprintVariableStore dictionaryStore = variables as DictionaryBlueprintVariableStore;
+                    if (dictionaryStore != null)
+                    {
+                        dictionaryStore.SetPreserved(variable.Name, value, snapshot.IsDirtyValue(variable));
+                    }
+                    else
+                    {
+                        variables.Set(variable.Name, value);
+                    }
+                }
+            }
+        }
+
+        public static void ReplaceComponents(
+            Dictionary<string, IBlueprintInstance> target,
+            Dictionary<string, IBlueprintInstance> source)
+        {
+            target.Clear();
+            if (source == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, IBlueprintInstance> pair in source)
+            {
+                target[pair.Key] = pair.Value;
+            }
+        }
+    }
+
     public class BlueprintRunner : MonoBehaviour, IBlueprintInstance
     {
+        private const string ReloadEventName = "OnReload";
+
         [SerializeField] private BlueprintCompiledAsset compiledBlueprint;
         [SerializeField] private bool triggerOnStart = true;
         [SerializeField, HideInInspector] private string startEventName = "OnStart";
@@ -147,34 +347,118 @@ namespace BlueprintSystem
 
         public bool Compile()
         {
-            if (compiledBlueprint == null)
+            BlueprintRuntimeState state;
+            if (!TryCreateRuntimeState(null, false, true, out state))
             {
-                Debug.LogWarning("[Blueprint] Missing compiled blueprint asset on " + name + ".");
                 return false;
             }
 
-            RuntimeBlueprint runtimeBlueprint = compiledBlueprint.CreateRuntimeBlueprint(BlueprintExecutorRegistry.CreateDefault());
+            InvalidateRuntimeState();
+            ApplyRuntimeState(state);
+            return true;
+        }
+
+        public bool ReloadBlueprint(BlueprintReloadOptions options = null)
+        {
+            options = options ?? new BlueprintReloadOptions();
+            BlueprintReloadSnapshot snapshot = options.PreserveVariables ? CaptureReloadSnapshot() : null;
+
+            BlueprintRuntimeState state;
+            if (!TryCreateRuntimeState(snapshot, options.PreserveVariables, options.Log, out state))
+            {
+                return false;
+            }
+
+            InvalidateRuntimeState();
+            ApplyRuntimeState(state);
+
+            if (options.Log)
+            {
+                Debug.Log("[Blueprint] Hot reloaded " + name + ".", this);
+            }
+
+            if (options.TriggerReloadEvent)
+            {
+                TriggerReloadLifecycleEvent();
+            }
+
+            return true;
+        }
+
+        internal BlueprintReloadSnapshot CaptureReloadSnapshot()
+        {
+            return BlueprintReloadUtility.Capture(
+                _blueprint,
+                _context == null ? null : _context.Variables,
+                _componentsByName);
+        }
+
+        private bool TryCreateRuntimeState(
+            BlueprintReloadSnapshot snapshot,
+            bool preserveVariables,
+            bool log,
+            out BlueprintRuntimeState state)
+        {
+            state = null;
+            if (compiledBlueprint == null)
+            {
+                if (log)
+                {
+                    Debug.LogWarning("[Blueprint] Missing compiled blueprint asset on " + name + ".");
+                }
+
+                return false;
+            }
+
+            RuntimeBlueprint runtimeBlueprint;
+            try
+            {
+                runtimeBlueprint = compiledBlueprint.CreateRuntimeBlueprint(BlueprintExecutorRegistry.CreateDefault());
+            }
+            catch (Exception exception)
+            {
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + exception.Message, this);
+                }
+
+                return false;
+            }
+
             BlueprintDiagnosticList diagnostics = ValidateRuntimeBlueprint(runtimeBlueprint);
             if (diagnostics.HasErrors)
             {
-                Debug.LogError("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + diagnostics.ToDisplayString());
+                if (log)
+                {
+                    Debug.LogError("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + diagnostics.ToDisplayString(), this);
+                }
+
                 return false;
             }
 
-            _blueprint = runtimeBlueprint;
-            _vm = new BlueprintVM();
-            _context = new BlueprintExecutionContext(
-                _blueprint,
+            IBlueprintVariableStore variables = CreateVariableStore(runtimeBlueprint);
+            if (preserveVariables)
+            {
+                BlueprintReloadUtility.RestoreVariables(runtimeBlueprint, variables, snapshot);
+            }
+
+            BlueprintRuntimeState newState = new BlueprintRuntimeState();
+            newState.Blueprint = runtimeBlueprint;
+            newState.Vm = new BlueprintVM();
+            newState.Context = new BlueprintExecutionContext(
+                runtimeBlueprint,
                 gameObject,
                 this,
                 BindingResolver,
-                CreateVariableStore(_blueprint),
+                variables,
                 new ActionBlueprintEventBus(TriggerEvent),
                 new UnityBlueprintLogger(),
                 ExecuteFromOutput,
                 this,
                 OwnerInstance);
-            BuildComponents();
+
+            BuildComponents(newState, snapshot, preserveVariables, log);
+            state = newState;
             return true;
         }
 
@@ -236,17 +520,45 @@ namespace BlueprintSystem
             return _componentsByName.TryGetValue(componentName, out component);
         }
 
-        private void BuildComponents()
+        private void ApplyRuntimeState(BlueprintRuntimeState state)
         {
-            _componentsByName.Clear();
-            if (_blueprint == null)
+            _blueprint = state.Blueprint;
+            _vm = state.Vm;
+            _context = state.Context;
+            BlueprintReloadUtility.ReplaceComponents(_componentsByName, state.ComponentsByName);
+        }
+
+        private void InvalidateRuntimeState()
+        {
+            if (_context != null)
+            {
+                _context.InvalidateScheduledExecution();
+            }
+
+            foreach (IBlueprintInstance component in _componentsByName.Values)
+            {
+                BlueprintRuntimeComponent runtimeComponent = component as BlueprintRuntimeComponent;
+                if (runtimeComponent != null)
+                {
+                    runtimeComponent.InvalidateRuntimeState();
+                }
+            }
+        }
+
+        private void BuildComponents(
+            BlueprintRuntimeState state,
+            BlueprintReloadSnapshot snapshot,
+            bool preserveVariables,
+            bool log)
+        {
+            if (state == null || state.Blueprint == null)
             {
                 return;
             }
 
-            for (int i = 0; i < _blueprint.Components.Count; i++)
+            for (int i = 0; i < state.Blueprint.Components.Count; i++)
             {
-                BlueprintComponentDeclaration declaration = _blueprint.Components[i];
+                BlueprintComponentDeclaration declaration = state.Blueprint.Components[i];
                 if (declaration == null || string.IsNullOrEmpty(declaration.Name) || declaration.CompiledBlueprint == null)
                 {
                     continue;
@@ -259,11 +571,17 @@ namespace BlueprintSystem
                     gameObject,
                     this,
                     BindingResolver,
-                    _context == null ? new UnityBlueprintLogger() : _context.Logger);
+                    state.Context == null ? new UnityBlueprintLogger() : state.Context.Logger);
 
-                if (component.Compile())
+                BlueprintReloadSnapshot componentSnapshot = null;
+                if (preserveVariables && snapshot != null)
                 {
-                    _componentsByName[declaration.Name] = component;
+                    snapshot.TryGetComponent(declaration.Name, out componentSnapshot);
+                }
+
+                if (component.Compile(componentSnapshot, preserveVariables, log))
+                {
+                    state.ComponentsByName[declaration.Name] = component;
                 }
             }
         }
@@ -288,6 +606,16 @@ namespace BlueprintSystem
             }
 
             _vm.ExecuteFromOutput(_context, node, outputPortId);
+        }
+
+        private void TriggerReloadLifecycleEvent()
+        {
+            if (HasEvent(ReloadEventName))
+            {
+                TriggerEvent(ReloadEventName);
+            }
+
+            TriggerComponentLifecycleEvent(ReloadEventName);
         }
     }
 }

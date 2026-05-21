@@ -16,7 +16,7 @@ MonoBehaviour:
   blueprintName: ThirdPersonCameraData
   sourceGuid: e9f20648e017d4a0091f0c3b0d06472f
   sourcePath: Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json
-  sourceHash: e67a0df0d2fb0a2fcaeea3f714a9f7cd9e7c142fe987283e0556be9bac60f662
+  sourceHash: aede21decce64bb709812ad482eceb6824b15f499fe6c7cc38e1ea601d8148bd
   manifestHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
   variables:
   - Id: var_follow_lerp_speed
@@ -39,7 +39,7 @@ MonoBehaviour:
   - Id: var_gamepad_pitch_speed
     Name: gamepad_pitch_speed
     Type: float
-    DefaultValueJson: 90
+    DefaultValueJson: -90
     Scope: runtime
     Exposed: 1
     Persistent: 1
@@ -57,7 +57,7 @@ MonoBehaviour:
   - Id: var_mouse_pitch_sensitivity
     Name: mouse_pitch_sensitivity
     Type: float
-    DefaultValueJson: 0.1
+    DefaultValueJson: -0.1
     Scope: runtime
     Exposed: 1
     Persistent: 1

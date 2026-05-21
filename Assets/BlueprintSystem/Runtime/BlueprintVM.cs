@@ -165,12 +165,17 @@ namespace BlueprintSystem
                 return;
             }
 
-            coroutineHost.StartCoroutine(ResumeAfterDelay(context, node, result));
+            coroutineHost.StartCoroutine(ResumeAfterDelay(context, node, result, context.ExecutionGeneration));
         }
 
-        private IEnumerator ResumeAfterDelay(BlueprintExecutionContext context, RuntimeNode node, BlueprintExecResult result)
+        private IEnumerator ResumeAfterDelay(BlueprintExecutionContext context, RuntimeNode node, BlueprintExecResult result, int executionGeneration)
         {
             yield return new WaitForSeconds(result.DelaySeconds);
+            if (!context.IsExecutionGenerationCurrent(executionGeneration))
+            {
+                yield break;
+            }
+
             Queue<QueuedExec> queue = new Queue<QueuedExec>();
             EnqueueNext(context, node, result, queue);
             ExecuteNodeQueue(context, queue);

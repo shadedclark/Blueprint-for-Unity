@@ -72,6 +72,7 @@ namespace BlueprintSystem
         private readonly Dictionary<string, object> _initialValues = new Dictionary<string, object>();
         private readonly Dictionary<string, BlueprintVariableDeclaration> _declarationsByName = new Dictionary<string, BlueprintVariableDeclaration>();
         private readonly Dictionary<string, BlueprintVariableDeclaration> _declarationsById = new Dictionary<string, BlueprintVariableDeclaration>();
+        private readonly HashSet<string> _dirtyNames = new HashSet<string>(StringComparer.Ordinal);
 
         public DictionaryBlueprintVariableStore()
         {
@@ -121,7 +122,27 @@ namespace BlueprintSystem
             return _values.TryGetValue(name, out value);
         }
 
+        public bool TryGetInitial(string name, out object value)
+        {
+            return _initialValues.TryGetValue(name, out value);
+        }
+
+        public bool IsDirty(string name)
+        {
+            return !string.IsNullOrEmpty(name) && _dirtyNames.Contains(name);
+        }
+
         public void Set(string name, object value)
+        {
+            SetValue(name, value, true);
+        }
+
+        public void SetPreserved(string name, object value, bool dirty)
+        {
+            SetValue(name, value, dirty);
+        }
+
+        private void SetValue(string name, object value, bool dirty)
         {
             BlueprintVariableDeclaration declaration;
             if (_declarationsByName.TryGetValue(name, out declaration) && declaration != null)
@@ -130,6 +151,14 @@ namespace BlueprintSystem
             }
 
             _values[name] = value;
+            if (dirty)
+            {
+                _dirtyNames.Add(name);
+            }
+            else
+            {
+                _dirtyNames.Remove(name);
+            }
         }
 
         public bool Contains(string name)
@@ -144,6 +173,8 @@ namespace BlueprintSystem
             {
                 _values[pair.Key] = CloneValueForVariable(pair.Key, pair.Value);
             }
+
+            _dirtyNames.Clear();
         }
 
         public void ApplyOverrides(IEnumerable<BlueprintVariableOverride> overrides, bool exposedOnly)
@@ -183,7 +214,7 @@ namespace BlueprintSystem
                     continue;
                 }
 
-                Set(variableName, value);
+                SetValue(variableName, value, false);
             }
         }
 
@@ -204,6 +235,8 @@ namespace BlueprintSystem
             {
                 _initialValues[pair.Key] = CloneValueForVariable(pair.Key, pair.Value);
             }
+
+            _dirtyNames.Clear();
         }
 
         private static bool IsOverrideEnabled(BlueprintVariableOverride variableOverride)

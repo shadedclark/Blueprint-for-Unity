@@ -212,7 +212,17 @@ namespace BlueprintSystem
                 if (hasValue && property.Type != null && property.Type.StartsWith("UIBinding<", System.StringComparison.Ordinal))
                 {
                     string bindingName = value as string;
-                    if (string.IsNullOrEmpty(bindingName) || !bindingsByName.ContainsKey(bindingName))
+                    if (string.IsNullOrEmpty(bindingName))
+                    {
+                        if (property.Required)
+                        {
+                            diagnostics.Add(BlueprintDiagnostic.Error("BP005", "Unknown UI binding '" + bindingName + "'.", node.Id, property.Id));
+                        }
+
+                        continue;
+                    }
+
+                    if (!bindingsByName.ContainsKey(bindingName))
                     {
                         diagnostics.Add(BlueprintDiagnostic.Error("BP005", "Unknown UI binding '" + bindingName + "'.", node.Id, property.Id));
                     }
