@@ -481,6 +481,7 @@ fallback: same path as .bpgraph with .blueprint.json extension
 
 The auto-export hook lives in `BlueprintGraphToolkitAutoExport.cs` and watches `.bpgraph` asset imports after Graph Toolkit saves the graph file.
 If the `.bpgraph` file is older than the target `.blueprint.json`, auto-export skips it so stale visual caches do not overwrite newer JSON source changes such as component declarations.
+After a successful auto-export from an already open Graph Toolkit window, the bridge reimports that `.bpgraph`, unloads the open Graph Toolkit graph, loads the saved graph from disk again, and forces the Graph Toolkit UI state to rebuild immediately.
 
 ### Drag UI Objects Into Graph Toolkit
 

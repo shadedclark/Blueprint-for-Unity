@@ -229,6 +229,42 @@ namespace BlueprintSystem.Editor
             return outputBlueprintPath;
         }
 
+        internal static bool RefreshOpenGraphToolkitAtPath(string graphAssetPath)
+        {
+            if (!IsBlueprintGraphAssetPath(graphAssetPath) || !File.Exists(graphAssetPath))
+            {
+                return false;
+            }
+
+            List<EditorWindow> windows = GetGraphToolkitWindowsForPath(graphAssetPath);
+            if (windows.Count == 0)
+            {
+                return false;
+            }
+
+            AssetDatabase.ImportAsset(graphAssetPath, ImportAssetOptions.ForceUpdate);
+            bool refreshed = false;
+            for (int i = 0; i < windows.Count; i++)
+            {
+                if (ReloadGraphToolkitWindowFromDisk(windows[i], graphAssetPath))
+                {
+                    refreshed = true;
+                }
+            }
+
+            if (!refreshed)
+            {
+                UnityEngine.Object graphAsset = AssetDatabase.LoadMainAssetAtPath(graphAssetPath);
+                if (graphAsset != null)
+                {
+                    AssetDatabase.OpenAsset(graphAsset);
+                }
+            }
+
+            RepaintGraphToolkitWindows(windows);
+            return refreshed;
+        }
+
         public static BlueprintSource ToBlueprintSource(BlueprintVisualGraph graph)
         {
             BlueprintSource source = new BlueprintSource();
@@ -1165,6 +1201,311 @@ namespace BlueprintSystem.Editor
         internal static bool IsBlueprintGraphAssetPath(string path)
         {
             return !string.IsNullOrEmpty(path) && path.EndsWith("." + BlueprintVisualGraph.AssetExtension, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static List<EditorWindow> GetGraphToolkitWindowsForPath(string graphAssetPath)
+        {
+            List<EditorWindow> windows = new List<EditorWindow>();
+            string normalizedPath = NormalizeAssetPath(graphAssetPath);
+            foreach (EditorWindow window in Resources.FindObjectsOfTypeAll<EditorWindow>())
+            {
+                string windowPath;
+                if (TryGetGraphToolkitWindowGraphPath(window, out windowPath) &&
+                    string.Equals(NormalizeAssetPath(windowPath), normalizedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    windows.Add(window);
+                }
+            }
+
+            return windows;
+        }
+
+        private static bool ReloadGraphToolkitWindowFromDisk(EditorWindow window, string graphAssetPath)
+        {
+            object graphTool = GetInstancePropertyValue(window, "GraphTool");
+            object toolState = GetInstancePropertyValue(graphTool, "ToolState");
+            object graphModel = GetInstancePropertyValue(toolState, "GraphModel");
+            object graphObject = GetInstancePropertyValue(graphModel, "GraphObject") ?? GetInstancePropertyValue(toolState, "GraphObject");
+            string graphLabel = GetInstancePropertyValue(toolState, "CurrentGraphLabel") as string;
+
+            InvokeInstanceMethod(graphObject, "UnloadObject");
+
+            BlueprintVisualGraph reloadedGraph = GraphDatabase.LoadGraph<BlueprintVisualGraph>(graphAssetPath);
+            object reloadedGraphModel = GetGraphModelImplementation(reloadedGraph);
+            object loadCommand = CreateGraphToolkitLoadGraphCommand(reloadedGraphModel, graphLabel);
+            if (loadCommand == null || !DispatchGraphToolkitCommand(graphTool, loadCommand))
+            {
+                return false;
+            }
+
+            InvokeInstanceMethod(window, "UpdateTooltips");
+            InvokeInstanceMethod(graphTool, "Update");
+            ForceCompleteGraphToolkitUiUpdate(window);
+            InvokeInstanceMethod(graphTool, "Update");
+            return true;
+        }
+
+        private static void RepaintGraphToolkitWindows(List<EditorWindow> windows)
+        {
+            for (int i = 0; i < windows.Count; i++)
+            {
+                if (windows[i] != null)
+                {
+                    windows[i].Repaint();
+                }
+            }
+        }
+
+        private static object GetGraphModelImplementation(Graph graph)
+        {
+            if (graph == null)
+            {
+                return null;
+            }
+
+            FieldInfo implementationField = typeof(Graph).GetField("m_Implementation", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            return implementationField == null ? null : implementationField.GetValue(graph);
+        }
+
+        private static object CreateGraphToolkitLoadGraphCommand(object graphModel, string title)
+        {
+            if (graphModel == null)
+            {
+                return null;
+            }
+
+            Type commandType = FindLoadedType(graphModel.GetType().Assembly, "Unity.GraphToolkit.Editor.LoadGraphCommand");
+            if (commandType == null)
+            {
+                return null;
+            }
+
+            Type loadStrategiesType = commandType.GetNestedType("LoadStrategies", BindingFlags.Public | BindingFlags.NonPublic);
+            if (loadStrategiesType == null)
+            {
+                return null;
+            }
+
+            ConstructorInfo constructor = FindInstanceConstructor(commandType, parameters =>
+            {
+                return parameters.Length == 5 &&
+                       parameters[0].ParameterType.IsInstanceOfType(graphModel) &&
+                       parameters[2].ParameterType == loadStrategiesType;
+            });
+
+            if (constructor == null)
+            {
+                return null;
+            }
+
+            object replaceStrategy = Enum.Parse(loadStrategiesType, "Replace");
+            return constructor.Invoke(new object[] { graphModel, null, replaceStrategy, -1, title ?? string.Empty });
+        }
+
+        private static bool DispatchGraphToolkitCommand(object graphTool, object command)
+        {
+            if (graphTool == null || command == null)
+            {
+                return false;
+            }
+
+            MethodInfo dispatchMethod = FindInstanceMethod(graphTool.GetType(), "Dispatch", method =>
+            {
+                ParameterInfo[] parameters = method.GetParameters();
+                return parameters.Length >= 1 &&
+                       parameters.Length <= 2 &&
+                       parameters[0].ParameterType.IsInstanceOfType(command);
+            });
+
+            if (dispatchMethod == null)
+            {
+                return false;
+            }
+
+            ParameterInfo[] dispatchParameters = dispatchMethod.GetParameters();
+            object[] arguments = dispatchParameters.Length == 1
+                ? new[] { command }
+                : new[] { command, GetDefaultValue(dispatchParameters[1].ParameterType) };
+            dispatchMethod.Invoke(graphTool, arguments);
+            return true;
+        }
+
+        private static void ForceCompleteGraphToolkitUiUpdate(EditorWindow window)
+        {
+            object graphView = GetInstancePropertyValue(window, "GraphView");
+            object graphViewModel = GetInstancePropertyValue(graphView, "GraphViewModel");
+            ForceCompleteStateComponentUpdate(GetInstancePropertyValue(graphViewModel, "GraphModelState"));
+            ForceCompleteStateComponentUpdate(GetInstancePropertyValue(graphViewModel, "GraphViewState"));
+        }
+
+        private static void ForceCompleteStateComponentUpdate(object stateComponent)
+        {
+            object updateScope = GetInstancePropertyValue(stateComponent, "UpdateScope");
+            if (updateScope == null)
+            {
+                return;
+            }
+
+            try
+            {
+                InvokeInstanceMethod(updateScope, "ForceCompleteUpdate");
+            }
+            finally
+            {
+                IDisposable disposable = updateScope as IDisposable;
+                if (disposable != null)
+                {
+                    disposable.Dispose();
+                }
+                else
+                {
+                    InvokeInstanceMethod(updateScope, "Dispose");
+                }
+            }
+        }
+
+        private static bool TryGetGraphToolkitWindowGraphPath(EditorWindow window, out string graphAssetPath)
+        {
+            graphAssetPath = null;
+            if (window == null || !IsGraphToolkitWindowType(window.GetType()))
+            {
+                return false;
+            }
+
+            object graphTool = GetInstancePropertyValue(window, "GraphTool");
+            object toolState = GetInstancePropertyValue(graphTool, "ToolState");
+            object currentGraph = GetInstancePropertyValue(toolState, "CurrentGraph");
+            graphAssetPath = GetInstancePropertyValue(currentGraph, "FilePath") as string;
+            if (!string.IsNullOrEmpty(graphAssetPath))
+            {
+                return true;
+            }
+
+            object graphModel = GetInstancePropertyValue(toolState, "GraphModel");
+            object graphObject = GetInstancePropertyValue(graphModel, "GraphObject");
+            graphAssetPath = GetInstancePropertyValue(graphObject, "FilePath") as string;
+            return !string.IsNullOrEmpty(graphAssetPath);
+        }
+
+        private static bool IsGraphToolkitWindowType(Type type)
+        {
+            for (Type current = type; current != null; current = current.BaseType)
+            {
+                if (current.FullName == "Unity.GraphToolkit.Editor.GraphViewEditorWindow")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static object GetInstancePropertyValue(object target, string propertyName)
+        {
+            if (target == null || string.IsNullOrEmpty(propertyName))
+            {
+                return null;
+            }
+
+            PropertyInfo property = FindInstanceProperty(target.GetType(), propertyName);
+            return property == null ? null : property.GetValue(target, null);
+        }
+
+        private static PropertyInfo FindInstanceProperty(Type type, string propertyName)
+        {
+            for (Type current = type; current != null; current = current.BaseType)
+            {
+                PropertyInfo property = current.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (property != null)
+                {
+                    return property;
+                }
+            }
+
+            return null;
+        }
+
+        private static object InvokeInstanceMethod(object target, string methodName)
+        {
+            if (target == null || string.IsNullOrEmpty(methodName))
+            {
+                return null;
+            }
+
+            MethodInfo method = FindInstanceMethod(target.GetType(), methodName, candidate => candidate.GetParameters().Length == 0);
+            return method == null ? null : method.Invoke(target, null);
+        }
+
+        private static MethodInfo FindInstanceMethod(Type type, string methodName, Func<MethodInfo, bool> predicate)
+        {
+            for (Type current = type; current != null; current = current.BaseType)
+            {
+                MethodInfo[] methods = current.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                for (int i = 0; i < methods.Length; i++)
+                {
+                    MethodInfo method = methods[i];
+                    if (method.Name == methodName && predicate(method))
+                    {
+                        return method;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static ConstructorInfo FindInstanceConstructor(Type type, Func<ParameterInfo[], bool> predicate)
+        {
+            ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            for (int i = 0; i < constructors.Length; i++)
+            {
+                ConstructorInfo constructor = constructors[i];
+                if (predicate(constructor.GetParameters()))
+                {
+                    return constructor;
+                }
+            }
+
+            return null;
+        }
+
+        private static Type FindLoadedType(Assembly preferredAssembly, string typeName)
+        {
+            if (preferredAssembly != null)
+            {
+                Type type = preferredAssembly.GetType(typeName);
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                Type type = assemblies[i].GetType(typeName);
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+
+            return null;
+        }
+
+        private static object GetDefaultValue(Type type)
+        {
+            if (type == null || !type.IsValueType)
+            {
+                return null;
+            }
+
+            return type.IsEnum ? Enum.ToObject(type, 0) : Activator.CreateInstance(type);
+        }
+
+        private static string NormalizeAssetPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? string.Empty : path.Replace('\\', '/').Trim();
         }
     }
 

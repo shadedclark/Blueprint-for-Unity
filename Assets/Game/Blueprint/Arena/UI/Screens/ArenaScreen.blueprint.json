@@ -66,29 +66,6 @@
         "structTypeId": "Struct.NewUserStruct",
         "structAssetGuid": "e58daf2021ac447f693b3eb0114171c1"
       }
-    },
-    {
-      "id": "ui_settext_1",
-      "typeId": "UI.SetText",
-      "position": [
-        652.6932,
-        159.5558
-      ],
-      "properties": {
-        "target": "",
-        "value": ""
-      }
-    },
-    {
-      "id": "ui_settext",
-      "typeId": "UI.SetText",
-      "position": [
-        793.5017,
-        326.5012
-      ],
-      "properties": {
-        "target": ""
-      }
     }
   ],
   "edges": [
@@ -99,10 +76,6 @@
     {
       "from": "get_regular_presenter.target",
       "to": "refresh_regular_presenter.target"
-    },
-    {
-      "from": "break_struct_struct__new_user_struct.fld_ca4fddf35079472c9e3b97ee494942da",
-      "to": "ui_settext.value"
     }
   ]
 }

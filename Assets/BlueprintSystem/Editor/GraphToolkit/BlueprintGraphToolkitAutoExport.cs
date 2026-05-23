@@ -100,10 +100,29 @@ namespace BlueprintSystem.Editor
             {
                 string exportedPath = BlueprintGraphToolkitBridge.ExportGraphAtPath(graphPath, null);
                 Debug.Log("[Blueprint] Auto-exported visual graph to JSON: " + exportedPath);
+                RefreshOpenGraphToolkit(graphPath);
             }
             catch (Exception exception)
             {
                 Debug.LogWarning("[Blueprint] Failed to auto-export visual graph '" + graphPath + "': " + exception.Message);
+            }
+        }
+
+        private static void RefreshOpenGraphToolkit(string graphPath)
+        {
+            try
+            {
+                using (SuppressAutoExport())
+                {
+                    if (BlueprintGraphToolkitBridge.RefreshOpenGraphToolkitAtPath(graphPath))
+                    {
+                        Debug.Log("[Blueprint] Refreshed open Graph Toolkit view: " + graphPath);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("[Blueprint] Failed to refresh Graph Toolkit view '" + graphPath + "': " + exception.Message);
             }
         }
 

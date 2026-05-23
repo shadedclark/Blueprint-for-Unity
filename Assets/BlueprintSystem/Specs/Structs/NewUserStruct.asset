@@ -25,13 +25,13 @@ MonoBehaviour:
     fieldType: 2
     defaultValueJson: 
     legacyTypeId: 
-  - id: fld_7bdc5c16b0a9413dba306a227d4ab007
-    name: iiu
-    fieldType: 2
+  - id: fld_685531584d7d41bf98725eb2cfd21ae8
+    name: we
+    fieldType: 0
     defaultValueJson: 
     legacyTypeId: 
-  - id: fld_ca4fddf35079472c9e3b97ee494942da
-    name: bbb
+  - id: fld_8f0cbaef2be64c4e88b825141401bd33
+    name: kjk
     fieldType: 0
     defaultValueJson: 
     legacyTypeId: 
