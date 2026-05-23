@@ -331,6 +331,7 @@ namespace BlueprintSystem
                 return false;
             }
 
+            BlueprintReactiveBindingRuntime.RefreshInstance(instance);
             return true;
         }
 

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ArenaScreen",
+  "category": "Arena/UI/Screen",
+  "description": "Root Arena PVP entrance screen lifecycle and component tree.",
+  "variables": [],
+  "bindings": [],
+  "components": [
+    {
+      "name": "ArenaData",
+      "blueprint": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "EntryBehavior",
+      "blueprint": "Assets/Game/Blueprint/Arena/Behavior/ArenaEntryBehavior.blueprint.json",
+      "required": true
+    },
+    {
+      "name": "RegularPvpPresenter",
+      "blueprint": "Assets/Game/Blueprint/Arena/UI/Presenters/ArenaRegularPvpPresenter.blueprint.json",
+      "required": true
+    }
+  ],
+  "nodes": [
+    {
+      "id": "event_open",
+      "typeId": "UI.Event.OnOpen",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_regular_presenter",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {
+        "name": "RegularPvpPresenter"
+      }
+    },
+    {
+      "id": "refresh_regular_presenter",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        460,
+        0
+      ],
+      "properties": {
+        "target": "",
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "break_struct_struct__new_user_struct",
+      "typeId": "Variable.BreakStruct",
+      "position": [
+        297.0075,
+        220.6154
+      ],
+      "properties": {
+        "structTypeId": "Struct.NewUserStruct",
+        "structAssetGuid": "e58daf2021ac447f693b3eb0114171c1"
+      }
+    },
+    {
+      "id": "ui_settext_1",
+      "typeId": "UI.SetText",
+      "position": [
+        652.6932,
+        159.5558
+      ],
+      "properties": {
+        "target": "",
+        "value": ""
+      }
+    },
+    {
+      "id": "ui_settext",
+      "typeId": "UI.SetText",
+      "position": [
+        793.5017,
+        326.5012
+      ],
+      "properties": {
+        "target": ""
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_open.execOut",
+      "to": "refresh_regular_presenter.execIn"
+    },
+    {
+      "from": "get_regular_presenter.target",
+      "to": "refresh_regular_presenter.target"
+    },
+    {
+      "from": "break_struct_struct__new_user_struct.fld_ca4fddf35079472c9e3b97ee494942da",
+      "to": "ui_settext.value"
+    }
+  ]
+}

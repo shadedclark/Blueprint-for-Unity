@@ -75,6 +75,7 @@ connected value edge -> compiled node property -> null
 | `Input.ListenKey` | Listen Key | Input | `Input.ListenKey` | `InputListenKeyExecutor` | Polls a keyboard key when executed and emits input-state exec outputs. |
 | `Input.ListenAction` | Listen Action | Input | `Input.ListenAction` | `InputListenActionExecutor` | Polls a project-wide Input System action when executed and emits input-state exec outputs. |
 | `UI.SetText` | Set Text | UI | `UI.SetText` | `UISetTextExecutor` | Sets text on a bound `TMP_Text`. |
+| `UI.BindText` | Bind Text | UI | `UI.BindText` | `UIBindTextExecutor` | Registers a reactive `TMP_Text.text` binding to a local or cross-blueprint variable, applies it immediately, and reapplies it on reactive refreshes. |
 | `UI.SpriteBinding` | Sprite Binding | UI | `UI.SpriteBinding` | `UISpriteBindingExecutor` | Outputs a bound Sprite name for image nodes. |
 | `UI.SetImageSprite` | Set Image Sprite | UI | `UI.SetImageSprite` | `UISetImageSpriteExecutor` | Sets `Image.sprite` from a bound `Sprite`. |
 | `UI.SetVisible` | Set Visible | UI | `UI.SetVisible` | `UISetVisibleExecutor` | Sets active state on a bound `GameObject` or component owner. |
@@ -97,6 +98,8 @@ connected value edge -> compiled node property -> null
 | `Variable.Set` | Set Variable | Variables | `Variable.Set` | `VariableSetExecutor` | Writes a blueprint variable. |
 | `Variable.Compare` | Compare | Variables | `Variable.Compare` | `VariableCompareExecutor` | Compares two values and outputs bool. |
 | `Variable.GetField` | Get Field | Variables | `Variable.GetField` | `VariableGetFieldExecutor` | Reads a field or nested field path from a structured value. |
+| `Variable.SetField` | Set Field | Variables | `Variable.SetField` | `VariableSetFieldExecutor` | Returns a copy of a structured value with one field or nested field path changed. |
+| `Variable.BreakStruct` | Break Struct | Variables | `Variable.BreakStruct` | `VariableBreakStructExecutor` | Breaks a Blueprint user struct into one output per field. |
 | `Array.Count` | Array Count | Array | `Array.Count` | `ArrayCountExecutor` | Returns item count from an array value. |
 | `Array.Get` | Array Get | Array | `Array.Get` | `ArrayGetExecutor` | Returns an item from an array by index. |
 | `Array.ForEachLoop` | For Each Loop | Array | `Array.ForEachLoop` | `ArrayForEachLoopExecutor` | Executes a loop body once per array item. |
@@ -1081,6 +1084,76 @@ Use this for all TMP text assignment.
 Do not add `SetLabel`, `SetTitle`, or `SetTextMeshProText`; use different binding names instead.
 ```
 
+### `UI.BindText`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/UI.BindText.node.json
+```
+
+Executor:
+
+```text
+ID: UI.BindText
+Class: UIBindTextExecutor
+File: Assets/BlueprintSystem/Executors/UI/UIExecutors.cs
+```
+
+Function:
+
+```text
+Resolves `target` as `TMP_Text`.
+Registers a reactive binding keyed by instance, node id, target binding name, and `text`.
+If `variableName` is set, reads that variable from the current context or from `variableTarget` using the same asset-path/BlueprintRef target rules as `Blueprint.GetVariable`.
+If `variableName` is empty, evaluates fallback `value`.
+Applies the binding immediately and writes `target.text`.
+On reactive refresh, clears the context value cache, rereads the variable or fallback value, and writes `target.text` again.
+Continues through `bound`.
+Returns an error if the binding cannot resolve a TMP_Text during registration.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Registers or updates the text binding. |
+| `target` | input value | UIBinding<TMP_Text> | property | yes | Binding name string. Must resolve to TMP_Text or owner with TMP_Text. |
+| `variableName` | input value | string | propertyOrConnection | no | Variable to read. Empty means use `value` instead. |
+| `variableTarget` | input value | Blueprint | propertyOrConnection | no | Optional target Blueprint asset path or connected BlueprintRef. Empty means the current blueprint context. |
+| `value` | input value | string | propertyOrConnection | no | Fallback expression reevaluated when no `variableName` is set. |
+| `target` | property | UIBinding<TMP_Text> | property | yes | Stored as binding name string in JSON. |
+| `variableName` | property | string | property | no | Stored variable name. |
+| `variableTarget` | property | Blueprint | property | no | Stored target `.blueprint.json` asset path; Graph Toolkit shows long paths in the Inspector. |
+| `value` | property | string | property | no | Fallback used when no value edge is connected and no `variableName` is set. |
+| `bound` | output exec | none | none | no | Continuation after the binding is registered and applied once. |
+
+Reactive refresh behavior:
+
+```text
+`Variable.Set` refreshes reactive bindings for the current context or current Blueprint instance.
+`Blueprint.SetVariable` refreshes reactive bindings that depend on the target Blueprint instance, including UI bindings registered on another runner through `variableTarget`.
+`BlueprintRunner.ReloadBlueprint` and `BlueprintRuntimeComponent.ReloadBlueprint` capture active reactive binding nodes before invalidating the old runtime state, restore those bindings on the new runtime state, and refresh them when `BlueprintReloadOptions.RefreshReactiveBindings` is true.
+`UIBlueprintBinder.OnDisable` fires `OnClose` and then clears reactive bindings for the panel runner and its runtime components.
+```
+
+Recommended UI usage:
+
+```text
+OnOpen -> UI.BindText
+```
+
+For larger UI graphs, route `OnOpen` into a shared custom registration event that executes every `UI.Bind*` node. Do not add explicit `OnReload` nodes for editor hot reload; active reactive bindings are restored by C# reload infrastructure.
+
+Avoid duplicates:
+
+```text
+Use `UI.BindText` for live TMP text display that must survive variable changes and hot reload.
+Use `UI.SetText` for one-shot text assignment.
+Use `variableName`/`variableTarget` before wiring a separate `Blueprint.GetVariable` into `value` when cross-blueprint variable changes should refresh this binding automatically.
+Do not store TMP_Text object references in blueprint JSON; store UIBinding<TMP_Text> binding names.
+```
+
 ### `UI.SpriteBinding`
 
 Manifest:
@@ -1845,6 +1918,7 @@ Function:
 ```text
 Reads `name` and `value`.
 Writes value into `context.Variables`.
+Refreshes reactive bindings for the current context or current Blueprint instance after a successful write.
 Continues through `execOut`.
 Returns an error if `name` is empty.
 Validator reports an error if `name` is missing, not declared in `variables[]`, or the literal `value` is not assignable.
@@ -1946,7 +2020,7 @@ Function:
 
 ```text
 Reads `target` and a dot-separated `path`.
-Supports dictionaries, serializable fields/properties, list indexes, and Vector2/Vector3 x/y/z fields.
+Supports Blueprint user structs, dictionaries, serializable fields/properties, list indexes, and Vector2/Vector3 x/y/z fields.
 Returns the resolved value through output `value`; logs an error when the path cannot be read.
 ```
 
@@ -1959,9 +2033,129 @@ Ports and parameters:
 | `path` | property | string | property | yes | Stored path when no value edge is connected. |
 | `value` | output value | untyped | none | no | Resolved field value. |
 
+### `Variable.SetField`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Variable.SetField.node.json
+```
+
+Executor:
+
+```text
+ID: Variable.SetField
+Class: VariableSetFieldExecutor
+File: Assets/BlueprintSystem/Executors/Variables/BlueprintArrayExecutors.cs
+```
+
+Function:
+
+```text
+Reads `target`, a dot-separated `path`, and a new `value`.
+Returns a changed copy through output `result`; connect that output to `Variable.Set.value` when the changed struct should be stored.
+Supports Blueprint user structs, dictionaries, list indexes, Vector2/Vector3 x/y/z fields, and serializable fields/properties.
+Logs an error and returns the original target when the path cannot be written or the value does not fit a user struct field type.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `target` | input value | untyped | connection | yes | Structured object, dictionary, array item, or vector value. |
+| `path` | input value | string | propertyOrConnection | yes | Field path such as `count`, `stats.attack`, or `items.0.count`. |
+| `value` | input value | untyped | propertyOrConnection | yes | New field value. User struct fields are coerced through the struct definition. |
+| `path` | property | string | property | yes | Stored path when no value edge is connected. |
+| `value` | property | untyped | property | no | Stored new value when no value edge is connected. |
+| `result` | output value | untyped | none | no | Changed copy of the target value. |
+
+### `Variable.BreakStruct`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Variable.BreakStruct.node.json
+```
+
+Executor:
+
+```text
+ID: Variable.BreakStruct
+Class: VariableBreakStructExecutor
+File: Assets/BlueprintSystem/Executors/Variables/BlueprintArrayExecutors.cs
+```
+
+Function:
+
+```text
+Reads `target` as the configured Blueprint user struct type and returns a field value from the requested output port.
+Output port IDs are stable hidden field IDs, while port labels use the current field names from the struct definition.
+Logs an error and returns null when the target is missing, has the wrong struct type, or the field output no longer exists.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `target` | input value | `Struct.{FileName}` | connection | yes | Struct value to split. The editor resolves this from `structAssetGuid` first, then `structTypeId`. |
+| `field.id` | output value | `field.type` | none | no | One dynamic output per non-deprecated struct field. Display name is `field.name`; connection identity is `field.id`. |
+| `structTypeId` | hidden property | string | property | yes | Runtime struct type id such as `Struct.InventoryItem`. |
+| `structAssetGuid` | hidden property | string | property | no | Editor-only asset tracking so renamed `BlueprintUserStructAsset` files refresh to the latest `Struct.{FileName}`. |
+
+Graph Toolkit behavior:
+
+```text
+Dragging a BlueprintUserStructAsset into the canvas offers `Variables/Break Struct.{FileName}`.
+The created node does not create a variable; connect an existing struct variable or struct output into `target`.
+An unconnected Break Struct node can remain on the canvas as a preview; `target` becomes a compile-time requirement once any field output is connected.
+The `target` input is connection-only in Graph Toolkit and hides the embedded struct `Type`/`JSON` constant editor.
+When the visual node is built, it creates dynamic outputs from the current struct fields and hides the tracking properties from manual editing.
+```
+
+## Blueprint User Struct Values
+
+Preferred authoring uses a ScriptableObject asset:
+
+```text
+Create > Blueprint System > User Struct Definition
+```
+
+Save these assets under:
+
+```text
+Assets/BlueprintSystem/Specs/Structs/*.asset
+```
+
+The editor registry scans `BlueprintUserStructAsset` assets directly, so blueprints can use the type immediately after the asset is saved or after clicking `Refresh Registry` in the inspector. The asset inspector includes `Sync JSON`, which writes a generated schema next to the asset for portable/runtime-readable definitions:
+
+```text
+Assets/BlueprintSystem/Specs/Structs/*.bpstruct.json
+```
+
+Generated JSON shape:
+
+```json
+{
+  "schemaVersion": "0.1",
+  "typeId": "Struct.InventoryItem",
+  "fields": [
+    { "id": "fld_item_id", "name": "itemId", "type": "string", "defaultValue": "" },
+    { "id": "fld_count", "name": "count", "type": "int", "defaultValue": 1 }
+  ]
+}
+```
+
+In the ScriptableObject inspector, `schemaVersion` and field `id` are hidden internal fields. `id` is auto-generated as the stable field identity and should not be hand-authored. `typeId` is read-only and derived from the asset file name as `Struct.{FileName}`; renaming the asset updates the type id. There is no separate display name; editor UI and generated definitions use `typeId` whenever a struct label is needed. In the field list, `name` is the user-facing field path used by `Variable.GetField` and `Variable.SetField`; `type` is selected from the field type enum. `defaultValueJson` stores the default as JSON, such as `1`, `"Sword"`, `[0, 0]`, or `{ "nested": true }`.
+
+Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryItem>` as their type. Defaults are stored in blueprint JSON as normal field objects, then coerced into runtime `BlueprintStructValue` instances by the variable store. Runtime values keep field IDs internally; `Variable.GetField` and `Variable.SetField` accept field names or field IDs in paths, while `Variable.BreakStruct` keeps connections stable by using field IDs as output port IDs.
+
+The editor refreshes `.bpgraph` Break Struct display caches when `BlueprintUserStructAsset` or generated `.bpstruct.json` definitions are imported, moved, or deleted. `.blueprint.json` remains the behavior source of truth; the refresh updates visual ports and suppresses graph auto-export so a display-only struct refresh does not rewrite blueprint behavior.
+
+ScriptableObject-authored user struct fields support the enum choices `String`, `Bool`, `Int`, `Float`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Rect`, `ForceMode`, `ForceMode2D`, `LoadSceneMode`, `Key`, `ComparisonMode`, `TickPhase`, and `Blueprint`. `BlueprintRef` and `UIBinding<T>` are intentionally not supported as user struct fields because they are runtime/editor binding handles, not portable data.
+
 ## Array Nodes
 
-Blueprint variables support `Array<T>` where `T` is a supported built-in type, enum, or `[BlueprintVariableType]` structured type. Nested arrays and `UIBinding<T>` elements are not supported.
+Blueprint variables support `Array<T>` where `T` is a supported built-in type, enum, user struct, or `[BlueprintVariableType]` structured type. Nested arrays and `UIBinding<T>` elements are not supported.
 In Graph Toolkit, `Array<T>` appears as one Blackboard type named `Array`. The array field contains an element type dropdown plus a JSON text field for defaults such as `["A","B"]`; `Variable.Get`, `Variable.Set`, validation, and export preserve the selected `Array<T>` blueprint type.
 
 ### `Array.Count`

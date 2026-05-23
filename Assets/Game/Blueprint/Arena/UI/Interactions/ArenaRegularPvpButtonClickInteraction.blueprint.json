@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ArenaRegularPvpButtonClickInteraction",
+  "category": "Arena/UI/Interactions",
+  "description": "Binds the regular PVP entry button click to EntryBehavior.EnterRegularPvpRequested.",
+  "variables": [],
+  "bindings": [
+    {
+      "name": "self_button",
+      "type": "Button",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_start",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "bind_click",
+      "typeId": "UI.BindButtonClick",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {
+        "target": "self_button"
+      }
+    },
+    {
+      "id": "get_owner",
+      "typeId": "Blueprint.GetOwner",
+      "position": [
+        220,
+        120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_entry_behavior",
+      "typeId": "Blueprint.GetComponent",
+      "position": [
+        440,
+        120
+      ],
+      "properties": {
+        "name": "EntryBehavior"
+      }
+    },
+    {
+      "id": "trigger_enter_regular",
+      "typeId": "Blueprint.TriggerEvent",
+      "position": [
+        680,
+        120
+      ],
+      "properties": {
+        "eventName": "EnterRegularPvpRequested"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start.execOut",
+      "to": "bind_click.execIn"
+    },
+    {
+      "from": "get_owner.target",
+      "to": "get_entry_behavior.target"
+    },
+    {
+      "from": "get_entry_behavior.target",
+      "to": "trigger_enter_regular.target"
+    },
+    {
+      "from": "bind_click.clicked",
+      "to": "trigger_enter_regular.execIn"
+    }
+  ]
+}

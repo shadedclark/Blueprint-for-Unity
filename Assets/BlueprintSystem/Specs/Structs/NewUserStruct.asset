@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3f39ac6db45448929e6e92ba31a6e8c, type: 3}
+  m_Name: NewUserStruct
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintUserStructAsset
+  schemaVersion: 0.1
+  typeId: Struct.NewUserStruct
+  fields:
+  - id: fld_2f30ad2739e742c0b5f048ad24a298e7
+    name: ewqe
+    fieldType: 2
+    defaultValueJson: 
+    legacyTypeId: 
+  - id: fld_37717905de074d6c9b206ef4001e1ab0
+    name: ee
+    fieldType: 2
+    defaultValueJson: 
+    legacyTypeId: 
+  - id: fld_7bdc5c16b0a9413dba306a227d4ab007
+    name: iiu
+    fieldType: 2
+    defaultValueJson: 
+    legacyTypeId: 
+  - id: fld_ca4fddf35079472c9e3b97ee494942da
+    name: bbb
+    fieldType: 0
+    defaultValueJson: 
+    legacyTypeId: 

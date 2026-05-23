@@ -184,6 +184,7 @@ namespace BlueprintSystem
 
                 ValidateProperties(node, manifest, bindingsByName, diagnostics);
                 ValidateVariableReference(node, variablesByName, diagnostics);
+                ValidateBreakStructNode(node, diagnostics);
             }
         }
 
@@ -266,9 +267,15 @@ namespace BlueprintSystem
                     continue;
                 }
 
-                BlueprintPortSpec output = fromManifest.FindOutput(from.PortId);
+                BlueprintPortSpec output = FindEffectiveOutputPort(fromNode, fromManifest, from.PortId);
                 BlueprintPortSpec input = toManifest.FindInput(to.PortId);
-                if (output == null || input == null)
+                if (output == null)
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BP004", "Edge references unknown port.", from.NodeId, from.PortId, edgeText));
+                    continue;
+                }
+
+                if (input == null)
                 {
                     diagnostics.Add(BlueprintDiagnostic.Error("BP004", "Edge references unknown port.", to.NodeId, to.PortId, edgeText));
                     continue;
@@ -331,6 +338,38 @@ namespace BlueprintSystem
             {
                 diagnostics.Add(BlueprintDiagnostic.Error("BP021", "Unknown variable '" + variableName + "'.", node.Id, "name"));
             }
+        }
+
+        private static void ValidateBreakStructNode(BlueprintNodeSource node, BlueprintDiagnosticList diagnostics)
+        {
+            if (node == null || node.TypeId != BlueprintBreakStructNodeUtility.NodeTypeId)
+            {
+                return;
+            }
+
+            string structTypeId;
+            BlueprintUserStructDefinition definition;
+            if (!BlueprintBreakStructNodeUtility.TryResolveDefinition(node, out structTypeId, out definition))
+            {
+                string typeLabel = string.IsNullOrEmpty(structTypeId) ? "<missing>" : structTypeId;
+                diagnostics.Add(BlueprintDiagnostic.Error("BP025", "Unknown struct type '" + typeLabel + "' for Break Struct node.", node.Id, BlueprintBreakStructNodeUtility.StructTypePropertyId));
+            }
+        }
+
+        private static BlueprintPortSpec FindEffectiveOutputPort(BlueprintNodeSource node, BlueprintNodeManifest manifest, string portId)
+        {
+            BlueprintPortSpec output = manifest == null ? null : manifest.FindOutput(portId);
+            if (output != null)
+            {
+                return output;
+            }
+
+            if (node != null && node.TypeId == BlueprintBreakStructNodeUtility.NodeTypeId)
+            {
+                BlueprintBreakStructNodeUtility.TryCreateOutputPort(node, portId, out output);
+            }
+
+            return output;
         }
 
         private static void ValidateVariableSetValues(
@@ -398,6 +437,23 @@ namespace BlueprintSystem
                 }
             }
 
+            if (node != null && input != null && node.TypeId == BlueprintBreakStructNodeUtility.NodeTypeId &&
+                input.Id == BlueprintBreakStructNodeUtility.TargetPortId)
+            {
+                string structTypeId;
+                BlueprintUserStructDefinition definition;
+                if (BlueprintBreakStructNodeUtility.TryResolveDefinition(node, out structTypeId, out definition))
+                {
+                    return structTypeId;
+                }
+
+                structTypeId = BlueprintBreakStructNodeUtility.GetStructTypeId(node);
+                if (!string.IsNullOrEmpty(structTypeId))
+                {
+                    return structTypeId;
+                }
+            }
+
             return input == null ? null : input.Type;
         }
 
@@ -444,12 +500,45 @@ namespace BlueprintSystem
                     bool hasConnection = valueInputs.ContainsKey(new BlueprintPortKey(node.Id, input.Id));
                     bool hasProperty = node.Properties.ContainsKey(input.Id);
                     bool hasDefault = property != null && property.DefaultValue != null;
-                    if (!hasConnection && !hasProperty && !hasDefault)
+                    bool canDeferUntilOutputIsUsed = CanDeferRequiredValueInputUntilOutputIsUsed(node, input, valueInputs);
+                    if (!hasConnection && !hasProperty && !hasDefault && !canDeferUntilOutputIsUsed)
                     {
                         diagnostics.Add(BlueprintDiagnostic.Error("BP002", "Missing required value input '" + input.Id + "'.", node.Id, input.Id));
                     }
                 }
             }
+        }
+
+        private static bool CanDeferRequiredValueInputUntilOutputIsUsed(
+            BlueprintNodeSource node,
+            BlueprintPortSpec input,
+            Dictionary<BlueprintPortKey, RuntimeEdge> valueInputs)
+        {
+            if (node == null || input == null)
+            {
+                return false;
+            }
+
+            if (node.TypeId != BlueprintBreakStructNodeUtility.NodeTypeId ||
+                input.Id != BlueprintBreakStructNodeUtility.TargetPortId)
+            {
+                return false;
+            }
+
+            return !HasConnectedValueOutput(node.Id, valueInputs);
+        }
+
+        private static bool HasConnectedValueOutput(string nodeId, Dictionary<BlueprintPortKey, RuntimeEdge> valueInputs)
+        {
+            foreach (RuntimeEdge edge in valueInputs.Values)
+            {
+                if (edge.From.NodeId == nodeId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void ValidateEvents(BlueprintSource source, BlueprintNodeManifestCollection manifests, BlueprintDiagnosticList diagnostics)

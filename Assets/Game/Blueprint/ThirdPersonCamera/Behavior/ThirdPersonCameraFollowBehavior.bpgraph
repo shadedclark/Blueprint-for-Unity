@@ -1023,6 +1023,8 @@ MonoBehaviour:
           Required: 0
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -1031,6 +1033,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 1
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: phase
           DisplayName: 
@@ -1039,6 +1043,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"LateUpdate"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318782
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1067,6 +1072,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -1075,6 +1082,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -1083,6 +1092,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"player_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318786
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1111,6 +1121,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -1119,6 +1131,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -1127,6 +1141,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"camera_rig_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318790
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1161,6 +1176,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -1168,6 +1185,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -1176,6 +1195,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: success
           DisplayName: 
           Kind: value
@@ -1183,6 +1204,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -1191,6 +1214,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -1198,6 +1222,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"follow_lerp_speed"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318795
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1223,6 +1248,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties: []
     - rid: 2881251987074318798
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
@@ -1256,6 +1283,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: b
           DisplayName: 
           Kind: value
@@ -1263,6 +1292,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -1271,6 +1302,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: a
           DisplayName: 
@@ -1279,6 +1312,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: b
           DisplayName: 
           Type: float
@@ -1286,6 +1320,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318803
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1322,6 +1357,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: min
           DisplayName: 
           Kind: value
@@ -1329,6 +1366,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: max
           DisplayName: 
           Kind: value
@@ -1336,6 +1375,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -1344,6 +1385,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: value
           DisplayName: 
@@ -1352,6 +1395,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: min
           DisplayName: 
           Type: float
@@ -1359,6 +1403,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: max
           DisplayName: 
           Type: float
@@ -1366,6 +1411,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 1
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318809
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1402,6 +1448,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: b
           DisplayName: 
           Kind: value
@@ -1409,6 +1457,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: t
           DisplayName: 
           Kind: value
@@ -1416,6 +1466,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -1424,6 +1476,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: a
           DisplayName: 
@@ -1432,6 +1486,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: b
           DisplayName: 
           Type: Vector3
@@ -1439,6 +1494,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: t
           DisplayName: 
           Type: float
@@ -1446,6 +1502,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 1
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318815
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -1478,6 +1535,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -1485,6 +1544,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -1492,6 +1553,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -1500,6 +1563,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -1508,6 +1573,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"camera_rig_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: Vector3
@@ -1515,6 +1581,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318820
       type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:

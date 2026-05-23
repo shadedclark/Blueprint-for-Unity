@@ -112,6 +112,12 @@ namespace BlueprintSystem
                 return true;
             }
 
+            if (BlueprintUserStructRegistry.IsUserStructType(typeId))
+            {
+                clrType = typeof(BlueprintStructValue);
+                return true;
+            }
+
             EnsureCustomTypes();
             return !string.IsNullOrEmpty(typeId) && customTypesById.TryGetValue(typeId, out clrType);
         }
@@ -160,6 +166,11 @@ namespace BlueprintSystem
                 return false;
             }
 
+            if (BlueprintUserStructRegistry.IsUserStructType(typeId))
+            {
+                return true;
+            }
+
             EnsureCustomTypes();
             return customTypesById.ContainsKey(typeId);
         }
@@ -171,6 +182,11 @@ namespace BlueprintSystem
             foreach (Type type in BuiltinTypesById.Values)
             {
                 types.Add(type);
+            }
+
+            if (BlueprintUserStructRegistry.GetTypeIds().Length > 0)
+            {
+                types.Add(typeof(BlueprintStructValue));
             }
 
             foreach (Type type in customTypesById.Values)
@@ -191,6 +207,12 @@ namespace BlueprintSystem
             }
 
             types.Add(BlueprintAssetTypeId);
+
+            string[] userStructTypeIds = BlueprintUserStructRegistry.GetTypeIds();
+            for (int i = 0; i < userStructTypeIds.Length; i++)
+            {
+                types.Add(userStructTypeIds[i]);
+            }
 
             foreach (string typeId in customTypesById.Keys)
             {
@@ -636,6 +658,11 @@ namespace BlueprintSystem
         public static bool TryConvertToRuntimeValue(object value, string blueprintType, out object runtimeValue)
         {
             runtimeValue = value;
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                return BlueprintUserStructUtility.TryConvertToRuntimeValue(value, blueprintType, out runtimeValue);
+            }
+
             Type clrType;
             if (!BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out clrType) || BlueprintVariableTypeRegistry.IsBuiltInType(clrType))
             {
@@ -676,6 +703,11 @@ namespace BlueprintSystem
         public static bool TryConvertToJsonValue(object value, string blueprintType, out object jsonValue)
         {
             jsonValue = value;
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                return BlueprintUserStructUtility.TryConvertToJsonValue(value, blueprintType, out jsonValue);
+            }
+
             Type clrType;
             if (!BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out clrType) || BlueprintVariableTypeRegistry.IsBuiltInType(clrType))
             {
@@ -700,6 +732,12 @@ namespace BlueprintSystem
 
         public static bool IsValueAssignableToStructuredType(object value, string blueprintType)
         {
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                object userStructRuntimeValue;
+                return BlueprintUserStructUtility.TryConvertToRuntimeValue(value, blueprintType, out userStructRuntimeValue);
+            }
+
             Type ignored;
             if (!BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out ignored) || BlueprintVariableTypeRegistry.IsBuiltInType(ignored))
             {
@@ -713,6 +751,11 @@ namespace BlueprintSystem
         public static bool TryCreateDefaultRuntimeValue(string blueprintType, out object value)
         {
             value = null;
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                return BlueprintUserStructUtility.TryCreateDefaultRuntimeValue(blueprintType, out value);
+            }
+
             Type clrType;
             if (!BlueprintVariableTypeRegistry.TryGetClrType(blueprintType, out clrType) || BlueprintVariableTypeRegistry.IsBuiltInType(clrType))
             {
@@ -734,6 +777,11 @@ namespace BlueprintSystem
         public static bool TryCreateDefaultJsonValue(string blueprintType, out object value)
         {
             value = null;
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                return BlueprintUserStructUtility.TryCreateDefaultJsonValue(blueprintType, out value);
+            }
+
             object runtimeValue;
             if (!TryCreateDefaultRuntimeValue(blueprintType, out runtimeValue))
             {

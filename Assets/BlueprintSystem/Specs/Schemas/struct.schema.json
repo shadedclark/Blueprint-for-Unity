@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint User Struct",
+  "type": "object",
+  "required": ["schemaVersion", "typeId", "fields"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "typeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/field"
+      }
+    }
+  },
+  "$defs": {
+    "field": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "bool",
+            "int",
+            "float",
+            "Vector2",
+            "Vector3",
+            "Vector4",
+            "Color",
+            "Rect",
+            "ForceMode",
+            "ForceMode2D",
+            "LoadSceneMode",
+            "Key",
+            "ComparisonMode",
+            "TickPhase",
+            "Blueprint"
+          ]
+        },
+        "defaultValue": {}
+      }
+    }
+  }
+}

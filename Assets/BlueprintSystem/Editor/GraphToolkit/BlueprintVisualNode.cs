@@ -42,6 +42,18 @@ namespace BlueprintSystem.Editor
         public bool TryReadPropertyValue(BlueprintVisualPropertyData property, out object value)
         {
             EnsureConfigured();
+            if (property != null && property.Hidden)
+            {
+                if (property.HasValue)
+                {
+                    value = BlueprintVisualValueUtility.FromJson(property.JsonValue);
+                    return true;
+                }
+
+                value = null;
+                return false;
+            }
+
             if (property != null && property.ShowInInspectorOnly)
             {
                 INodeOption inspectorOption = GetNodeOptionByName(property.Id);
@@ -91,7 +103,7 @@ namespace BlueprintSystem.Editor
             for (int i = 0; i < Properties.Count; i++)
             {
                 BlueprintVisualPropertyData property = Properties[i];
-                if (property == null || string.IsNullOrEmpty(property.Id) || (HasInput(property.Id) && !property.ShowInInspectorOnly))
+                if (property == null || property.Hidden || string.IsNullOrEmpty(property.Id) || (HasInput(property.Id) && !property.ShowInInspectorOnly))
                 {
                     continue;
                 }
@@ -120,6 +132,11 @@ namespace BlueprintSystem.Editor
 
         protected virtual void ApplyDefaultMetadata()
         {
+        }
+
+        protected virtual bool ShouldSuppressEmbeddedInputValue(BlueprintVisualPortData port)
+        {
+            return false;
         }
 
         protected void SetIdentity(string typeId, string title, string category, string description)
@@ -154,7 +171,7 @@ namespace BlueprintSystem.Editor
             AddOutput(id, "value", type, false, null, false, displayName);
         }
 
-        protected void AddProperty(string id, string type, bool required, object defaultValue = null, string displayName = null, bool showInInspectorOnly = false)
+        protected void AddProperty(string id, string type, bool required, object defaultValue = null, string displayName = null, bool showInInspectorOnly = false, bool hidden = false)
         {
             Properties.Add(new BlueprintVisualPropertyData
             {
@@ -164,7 +181,8 @@ namespace BlueprintSystem.Editor
                 Required = required,
                 HasValue = defaultValue != null,
                 JsonValue = defaultValue == null ? string.Empty : BlueprintVisualValueUtility.ToJson(defaultValue),
-                ShowInInspectorOnly = showInInspectorOnly
+                ShowInInspectorOnly = showInInspectorOnly,
+                Hidden = hidden
             });
         }
 
@@ -244,7 +262,7 @@ namespace BlueprintSystem.Editor
             }
 
             IPort inputPort = builder.Build();
-            if (IsInspectorOnlyProperty(port.Id))
+            if (IsInspectorOnlyProperty(port.Id) || ShouldSuppressEmbeddedInputValue(port))
             {
                 SuppressEmbeddedInputValue(inputPort);
             }

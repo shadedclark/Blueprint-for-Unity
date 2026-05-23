@@ -1,0 +1,309 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: InventoryOpenCloseBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: InventoryOpenCloseBehavior
+  sourceGuid: bf0e5dbe1b041450b9540d817fafeee3
+  sourcePath: Assets/BlueprintSystem/Samples/Inventory/Behavior/InventoryOpenCloseBehavior.blueprint.json
+  sourceHash: 262be2890cc1d87ee74959119d5160d29f97091b56d96fd1bf040dac2c74ea22
+  manifestHash: 6ea7d7379abc0c0102073469c4d3fb0050294b8cda95f85e27e0c594ed40ff71
+  variables:
+  - Id: var_inventory_data_blueprint
+    Name: inventory_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json
+  - Id: var_inventory_header_presenter_blueprint
+    Name: inventory_header_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json
+  - Id: var_inventory_grid_presenter_blueprint
+    Name: inventory_grid_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json
+  - Id: var_inventory_detail_presenter_blueprint
+    Name: inventory_detail_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json
+  - Id: var_inventory_confirm_presenter_blueprint
+    Name: inventory_confirm_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json
+  bindings:
+  - Name: inventory_root
+    Type: GameObject
+    Required: 1
+  - Name: inventory_confirm_root
+    Type: GameObject
+    Required: 1
+  components: []
+  nodes:
+  - Id: get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: event_open_inventory
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"OpenInventory"'
+  - Id: open_set_screen_open
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"screen_open"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: true
+  - Id: open_set_confirm_false
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"confirm_drop_visible"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: false
+  - Id: open_show_root
+    TypeId: UI.SetVisible
+    ExecutorId: UI.SetVisible
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_root"'
+    - Id: value
+      JsonValue: true
+  - Id: open_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Inventory opened."'
+  - Id: open_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: open_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: open_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: open_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: open_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: open_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: open_get_confirm
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_confirm_presenter_blueprint"'
+  - Id: open_refresh_confirm
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"'
+  - Id: event_close_inventory
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"CloseInventory"'
+  - Id: close_set_screen_open
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"screen_open"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: false
+  - Id: close_set_confirm_false
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"confirm_drop_visible"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: false
+  - Id: close_hide_confirm
+    TypeId: UI.SetVisible
+    ExecutorId: UI.SetVisible
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_confirm_root"'
+    - Id: value
+      JsonValue: false
+  - Id: close_hide_root
+    TypeId: UI.SetVisible
+    ExecutorId: UI.SetVisible
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_root"'
+    - Id: value
+      JsonValue: false
+  execEdges:
+  - FromNodeId: close_hide_confirm
+    FromPortId: execOut
+    ToNodeId: close_hide_root
+    ToPortId: execIn
+  - FromNodeId: close_set_confirm_false
+    FromPortId: execOut
+    ToNodeId: close_hide_confirm
+    ToPortId: execIn
+  - FromNodeId: close_set_screen_open
+    FromPortId: execOut
+    ToNodeId: close_set_confirm_false
+    ToPortId: execIn
+  - FromNodeId: event_close_inventory
+    FromPortId: execOut
+    ToNodeId: close_set_screen_open
+    ToPortId: execIn
+  - FromNodeId: event_open_inventory
+    FromPortId: execOut
+    ToNodeId: open_set_screen_open
+    ToPortId: execIn
+  - FromNodeId: open_refresh_detail
+    FromPortId: execOut
+    ToNodeId: open_refresh_confirm
+    ToPortId: execIn
+  - FromNodeId: open_refresh_grid
+    FromPortId: execOut
+    ToNodeId: open_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: open_refresh_header
+    FromPortId: execOut
+    ToNodeId: open_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: open_set_confirm_false
+    FromPortId: execOut
+    ToNodeId: open_show_root
+    ToPortId: execIn
+  - FromNodeId: open_set_screen_open
+    FromPortId: execOut
+    ToNodeId: open_set_confirm_false
+    ToPortId: execIn
+  - FromNodeId: open_set_status
+    FromPortId: execOut
+    ToNodeId: open_refresh_header
+    ToPortId: execIn
+  - FromNodeId: open_show_root
+    FromPortId: execOut
+    ToNodeId: open_set_status
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: close_set_confirm_false
+    ToPortId: target
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: close_set_screen_open
+    ToPortId: target
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: open_set_confirm_false
+    ToPortId: target
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: open_set_screen_open
+    ToPortId: target
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: open_set_status
+    ToPortId: target
+  - FromNodeId: open_get_confirm
+    FromPortId: value
+    ToNodeId: open_refresh_confirm
+    ToPortId: target
+  - FromNodeId: open_get_detail
+    FromPortId: value
+    ToNodeId: open_refresh_detail
+    ToPortId: target
+  - FromNodeId: open_get_grid
+    FromPortId: value
+    ToNodeId: open_refresh_grid
+    ToPortId: target
+  - FromNodeId: open_get_header
+    FromPortId: value
+    ToNodeId: open_refresh_header
+    ToPortId: target
+  eventEntries:
+  - EventName: CloseInventory
+    NodeId: event_close_inventory
+  - EventName: OpenInventory
+    NodeId: event_open_inventory

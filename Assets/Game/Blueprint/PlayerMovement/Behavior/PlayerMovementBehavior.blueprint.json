@@ -5,7 +5,7 @@
   "description": "Tick-driven local movement from the Player/Move Input System action.",
   "variables": [
     {
-      "id": "var_0b628bedd5754a4f836fdc9e90b9d9e0",
+      "id": "var_7d2076cd65bf42f9b436751986c90e7a",
       "name": "player_movement_data_blueprint",
       "type": "Blueprint",
       "defaultValue": "Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json",

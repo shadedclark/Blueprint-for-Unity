@@ -16,10 +16,10 @@ MonoBehaviour:
   blueprintName: ThirdPersonCameraRotationBehavior
   sourceGuid: 3f452316c1e01462d9d9b1228df4107c
   sourcePath: Assets/Game/Blueprint/ThirdPersonCamera/Behavior/ThirdPersonCameraRotationBehavior.blueprint.json
-  sourceHash: d0d22a0df4ade06812cc04646e433c673ac33dbdb64f6459dc1f006bc1918f38
-  manifestHash: 4ce713422414317c02615f9dddfb1a24d003657720d4b9b7db55c45908a7cef0
+  sourceHash: ac8b99e8a25114d740aa32b182e334aa86817a9d0fc1e9e6765d22287261dbf5
+  manifestHash: 439b87bbfd0c26812644984ab3336c28d9d5a7d3f7f738240dc69f76edcb7d4d
   variables:
-  - Id: var_a876bd8871054df5a93b0d3df97fc19b
+  - Id: var_44d9301bee4d4b95ad0e6adca1a11ecc
     Name: third_person_camera_data_blueprint
     Type: Blueprint
     DefaultValueJson: '"Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json"'
@@ -278,6 +278,12 @@ MonoBehaviour:
       JsonValue: '"camera_transform"'
     - Id: value
       JsonValue: '[45,0,0]'
+  - Id: listen_right_click
+    TypeId: Input.ListenAction
+    ExecutorId: Input.ListenAction
+    Properties:
+    - Id: action
+      JsonValue: '"UI/RightClick"'
   - Id: set_current_mouse_zero
     TypeId: Blueprint.SetVariable
     ExecutorId: Blueprint.SetVariable
@@ -476,16 +482,20 @@ MonoBehaviour:
     ToNodeId: set_current_gamepad_look
     ToPortId: execIn
   - FromNodeId: branch_mouse_has_input
-    FromPortId: false
-    ToNodeId: set_current_mouse_zero
-    ToPortId: execIn
-  - FromNodeId: branch_mouse_has_input
     FromPortId: true
     ToNodeId: set_current_mouse_look
     ToPortId: execIn
   - FromNodeId: event_late_tick
     FromPortId: execOut
     ToNodeId: sequence_tick
+    ToPortId: execIn
+  - FromNodeId: listen_right_click
+    FromPortId: bound
+    ToNodeId: set_current_mouse_zero
+    ToPortId: execIn
+  - FromNodeId: listen_right_click
+    FromPortId: held
+    ToNodeId: branch_mouse_has_input
     ToPortId: execIn
   - FromNodeId: rotate_gamepad_yaw
     FromPortId: execOut
@@ -505,7 +515,7 @@ MonoBehaviour:
     ToPortId: execIn
   - FromNodeId: sequence_tick
     FromPortId: then2
-    ToNodeId: branch_mouse_has_input
+    ToNodeId: listen_right_click
     ToPortId: execIn
   - FromNodeId: set_current_gamepad_look
     FromPortId: execOut

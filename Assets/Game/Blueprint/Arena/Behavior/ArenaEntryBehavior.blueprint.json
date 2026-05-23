@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ArenaEntryBehavior",
+  "category": "Arena/Behavior",
+  "description": "Handles regular and advanced PVP entry button intents.",
+  "variables": [
+    {
+      "id": "var_19f9781542ed47bc94dc55ced447759f",
+      "name": "arena_data_blueprint",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+      "scope": "runtime",
+      "description": "Target Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"
+    }
+  ],
+  "bindings": [],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_enter_regular",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "EnterRegularPvpRequested"
+      }
+    },
+    {
+      "id": "get_arena_data_blueprint",
+      "typeId": "Variable.Get",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {
+        "name": "arena_data_blueprint"
+      }
+    },
+    {
+      "id": "set_regular_mode",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        440,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+        "name": "selected_pvp_mode",
+        "value": "regular"
+      }
+    },
+    {
+      "id": "set_regular_intent",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        660,
+        0
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+        "name": "last_entry_intent",
+        "value": "EnterRegularPVP"
+      }
+    },
+    {
+      "id": "log_regular_entry",
+      "typeId": "Game.Log",
+      "position": [
+        880,
+        0
+      ],
+      "properties": {
+        "message": "Arena regular PVP entry requested."
+      }
+    },
+    {
+      "id": "event_enter_advanced",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        180
+      ],
+      "properties": {
+        "eventName": "EnterAdvancedPvpRequested"
+      }
+    },
+    {
+      "id": "get_arena_data_blueprint_2",
+      "typeId": "Variable.Get",
+      "position": [
+        220,
+        180
+      ],
+      "properties": {
+        "name": "arena_data_blueprint"
+      }
+    },
+    {
+      "id": "set_advanced_mode",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        440,
+        180
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+        "name": "selected_pvp_mode",
+        "value": "advanced"
+      }
+    },
+    {
+      "id": "set_advanced_intent",
+      "typeId": "Blueprint.SetVariable",
+      "position": [
+        660,
+        180
+      ],
+      "properties": {
+        "target": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+        "name": "last_entry_intent",
+        "value": "EnterAdvancedPVP"
+      }
+    },
+    {
+      "id": "log_advanced_entry",
+      "typeId": "Game.Log",
+      "position": [
+        880,
+        180
+      ],
+      "properties": {
+        "message": "Arena advanced PVP entry requested."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_enter_regular.execOut",
+      "to": "set_regular_mode.execIn"
+    },
+    {
+      "from": "get_arena_data_blueprint.value",
+      "to": "set_regular_mode.target"
+    },
+    {
+      "from": "get_arena_data_blueprint.value",
+      "to": "set_regular_intent.target"
+    },
+    {
+      "from": "set_regular_mode.execOut",
+      "to": "set_regular_intent.execIn"
+    },
+    {
+      "from": "set_regular_intent.execOut",
+      "to": "log_regular_entry.execIn"
+    },
+    {
+      "from": "event_enter_advanced.execOut",
+      "to": "set_advanced_mode.execIn"
+    },
+    {
+      "from": "get_arena_data_blueprint_2.value",
+      "to": "set_advanced_mode.target"
+    },
+    {
+      "from": "get_arena_data_blueprint_2.value",
+      "to": "set_advanced_intent.target"
+    },
+    {
+      "from": "set_advanced_mode.execOut",
+      "to": "set_advanced_intent.execIn"
+    },
+    {
+      "from": "set_advanced_intent.execOut",
+      "to": "log_advanced_entry.execIn"
+    }
+  ]
+}

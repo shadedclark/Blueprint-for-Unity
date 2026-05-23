@@ -16,10 +16,10 @@ MonoBehaviour:
   blueprintName: PlayerMovementData
   sourceGuid: a77117dad45b14afbb0fd8051100079d
   sourcePath: Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json
-  sourceHash: d6d7617b11c3f62fa5d6c0c0d8514b9d60f542edf53251fc6dd19f116f1cc32c
+  sourceHash: 0442aadfe93c0ba525ac63df523bf99d265d8a1d3e966bc3f2261b7d3ac38e92
   manifestHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
   variables:
-  - Id: var_9b8f504c17b94128bc3b9438bc8b1062
+  - Id: var_a9c35b4e83ec43159e1f5c9b89983ba3
     Name: move_speed
     Type: float
     DefaultValueJson: 10
@@ -27,7 +27,7 @@ MonoBehaviour:
     Exposed: 1
     Persistent: 1
     Description: World units per second for base ground movement.
-  - Id: var_92c352d91bb943829131d2655eb96629
+  - Id: var_57999d57657747c6b0c5636408d0ce57
     Name: input_dead_zone
     Type: float
     DefaultValueJson: 0.1
@@ -35,7 +35,7 @@ MonoBehaviour:
     Exposed: 1
     Persistent: 1
     Description: Minimum Player/Move vector length before movement starts.
-  - Id: var_a4aaaf767f1a488f83abad889418e73d
+  - Id: var_52566de6cc704f4dacdc161855b5cac1
     Name: rotate_to_move_direction
     Type: bool
     DefaultValueJson: false
@@ -43,7 +43,7 @@ MonoBehaviour:
     Exposed: 1
     Persistent: 1
     Description: When true, the player instantly faces the current movement direction.
-  - Id: var_8c1714f35224422692e59740a1f6f99e
+  - Id: var_2b0a7cabeaa846e59690503dce29f286
     Name: turn_speed
     Type: float
     DefaultValueJson: 720
@@ -51,7 +51,7 @@ MonoBehaviour:
     Exposed: 1
     Persistent: 1
     Description: Reserved turn speed in degrees per second for future smoothed rotation.
-  - Id: var_afdb4ebf69174ea2b5dc1a13eb8afae1
+  - Id: var_64774f285e3148a09e536c2a6ef17b30
     Name: current_input
     Type: Vector2
     DefaultValueJson: '[0,0]'
@@ -59,7 +59,7 @@ MonoBehaviour:
     Exposed: 1
     Persistent: 0
     Description: Latest accepted Player/Move input vector after dead-zone filtering.
-  - Id: var_74a35292ddef4cb09a659aee78b21c29
+  - Id: var_6d263b22855d4da9a89da7ccefbab7c8
     Name: current_move_direction
     Type: Vector3
     DefaultValueJson: '[0,0,0]'
@@ -67,7 +67,7 @@ MonoBehaviour:
     Exposed: 1
     Persistent: 0
     Description: Normalized world-space movement direction on the XZ plane.
-  - Id: var_fe5de0ec1512423f9646e9aa2d117ae1
+  - Id: var_7f277c48e8dc47fd822a6358ce8ece49
     Name: is_moving
     Type: bool
     DefaultValueJson: false

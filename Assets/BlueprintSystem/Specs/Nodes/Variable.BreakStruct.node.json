@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Variable.BreakStruct",
+  "title": "Break Struct",
+  "category": "Variables",
+  "description": "Breaks a Blueprint user struct into field outputs.",
+  "executor": "Variable.BreakStruct",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [],
+  "properties": [
+    {
+      "id": "structTypeId",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "structAssetGuid",
+      "type": "string",
+      "required": false
+    }
+  ]
+}

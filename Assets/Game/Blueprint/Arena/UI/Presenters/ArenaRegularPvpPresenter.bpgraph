@@ -1,0 +1,1185 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 61
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 790b4d75d92f4b0984310a268dbd952f, type: 3}
+  m_Name: ArenaRegularPvpPresenter
+  m_EditorClassIdentifier: Unity.GraphToolkit.Editor::Unity.GraphToolkit.Editor.Implementation.GraphObjectImp
+  m_GraphModel:
+    rid: 2881252029286318705
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2881252029286318705
+      type: {class: GraphModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 14965234104481774
+          m_Value1: 18069217707861487520
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: ee37c716cd2a3500a02f483ec5c1c2fa
+        m_Name: 
+        m_GraphNodeModels:
+        - rid: 2881252029286318708
+        - rid: 2881252029286318709
+        - rid: 2881252029286318710
+        - rid: 2881252029286318711
+        - rid: 2881252029286318712
+        - rid: 2881252029286318751
+        m_GraphWireModels:
+        - rid: 2881252029286318713
+        - rid: 2881252029286318714
+        - rid: 2881252029286318715
+        - rid: 2881252029286318716
+        - rid: 2881252029286318752
+        m_GraphStickyNoteModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels:
+        - rid: 2881252029286318749
+        m_GraphPortalModels: []
+        m_SectionModels:
+        - rid: 2881252029286318706
+        m_LocalSubgraphs: []
+        m_LastKnownBounds:
+          serializedVersion: 2
+          x: 0
+          y: -181.5
+          width: 1091.5
+          height: 664.5
+        m_GraphElementMetaData:
+        - m_Guid:
+            m_Value0: 7442082012576999107
+            m_Value1: 4718173427162327139
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: c3e6f91c2996476763a8b2eabb517a41
+          m_Category: 0
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 10367943358324287334
+            m_Value1: 11254936040163918968
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 66274a7c8d55e28f7844b683b290319c
+          m_Category: 0
+          m_Index: 1
+        - m_Guid:
+            m_Value0: 14150220269291821744
+            m_Value1: 17471868450609311093
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: b0daab245dae5fc4752dec30c98b78f2
+          m_Category: 0
+          m_Index: 2
+        - m_Guid:
+            m_Value0: 13616994998591040487
+            m_Value1: 14570413117656283930
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: e72b4a27ce48f9bc1a3b987c888134ca
+          m_Category: 0
+          m_Index: 3
+        - m_Guid:
+            m_Value0: 12587895513697077845
+            m_Value1: 2977241432923425509
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 55caa5b34630b1aee5caf9234f495129
+          m_Category: 0
+          m_Index: 4
+        - m_Guid:
+            m_Value0: 2400286238427020469
+            m_Value1: 5866526807485308923
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: b57cb3d89d874f21fbdf77990c176a51
+          m_Category: 2
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 2460683181409633592
+            m_Value1: 16395069404014600899
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 3805b3f4501a2622c3622a16c2fc86e3
+          m_Category: 2
+          m_Index: 1
+        - m_Guid:
+            m_Value0: 5293600451252974164
+            m_Value1: 489994053934253334
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 54f2c74f90a576491605cef6fececc06
+          m_Category: 2
+          m_Index: 2
+        - m_Guid:
+            m_Value0: 14330191874377117642
+            m_Value1: 14636882033501415840
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: caef6fcb9511dfc6a02926f2a8a620cb
+          m_Category: 2
+          m_Index: 3
+        - m_Guid:
+            m_Value0: 2584516413608631758
+            m_Value1: 2514104752628915792
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: ce1d4f1dfc0bde23505e91c4f3e4e322
+          m_Category: 1
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 5897849952829209947
+            m_Value1: 2677498158005155588
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 5b7df0b0485fd95104f7a88263622825
+          m_Category: 0
+          m_Index: 5
+        - m_Guid:
+            m_Value0: 112603395851716490
+            m_Value1: 7579444975899809758
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 8a873e22310c9001de9720470c992f69
+          m_Category: 2
+          m_Index: 4
+        m_EntryPoint:
+          rid: 2881252029286318708
+        m_Graph:
+          rid: 2881252029286318707
+    - rid: 2881252029286318706
+      type: {class: SectionModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 16917683998643396834
+          m_Value1: 5721805948782234299
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: e2207389f6afc7eabbcae1ea31f0674f
+        m_Version: 2
+        m_Items:
+        - rid: 2881252029286318749
+        m_Title: 
+    - rid: 2881252029286318707
+      type: {class: BlueprintVisualGraph, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        SourceBlueprintAssetPath: Assets/Game/Blueprint/Arena/UI/Presenters/ArenaRegularPvpPresenter.blueprint.json
+        SchemaVersion: 0.1
+        BlueprintName: ArenaRegularPvpPresenter
+        Category: Arena/UI/Presenter
+        Description: Refreshes the regular PVP card values from ArenaData.
+        Variables:
+        - Id: 
+          Name: ArenaData
+          Type: Blueprint
+          HasDefaultValue: 1
+          JsonDefaultValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+          Scope: runtime
+          Exposed: 0
+          Persistent: 0
+          Description: 
+        Bindings:
+        - Name: arena_regular_power_text
+          Type: TMP_Text
+          Required: 1
+        - Name: arena_regular_score_text
+          Type: TMP_Text
+          Required: 1
+        - Name: arena_regular_rank_text
+          Type: TMP_Text
+          Required: 1
+        - Name: arena_regular_countdown_text
+          Type: TMP_Text
+          Required: 1
+        Components: []
+    - rid: 2881252029286318708
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 7442082012576999107
+          m_Value1: 4718173427162327139
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: c3e6f91c2996476763a8b2eabb517a41
+        m_Version: 2
+        m_Position: {x: 0, y: 0}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          - __option_eventName
+          m_ValueList:
+          - rid: 2881252029286318717
+          - rid: 2881252029286318718
+          - rid: 2881252029286318719
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881252029286318720
+    - rid: 2881252029286318709
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 10367943358324287334
+          m_Value1: 11254936040163918968
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 66274a7c8d55e28f7844b683b290319c
+        m_Version: 2
+        m_Position: {x: 381.83112, y: -181.73245}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          - __option_variableTarget
+          - target
+          - value
+          - variableName
+          m_ValueList:
+          - rid: 2881252029286318721
+          - rid: 2881252029286318722
+          - rid: 2881252029286318723
+          - rid: 2881252029286318724
+          - rid: 2881252029286318725
+          - rid: 2881252029286318726
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881252029286318727
+    - rid: 2881252029286318710
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 14150220269291821744
+          m_Value1: 17471868450609311093
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: b0daab245dae5fc4752dec30c98b78f2
+        m_Version: 2
+        m_Position: {x: 811.0736, y: -120.6192}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          - __option_variableTarget
+          - target
+          - value
+          - variableName
+          m_ValueList:
+          - rid: 2881252029286318728
+          - rid: 2881252029286318729
+          - rid: 2881252029286318730
+          - rid: 2881252029286318731
+          - rid: 2881252029286318732
+          - rid: 2881252029286318733
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881252029286318734
+    - rid: 2881252029286318711
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 13616994998591040487
+          m_Value1: 14570413117656283930
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: e72b4a27ce48f9bc1a3b987c888134ca
+        m_Version: 2
+        m_Position: {x: 460, y: 200}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          - __option_variableTarget
+          - target
+          - value
+          - variableName
+          m_ValueList:
+          - rid: 2881252029286318735
+          - rid: 2881252029286318736
+          - rid: 2881252029286318737
+          - rid: 2881252029286318738
+          - rid: 2881252029286318739
+          - rid: 2881252029286318740
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881252029286318741
+    - rid: 2881252029286318712
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12587895513697077845
+          m_Value1: 2977241432923425509
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 55caa5b34630b1aee5caf9234f495129
+        m_Version: 2
+        m_Position: {x: 460, y: 300}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          - __option_variableTarget
+          - target
+          - value
+          - variableName
+          m_ValueList:
+          - rid: 2881252029286318742
+          - rid: 2881252029286318743
+          - rid: 2881252029286318744
+          - rid: 2881252029286318745
+          - rid: 2881252029286318746
+          - rid: 2881252029286318747
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881252029286318748
+    - rid: 2881252029286318713
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 2400286238427020469
+          m_Value1: 5866526807485308923
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: b57cb3d89d874f21fbdf77990c176a51
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 7442082012576999107
+            m_Value1: 4718173427162327139
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: c3e6f91c2996476763a8b2eabb517a41
+          m_UniqueId: execOut
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: RefreshRequested
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 10367943358324287334
+            m_Value1: 11254936040163918968
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: 66274a7c8d55e28f7844b683b290319c
+          m_UniqueId: execIn
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: execIn
+    - rid: 2881252029286318714
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 2460683181409633592
+          m_Value1: 16395069404014600899
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 3805b3f4501a2622c3622a16c2fc86e3
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 10367943358324287334
+            m_Value1: 11254936040163918968
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: 66274a7c8d55e28f7844b683b290319c
+          m_UniqueId: bound
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: bound
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 14150220269291821744
+            m_Value1: 17471868450609311093
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: b0daab245dae5fc4752dec30c98b78f2
+          m_UniqueId: execIn
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: execIn
+    - rid: 2881252029286318715
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 5293600451252974164
+          m_Value1: 489994053934253334
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 54f2c74f90a576491605cef6fececc06
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 14150220269291821744
+            m_Value1: 17471868450609311093
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: b0daab245dae5fc4752dec30c98b78f2
+          m_UniqueId: bound
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: bound
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 13616994998591040487
+            m_Value1: 14570413117656283930
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: e72b4a27ce48f9bc1a3b987c888134ca
+          m_UniqueId: execIn
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: execIn
+    - rid: 2881252029286318716
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 14330191874377117642
+          m_Value1: 14636882033501415840
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: caef6fcb9511dfc6a02926f2a8a620cb
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 13616994998591040487
+            m_Value1: 14570413117656283930
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: e72b4a27ce48f9bc1a3b987c888134ca
+          m_UniqueId: bound
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: bound
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 12587895513697077845
+            m_Value1: 2977241432923425509
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: 55caa5b34630b1aee5caf9234f495129
+          m_UniqueId: execIn
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: execIn
+    - rid: 2881252029286318717
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 'Custom Event: RefreshRequested'
+    - rid: 2881252029286318718
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: event_refresh
+    - rid: 2881252029286318719
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: RefreshRequested
+    - rid: 2881252029286318720
+      type: {class: GameCustomEventVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: event_refresh
+        TypeId: Game.Event.Custom
+        Title: 'Custom Event: RefreshRequested'
+        Category: Events
+        Description: Entry point for a named custom event.
+        Inputs: []
+        Outputs:
+        - Id: execOut
+          DisplayName: RefreshRequested
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 1
+          Missing: 0
+          Deprecated: 0
+        Properties:
+        - Id: eventName
+          DisplayName: Event
+          Type: string
+          Required: 1
+          HasValue: 1
+          JsonValue: '"RefreshRequested"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+    - rid: 2881252029286318721
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Bind Text
+    - rid: 2881252029286318722
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: set_power
+    - rid: 2881252029286318723
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+    - rid: 2881252029286318724
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: arena_regular_power_text
+    - rid: 2881252029286318725
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 
+    - rid: 2881252029286318726
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: regular_power
+    - rid: 2881252029286318727
+      type: {class: UIBindTextVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: set_power
+        TypeId: UI.BindText
+        Title: Bind Text
+        Category: UI
+        Description: Binds TMP_Text.text to a blueprint value and refreshes it when
+          reactive bindings refresh.
+        Inputs:
+        - Id: execIn
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: target
+          DisplayName: 
+          Kind: value
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          Source: property
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: value
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableName
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableTarget
+          DisplayName: 
+          Kind: value
+          Type: Blueprint
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Outputs:
+        - Id: bound
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Properties:
+        - Id: target
+          DisplayName: 
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          HasValue: 1
+          JsonValue: '"arena_regular_power_text"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: value
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableName
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 1
+          JsonValue: '"regular_power"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableTarget
+          DisplayName: 
+          Type: Blueprint
+          Required: 0
+          HasValue: 1
+          JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+          ShowInInspectorOnly: 1
+          Hidden: 0
+    - rid: 2881252029286318728
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Bind Text
+    - rid: 2881252029286318729
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: set_score
+    - rid: 2881252029286318730
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+    - rid: 2881252029286318731
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: arena_regular_score_text
+    - rid: 2881252029286318732
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 
+    - rid: 2881252029286318733
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: regular_score
+    - rid: 2881252029286318734
+      type: {class: UIBindTextVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: set_score
+        TypeId: UI.BindText
+        Title: Bind Text
+        Category: UI
+        Description: Binds TMP_Text.text to a blueprint value and refreshes it when
+          reactive bindings refresh.
+        Inputs:
+        - Id: execIn
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: target
+          DisplayName: 
+          Kind: value
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          Source: property
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: value
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableName
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableTarget
+          DisplayName: 
+          Kind: value
+          Type: Blueprint
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Outputs:
+        - Id: bound
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Properties:
+        - Id: target
+          DisplayName: 
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          HasValue: 1
+          JsonValue: '"arena_regular_score_text"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: value
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableName
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 1
+          JsonValue: '"regular_score"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableTarget
+          DisplayName: 
+          Type: Blueprint
+          Required: 0
+          HasValue: 1
+          JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+          ShowInInspectorOnly: 1
+          Hidden: 0
+    - rid: 2881252029286318735
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Bind Text
+    - rid: 2881252029286318736
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: set_rank
+    - rid: 2881252029286318737
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+    - rid: 2881252029286318738
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: arena_regular_rank_text
+    - rid: 2881252029286318739
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 
+    - rid: 2881252029286318740
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: regular_rank
+    - rid: 2881252029286318741
+      type: {class: UIBindTextVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: set_rank
+        TypeId: UI.BindText
+        Title: Bind Text
+        Category: UI
+        Description: Binds TMP_Text.text to a blueprint value and refreshes it when
+          reactive bindings refresh.
+        Inputs:
+        - Id: execIn
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: target
+          DisplayName: 
+          Kind: value
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          Source: property
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: value
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableName
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableTarget
+          DisplayName: 
+          Kind: value
+          Type: Blueprint
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Outputs:
+        - Id: bound
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Properties:
+        - Id: target
+          DisplayName: 
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          HasValue: 1
+          JsonValue: '"arena_regular_rank_text"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: value
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableName
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 1
+          JsonValue: '"regular_rank"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableTarget
+          DisplayName: 
+          Type: Blueprint
+          Required: 0
+          HasValue: 1
+          JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+          ShowInInspectorOnly: 1
+          Hidden: 0
+    - rid: 2881252029286318742
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Bind Text
+    - rid: 2881252029286318743
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: set_countdown
+    - rid: 2881252029286318744
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+    - rid: 2881252029286318745
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: arena_regular_countdown_text
+    - rid: 2881252029286318746
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 
+    - rid: 2881252029286318747
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: regular_season_countdown
+    - rid: 2881252029286318748
+      type: {class: UIBindTextVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: set_countdown
+        TypeId: UI.BindText
+        Title: Bind Text
+        Category: UI
+        Description: Binds TMP_Text.text to a blueprint value and refreshes it when
+          reactive bindings refresh.
+        Inputs:
+        - Id: execIn
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: target
+          DisplayName: 
+          Kind: value
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          Source: property
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: value
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableName
+          DisplayName: 
+          Kind: value
+          Type: string
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        - Id: variableTarget
+          DisplayName: 
+          Kind: value
+          Type: Blueprint
+          Required: 0
+          Source: propertyOrConnection
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Outputs:
+        - Id: bound
+          DisplayName: 
+          Kind: exec
+          Type: 
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
+        Properties:
+        - Id: target
+          DisplayName: 
+          Type: UIBinding<TMP_Text>
+          Required: 1
+          HasValue: 1
+          JsonValue: '"arena_regular_countdown_text"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: value
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 0
+          JsonValue: 
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableName
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 1
+          JsonValue: '"regular_season_countdown"'
+          ShowInInspectorOnly: 0
+          Hidden: 0
+        - Id: variableTarget
+          DisplayName: 
+          Type: Blueprint
+          Required: 0
+          HasValue: 1
+          JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+          ShowInInspectorOnly: 1
+          Hidden: 0
+    - rid: 2881252029286318749
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 2584516413608631758
+          m_Value1: 2514104752628915792
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: ce1d4f1dfc0bde23505e91c4f3e4e322
+        m_Version: 2
+        m_Name: ArenaData
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor,
+            Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252029286318750
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252029286318750
+      type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value:
+          Path: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+    - rid: 2881252029286318751
+      type: {class: VariableNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 5897849952829209947
+          m_Value1: 2677498158005155588
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 5b7df0b0485fd95104f7a88263622825
+        m_Version: 2
+        m_Position: {x: 650.75745, y: 33.333336}
+        m_Title: ArenaData
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList: []
+          m_ValueList: []
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_DeclarationModel:
+          rid: 2881252029286318749
+        m_DeclarationModelHashGuid:
+          serializedVersion: 2
+          Hash: ce1d4f1dfc0bde23505e91c4f3e4e322
+    - rid: 2881252029286318752
+      type: {class: WireModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 112603395851716490
+          m_Value1: 7579444975899809758
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 8a873e22310c9001de9720470c992f69
+        m_Version: 2
+        m_FromPortReference:
+          m_NodeModelGuid:
+            m_Value0: 5897849952829209947
+            m_Value1: 2677498158005155588
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: 5b7df0b0485fd95104f7a88263622825
+          m_UniqueId: MainPortName
+          m_PortDirection: 2
+          m_PortOrientation: 0
+          m_Title: MainPortName
+        m_ToPortReference:
+          m_NodeModelGuid:
+            m_Value0: 14150220269291821744
+            m_Value1: 17471868450609311093
+          m_NodeModelHashGuid:
+            serializedVersion: 2
+            Hash: b0daab245dae5fc4752dec30c98b78f2
+          m_UniqueId: variableTarget
+          m_PortDirection: 1
+          m_PortOrientation: 0
+          m_Title: variableTarget

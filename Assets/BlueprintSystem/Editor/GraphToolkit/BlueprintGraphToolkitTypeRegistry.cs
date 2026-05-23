@@ -20,6 +20,12 @@ namespace BlueprintSystem.Editor
             get
             {
                 List<Type> types = new List<Type>(BlueprintVariableTypeRegistry.GetSupportedClrTypes());
+                types.Remove(typeof(BlueprintStructValue));
+                if (BlueprintUserStructRegistry.GetTypeIds().Length > 0)
+                {
+                    types.Add(typeof(Struct));
+                }
+
                 types.Add(typeof(Array));
                 types.Add(typeof(Blueprint));
                 return types.ToArray();
@@ -37,6 +43,12 @@ namespace BlueprintSystem.Editor
             if (blueprintType == "Array")
             {
                 graphType = typeof(Array);
+                return true;
+            }
+
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                graphType = typeof(Struct);
                 return true;
             }
 
@@ -63,6 +75,12 @@ namespace BlueprintSystem.Editor
             {
                 blueprintType = BlueprintGraphToolkitArrayTypes.MakeBlueprintType(BlueprintGraphToolkitArrayTypes.DefaultElementType);
                 return true;
+            }
+
+            if (graphType == typeof(Struct))
+            {
+                blueprintType = BlueprintGraphToolkitStructTypes.DefaultTypeId;
+                return !string.IsNullOrEmpty(blueprintType);
             }
 
             Type elementClrType;

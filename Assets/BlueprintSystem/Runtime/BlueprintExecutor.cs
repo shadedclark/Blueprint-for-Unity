@@ -192,7 +192,10 @@ namespace BlueprintSystem
             registry.Register(new ArrayShuffleExecutor());
             registry.Register(new ArrayLastIndexExecutor());
             registry.Register(new VariableGetFieldExecutor());
+            registry.Register(new VariableSetFieldExecutor());
+            registry.Register(new VariableBreakStructExecutor());
             registry.Register(new UISetTextExecutor());
+            registry.Register(new UIBindTextExecutor());
             registry.Register(new UISetVisibleExecutor());
             registry.Register(new UISetImageSpriteExecutor());
             registry.Register(new UISpriteBindingExecutor());

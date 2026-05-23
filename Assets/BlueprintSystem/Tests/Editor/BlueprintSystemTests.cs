@@ -1396,6 +1396,48 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void UserStructAssetHidesInternalIdentityFieldsInInspector()
+        {
+            Assert.NotNull(typeof(BlueprintUserStructAsset).GetField("schemaVersion", BindingFlags.Instance | BindingFlags.NonPublic).GetCustomAttribute<HideInInspector>());
+            Assert.NotNull(typeof(BlueprintUserStructAsset).GetField("typeId", BindingFlags.Instance | BindingFlags.NonPublic).GetCustomAttribute<HideInInspector>());
+            Assert.NotNull(typeof(BlueprintUserStructAssetField).GetField("id", BindingFlags.Instance | BindingFlags.Public).GetCustomAttribute<HideInInspector>());
+            Assert.Null(typeof(BlueprintUserStructAsset).GetProperty("DisplayName"));
+        }
+
+        [Test]
+        public void UserStructAssetOnValidateRepairsDuplicatedFieldIds()
+        {
+            BlueprintUserStructAsset asset = ScriptableObject.CreateInstance<BlueprintUserStructAsset>();
+            try
+            {
+                asset.Fields.Add(new BlueprintUserStructAssetField
+                {
+                    id = "fld_power",
+                    name = "power",
+                    fieldType = BlueprintUserStructAssetFieldType.Float
+                });
+                asset.Fields.Add(new BlueprintUserStructAssetField
+                {
+                    id = "fld_power",
+                    name = "powerCopy",
+                    fieldType = BlueprintUserStructAssetFieldType.Float
+                });
+
+                MethodInfo onValidate = typeof(BlueprintUserStructAsset).GetMethod("OnValidate", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(onValidate);
+                onValidate.Invoke(asset, null);
+
+                Assert.AreEqual("fld_power", asset.Fields[0].id);
+                Assert.False(string.IsNullOrEmpty(asset.Fields[1].id));
+                Assert.AreNotEqual(asset.Fields[0].id, asset.Fields[1].id);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(asset);
+            }
+        }
+
+        [Test]
         public void VariableSetExecutorWritesRuntimeStoreWithoutChangingDeclarationDefault()
         {
             RuntimeBlueprint blueprint = new RuntimeBlueprint();
@@ -3122,6 +3164,290 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void ValidatorAcceptsUserDefinedStructVariableDefaults()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                BlueprintSource source = CreateUserStructVariableTestSource();
+
+                BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+                BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+                DictionaryBlueprintVariableStore store = new DictionaryBlueprintVariableStore(compileResult.Blueprint);
+                object selectedItem = store.Get("selectedItem");
+                object count;
+
+                Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+                Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+                Assert.IsInstanceOf<BlueprintStructValue>(selectedItem);
+                Assert.True(BlueprintFieldUtility.TryGetValue(selectedItem, "count", out count));
+                Assert.AreEqual(1, System.Convert.ToInt32(count));
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void VariableSetFieldWritesUserDefinedStructCopies()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                object selectedItem;
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    CreateUserStructDefaultValue("sword_01", 1),
+                    "Struct.TestInventoryItem",
+                    out selectedItem));
+
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+                RuntimeNode setFieldNode = CreateRuntimeNode("set_count", "Variable.SetField");
+                setFieldNode.Properties["target"] = selectedItem;
+                setFieldNode.Properties["path"] = "count";
+                setFieldNode.Properties["value"] = 5;
+
+                object result = new VariableSetFieldExecutor().Evaluate(context, setFieldNode, "result");
+                object originalCount;
+                object updatedCount;
+
+                Assert.IsInstanceOf<BlueprintStructValue>(result);
+                Assert.True(BlueprintFieldUtility.TryGetValue(selectedItem, "count", out originalCount));
+                Assert.True(BlueprintFieldUtility.TryGetValue(result, "count", out updatedCount));
+                Assert.AreEqual(1, System.Convert.ToInt32(originalCount));
+                Assert.AreEqual(5, System.Convert.ToInt32(updatedCount));
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void VariableBreakStructReadsUserDefinedStructFields()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                object selectedItem;
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    CreateUserStructDefaultValue("sword_01", 1),
+                    "Struct.TestInventoryItem",
+                    out selectedItem));
+
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+                RuntimeNode breakNode = CreateRuntimeNode("break_item", "Variable.BreakStruct");
+                breakNode.Properties["structTypeId"] = "Struct.TestInventoryItem";
+                breakNode.Properties["target"] = selectedItem;
+
+                VariableBreakStructExecutor executor = new VariableBreakStructExecutor();
+
+                Assert.AreEqual("sword_01", executor.Evaluate(context, breakNode, "fld_item_id"));
+                Assert.AreEqual(1, System.Convert.ToInt32(executor.Evaluate(context, breakNode, "fld_count")));
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void ValidatorAcceptsBreakStructDynamicOutputsAndReportsTypeMismatch()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                BlueprintSource valid = CreateBreakStructValidationSource("int");
+                BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(valid, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+                BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(valid, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+                Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+                BlueprintSource mismatch = CreateBreakStructValidationSource("string");
+                BlueprintDiagnosticList mismatchDiagnostics = new BlueprintValidator().Validate(mismatch, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.True(mismatchDiagnostics.Exists(diagnostic => diagnostic.Code == "BP003"), mismatchDiagnostics.ToDisplayString());
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void ValidatorAllowsUnusedBreakStructNodeWithoutTarget()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                BlueprintSource previewOnly = CreateUserStructVariableTestSource();
+                previewOnly.Name = "BreakStructPreviewOnly";
+                BlueprintNodeSource previewBreak = AddNode(previewOnly, "break_item", "Variable.BreakStruct");
+                previewBreak.Properties["structTypeId"] = "Struct.TestInventoryItem";
+
+                BlueprintDiagnosticList previewDiagnostics = new BlueprintValidator().Validate(previewOnly, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+                BlueprintCompileResult previewCompile = new BlueprintCompiler().Compile(previewOnly, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.False(previewDiagnostics.HasErrors, previewDiagnostics.ToDisplayString());
+                Assert.True(previewCompile.Success, previewCompile.Diagnostics.ToDisplayString());
+
+                BlueprintSource usedMissingTarget = CreateBreakStructValidationSource("int");
+                usedMissingTarget.Edges.RemoveAll(edge => edge.To == "break_item.target");
+
+                BlueprintDiagnosticList usedDiagnostics = new BlueprintValidator().Validate(usedMissingTarget, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.True(usedDiagnostics.Exists(diagnostic =>
+                    diagnostic.Code == "BP002" &&
+                    diagnostic.NodeId == "break_item" &&
+                    diagnostic.PortId == "target"), usedDiagnostics.ToDisplayString());
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void GraphToolkitCreatesBreakStructOutputsFromDefinition()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                BlueprintNodeManifest manifest;
+                Assert.True(LoadManifests().TryGet("Variable.BreakStruct", out manifest));
+
+                BlueprintNodeSource sourceNode = new BlueprintNodeSource
+                {
+                    Id = "break_item",
+                    TypeId = "Variable.BreakStruct"
+                };
+                sourceNode.Properties["structTypeId"] = "Struct.TestInventoryItem";
+
+                BlueprintVisualNode visualNode = BlueprintGraphToolkitBridge.CreateVisualNode(sourceNode, manifest);
+                BlueprintVisualPortData target = visualNode.Inputs.Find(port => port.Id == "target");
+                BlueprintVisualPortData count = visualNode.Outputs.Find(port => port.Id == "fld_count");
+
+                Assert.AreEqual("Break Struct.TestInventoryItem", visualNode.Title);
+                Assert.NotNull(target);
+                Assert.AreEqual("Struct.TestInventoryItem", target.Type);
+                Assert.AreEqual(3, visualNode.Outputs.Count);
+                Assert.NotNull(count);
+                Assert.AreEqual("count", count.DisplayName);
+                Assert.AreEqual("int", count.Type);
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void UserStructAssetDragCreatesBreakStructNodeSource()
+        {
+            string graphPath = "Assets/BlueprintSystem/Tests/Editor/BreakStructDragTest.bpgraph";
+            string assetPath = "Assets/BlueprintSystem/Specs/Structs/DragBreakStruct.asset";
+            AssetDatabase.DeleteAsset(graphPath);
+            AssetDatabase.DeleteAsset(assetPath);
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                BlueprintVisualGraph graph = GraphDatabase.CreateGraph<BlueprintVisualGraph>(graphPath);
+                BlueprintUserStructAsset asset = ScriptableObject.CreateInstance<BlueprintUserStructAsset>();
+                asset.Fields.Add(new BlueprintUserStructAssetField
+                {
+                    id = "fld_power",
+                    name = "power",
+                    fieldType = BlueprintUserStructAssetFieldType.Float,
+                    defaultValueJson = "1"
+                });
+                AssetDatabase.CreateAsset(asset, assetPath);
+                AssetDatabase.ImportAsset(assetPath);
+
+                string guid = AssetDatabase.AssetPathToGUID(assetPath);
+                BlueprintNodeSource sourceNode = BlueprintGraphToolkitUIDragDrop.CreateBreakStructNodeSource(
+                    graph,
+                    asset.TypeId,
+                    guid,
+                    new Vector2(10, 20));
+
+                Assert.AreEqual("Variable.BreakStruct", sourceNode.TypeId);
+                Assert.AreEqual("Struct.DragBreakStruct", sourceNode.Properties["structTypeId"]);
+                Assert.AreEqual(guid, sourceNode.Properties["structAssetGuid"]);
+                Assert.AreEqual(10f, sourceNode.X);
+                Assert.AreEqual(20f, sourceNode.Y);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(graphPath);
+                AssetDatabase.DeleteAsset(assetPath);
+                BlueprintUserStructRegistry.Refresh();
+            }
+        }
+
+        [Test]
+        public void RegistryLoadsUserStructScriptableObjectAssets()
+        {
+            string assetPath = "Assets/BlueprintSystem/Specs/Structs/TestSpellStruct.asset";
+            string renamedAssetPath = "Assets/BlueprintSystem/Specs/Structs/RenamedSpellStruct.asset";
+            AssetDatabase.DeleteAsset(assetPath);
+            AssetDatabase.DeleteAsset(renamedAssetPath);
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                BlueprintUserStructAsset asset = ScriptableObject.CreateInstance<BlueprintUserStructAsset>();
+                asset.Fields.Add(new BlueprintUserStructAssetField
+                {
+                    id = "fld_power",
+                    name = "power",
+                    fieldType = BlueprintUserStructAssetFieldType.Float,
+                    defaultValueJson = "10"
+                });
+                AssetDatabase.CreateAsset(asset, assetPath);
+                AssetDatabase.ImportAsset(assetPath);
+                BlueprintUserStructRegistry.Refresh();
+
+                BlueprintUserStructDefinition definition;
+                object runtimeValue;
+                object power;
+
+                Assert.AreEqual("Struct.TestSpellStruct", asset.TypeId);
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.TestSpellStruct", out definition));
+                Assert.AreEqual("Struct.TestSpellStruct", definition.DisplayName);
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(null, "Struct.TestSpellStruct", out runtimeValue));
+                Assert.True(BlueprintFieldUtility.TryGetValue(runtimeValue, "power", out power));
+                Assert.AreEqual(10f, System.Convert.ToSingle(power));
+
+                string renameError = AssetDatabase.RenameAsset(assetPath, "RenamedSpellStruct");
+                Assert.True(string.IsNullOrEmpty(renameError), renameError);
+                assetPath = renamedAssetPath;
+                AssetDatabase.ImportAsset(assetPath);
+                BlueprintUserStructRegistry.Refresh();
+
+                Assert.AreEqual("Struct.RenamedSpellStruct", asset.TypeId);
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.RenamedSpellStruct", out definition));
+                Assert.AreEqual("Struct.RenamedSpellStruct", definition.DisplayName);
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(null, "Struct.RenamedSpellStruct", out runtimeValue));
+                Assert.True(BlueprintFieldUtility.TryGetValue(runtimeValue, "power", out power));
+                Assert.AreEqual(10f, System.Convert.ToSingle(power));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(assetPath);
+                AssetDatabase.DeleteAsset(renamedAssetPath);
+                BlueprintUserStructRegistry.Refresh();
+            }
+        }
+
+        [Test]
         public void VariableStoreCoercesStructuredDefaultsAndOverrides()
         {
             RuntimeBlueprint blueprint = new RuntimeBlueprint();
@@ -4087,6 +4413,81 @@ namespace BlueprintSystem.Tests
                 { "rarity", rarity.ToString() },
                 { "position", new List<object> { 1f, 2f } }
             };
+        }
+
+        private static BlueprintSource CreateUserStructVariableTestSource()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "UserStructVariableTest";
+            source.Variables.Add(new BlueprintVariableDeclaration
+            {
+                Name = "selectedItem",
+                Type = "Struct.TestInventoryItem",
+                DefaultValue = CreateUserStructDefaultValue("sword_01", 1),
+                Scope = "runtime",
+                Exposed = true
+            });
+            return source;
+        }
+
+        private static BlueprintSource CreateBreakStructValidationSource(string sinkType)
+        {
+            BlueprintSource source = CreateUserStructVariableTestSource();
+            source.Name = "BreakStructValidationTest";
+            source.Variables.Add(new BlueprintVariableDeclaration
+            {
+                Name = "countCopy",
+                Type = sinkType,
+                Scope = "runtime"
+            });
+
+            BlueprintNodeSource getItem = AddNode(source, "get_item", "Variable.Get");
+            getItem.Properties["name"] = "selectedItem";
+
+            BlueprintNodeSource breakItem = AddNode(source, "break_item", "Variable.BreakStruct");
+            breakItem.Properties["structTypeId"] = "Struct.TestInventoryItem";
+
+            BlueprintNodeSource setCount = AddNode(source, "set_count", "Variable.Set");
+            setCount.Properties["name"] = "countCopy";
+
+            source.Edges.Add(new BlueprintEdgeSource { From = "get_item.value", To = "break_item.target" });
+            source.Edges.Add(new BlueprintEdgeSource { From = "break_item.fld_count", To = "set_count.value" });
+            return source;
+        }
+
+        private static Dictionary<string, object> CreateUserStructDefaultValue(string id, int count)
+        {
+            return new Dictionary<string, object>
+            {
+                { "itemId", id },
+                { "count", count },
+                { "position", new List<object> { 1f, 2f } }
+            };
+        }
+
+        private static void WriteUserStructDefinition()
+        {
+            string assetPath = "Assets/BlueprintSystem/Specs/Structs/TestInventoryItem.bpstruct.json";
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.WriteAllText(assetPath, "{\n" +
+                "  \"schemaVersion\": \"0.1\",\n" +
+                "  \"typeId\": \"Struct.TestInventoryItem\",\n" +
+                "  \"fields\": [\n" +
+                "    { \"id\": \"fld_item_id\", \"name\": \"itemId\", \"type\": \"string\", \"defaultValue\": \"\" },\n" +
+                "    { \"id\": \"fld_count\", \"name\": \"count\", \"type\": \"int\", \"defaultValue\": 1 },\n" +
+                "    { \"id\": \"fld_position\", \"name\": \"position\", \"type\": \"Vector2\", \"defaultValue\": [0, 0] }\n" +
+                "  ]\n" +
+                "}\n");
+            AssetDatabase.ImportAsset(assetPath);
+            BlueprintUserStructRegistry.Refresh();
+        }
+
+        private static void DeleteUserStructDefinition()
+        {
+            AssetDatabase.DeleteAsset("Assets/BlueprintSystem/Specs/Structs/TestInventoryItem.bpstruct.json");
+            AssetDatabase.DeleteAsset("Assets/BlueprintSystem/Specs/Structs/TestInventoryItem.bpstruct.json.meta");
+            BlueprintUserStructRegistry.Refresh();
         }
 
         private static BlueprintSource CreateSetImageSpriteTestSource()

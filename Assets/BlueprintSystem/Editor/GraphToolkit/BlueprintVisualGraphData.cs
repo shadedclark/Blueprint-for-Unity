@@ -29,6 +29,7 @@ namespace BlueprintSystem.Editor
         public bool HasValue;
         public string JsonValue;
         public bool ShowInInspectorOnly;
+        public bool Hidden;
     }
 
     [Serializable]
@@ -139,6 +140,11 @@ namespace BlueprintSystem.Editor
                 return BlueprintGraphToolkitArrayTypes.CreateGraphValue(
                     value == null ? "[]" : Convert.ToString(value, CultureInfo.InvariantCulture),
                     blueprintType);
+            }
+
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                return BlueprintGraphToolkitStructTypes.CreateGraphValue(value, blueprintType);
             }
 
             if (BlueprintVariableTypeRegistry.IsCustomType(blueprintType))
@@ -264,6 +270,26 @@ namespace BlueprintSystem.Editor
                 }
 
                 return new List<object>();
+            }
+
+            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+            {
+                string structTypeId;
+                string json;
+                if (BlueprintGraphToolkitStructTypes.TryGetJson(value, out structTypeId, out json))
+                {
+                    try
+                    {
+                        return BlueprintJson.Deserialize(json);
+                    }
+                    catch (BlueprintJsonException)
+                    {
+                        object defaultValue;
+                        return BlueprintStructuredValueUtility.TryCreateDefaultJsonValue(blueprintType, out defaultValue)
+                            ? defaultValue
+                            : new Dictionary<string, object>();
+                    }
+                }
             }
 
             object structuredValue;

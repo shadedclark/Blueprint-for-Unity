@@ -283,6 +283,23 @@ namespace BlueprintSystem.Editor
                 return true;
             }
 
+            if (BlueprintGraphToolkitStructTypes.IsGraphStructType(variable.dataType))
+            {
+                if (TryGetUserStructBlueprintType(variable, out blueprintType))
+                {
+                    return true;
+                }
+
+                if (metadata != null && BlueprintUserStructRegistry.IsUserStructType(metadata.Type))
+                {
+                    blueprintType = metadata.Type;
+                    return true;
+                }
+
+                blueprintType = BlueprintGraphToolkitStructTypes.DefaultTypeId;
+                return !string.IsNullOrEmpty(blueprintType);
+            }
+
             if (metadata != null && !string.IsNullOrEmpty(metadata.Type))
             {
                 Type graphType;
@@ -315,6 +332,25 @@ namespace BlueprintSystem.Editor
 
             return variable.dataType != typeof(Array) &&
                    BlueprintGraphToolkitTypeRegistry.TryGetBlueprintType(variable.dataType, out blueprintType);
+        }
+
+        private static bool TryGetUserStructBlueprintType(IVariable variable, out string blueprintType)
+        {
+            blueprintType = null;
+            if (variable == null || !BlueprintGraphToolkitStructTypes.IsGraphStructType(variable.dataType))
+            {
+                return false;
+            }
+
+            object graphValue;
+            string json;
+            if (TryReadDefaultValue(variable, typeof(Struct), out graphValue) &&
+                BlueprintGraphToolkitStructTypes.TryGetJson(graphValue, out blueprintType, out json))
+            {
+                return BlueprintUserStructRegistry.IsUserStructType(blueprintType);
+            }
+
+            return false;
         }
 
         private static bool TryGetExplicitArrayBlueprintType(object graphValue, out string blueprintType)
@@ -489,6 +525,12 @@ namespace BlueprintSystem.Editor
                         object typedValue;
                         if (TryReadDefaultValue(variable, graphType, out typedValue))
                         {
+                            if (BlueprintUserStructRegistry.IsUserStructType(blueprintType))
+                            {
+                                value = BlueprintVisualValueUtility.ConvertFromGraphField(typedValue, blueprintType);
+                                return BlueprintTypeUtility.IsValueAssignableToType(value, blueprintType);
+                            }
+
                             return BlueprintStructuredValueUtility.TryConvertToJsonValue(typedValue, blueprintType, out value);
                         }
                     }

@@ -239,6 +239,91 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class VariableSetFieldExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Variable.SetField"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            if (outputPortId != "result")
+            {
+                return base.Evaluate(context, node, outputPortId);
+            }
+
+            string path = context.GetInputValue(node, "path", string.Empty);
+            object target = context.GetInputValue(node, "target");
+            object value = context.GetInputValue(node, "value");
+            if (string.IsNullOrEmpty(path))
+            {
+                context.Logger.Error("Variable.SetField node '" + node.Id + "' has no field path.");
+                return target;
+            }
+
+            object result;
+            if (BlueprintFieldUtility.TrySetValue(target, path, value, out result))
+            {
+                return result;
+            }
+
+            context.Logger.Error("Variable.SetField node '" + node.Id + "' could not write path '" + path + "'.");
+            return target;
+        }
+    }
+
+    public sealed class VariableBreakStructExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Variable.BreakStruct"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            string structTypeId;
+            BlueprintUserStructDefinition definition;
+            if (!BlueprintBreakStructNodeUtility.TryResolveDefinition(node.Properties, out structTypeId, out definition))
+            {
+                context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' has unknown struct type '" +
+                    BlueprintBreakStructNodeUtility.GetStructTypeId(node.Properties) + "'.");
+                return null;
+            }
+
+            BlueprintUserStructField field;
+            if (!BlueprintBreakStructNodeUtility.TryGetFieldById(definition, outputPortId, out field))
+            {
+                context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' has unknown field output '" + outputPortId + "'.");
+                return null;
+            }
+
+            object target = context.GetInputValue(node, BlueprintBreakStructNodeUtility.TargetPortId);
+            if (target == null)
+            {
+                context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' has no target value.");
+                return null;
+            }
+
+            object runtimeValue;
+            if (!BlueprintUserStructUtility.TryConvertToRuntimeValue(target, structTypeId, out runtimeValue))
+            {
+                context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' expected target type '" + structTypeId + "'.");
+                return null;
+            }
+
+            BlueprintStructValue structValue = runtimeValue as BlueprintStructValue;
+            object fieldValue;
+            if (structValue != null && structValue.TryGetValue(field.Id, out fieldValue))
+            {
+                return fieldValue;
+            }
+
+            context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' could not read field '" + field.Id + "'.");
+            return null;
+        }
+    }
+
     public static class BlueprintFieldUtility
     {
         public static bool TryGetValue(object source, string path, out object value)
@@ -263,12 +348,65 @@ namespace BlueprintSystem
             return true;
         }
 
+        public static bool TrySetValue(object source, string path, object newValue, out object value)
+        {
+            value = source;
+            if (string.IsNullOrEmpty(path))
+            {
+                value = newValue;
+                return true;
+            }
+
+            string[] parts = path.Split('.');
+            return TrySetPath(source, parts, 0, newValue, out value);
+        }
+
+        private static bool TrySetPath(object source, string[] parts, int index, object newValue, out object value)
+        {
+            value = null;
+            if (parts == null || index < 0 || index >= parts.Length)
+            {
+                return false;
+            }
+
+            string part = parts[index];
+            if (string.IsNullOrEmpty(part))
+            {
+                return false;
+            }
+
+            if (index == parts.Length - 1)
+            {
+                return TrySetSingle(source, part, newValue, out value);
+            }
+
+            object child;
+            if (!TryGetSingle(source, part, out child))
+            {
+                return false;
+            }
+
+            object updatedChild;
+            if (!TrySetPath(child, parts, index + 1, newValue, out updatedChild))
+            {
+                return false;
+            }
+
+            return TrySetSingle(source, part, updatedChild, out value);
+        }
+
         private static bool TryGetSingle(object source, string key, out object value)
         {
             value = null;
             if (source == null || string.IsNullOrEmpty(key))
             {
                 return false;
+            }
+
+            BlueprintStructValue structValue = source as BlueprintStructValue;
+            if (structValue != null)
+            {
+                return structValue.TryGetValue(key, out value);
             }
 
             IDictionary<string, object> typedDictionary = source as IDictionary<string, object>;
@@ -353,6 +491,151 @@ namespace BlueprintSystem
             return false;
         }
 
+        private static bool TrySetSingle(object source, string key, object newValue, out object value)
+        {
+            value = null;
+            if (source == null || string.IsNullOrEmpty(key))
+            {
+                return false;
+            }
+
+            BlueprintStructValue structValue = source as BlueprintStructValue;
+            if (structValue != null)
+            {
+                BlueprintStructValue updated = structValue.WithValue(key, newValue);
+                if (updated == null)
+                {
+                    return false;
+                }
+
+                object normalized;
+                if (!BlueprintUserStructUtility.TryConvertToRuntimeValue(updated, updated.TypeId, out normalized))
+                {
+                    return false;
+                }
+
+                value = normalized;
+                return true;
+            }
+
+            IDictionary<string, object> typedDictionary = source as IDictionary<string, object>;
+            if (typedDictionary != null)
+            {
+                if (!typedDictionary.ContainsKey(key))
+                {
+                    return false;
+                }
+
+                Dictionary<string, object> copy = new Dictionary<string, object>(typedDictionary, StringComparer.Ordinal);
+                copy[key] = newValue;
+                value = copy;
+                return true;
+            }
+
+            IDictionary dictionary = source as IDictionary;
+            if (dictionary != null && dictionary.Contains(key))
+            {
+                Dictionary<string, object> copy = new Dictionary<string, object>(StringComparer.Ordinal);
+                foreach (DictionaryEntry entry in dictionary)
+                {
+                    copy[Convert.ToString(entry.Key, CultureInfo.InvariantCulture)] = entry.Value;
+                }
+
+                copy[key] = newValue;
+                value = copy;
+                return true;
+            }
+
+            IList list = source as IList;
+            int index;
+            if (list != null && int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out index))
+            {
+                if (index < 0 || index >= list.Count)
+                {
+                    return false;
+                }
+
+                List<object> copy = new List<object>();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    copy.Add(list[i]);
+                }
+
+                copy[index] = newValue;
+                value = copy;
+                return true;
+            }
+
+            Vector2 vector2;
+            if (TryReadVector2(source, out vector2))
+            {
+                float component;
+                if (TryReadFloat(newValue, out component))
+                {
+                    if (key == "x")
+                    {
+                        value = new Vector2(component, vector2.y);
+                        return true;
+                    }
+
+                    if (key == "y")
+                    {
+                        value = new Vector2(vector2.x, component);
+                        return true;
+                    }
+                }
+            }
+
+            Vector3 vector3;
+            if (TryReadVector3(source, out vector3))
+            {
+                float component;
+                if (TryReadFloat(newValue, out component))
+                {
+                    if (key == "x")
+                    {
+                        value = new Vector3(component, vector3.y, vector3.z);
+                        return true;
+                    }
+
+                    if (key == "y")
+                    {
+                        value = new Vector3(vector3.x, component, vector3.z);
+                        return true;
+                    }
+
+                    if (key == "z")
+                    {
+                        value = new Vector3(vector3.x, vector3.y, component);
+                        return true;
+                    }
+                }
+            }
+
+            Type type = source.GetType();
+            FieldInfo field = type.GetField(key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field != null && !field.IsInitOnly)
+            {
+                object converted = ConvertForMember(newValue, field.FieldType, field.GetValue(source));
+                object target = source;
+                field.SetValue(target, converted);
+                value = target;
+                return true;
+            }
+
+            PropertyInfo property = type.GetProperty(key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (property != null && property.CanWrite && property.GetIndexParameters().Length == 0)
+            {
+                object converted = ConvertForMember(newValue, property.PropertyType, property.GetValue(source, null));
+                object target = source;
+                property.SetValue(target, converted, null);
+                value = target;
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool TryReadVector2(object source, out Vector2 value)
         {
             if (source is Vector2)
@@ -375,6 +658,50 @@ namespace BlueprintSystem
 
             value = Vector3.zero;
             return false;
+        }
+
+        private static object ConvertForMember(object value, Type memberType, object defaultValue)
+        {
+            if (memberType == null || value == null)
+            {
+                return value;
+            }
+
+            if (memberType.IsInstanceOfType(value))
+            {
+                return value;
+            }
+
+            if (memberType == typeof(Vector2))
+            {
+                return BlueprintTypeUtility.ToVector2(value, defaultValue is Vector2 ? (Vector2)defaultValue : Vector2.zero);
+            }
+
+            if (memberType == typeof(Vector3))
+            {
+                return BlueprintTypeUtility.ToVector3(value, defaultValue is Vector3 ? (Vector3)defaultValue : Vector3.zero);
+            }
+
+            return BlueprintTypeUtility.ConvertValue(value, memberType, defaultValue);
+        }
+
+        private static bool TryReadFloat(object value, out float result)
+        {
+            result = 0f;
+            if (value == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                result = Convert.ToSingle(value, CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 

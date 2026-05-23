@@ -3169,6 +3169,8 @@ MonoBehaviour:
           Required: 0
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -3177,6 +3179,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 1
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: phase
           DisplayName: 
@@ -3185,6 +3189,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Update"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318572
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3213,6 +3218,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -3221,6 +3228,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: action
           DisplayName: 
@@ -3229,6 +3238,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Player/Move"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318576
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3257,6 +3267,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: x
           DisplayName: 
@@ -3265,6 +3277,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: y
           DisplayName: 
           Kind: value
@@ -3272,6 +3286,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: value
           DisplayName: 
@@ -3280,6 +3296,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318580
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3316,6 +3333,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: y
           DisplayName: 
           Kind: value
@@ -3323,6 +3342,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: z
           DisplayName: 
           Kind: value
@@ -3330,6 +3351,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -3338,6 +3361,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: x
           DisplayName: 
@@ -3346,6 +3371,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: y
           DisplayName: 
           Type: float
@@ -3353,6 +3379,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: z
           DisplayName: 
           Type: float
@@ -3360,6 +3387,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318586
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3388,6 +3416,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -3396,6 +3426,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: value
           DisplayName: 
@@ -3404,6 +3436,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318590
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3438,6 +3471,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -3445,6 +3480,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -3453,6 +3490,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: success
           DisplayName: 
           Kind: value
@@ -3460,6 +3499,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -3468,6 +3509,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -3475,6 +3517,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"input_dead_zone"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318595
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3516,6 +3559,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: right
           DisplayName: 
           Kind: value
@@ -3523,6 +3568,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: comparison
           DisplayName: 
           Kind: value
@@ -3530,6 +3577,8 @@ MonoBehaviour:
           Required: 0
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -3538,6 +3587,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: left
           DisplayName: 
@@ -3546,6 +3597,7 @@ MonoBehaviour:
           HasValue: 0
           JsonValue: 
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: right
           DisplayName: 
           Type: 
@@ -3553,6 +3605,7 @@ MonoBehaviour:
           HasValue: 0
           JsonValue: 
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: comparison
           DisplayName: 
           Type: ComparisonMode
@@ -3560,6 +3613,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Greater"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318601
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3588,6 +3642,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: condition
           DisplayName: 
           Kind: value
@@ -3595,6 +3651,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: true
           DisplayName: 
@@ -3603,6 +3661,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: false
           DisplayName: 
           Kind: exec
@@ -3610,6 +3670,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: condition
           DisplayName: 
@@ -3618,6 +3680,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: false
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318605
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3646,6 +3709,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -3654,6 +3719,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: value
           DisplayName: 
@@ -3662,6 +3729,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318609
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3696,6 +3764,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -3703,6 +3773,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -3711,6 +3783,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: success
           DisplayName: 
           Kind: value
@@ -3718,6 +3792,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -3726,6 +3802,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -3733,6 +3810,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"move_speed"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318614
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3758,6 +3836,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties: []
     - rid: 2881251987074318617
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
@@ -3791,6 +3871,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: b
           DisplayName: 
           Kind: value
@@ -3798,6 +3880,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -3806,6 +3890,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: a
           DisplayName: 
@@ -3814,6 +3900,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: b
           DisplayName: 
           Type: float
@@ -3821,6 +3908,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 0
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318622
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3853,6 +3941,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: scalar
           DisplayName: 
           Kind: value
@@ -3860,6 +3950,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -3868,6 +3960,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: vector
           DisplayName: 
@@ -3876,6 +3970,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: scalar
           DisplayName: 
           Type: float
@@ -3883,6 +3978,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: 1
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318627
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -3920,6 +4016,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -3927,6 +4025,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -3934,6 +4034,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -3941,6 +4043,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -3949,6 +4053,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -3957,6 +4063,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -3964,6 +4071,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"current_input"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: 
@@ -3971,6 +4079,7 @@ MonoBehaviour:
           HasValue: 0
           JsonValue: 
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318633
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4008,6 +4117,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4015,6 +4126,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -4022,6 +4135,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -4029,6 +4144,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4037,6 +4154,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4045,6 +4164,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -4052,6 +4172,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"current_move_direction"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: 
@@ -4059,6 +4180,7 @@ MonoBehaviour:
           HasValue: 0
           JsonValue: 
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318639
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4096,6 +4218,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4103,6 +4227,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -4110,6 +4236,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -4117,6 +4245,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4125,6 +4255,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4133,6 +4265,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -4140,6 +4273,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"is_moving"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: 
@@ -4147,6 +4281,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: true
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318645
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4181,6 +4316,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -4188,6 +4325,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -4196,6 +4335,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: success
           DisplayName: 
           Kind: value
@@ -4203,6 +4344,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4211,6 +4354,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -4218,6 +4362,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"rotate_to_move_direction"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318650
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4246,6 +4391,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: condition
           DisplayName: 
           Kind: value
@@ -4253,6 +4400,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: true
           DisplayName: 
@@ -4261,6 +4410,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: false
           DisplayName: 
           Kind: exec
@@ -4268,6 +4419,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: condition
           DisplayName: 
@@ -4276,6 +4429,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: false
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318654
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4304,6 +4458,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: value
           DisplayName: 
@@ -4312,6 +4468,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4320,6 +4478,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"player_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318658
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4352,6 +4511,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: b
           DisplayName: 
           Kind: value
@@ -4359,6 +4520,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: result
           DisplayName: 
@@ -4367,6 +4530,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: a
           DisplayName: 
@@ -4375,6 +4540,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: b
           DisplayName: 
           Type: Vector3
@@ -4382,6 +4548,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318663
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4423,6 +4590,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4430,6 +4599,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: lookTarget
           DisplayName: 
           Kind: value
@@ -4437,6 +4608,8 @@ MonoBehaviour:
           Required: 0
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: targetPosition
           DisplayName: 
           Kind: value
@@ -4444,6 +4617,8 @@ MonoBehaviour:
           Required: 0
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: worldUp
           DisplayName: 
           Kind: value
@@ -4451,6 +4626,8 @@ MonoBehaviour:
           Required: 0
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4459,6 +4636,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4467,6 +4646,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"player_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: lookTarget
           DisplayName: 
           Type: UIBinding<Transform>
@@ -4474,6 +4654,7 @@ MonoBehaviour:
           HasValue: 0
           JsonValue: 
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: targetPosition
           DisplayName: 
           Type: Vector3
@@ -4481,6 +4662,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: worldUp
           DisplayName: 
           Type: Vector3
@@ -4488,6 +4670,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,1,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318670
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4524,6 +4707,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4531,6 +4716,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: translation
           DisplayName: 
           Kind: value
@@ -4538,6 +4725,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: relativeToSelf
           DisplayName: 
           Kind: value
@@ -4545,6 +4734,8 @@ MonoBehaviour:
           Required: 0
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4553,6 +4744,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4561,6 +4754,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"player_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: translation
           DisplayName: 
           Type: Vector3
@@ -4568,6 +4762,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: relativeToSelf
           DisplayName: 
           Type: bool
@@ -4575,6 +4770,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: false
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318676
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4611,6 +4807,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4618,6 +4816,8 @@ MonoBehaviour:
           Required: 1
           Source: property
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: translation
           DisplayName: 
           Kind: value
@@ -4625,6 +4825,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: relativeToSelf
           DisplayName: 
           Kind: value
@@ -4632,6 +4834,8 @@ MonoBehaviour:
           Required: 0
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4640,6 +4844,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4648,6 +4854,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"player_transform"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: translation
           DisplayName: 
           Type: Vector3
@@ -4655,6 +4862,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: relativeToSelf
           DisplayName: 
           Type: bool
@@ -4662,6 +4870,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: false
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318682
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4699,6 +4908,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4706,6 +4917,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -4713,6 +4926,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -4720,6 +4935,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4728,6 +4945,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4736,6 +4955,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -4743,6 +4963,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"current_input"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: 
@@ -4750,6 +4971,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318688
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4787,6 +5009,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4794,6 +5018,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -4801,6 +5027,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -4808,6 +5036,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4816,6 +5046,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4824,6 +5056,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -4831,6 +5064,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"current_move_direction"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: 
@@ -4838,6 +5072,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '[0,0,0]'
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318694
       type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:
@@ -4875,6 +5110,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: target
           DisplayName: 
           Kind: value
@@ -4882,6 +5119,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: name
           DisplayName: 
           Kind: value
@@ -4889,6 +5128,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         - Id: value
           DisplayName: 
           Kind: value
@@ -4896,6 +5137,8 @@ MonoBehaviour:
           Required: 1
           Source: propertyOrConnection
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Outputs:
         - Id: execOut
           DisplayName: 
@@ -4904,6 +5147,8 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+          Missing: 0
+          Deprecated: 0
         Properties:
         - Id: target
           DisplayName: 
@@ -4912,6 +5157,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"Assets/Game/Blueprint/PlayerMovement/Data/PlayerMovementData.blueprint.json"'
           ShowInInspectorOnly: 1
+          Hidden: 0
         - Id: name
           DisplayName: 
           Type: string
@@ -4919,6 +5165,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: '"is_moving"'
           ShowInInspectorOnly: 0
+          Hidden: 0
         - Id: value
           DisplayName: 
           Type: 
@@ -4926,6 +5173,7 @@ MonoBehaviour:
           HasValue: 1
           JsonValue: false
           ShowInInspectorOnly: 0
+          Hidden: 0
     - rid: 2881251987074318700
       type: {class: 'Constant`1[[BlueprintSystem.Editor.Blueprint, Assembly-CSharp-Editor]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
       data:

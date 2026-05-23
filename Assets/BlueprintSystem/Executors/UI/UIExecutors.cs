@@ -28,6 +28,207 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class UIBindTextExecutor : BlueprintNodeExecutor, IBlueprintReactiveBindingRestorer
+    {
+        public override string ExecutorId
+        {
+            get { return "UI.BindText"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            TMP_Text text = context.BindingResolver.Resolve<TMP_Text>(target);
+            if (text == null)
+            {
+                return BlueprintExecResult.Error("UI.BindText could not resolve TMP_Text binding '" + target + "'.");
+            }
+
+            BlueprintReactiveBindingRuntime.Register(
+                context,
+                new UITextReactiveBinding(context, node, target, "value", "variableName", "variableTarget"));
+            return BlueprintExecResult.Continue("bound");
+        }
+
+        public BlueprintExecResult RestoreReactiveBinding(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            return Execute(context, node);
+        }
+    }
+
+    internal sealed class UITextReactiveBinding : IBlueprintReactiveBinding, IBlueprintReactiveBindingDependency, IBlueprintReactiveBindingSource
+    {
+        private readonly RuntimeNode _node;
+        private readonly string _targetBindingName;
+        private readonly string _valuePortId;
+        private readonly string _variableNamePortId;
+        private readonly string _variableTargetPortId;
+        private readonly int _executionGeneration;
+
+        public UITextReactiveBinding(
+            BlueprintExecutionContext context,
+            RuntimeNode node,
+            string targetBindingName,
+            string valuePortId,
+            string variableNamePortId,
+            string variableTargetPortId)
+        {
+            Context = context;
+            _node = node;
+            _targetBindingName = targetBindingName;
+            _valuePortId = valuePortId;
+            _variableNamePortId = variableNamePortId;
+            _variableTargetPortId = variableTargetPortId;
+            _executionGeneration = context == null ? 0 : context.ExecutionGeneration;
+            Key = BlueprintReactiveBindingRuntime.CreateBindingKey(context, node, targetBindingName, "text");
+        }
+
+        public string Key { get; private set; }
+        public BlueprintExecutionContext Context { get; private set; }
+        public string SourceNodeId
+        {
+            get { return _node == null ? null : _node.Id; }
+        }
+
+        public void Apply()
+        {
+            if (!IsAlive())
+            {
+                return;
+            }
+
+            TMP_Text text = Context.BindingResolver.Resolve<TMP_Text>(_targetBindingName);
+            if (text == null)
+            {
+                Context.Logger.Error("UI.BindText could not resolve TMP_Text binding '" + _targetBindingName + "'.");
+                return;
+            }
+
+            Context.ClearValueCache();
+            object value;
+            if (!TryGetVariableValue(out value))
+            {
+                value = Context.GetInputValue(_node, _valuePortId);
+            }
+
+            text.text = BlueprintTypeUtility.ConvertValue(value, string.Empty);
+        }
+
+        public bool IsAlive()
+        {
+            return Context != null &&
+                   _node != null &&
+                   Context.BindingResolver != null &&
+                   Context.IsExecutionGenerationCurrent(_executionGeneration) &&
+                   Context.BindingResolver.Resolve<TMP_Text>(_targetBindingName) != null;
+        }
+
+        public bool DependsOnInstance(IBlueprintInstance instance)
+        {
+            if (instance == null || !HasVariableName())
+            {
+                return false;
+            }
+
+            IBlueprintInstance variableTarget = ResolveVariableTargetInstance(false);
+            while (variableTarget != null)
+            {
+                if (object.ReferenceEquals(variableTarget, instance))
+                {
+                    return true;
+                }
+
+                variableTarget = variableTarget.OwnerInstance;
+            }
+
+            return false;
+        }
+
+        private bool TryGetVariableValue(out object value)
+        {
+            value = null;
+            string variableName = GetVariableName();
+            if (string.IsNullOrEmpty(variableName))
+            {
+                return false;
+            }
+
+            object targetValue = Context.GetInputValue(_node, _variableTargetPortId);
+            if (IsEmptyVariableTarget(targetValue))
+            {
+                if (Context.Variables != null && Context.Variables.TryGet(variableName, out value))
+                {
+                    return true;
+                }
+
+                Context.Logger.Error("UI.BindText node '" + _node.Id + "' references unknown variable '" + variableName + "'.");
+                return true;
+            }
+
+            IBlueprintInstance targetInstance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(Context, targetValue, true);
+            if (targetInstance == null)
+            {
+                return true;
+            }
+
+            BlueprintAccessUtility.TryGetExposedVariableValue(
+                Context,
+                targetInstance,
+                variableName,
+                out value,
+                true);
+            return true;
+        }
+
+        private bool HasVariableName()
+        {
+            return !string.IsNullOrEmpty(GetVariableName());
+        }
+
+        private string GetVariableName()
+        {
+            return Context == null || _node == null ? string.Empty : Context.GetInputValue(_node, _variableNamePortId, string.Empty);
+        }
+
+        private IBlueprintInstance ResolveVariableTargetInstance(bool logWarnings)
+        {
+            if (Context == null)
+            {
+                return null;
+            }
+
+            object targetValue = Context.GetInputValue(_node, _variableTargetPortId);
+            if (!IsEmptyVariableTarget(targetValue))
+            {
+                return BlueprintAccessUtility.ResolveRuntimeInstanceTarget(Context, targetValue, logWarnings);
+            }
+
+            if (Context.Instance != null)
+            {
+                return Context.Instance;
+            }
+
+            if (Context.OwnerInstance != null)
+            {
+                return Context.OwnerInstance;
+            }
+
+            BlueprintRunner runner = Context.OwnerComponent as BlueprintRunner;
+            if (runner == null && Context.Owner != null)
+            {
+                runner = Context.Owner.GetComponent<BlueprintRunner>();
+            }
+
+            return runner;
+        }
+
+        private static bool IsEmptyVariableTarget(object value)
+        {
+            string text = value as string;
+            return value == null || (text != null && string.IsNullOrEmpty(text));
+        }
+    }
+
     public sealed class UISetVisibleExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

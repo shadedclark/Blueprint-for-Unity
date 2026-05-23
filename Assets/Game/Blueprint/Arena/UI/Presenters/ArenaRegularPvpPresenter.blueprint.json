@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ArenaRegularPvpPresenter",
+  "category": "Arena/UI/Presenter",
+  "description": "Refreshes the regular PVP card values from ArenaData.",
+  "variables": [
+    {
+      "id": "var_4e1b25664e4f407ab66add27285dbcda",
+      "name": "ArenaData",
+      "type": "Blueprint",
+      "defaultValue": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json",
+      "scope": "runtime"
+    }
+  ],
+  "bindings": [
+    {
+      "name": "arena_regular_power_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "arena_regular_score_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "arena_regular_rank_text",
+      "type": "TMP_Text",
+      "required": true
+    },
+    {
+      "name": "arena_regular_countdown_text",
+      "type": "TMP_Text",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_refresh",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {
+        "eventName": "RefreshRequested"
+      }
+    },
+    {
+      "id": "set_power",
+      "typeId": "UI.BindText",
+      "position": [
+        381.8311,
+        -181.7325
+      ],
+      "properties": {
+        "target": "arena_regular_power_text",
+        "value": "",
+        "variableName": "regular_power",
+        "variableTarget": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"
+      }
+    },
+    {
+      "id": "set_score",
+      "typeId": "UI.BindText",
+      "position": [
+        811.0736,
+        -120.6192
+      ],
+      "properties": {
+        "target": "arena_regular_score_text",
+        "value": "",
+        "variableName": "regular_score",
+        "variableTarget": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"
+      }
+    },
+    {
+      "id": "set_rank",
+      "typeId": "UI.BindText",
+      "position": [
+        460,
+        200
+      ],
+      "properties": {
+        "target": "arena_regular_rank_text",
+        "value": "",
+        "variableName": "regular_rank",
+        "variableTarget": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"
+      }
+    },
+    {
+      "id": "set_countdown",
+      "typeId": "UI.BindText",
+      "position": [
+        460,
+        300
+      ],
+      "properties": {
+        "target": "arena_regular_countdown_text",
+        "value": "",
+        "variableName": "regular_season_countdown",
+        "variableTarget": "Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"
+      }
+    },
+    {
+      "id": "get_arena_data",
+      "typeId": "Variable.Get",
+      "position": [
+        650.7574,
+        33.33334
+      ],
+      "properties": {
+        "name": "ArenaData"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_refresh.execOut",
+      "to": "set_power.execIn"
+    },
+    {
+      "from": "set_power.bound",
+      "to": "set_score.execIn"
+    },
+    {
+      "from": "set_score.bound",
+      "to": "set_rank.execIn"
+    },
+    {
+      "from": "set_rank.bound",
+      "to": "set_countdown.execIn"
+    },
+    {
+      "from": "get_arena_data.value",
+      "to": "set_score.variableTarget"
+    }
+  ]
+}

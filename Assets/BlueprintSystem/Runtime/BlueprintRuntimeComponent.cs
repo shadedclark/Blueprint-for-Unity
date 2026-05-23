@@ -52,6 +52,11 @@ namespace BlueprintSystem
             get { return _compiledBlueprint; }
         }
 
+        internal BlueprintExecutionContext ReactiveBindingContext
+        {
+            get { return _context; }
+        }
+
         public string SourcePath
         {
             get { return _compiledBlueprint == null ? null : _compiledBlueprint.SourcePath; }
@@ -101,8 +106,13 @@ namespace BlueprintSystem
                 return false;
             }
 
+            BlueprintReactiveBindingSnapshot reactiveBindingSnapshot = options.RefreshReactiveBindings
+                ? BlueprintReactiveBindingRuntime.CaptureForInstance(this)
+                : null;
+
             InvalidateRuntimeState();
             ApplyRuntimeState(state);
+            BlueprintReactiveBindingRuntime.RestoreForInstance(reactiveBindingSnapshot, this);
 
             if (options.Log)
             {
@@ -112,6 +122,11 @@ namespace BlueprintSystem
             if (options.TriggerReloadEvent)
             {
                 TriggerLifecycleEvent("OnReload");
+            }
+
+            if (options.RefreshReactiveBindings)
+            {
+                BlueprintReactiveBindingRuntime.RefreshInstance(this);
             }
 
             return true;
@@ -130,6 +145,7 @@ namespace BlueprintSystem
             if (_context != null)
             {
                 _context.InvalidateScheduledExecution();
+                BlueprintReactiveBindingRuntime.Clear(_context);
             }
 
             foreach (IBlueprintInstance component in _componentsByName.Values)
@@ -138,6 +154,23 @@ namespace BlueprintSystem
                 if (runtimeComponent != null)
                 {
                     runtimeComponent.InvalidateRuntimeState();
+                }
+            }
+        }
+
+        internal void ClearReactiveBindings()
+        {
+            if (_context != null)
+            {
+                BlueprintReactiveBindingRuntime.Clear(_context);
+            }
+
+            foreach (IBlueprintInstance component in _componentsByName.Values)
+            {
+                BlueprintRuntimeComponent runtimeComponent = component as BlueprintRuntimeComponent;
+                if (runtimeComponent != null)
+                {
+                    runtimeComponent.ClearReactiveBindings();
                 }
             }
         }

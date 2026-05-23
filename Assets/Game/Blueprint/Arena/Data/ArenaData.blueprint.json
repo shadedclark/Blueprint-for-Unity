@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ArenaData",
+  "category": "Arena/Data",
+  "description": "PVP entrance data for the Arena screen.",
+  "variables": [
+    {
+      "id": "var_992cc42a3bd04fb3821136017c0525c7",
+      "name": "regular_power",
+      "type": "string",
+      "defaultValue": "999.9K",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Battle power shown for the regular PVP lineup."
+    },
+    {
+      "id": "var_dd5599ff570842c187c8f80b8fb79115",
+      "name": "regular_score",
+      "type": "string",
+      "defaultValue": "8990",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Arena score shown for regular PVP."
+    },
+    {
+      "id": "var_8155e43c8a424c5780b1c375f36c00e6",
+      "name": "regular_rank",
+      "type": "string",
+      "defaultValue": "12",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Ranking shown for regular PVP."
+    },
+    {
+      "id": "var_9ac6616d499345c180c43227549f46b9",
+      "name": "regular_season_countdown",
+      "type": "string",
+      "defaultValue": "7天15小时",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Season end countdown shown for regular PVP."
+    },
+    {
+      "id": "var_01eeb150e2f0456bac9a08c8aeb12e94",
+      "name": "selected_pvp_mode",
+      "type": "string",
+      "defaultValue": "",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Last requested PVP mode from the Arena entry buttons."
+    },
+    {
+      "id": "var_76c509957ff54a5d9f77a8297810dfdc",
+      "name": "last_entry_intent",
+      "type": "string",
+      "defaultValue": "",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Last Arena entry intent emitted by UI interactions."
+    }
+  ],
+  "bindings": [],
+  "components": [],
+  "nodes": [],
+  "edges": []
+}

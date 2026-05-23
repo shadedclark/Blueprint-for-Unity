@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: ArenaData.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: ArenaData
+  sourceGuid: 7a21cec4d8ef4466ab2b1e859d5b3ee0
+  sourcePath: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+  sourceHash: 9ff749508896a67da983957a572e15dd836a7d356b6e234790f5551c54ca9c11
+  manifestHash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  variables:
+  - Id: var_992cc42a3bd04fb3821136017c0525c7
+    Name: regular_power
+    Type: string
+    DefaultValueJson: '"999.9K"'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Battle power shown for the regular PVP lineup.
+  - Id: var_dd5599ff570842c187c8f80b8fb79115
+    Name: regular_score
+    Type: string
+    DefaultValueJson: '"8990"'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Arena score shown for regular PVP.
+  - Id: var_8155e43c8a424c5780b1c375f36c00e6
+    Name: regular_rank
+    Type: string
+    DefaultValueJson: '"12"'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Ranking shown for regular PVP.
+  - Id: var_9ac6616d499345c180c43227549f46b9
+    Name: regular_season_countdown
+    Type: string
+    DefaultValueJson: "\"7\u592915\u5C0F\u65F6\""
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Season end countdown shown for regular PVP.
+  - Id: var_01eeb150e2f0456bac9a08c8aeb12e94
+    Name: selected_pvp_mode
+    Type: string
+    DefaultValueJson: '""'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Last requested PVP mode from the Arena entry buttons.
+  - Id: var_76c509957ff54a5d9f77a8297810dfdc
+    Name: last_entry_intent
+    Type: string
+    DefaultValueJson: '""'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Last Arena entry intent emitted by UI interactions.
+  bindings: []
+  components: []
+  nodes: []
+  execEdges: []
+  valueEdges: []
+  eventEntries: []

@@ -5,7 +5,7 @@
   "description": "LateUpdate camera rig follow behavior for the local player target.",
   "variables": [
     {
-      "id": "var_86db5cc57448480da31ed6108c8c05f5",
+      "id": "var_b0c16a824f9b4dabaaf385bbcf4951ff",
       "name": "third_person_camera_data_blueprint",
       "type": "Blueprint",
       "defaultValue": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",

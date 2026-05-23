@@ -5,7 +5,7 @@
   "description": "Tick-visible camera yaw and pitch rotation from gamepad right stick and right-mouse drag.",
   "variables": [
     {
-      "id": "var_a876bd8871054df5a93b0d3df97fc19b",
+      "id": "var_44d9301bee4d4b95ad0e6adca1a11ecc",
       "name": "third_person_camera_data_blueprint",
       "type": "Blueprint",
       "defaultValue": "Assets/Game/Blueprint/ThirdPersonCamera/Data/ThirdPersonCameraData.blueprint.json",
@@ -413,6 +413,17 @@
       }
     },
     {
+      "id": "listen_right_click",
+      "typeId": "Input.ListenAction",
+      "position": [
+        440,
+        620
+      ],
+      "properties": {
+        "action": "UI/RightClick"
+      }
+    },
+    {
       "id": "set_current_mouse_zero",
       "typeId": "Blueprint.SetVariable",
       "position": [
@@ -724,7 +735,7 @@
     },
     {
       "from": "sequence_tick.then2",
-      "to": "branch_mouse_has_input.execIn"
+      "to": "listen_right_click.execIn"
     },
     {
       "from": "get_third_person_camera_data_blueprint.value",
@@ -939,6 +950,14 @@
       "to": "set_camera_pitch_gamepad.execIn"
     },
     {
+      "from": "listen_right_click.bound",
+      "to": "set_current_mouse_zero.execIn"
+    },
+    {
+      "from": "listen_right_click.held",
+      "to": "branch_mouse_has_input.execIn"
+    },
+    {
       "from": "get_mouse_look.value",
       "to": "break_mouse_look.value"
     },
@@ -977,10 +996,6 @@
     {
       "from": "branch_mouse_has_input.true",
       "to": "set_current_mouse_look.execIn"
-    },
-    {
-      "from": "branch_mouse_has_input.false",
-      "to": "set_current_mouse_zero.execIn"
     },
     {
       "from": "set_current_mouse_look.execOut",

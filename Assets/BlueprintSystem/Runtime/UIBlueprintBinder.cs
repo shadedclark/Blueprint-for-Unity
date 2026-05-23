@@ -46,6 +46,8 @@ namespace BlueprintSystem
             {
                 TriggerEvent(disableEventName);
             }
+
+            ClearReactiveBindings();
         }
 
         public void RebuildBindingCache()

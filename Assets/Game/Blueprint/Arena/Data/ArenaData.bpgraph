@@ -1,0 +1,350 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 61
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 790b4d75d92f4b0984310a268dbd952f, type: 3}
+  m_Name: ArenaData
+  m_EditorClassIdentifier: Unity.GraphToolkit.Editor::Unity.GraphToolkit.Editor.Implementation.GraphObjectImp
+  m_GraphModel:
+    rid: 2881252042042769841
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 2881252042042769841
+      type: {class: GraphModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1146911648612717733
+          m_Value1: 4231138975328659081
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: a594515c11a6ea0f8966c6037b06b83a
+        m_Name: 
+        m_GraphNodeModels: []
+        m_GraphWireModels: []
+        m_GraphStickyNoteModels: []
+        m_GraphPlacematModels: []
+        m_GraphVariableModels:
+        - rid: 2881252042042769844
+        - rid: 2881252042042769845
+        - rid: 2881252042042769846
+        - rid: 2881252042042769847
+        - rid: 2881252042042769848
+        - rid: 2881252042042769849
+        m_GraphPortalModels: []
+        m_SectionModels:
+        - rid: 2881252042042769842
+        m_LocalSubgraphs: []
+        m_LastKnownBounds:
+          serializedVersion: 2
+          x: 0
+          y: 0
+          width: 0
+          height: 0
+        m_GraphElementMetaData:
+        - m_Guid:
+            m_Value0: 12001671789563683947
+            m_Value1: 4168477622718911723
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 6b24c5afe7808ea6eb5453f44f68d939
+          m_Category: 1
+          m_Index: 0
+        - m_Guid:
+            m_Value0: 9385380438608392199
+            m_Value1: 2949388390385226680
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 07302775c8913f82b89392511d55ee28
+          m_Category: 1
+          m_Index: 1
+        - m_Guid:
+            m_Value0: 6144558195727229626
+            m_Value1: 10159359717950737299
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: ba6209ae1fdb455593cbdd3dd64bfd8c
+          m_Category: 1
+          m_Index: 2
+        - m_Guid:
+            m_Value0: 10392194423016974061
+            m_Value1: 3417022814438015124
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: ede6b87cc47d389094c0fb4325b46b2f
+          m_Category: 1
+          m_Index: 3
+        - m_Guid:
+            m_Value0: 1405017738709751013
+            m_Value1: 3669459066813195469
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: e5d4ea7230a07f13cda43c639489ec32
+          m_Category: 1
+          m_Index: 4
+        - m_Guid:
+            m_Value0: 8382144705536979459
+            m_Value1: 473365240772857973
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 03f273fd325c5374759048b12dbb9106
+          m_Category: 1
+          m_Index: 5
+        m_EntryPoint:
+          rid: -2
+        m_Graph:
+          rid: 2881252042042769843
+    - rid: 2881252042042769842
+      type: {class: SectionModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 2869165067638362719
+          m_Value1: 13101698660130895258
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 5f528b726d52d1279a3550ff8395d2b5
+        m_Version: 2
+        m_Items:
+        - rid: 2881252042042769844
+        - rid: 2881252042042769845
+        - rid: 2881252042042769846
+        - rid: 2881252042042769847
+        - rid: 2881252042042769848
+        - rid: 2881252042042769849
+        m_Title: 
+    - rid: 2881252042042769843
+      type: {class: BlueprintVisualGraph, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        SourceBlueprintAssetPath: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+        SchemaVersion: 0.1
+        BlueprintName: ArenaData
+        Category: Arena/Data
+        Description: PVP entrance data for the Arena screen.
+        Variables:
+        - Id: var_717b1f38a46746c7a1813392977f53bc
+          Name: regular_power
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '"999.9K"'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: Battle power shown for the regular PVP lineup.
+        - Id: var_9f579c7f90364a0d97df2c8b8900c13a
+          Name: regular_score
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '"999"'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: Arena score shown for regular PVP.
+        - Id: var_907410381f264ed6b1c67a0b4ec2a54f
+          Name: regular_rank
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '"12"'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: Ranking shown for regular PVP.
+        - Id: var_a16de67894954690b753c28180285c03
+          Name: regular_season_countdown
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: "\"7\u592915\u5C0F\u65F6\""
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: Season end countdown shown for regular PVP.
+        - Id: var_63a4c78cfb9d4b44b83ab12f8c5f9709
+          Name: selected_pvp_mode
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '""'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: Last requested PVP mode from the Arena entry buttons.
+        - Id: var_1b008702a9b046e789f1d2da1e0f68db
+          Name: last_entry_intent
+          Type: string
+          HasDefaultValue: 1
+          JsonDefaultValue: '""'
+          Scope: runtime
+          Exposed: 1
+          Persistent: 0
+          Description: Last Arena entry intent emitted by UI interactions.
+        Bindings: []
+        Components: []
+    - rid: 2881252042042769844
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12001671789563683947
+          m_Value1: 4168477622718911723
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 6b24c5afe7808ea6eb5453f44f68d939
+        m_Version: 2
+        m_Name: regular_power
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252042042769850
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252042042769845
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 9385380438608392199
+          m_Value1: 2949388390385226680
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 07302775c8913f82b89392511d55ee28
+        m_Version: 2
+        m_Name: regular_score
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252042042769851
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252042042769846
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 6144558195727229626
+          m_Value1: 10159359717950737299
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: ba6209ae1fdb455593cbdd3dd64bfd8c
+        m_Version: 2
+        m_Name: regular_rank
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252042042769852
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252042042769847
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 10392194423016974061
+          m_Value1: 3417022814438015124
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: ede6b87cc47d389094c0fb4325b46b2f
+        m_Version: 2
+        m_Name: regular_season_countdown
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252042042769853
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252042042769848
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 1405017738709751013
+          m_Value1: 3669459066813195469
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: e5d4ea7230a07f13cda43c639489ec32
+        m_Version: 2
+        m_Name: selected_pvp_mode
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252042042769854
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252042042769849
+      type: {class: VariableDeclarationModel, ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Guid:
+          m_Value0: 8382144705536979459
+          m_Value1: 473365240772857973
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 03f273fd325c5374759048b12dbb9106
+        m_Version: 2
+        m_Name: last_entry_intent
+        m_UniqueId: 
+        m_DataType:
+          m_Identification: System.String, System.Private.CoreLib, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089
+        m_IsExposed: 0
+        m_Scope: 0
+        m_ShowOnInspectorOnly: 0
+        m_Tooltip: 
+        m_InitializationValue:
+          rid: 2881252042042769855
+        m_Modifiers: 0
+        m_VariableFlags: 0
+    - rid: 2881252042042769850
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 999.9K
+    - rid: 2881252042042769851
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 8990
+    - rid: 2881252042042769852
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 12
+    - rid: 2881252042042769853
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: "7\u592915\u5C0F\u65F6"
+    - rid: 2881252042042769854
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 
+    - rid: 2881252042042769855
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: 

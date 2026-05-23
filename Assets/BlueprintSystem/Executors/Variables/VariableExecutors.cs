@@ -51,6 +51,7 @@ namespace BlueprintSystem
             }
 
             context.Variables.Set(name, value);
+            BlueprintReactiveBindingRuntime.RefreshForContext(context);
             return BlueprintExecResult.Continue("execOut");
         }
     }

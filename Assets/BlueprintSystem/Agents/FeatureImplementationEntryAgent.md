@@ -28,6 +28,16 @@ The entry agent owns the final integration pass after the UI and Blueprint passe
 
 For repeated UI components or option groups such as inventory slots, list rows, item cards, reward cells, category tabs, filter buttons/toggles, segmented options, option chips, or shop entries, integrate one reusable interaction blueprint asset across all concrete instances. Each concrete UI component still owns its own `BlueprintRunner`/`UIBlueprintBinder`, but the assigned compiled blueprint should be the shared repeated/option-group interaction blueprint, with per-instance context supplied through runner variable overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, `category_id`, or row-bind variables. Do not create or wire index- or option-specific blueprint assets such as `InventorySlot00SelectInteraction` through `InventorySlot39SelectInteraction`, or `InventoryFilterAllClickInteraction` through `InventoryFilterEquipmentClickInteraction`.
 
+## Existing Prefab + Annotation Route
+
+When the user provides both an existing prefab path and an annotation Markdown path, route the task through:
+
+```text
+Assets/BlueprintSystem/Agents/PrefabAnnotationBlueprintAgent.md
+```
+
+This route skips the UI-first pass because the prefab is already the visual source of truth. The Prefab Annotation Blueprint Agent may generate or update BlueprintSystem `.blueprint.json` files, compile them, and attach `BlueprintRunner` / `UIBlueprintBinder` references and binding entries back to the prefab through Unity MCP. It must not rebuild or visually modify the prefab, and it must not create or modify any `.cs` file.
+
 ## Unity MCP Rule
 
 Any Unity Editor operation must be executed through `unity_mcp` tools. This includes creating or modifying scene objects, prefabs, UI hierarchy, components, asset import settings, validation/compile flows that require the editor, screenshots, console checks, and scene saves. Do not edit Unity scene or prefab YAML by hand for these operations.

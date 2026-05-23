@@ -1004,6 +1004,7 @@ namespace BlueprintSystem.Editor
                 {
                     PreserveVariables = true,
                     TriggerReloadEvent = triggerReloadEvent,
+                    RefreshReactiveBindings = true,
                     Log = true
                 });
             }
@@ -1137,7 +1138,13 @@ namespace BlueprintSystem.Editor
                     continue;
                 }
 
-                if (runner.ReloadBlueprint(new BlueprintReloadOptions { PreserveVariables = true, Log = true }))
+                if (runner.ReloadBlueprint(new BlueprintReloadOptions
+                    {
+                        PreserveVariables = true,
+                        TriggerReloadEvent = true,
+                        RefreshReactiveBindings = true,
+                        Log = true
+                    }))
                 {
                     reloaded++;
                 }

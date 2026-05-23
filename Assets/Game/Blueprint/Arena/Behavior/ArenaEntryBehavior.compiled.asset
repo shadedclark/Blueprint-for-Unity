@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: ArenaEntryBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: ArenaEntryBehavior
+  sourceGuid: d86fe16a68a9142479104f4969f4838c
+  sourcePath: Assets/Game/Blueprint/Arena/Behavior/ArenaEntryBehavior.blueprint.json
+  sourceHash: 526bd0f43409011fa34c4464e36aa088d94c18b9d8086d5cac571251fc0a18a0
+  manifestHash: 507536a2cb21acfd554cd6276fc97db5aeb2abd9cf26189900e7dae080f3d9dc
+  variables:
+  - Id: var_19f9781542ed47bc94dc55ced447759f
+    Name: arena_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+  bindings: []
+  components: []
+  nodes:
+  - Id: event_enter_regular
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"EnterRegularPvpRequested"'
+  - Id: get_arena_data_blueprint
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"arena_data_blueprint"'
+  - Id: set_regular_mode
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_pvp_mode"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+    - Id: value
+      JsonValue: '"regular"'
+  - Id: set_regular_intent
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"last_entry_intent"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+    - Id: value
+      JsonValue: '"EnterRegularPVP"'
+  - Id: log_regular_entry
+    TypeId: Game.Log
+    ExecutorId: Game.Log
+    Properties:
+    - Id: message
+      JsonValue: '"Arena regular PVP entry requested."'
+  - Id: event_enter_advanced
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"EnterAdvancedPvpRequested"'
+  - Id: get_arena_data_blueprint_2
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"arena_data_blueprint"'
+  - Id: set_advanced_mode
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_pvp_mode"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+    - Id: value
+      JsonValue: '"advanced"'
+  - Id: set_advanced_intent
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"last_entry_intent"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+    - Id: value
+      JsonValue: '"EnterAdvancedPVP"'
+  - Id: log_advanced_entry
+    TypeId: Game.Log
+    ExecutorId: Game.Log
+    Properties:
+    - Id: message
+      JsonValue: '"Arena advanced PVP entry requested."'
+  execEdges:
+  - FromNodeId: event_enter_advanced
+    FromPortId: execOut
+    ToNodeId: set_advanced_mode
+    ToPortId: execIn
+  - FromNodeId: event_enter_regular
+    FromPortId: execOut
+    ToNodeId: set_regular_mode
+    ToPortId: execIn
+  - FromNodeId: set_advanced_intent
+    FromPortId: execOut
+    ToNodeId: log_advanced_entry
+    ToPortId: execIn
+  - FromNodeId: set_advanced_mode
+    FromPortId: execOut
+    ToNodeId: set_advanced_intent
+    ToPortId: execIn
+  - FromNodeId: set_regular_intent
+    FromPortId: execOut
+    ToNodeId: log_regular_entry
+    ToPortId: execIn
+  - FromNodeId: set_regular_mode
+    FromPortId: execOut
+    ToNodeId: set_regular_intent
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_arena_data_blueprint
+    FromPortId: value
+    ToNodeId: set_regular_intent
+    ToPortId: target
+  - FromNodeId: get_arena_data_blueprint
+    FromPortId: value
+    ToNodeId: set_regular_mode
+    ToPortId: target
+  - FromNodeId: get_arena_data_blueprint_2
+    FromPortId: value
+    ToNodeId: set_advanced_intent
+    ToPortId: target
+  - FromNodeId: get_arena_data_blueprint_2
+    FromPortId: value
+    ToNodeId: set_advanced_mode
+    ToPortId: target
+  eventEntries:
+  - EventName: EnterAdvancedPvpRequested
+    NodeId: event_enter_advanced
+  - EventName: EnterRegularPvpRequested
+    NodeId: event_enter_regular

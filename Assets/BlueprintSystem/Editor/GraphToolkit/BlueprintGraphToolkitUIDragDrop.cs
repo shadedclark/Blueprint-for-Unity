@@ -308,6 +308,9 @@ namespace BlueprintSystem.Editor
             public string VariableName;
             public string BlueprintAssetPath;
             public string BlueprintVariableName;
+            public string StructTypeId;
+            public string StructAssetGuid;
+            public BlueprintUserStructAsset StructAsset;
             public string MenuPath;
 
             public bool IsVariable
@@ -319,6 +322,11 @@ namespace BlueprintSystem.Editor
             {
                 get { return !string.IsNullOrEmpty(BlueprintAssetPath) && !string.IsNullOrEmpty(BlueprintVariableName); }
             }
+
+            public bool IsUserStructAsset
+            {
+                get { return StructAsset != null && !string.IsNullOrEmpty(StructTypeId); }
+            }
         }
 
         private static List<DropNodeChoice> BuildDropChoices(BlueprintVisualGraph graph)
@@ -326,6 +334,7 @@ namespace BlueprintSystem.Editor
             List<DropNodeChoice> choices = new List<DropNodeChoice>();
             AddVariableDropChoices(graph, choices);
             AddBlueprintAssetDropChoices(graph, choices);
+            AddUserStructAssetDropChoices(choices);
             AddSpriteBindingDropChoices(choices);
             AddUIBindingDropChoices(graph, choices);
             choices.Sort(CompareChoices);
@@ -447,6 +456,35 @@ namespace BlueprintSystem.Editor
                         MenuPath = "Variables/Set " + variableName + " (Blueprint)"
                     });
                 }
+            }
+        }
+
+        private static void AddUserStructAssetDropChoices(List<DropNodeChoice> choices)
+        {
+            List<BlueprintUserStructAsset> structAssets = ResolveUserStructAssets(DragAndDrop.objectReferences);
+            if (structAssets.Count == 0)
+            {
+                return;
+            }
+
+            BlueprintNodeManifest manifest;
+            if (!BlueprintGraphToolkitBridge.LoadProjectManifests().TryGet(BlueprintBreakStructNodeUtility.NodeTypeId, out manifest))
+            {
+                return;
+            }
+
+            for (int i = 0; i < structAssets.Count; i++)
+            {
+                BlueprintUserStructAsset asset = structAssets[i];
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                choices.Add(new DropNodeChoice
+                {
+                    Manifest = manifest,
+                    StructAsset = asset,
+                    StructTypeId = asset.TypeId,
+                    StructAssetGuid = string.IsNullOrEmpty(assetPath) ? string.Empty : AssetDatabase.AssetPathToGUID(assetPath),
+                    MenuPath = "Variables/Break " + asset.TypeId
+                });
             }
         }
 
@@ -605,6 +643,12 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
+            if (choice.IsUserStructAsset)
+            {
+                CreateBreakStructNodeFromChoice(graph, choice, graphPosition);
+                return;
+            }
+
             CreateUIBindingNodeFromChoice(graph, choice, graphPosition);
         }
 
@@ -700,6 +744,50 @@ namespace BlueprintSystem.Editor
             }
 
             CreateVariableSetNodeFromBlackboard(graph, variable, graphPosition);
+        }
+
+        private static void CreateBreakStructNodeFromChoice(BlueprintVisualGraph graph, DropNodeChoice choice, Vector2 graphPosition)
+        {
+            BlueprintNodeSource source = CreateBreakStructNodeSource(graph, choice.StructTypeId, choice.StructAssetGuid, graphPosition);
+            BlueprintVisualNode visualNode = BlueprintGraphToolkitBridge.CreateVisualNode(source, choice.Manifest, ConvertGraphVariables(graph));
+            BlueprintGraphToolkitReflection.CreateNodeWithUndo(graph, visualNode, graphPosition, "Create Blueprint Break Struct Node");
+            BlueprintGraphToolkitReflection.MarkDirty(graph);
+            GraphDatabase.SaveGraphIfDirty(graph);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Blueprint] Added 'Variable.BreakStruct' for '" + choice.StructTypeId + "'.");
+        }
+
+        internal static BlueprintNodeSource CreateBreakStructNodeSource(
+            BlueprintVisualGraph graph,
+            string structTypeId,
+            string structAssetGuid,
+            Vector2 graphPosition)
+        {
+            if (graph == null)
+            {
+                throw new ArgumentNullException("graph");
+            }
+
+            if (string.IsNullOrEmpty(structTypeId))
+            {
+                throw new ArgumentException("Struct type id is required.", "structTypeId");
+            }
+
+            BlueprintNodeSource source = new BlueprintNodeSource
+            {
+                Id = CreateUniqueNodeId(BlueprintBreakStructNodeUtility.NodeTypeId, structTypeId, graph),
+                TypeId = BlueprintBreakStructNodeUtility.NodeTypeId,
+                X = graphPosition.x,
+                Y = graphPosition.y
+            };
+
+            source.Properties[BlueprintBreakStructNodeUtility.StructTypePropertyId] = structTypeId;
+            if (!string.IsNullOrEmpty(structAssetGuid))
+            {
+                source.Properties[BlueprintBreakStructNodeUtility.StructAssetGuidPropertyId] = structAssetGuid;
+            }
+
+            return source;
         }
 
         internal static IVariable EnsureBlueprintAssetVariable(BlueprintVisualGraph graph, string suggestedName, string blueprintAssetPath)
@@ -968,6 +1056,27 @@ namespace BlueprintSystem.Editor
             }
 
             return paths;
+        }
+
+        internal static List<BlueprintUserStructAsset> ResolveUserStructAssets(Object[] draggedObjects)
+        {
+            List<BlueprintUserStructAsset> assets = new List<BlueprintUserStructAsset>();
+            if (draggedObjects == null || draggedObjects.Length == 0)
+            {
+                return assets;
+            }
+
+            HashSet<int> addedInstanceIds = new HashSet<int>();
+            for (int i = 0; i < draggedObjects.Length; i++)
+            {
+                BlueprintUserStructAsset asset = draggedObjects[i] as BlueprintUserStructAsset;
+                if (asset != null && addedInstanceIds.Add(asset.GetInstanceID()))
+                {
+                    assets.Add(asset);
+                }
+            }
+
+            return assets;
         }
 
         private static void AddSpritesAtPath(string assetPath, List<Sprite> sprites, HashSet<int> addedInstanceIds)
@@ -1553,6 +1662,8 @@ namespace BlueprintSystem.Editor
                     return "set";
                 case "Variable.GetField":
                     return "get_field";
+                case "Variable.BreakStruct":
+                    return "break_struct";
                 case "Array.Count":
                     return "array_count";
                 case "Array.Get":

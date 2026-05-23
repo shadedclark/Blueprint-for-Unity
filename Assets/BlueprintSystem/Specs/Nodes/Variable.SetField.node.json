@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Variable.SetField",
+  "title": "Set Field",
+  "category": "Variables",
+  "description": "Returns a copy of a structured value with one field or nested field path changed.",
+  "executor": "Variable.SetField",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "path",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "path",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "value",
+      "required": false
+    }
+  ]
+}

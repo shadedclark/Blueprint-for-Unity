@@ -5,7 +5,7 @@
   "description": "Configuration and runtime state for local player ground movement.",
   "variables": [
     {
-      "id": "var_9b8f504c17b94128bc3b9438bc8b1062",
+      "id": "var_a9c35b4e83ec43159e1f5c9b89983ba3",
       "name": "move_speed",
       "type": "float",
       "defaultValue": 10,
@@ -15,7 +15,7 @@
       "description": "World units per second for base ground movement."
     },
     {
-      "id": "var_92c352d91bb943829131d2655eb96629",
+      "id": "var_57999d57657747c6b0c5636408d0ce57",
       "name": "input_dead_zone",
       "type": "float",
       "defaultValue": 0.1,
@@ -25,7 +25,7 @@
       "description": "Minimum Player/Move vector length before movement starts."
     },
     {
-      "id": "var_a4aaaf767f1a488f83abad889418e73d",
+      "id": "var_52566de6cc704f4dacdc161855b5cac1",
       "name": "rotate_to_move_direction",
       "type": "bool",
       "defaultValue": false,
@@ -35,7 +35,7 @@
       "description": "When true, the player instantly faces the current movement direction."
     },
     {
-      "id": "var_8c1714f35224422692e59740a1f6f99e",
+      "id": "var_2b0a7cabeaa846e59690503dce29f286",
       "name": "turn_speed",
       "type": "float",
       "defaultValue": 720,
@@ -45,7 +45,7 @@
       "description": "Reserved turn speed in degrees per second for future smoothed rotation."
     },
     {
-      "id": "var_afdb4ebf69174ea2b5dc1a13eb8afae1",
+      "id": "var_64774f285e3148a09e536c2a6ef17b30",
       "name": "current_input",
       "type": "Vector2",
       "defaultValue": [
@@ -57,7 +57,7 @@
       "description": "Latest accepted Player/Move input vector after dead-zone filtering."
     },
     {
-      "id": "var_74a35292ddef4cb09a659aee78b21c29",
+      "id": "var_6d263b22855d4da9a89da7ccefbab7c8",
       "name": "current_move_direction",
       "type": "Vector3",
       "defaultValue": [
@@ -70,7 +70,7 @@
       "description": "Normalized world-space movement direction on the XZ plane."
     },
     {
-      "id": "var_fe5de0ec1512423f9646e9aa2d117ae1",
+      "id": "var_7f277c48e8dc47fd822a6358ce8ece49",
       "name": "is_moving",
       "type": "bool",
       "defaultValue": false,

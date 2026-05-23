@@ -64,6 +64,16 @@ namespace BlueprintSystem
                 RuntimeNode fromNode = runtime.GetNode(from.NodeId);
                 RuntimeNode toNode = runtime.GetNode(to.NodeId);
                 BlueprintPortSpec output = fromNode.Manifest.FindOutput(from.PortId);
+                if (output == null && fromNode.TypeId == BlueprintBreakStructNodeUtility.NodeTypeId)
+                {
+                    BlueprintBreakStructNodeUtility.TryCreateOutputPort(fromNode.Properties, from.PortId, out output);
+                }
+
+                if (output == null)
+                {
+                    continue;
+                }
+
                 RuntimeEdge edge = new RuntimeEdge(from, to);
                 if (output.Kind == BlueprintPortKind.Exec)
                 {

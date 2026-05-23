@@ -1,0 +1,129 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: ArenaRegularPvpPresenter.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: ArenaRegularPvpPresenter
+  sourceGuid: 137544e488c114c0a96c3274079d9f35
+  sourcePath: Assets/Game/Blueprint/Arena/UI/Presenters/ArenaRegularPvpPresenter.blueprint.json
+  sourceHash: d774980af7762a528cbd7b0560140c8342e3456de5e2b198ac22884c5e311c87
+  manifestHash: 660904293e610bb086e0b5facfe7a35f601025cc1e622c32c5a92790f7b61906
+  variables:
+  - Id: var_4e1b25664e4f407ab66add27285dbcda
+    Name: ArenaData
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: 
+  bindings:
+  - Name: arena_regular_power_text
+    Type: TMP_Text
+    Required: 1
+  - Name: arena_regular_score_text
+    Type: TMP_Text
+    Required: 1
+  - Name: arena_regular_rank_text
+    Type: TMP_Text
+    Required: 1
+  - Name: arena_regular_countdown_text
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_refresh
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+  - Id: set_power
+    TypeId: UI.BindText
+    ExecutorId: UI.BindText
+    Properties:
+    - Id: target
+      JsonValue: '"arena_regular_power_text"'
+    - Id: value
+      JsonValue: '""'
+    - Id: variableName
+      JsonValue: '"regular_power"'
+    - Id: variableTarget
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+  - Id: set_score
+    TypeId: UI.BindText
+    ExecutorId: UI.BindText
+    Properties:
+    - Id: target
+      JsonValue: '"arena_regular_score_text"'
+    - Id: value
+      JsonValue: '""'
+    - Id: variableName
+      JsonValue: '"regular_score"'
+    - Id: variableTarget
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+  - Id: set_rank
+    TypeId: UI.BindText
+    ExecutorId: UI.BindText
+    Properties:
+    - Id: target
+      JsonValue: '"arena_regular_rank_text"'
+    - Id: value
+      JsonValue: '""'
+    - Id: variableName
+      JsonValue: '"regular_rank"'
+    - Id: variableTarget
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+  - Id: set_countdown
+    TypeId: UI.BindText
+    ExecutorId: UI.BindText
+    Properties:
+    - Id: target
+      JsonValue: '"arena_regular_countdown_text"'
+    - Id: value
+      JsonValue: '""'
+    - Id: variableName
+      JsonValue: '"regular_season_countdown"'
+    - Id: variableTarget
+      JsonValue: '"Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json"'
+  - Id: get_arena_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"ArenaData"'
+  execEdges:
+  - FromNodeId: event_refresh
+    FromPortId: execOut
+    ToNodeId: set_power
+    ToPortId: execIn
+  - FromNodeId: set_power
+    FromPortId: bound
+    ToNodeId: set_score
+    ToPortId: execIn
+  - FromNodeId: set_rank
+    FromPortId: bound
+    ToNodeId: set_countdown
+    ToPortId: execIn
+  - FromNodeId: set_score
+    FromPortId: bound
+    ToNodeId: set_rank
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_arena_data
+    FromPortId: value
+    ToNodeId: set_score
+    ToPortId: variableTarget
+  eventEntries:
+  - EventName: RefreshRequested
+    NodeId: event_refresh

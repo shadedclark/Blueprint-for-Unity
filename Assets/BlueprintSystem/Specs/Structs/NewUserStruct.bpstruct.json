@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Struct.NewUserStruct",
+  "fields": [
+    {
+      "id": "fld_2f30ad2739e742c0b5f048ad24a298e7",
+      "name": "ewqe",
+      "type": "int"
+    },
+    {
+      "id": "fld_37717905de074d6c9b206ef4001e1ab0",
+      "name": "ee",
+      "type": "int"
+    },
+    {
+      "id": "fld_7bdc5c16b0a9413dba306a227d4ab007",
+      "name": "iiu",
+      "type": "int"
+    }
+  ]
+}

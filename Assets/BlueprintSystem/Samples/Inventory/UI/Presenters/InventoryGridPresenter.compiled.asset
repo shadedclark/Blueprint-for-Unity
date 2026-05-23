@@ -1,0 +1,3273 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: InventoryGridPresenter.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: InventoryGridPresenter
+  sourceGuid: 402d94f89866844e1b475c5bbb303741
+  sourcePath: Assets/BlueprintSystem/Samples/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json
+  sourceHash: 84b742a16bc39437819b71877e36ae02ead9c7556fee673123e8cd1cf44bc31a
+  manifestHash: d789f5283f30d200a374fbd3f478ea5fead2ed87dd925c799396b378adcd5068
+  variables:
+  - Id: var_inventory_data_blueprint
+    Name: inventory_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json
+  bindings:
+  - Name: inventory_slot_00_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_00_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_01_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_01_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_02_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_02_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_03_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_03_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_04_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_04_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_05_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_05_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_06_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_06_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_07_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_07_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_08_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_08_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_09_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_09_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_10_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_10_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_11_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_11_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_12_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_12_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_13_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_13_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_14_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_14_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_15_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_15_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_16_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_16_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_17_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_17_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_18_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_18_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_19_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_19_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_20_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_20_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_21_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_21_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_22_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_22_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_23_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_23_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_24_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_24_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_25_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_25_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_26_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_26_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_27_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_27_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_28_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_28_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_29_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_29_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_30_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_30_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_31_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_31_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_32_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_32_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_33_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_33_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_34_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_34_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_35_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_35_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_36_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_36_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_37_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_37_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_38_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_38_frame_image
+    Type: Image
+    Required: 1
+  - Name: inventory_slot_39_label_text
+    Type: TMP_Text
+    Required: 1
+  - Name: inventory_slot_39_frame_image
+    Type: Image
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_refresh
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+  - Id: get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: get_slot_labels
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"slot_labels"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: get_selected_index
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: slot_00_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 0
+  - Id: slot_00_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_00_label_text"'
+  - Id: slot_00_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 0
+  - Id: slot_00_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_00_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_00_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_00_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_00_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_01_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 1
+  - Id: slot_01_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_01_label_text"'
+  - Id: slot_01_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 1
+  - Id: slot_01_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_01_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_01_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_01_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_01_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_02_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 2
+  - Id: slot_02_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_02_label_text"'
+  - Id: slot_02_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 2
+  - Id: slot_02_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_02_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_02_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_02_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_02_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_03_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 3
+  - Id: slot_03_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_03_label_text"'
+  - Id: slot_03_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 3
+  - Id: slot_03_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_03_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_03_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_03_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_03_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_04_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 4
+  - Id: slot_04_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_04_label_text"'
+  - Id: slot_04_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 4
+  - Id: slot_04_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_04_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_04_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_04_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_04_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_05_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 5
+  - Id: slot_05_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_05_label_text"'
+  - Id: slot_05_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 5
+  - Id: slot_05_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_05_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_05_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_05_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_05_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_06_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 6
+  - Id: slot_06_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_06_label_text"'
+  - Id: slot_06_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 6
+  - Id: slot_06_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_06_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_06_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_06_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_06_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_07_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 7
+  - Id: slot_07_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_07_label_text"'
+  - Id: slot_07_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 7
+  - Id: slot_07_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_07_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_07_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_07_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_07_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_08_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 8
+  - Id: slot_08_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_08_label_text"'
+  - Id: slot_08_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 8
+  - Id: slot_08_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_08_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_08_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_08_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_08_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_09_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 9
+  - Id: slot_09_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_09_label_text"'
+  - Id: slot_09_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 9
+  - Id: slot_09_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_09_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_09_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_09_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_09_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_10_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 10
+  - Id: slot_10_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_10_label_text"'
+  - Id: slot_10_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 10
+  - Id: slot_10_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_10_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_10_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_10_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_10_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_11_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 11
+  - Id: slot_11_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_11_label_text"'
+  - Id: slot_11_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 11
+  - Id: slot_11_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_11_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_11_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_11_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_11_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_12_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 12
+  - Id: slot_12_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_12_label_text"'
+  - Id: slot_12_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 12
+  - Id: slot_12_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_12_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_12_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_12_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_12_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_13_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 13
+  - Id: slot_13_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_13_label_text"'
+  - Id: slot_13_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 13
+  - Id: slot_13_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_13_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_13_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_13_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_13_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_14_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 14
+  - Id: slot_14_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_14_label_text"'
+  - Id: slot_14_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 14
+  - Id: slot_14_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_14_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_14_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_14_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_14_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_15_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 15
+  - Id: slot_15_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_15_label_text"'
+  - Id: slot_15_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 15
+  - Id: slot_15_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_15_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_15_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_15_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_15_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_16_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 16
+  - Id: slot_16_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_16_label_text"'
+  - Id: slot_16_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 16
+  - Id: slot_16_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_16_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_16_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_16_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_16_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_17_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 17
+  - Id: slot_17_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_17_label_text"'
+  - Id: slot_17_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 17
+  - Id: slot_17_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_17_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_17_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_17_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_17_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_18_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 18
+  - Id: slot_18_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_18_label_text"'
+  - Id: slot_18_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 18
+  - Id: slot_18_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_18_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_18_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_18_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_18_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_19_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 19
+  - Id: slot_19_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_19_label_text"'
+  - Id: slot_19_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 19
+  - Id: slot_19_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_19_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_19_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_19_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_19_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_20_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 20
+  - Id: slot_20_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_20_label_text"'
+  - Id: slot_20_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 20
+  - Id: slot_20_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_20_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_20_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_20_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_20_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_21_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 21
+  - Id: slot_21_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_21_label_text"'
+  - Id: slot_21_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 21
+  - Id: slot_21_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_21_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_21_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_21_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_21_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_22_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 22
+  - Id: slot_22_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_22_label_text"'
+  - Id: slot_22_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 22
+  - Id: slot_22_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_22_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_22_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_22_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_22_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_23_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 23
+  - Id: slot_23_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_23_label_text"'
+  - Id: slot_23_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 23
+  - Id: slot_23_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_23_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_23_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_23_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_23_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_24_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 24
+  - Id: slot_24_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_24_label_text"'
+  - Id: slot_24_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 24
+  - Id: slot_24_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_24_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_24_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_24_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_24_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_25_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 25
+  - Id: slot_25_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_25_label_text"'
+  - Id: slot_25_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 25
+  - Id: slot_25_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_25_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_25_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_25_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_25_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_26_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 26
+  - Id: slot_26_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_26_label_text"'
+  - Id: slot_26_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 26
+  - Id: slot_26_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_26_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_26_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_26_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_26_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_27_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 27
+  - Id: slot_27_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_27_label_text"'
+  - Id: slot_27_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 27
+  - Id: slot_27_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_27_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_27_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_27_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_27_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_28_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 28
+  - Id: slot_28_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_28_label_text"'
+  - Id: slot_28_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 28
+  - Id: slot_28_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_28_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_28_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_28_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_28_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_29_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 29
+  - Id: slot_29_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_29_label_text"'
+  - Id: slot_29_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 29
+  - Id: slot_29_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_29_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_29_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_29_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_29_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_30_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 30
+  - Id: slot_30_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_30_label_text"'
+  - Id: slot_30_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 30
+  - Id: slot_30_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_30_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_30_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_30_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_30_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_31_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 31
+  - Id: slot_31_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_31_label_text"'
+  - Id: slot_31_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 31
+  - Id: slot_31_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_31_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_31_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_31_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_31_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_32_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 32
+  - Id: slot_32_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_32_label_text"'
+  - Id: slot_32_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 32
+  - Id: slot_32_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_32_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_32_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_32_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_32_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_33_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 33
+  - Id: slot_33_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_33_label_text"'
+  - Id: slot_33_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 33
+  - Id: slot_33_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_33_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_33_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_33_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_33_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_34_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 34
+  - Id: slot_34_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_34_label_text"'
+  - Id: slot_34_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 34
+  - Id: slot_34_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_34_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_34_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_34_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_34_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_35_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 35
+  - Id: slot_35_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_35_label_text"'
+  - Id: slot_35_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 35
+  - Id: slot_35_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_35_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_35_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_35_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_35_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_36_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 36
+  - Id: slot_36_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_36_label_text"'
+  - Id: slot_36_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 36
+  - Id: slot_36_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_36_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_36_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_36_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_36_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_37_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 37
+  - Id: slot_37_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_37_label_text"'
+  - Id: slot_37_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 37
+  - Id: slot_37_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_37_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_37_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_37_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_37_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_38_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 38
+  - Id: slot_38_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_38_label_text"'
+  - Id: slot_38_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 38
+  - Id: slot_38_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_38_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_38_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_38_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_38_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  - Id: slot_39_get_label
+    TypeId: Array.Get
+    ExecutorId: Array.Get
+    Properties:
+    - Id: index
+      JsonValue: 39
+  - Id: slot_39_set_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_39_label_text"'
+  - Id: slot_39_is_selected
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 39
+  - Id: slot_39_branch_selected
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: slot_39_set_selected_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_39_frame_image"'
+    - Id: value
+      JsonValue: '[1,0.78,0.22,1]'
+  - Id: slot_39_set_base_color
+    TypeId: UI.SetGraphicColor
+    ExecutorId: UI.SetGraphicColor
+    Properties:
+    - Id: target
+      JsonValue: '"inventory_slot_39_frame_image"'
+    - Id: value
+      JsonValue: '[0.25,0.28,0.34,1]'
+  execEdges:
+  - FromNodeId: event_refresh
+    FromPortId: execOut
+    ToNodeId: slot_00_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_00_branch_selected
+    FromPortId: false
+    ToNodeId: slot_00_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_00_branch_selected
+    FromPortId: true
+    ToNodeId: slot_00_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_00_set_label
+    FromPortId: execOut
+    ToNodeId: slot_00_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_00_set_label
+    FromPortId: execOut
+    ToNodeId: slot_01_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_01_branch_selected
+    FromPortId: false
+    ToNodeId: slot_01_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_01_branch_selected
+    FromPortId: true
+    ToNodeId: slot_01_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_01_set_label
+    FromPortId: execOut
+    ToNodeId: slot_01_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_01_set_label
+    FromPortId: execOut
+    ToNodeId: slot_02_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_02_branch_selected
+    FromPortId: false
+    ToNodeId: slot_02_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_02_branch_selected
+    FromPortId: true
+    ToNodeId: slot_02_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_02_set_label
+    FromPortId: execOut
+    ToNodeId: slot_02_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_02_set_label
+    FromPortId: execOut
+    ToNodeId: slot_03_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_03_branch_selected
+    FromPortId: false
+    ToNodeId: slot_03_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_03_branch_selected
+    FromPortId: true
+    ToNodeId: slot_03_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_03_set_label
+    FromPortId: execOut
+    ToNodeId: slot_03_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_03_set_label
+    FromPortId: execOut
+    ToNodeId: slot_04_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_04_branch_selected
+    FromPortId: false
+    ToNodeId: slot_04_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_04_branch_selected
+    FromPortId: true
+    ToNodeId: slot_04_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_04_set_label
+    FromPortId: execOut
+    ToNodeId: slot_04_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_04_set_label
+    FromPortId: execOut
+    ToNodeId: slot_05_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_05_branch_selected
+    FromPortId: false
+    ToNodeId: slot_05_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_05_branch_selected
+    FromPortId: true
+    ToNodeId: slot_05_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_05_set_label
+    FromPortId: execOut
+    ToNodeId: slot_05_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_05_set_label
+    FromPortId: execOut
+    ToNodeId: slot_06_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_06_branch_selected
+    FromPortId: false
+    ToNodeId: slot_06_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_06_branch_selected
+    FromPortId: true
+    ToNodeId: slot_06_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_06_set_label
+    FromPortId: execOut
+    ToNodeId: slot_06_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_06_set_label
+    FromPortId: execOut
+    ToNodeId: slot_07_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_07_branch_selected
+    FromPortId: false
+    ToNodeId: slot_07_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_07_branch_selected
+    FromPortId: true
+    ToNodeId: slot_07_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_07_set_label
+    FromPortId: execOut
+    ToNodeId: slot_07_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_07_set_label
+    FromPortId: execOut
+    ToNodeId: slot_08_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_08_branch_selected
+    FromPortId: false
+    ToNodeId: slot_08_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_08_branch_selected
+    FromPortId: true
+    ToNodeId: slot_08_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_08_set_label
+    FromPortId: execOut
+    ToNodeId: slot_08_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_08_set_label
+    FromPortId: execOut
+    ToNodeId: slot_09_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_09_branch_selected
+    FromPortId: false
+    ToNodeId: slot_09_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_09_branch_selected
+    FromPortId: true
+    ToNodeId: slot_09_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_09_set_label
+    FromPortId: execOut
+    ToNodeId: slot_09_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_09_set_label
+    FromPortId: execOut
+    ToNodeId: slot_10_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_10_branch_selected
+    FromPortId: false
+    ToNodeId: slot_10_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_10_branch_selected
+    FromPortId: true
+    ToNodeId: slot_10_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_10_set_label
+    FromPortId: execOut
+    ToNodeId: slot_10_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_10_set_label
+    FromPortId: execOut
+    ToNodeId: slot_11_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_11_branch_selected
+    FromPortId: false
+    ToNodeId: slot_11_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_11_branch_selected
+    FromPortId: true
+    ToNodeId: slot_11_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_11_set_label
+    FromPortId: execOut
+    ToNodeId: slot_11_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_11_set_label
+    FromPortId: execOut
+    ToNodeId: slot_12_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_12_branch_selected
+    FromPortId: false
+    ToNodeId: slot_12_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_12_branch_selected
+    FromPortId: true
+    ToNodeId: slot_12_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_12_set_label
+    FromPortId: execOut
+    ToNodeId: slot_12_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_12_set_label
+    FromPortId: execOut
+    ToNodeId: slot_13_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_13_branch_selected
+    FromPortId: false
+    ToNodeId: slot_13_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_13_branch_selected
+    FromPortId: true
+    ToNodeId: slot_13_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_13_set_label
+    FromPortId: execOut
+    ToNodeId: slot_13_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_13_set_label
+    FromPortId: execOut
+    ToNodeId: slot_14_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_14_branch_selected
+    FromPortId: false
+    ToNodeId: slot_14_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_14_branch_selected
+    FromPortId: true
+    ToNodeId: slot_14_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_14_set_label
+    FromPortId: execOut
+    ToNodeId: slot_14_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_14_set_label
+    FromPortId: execOut
+    ToNodeId: slot_15_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_15_branch_selected
+    FromPortId: false
+    ToNodeId: slot_15_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_15_branch_selected
+    FromPortId: true
+    ToNodeId: slot_15_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_15_set_label
+    FromPortId: execOut
+    ToNodeId: slot_15_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_15_set_label
+    FromPortId: execOut
+    ToNodeId: slot_16_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_16_branch_selected
+    FromPortId: false
+    ToNodeId: slot_16_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_16_branch_selected
+    FromPortId: true
+    ToNodeId: slot_16_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_16_set_label
+    FromPortId: execOut
+    ToNodeId: slot_16_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_16_set_label
+    FromPortId: execOut
+    ToNodeId: slot_17_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_17_branch_selected
+    FromPortId: false
+    ToNodeId: slot_17_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_17_branch_selected
+    FromPortId: true
+    ToNodeId: slot_17_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_17_set_label
+    FromPortId: execOut
+    ToNodeId: slot_17_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_17_set_label
+    FromPortId: execOut
+    ToNodeId: slot_18_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_18_branch_selected
+    FromPortId: false
+    ToNodeId: slot_18_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_18_branch_selected
+    FromPortId: true
+    ToNodeId: slot_18_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_18_set_label
+    FromPortId: execOut
+    ToNodeId: slot_18_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_18_set_label
+    FromPortId: execOut
+    ToNodeId: slot_19_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_19_branch_selected
+    FromPortId: false
+    ToNodeId: slot_19_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_19_branch_selected
+    FromPortId: true
+    ToNodeId: slot_19_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_19_set_label
+    FromPortId: execOut
+    ToNodeId: slot_19_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_19_set_label
+    FromPortId: execOut
+    ToNodeId: slot_20_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_20_branch_selected
+    FromPortId: false
+    ToNodeId: slot_20_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_20_branch_selected
+    FromPortId: true
+    ToNodeId: slot_20_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_20_set_label
+    FromPortId: execOut
+    ToNodeId: slot_20_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_20_set_label
+    FromPortId: execOut
+    ToNodeId: slot_21_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_21_branch_selected
+    FromPortId: false
+    ToNodeId: slot_21_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_21_branch_selected
+    FromPortId: true
+    ToNodeId: slot_21_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_21_set_label
+    FromPortId: execOut
+    ToNodeId: slot_21_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_21_set_label
+    FromPortId: execOut
+    ToNodeId: slot_22_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_22_branch_selected
+    FromPortId: false
+    ToNodeId: slot_22_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_22_branch_selected
+    FromPortId: true
+    ToNodeId: slot_22_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_22_set_label
+    FromPortId: execOut
+    ToNodeId: slot_22_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_22_set_label
+    FromPortId: execOut
+    ToNodeId: slot_23_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_23_branch_selected
+    FromPortId: false
+    ToNodeId: slot_23_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_23_branch_selected
+    FromPortId: true
+    ToNodeId: slot_23_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_23_set_label
+    FromPortId: execOut
+    ToNodeId: slot_23_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_23_set_label
+    FromPortId: execOut
+    ToNodeId: slot_24_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_24_branch_selected
+    FromPortId: false
+    ToNodeId: slot_24_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_24_branch_selected
+    FromPortId: true
+    ToNodeId: slot_24_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_24_set_label
+    FromPortId: execOut
+    ToNodeId: slot_24_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_24_set_label
+    FromPortId: execOut
+    ToNodeId: slot_25_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_25_branch_selected
+    FromPortId: false
+    ToNodeId: slot_25_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_25_branch_selected
+    FromPortId: true
+    ToNodeId: slot_25_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_25_set_label
+    FromPortId: execOut
+    ToNodeId: slot_25_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_25_set_label
+    FromPortId: execOut
+    ToNodeId: slot_26_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_26_branch_selected
+    FromPortId: false
+    ToNodeId: slot_26_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_26_branch_selected
+    FromPortId: true
+    ToNodeId: slot_26_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_26_set_label
+    FromPortId: execOut
+    ToNodeId: slot_26_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_26_set_label
+    FromPortId: execOut
+    ToNodeId: slot_27_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_27_branch_selected
+    FromPortId: false
+    ToNodeId: slot_27_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_27_branch_selected
+    FromPortId: true
+    ToNodeId: slot_27_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_27_set_label
+    FromPortId: execOut
+    ToNodeId: slot_27_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_27_set_label
+    FromPortId: execOut
+    ToNodeId: slot_28_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_28_branch_selected
+    FromPortId: false
+    ToNodeId: slot_28_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_28_branch_selected
+    FromPortId: true
+    ToNodeId: slot_28_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_28_set_label
+    FromPortId: execOut
+    ToNodeId: slot_28_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_28_set_label
+    FromPortId: execOut
+    ToNodeId: slot_29_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_29_branch_selected
+    FromPortId: false
+    ToNodeId: slot_29_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_29_branch_selected
+    FromPortId: true
+    ToNodeId: slot_29_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_29_set_label
+    FromPortId: execOut
+    ToNodeId: slot_29_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_29_set_label
+    FromPortId: execOut
+    ToNodeId: slot_30_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_30_branch_selected
+    FromPortId: false
+    ToNodeId: slot_30_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_30_branch_selected
+    FromPortId: true
+    ToNodeId: slot_30_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_30_set_label
+    FromPortId: execOut
+    ToNodeId: slot_30_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_30_set_label
+    FromPortId: execOut
+    ToNodeId: slot_31_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_31_branch_selected
+    FromPortId: false
+    ToNodeId: slot_31_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_31_branch_selected
+    FromPortId: true
+    ToNodeId: slot_31_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_31_set_label
+    FromPortId: execOut
+    ToNodeId: slot_31_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_31_set_label
+    FromPortId: execOut
+    ToNodeId: slot_32_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_32_branch_selected
+    FromPortId: false
+    ToNodeId: slot_32_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_32_branch_selected
+    FromPortId: true
+    ToNodeId: slot_32_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_32_set_label
+    FromPortId: execOut
+    ToNodeId: slot_32_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_32_set_label
+    FromPortId: execOut
+    ToNodeId: slot_33_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_33_branch_selected
+    FromPortId: false
+    ToNodeId: slot_33_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_33_branch_selected
+    FromPortId: true
+    ToNodeId: slot_33_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_33_set_label
+    FromPortId: execOut
+    ToNodeId: slot_33_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_33_set_label
+    FromPortId: execOut
+    ToNodeId: slot_34_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_34_branch_selected
+    FromPortId: false
+    ToNodeId: slot_34_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_34_branch_selected
+    FromPortId: true
+    ToNodeId: slot_34_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_34_set_label
+    FromPortId: execOut
+    ToNodeId: slot_34_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_34_set_label
+    FromPortId: execOut
+    ToNodeId: slot_35_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_35_branch_selected
+    FromPortId: false
+    ToNodeId: slot_35_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_35_branch_selected
+    FromPortId: true
+    ToNodeId: slot_35_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_35_set_label
+    FromPortId: execOut
+    ToNodeId: slot_35_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_35_set_label
+    FromPortId: execOut
+    ToNodeId: slot_36_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_36_branch_selected
+    FromPortId: false
+    ToNodeId: slot_36_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_36_branch_selected
+    FromPortId: true
+    ToNodeId: slot_36_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_36_set_label
+    FromPortId: execOut
+    ToNodeId: slot_36_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_36_set_label
+    FromPortId: execOut
+    ToNodeId: slot_37_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_37_branch_selected
+    FromPortId: false
+    ToNodeId: slot_37_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_37_branch_selected
+    FromPortId: true
+    ToNodeId: slot_37_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_37_set_label
+    FromPortId: execOut
+    ToNodeId: slot_37_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_37_set_label
+    FromPortId: execOut
+    ToNodeId: slot_38_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_38_branch_selected
+    FromPortId: false
+    ToNodeId: slot_38_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_38_branch_selected
+    FromPortId: true
+    ToNodeId: slot_38_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_38_set_label
+    FromPortId: execOut
+    ToNodeId: slot_38_branch_selected
+    ToPortId: execIn
+  - FromNodeId: slot_38_set_label
+    FromPortId: execOut
+    ToNodeId: slot_39_set_label
+    ToPortId: execIn
+  - FromNodeId: slot_39_branch_selected
+    FromPortId: false
+    ToNodeId: slot_39_set_base_color
+    ToPortId: execIn
+  - FromNodeId: slot_39_branch_selected
+    FromPortId: true
+    ToNodeId: slot_39_set_selected_color
+    ToPortId: execIn
+  - FromNodeId: slot_39_set_label
+    FromPortId: execOut
+    ToNodeId: slot_39_branch_selected
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: get_selected_index
+    ToPortId: target
+  - FromNodeId: get_data
+    FromPortId: value
+    ToNodeId: get_slot_labels
+    ToPortId: target
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_00_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_01_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_02_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_03_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_04_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_05_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_06_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_07_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_08_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_09_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_10_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_11_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_12_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_13_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_14_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_15_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_16_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_17_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_18_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_19_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_20_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_21_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_22_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_23_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_24_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_25_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_26_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_27_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_28_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_29_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_30_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_31_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_32_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_33_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_34_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_35_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_36_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_37_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_38_is_selected
+    ToPortId: left
+  - FromNodeId: get_selected_index
+    FromPortId: value
+    ToNodeId: slot_39_is_selected
+    ToPortId: left
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_00_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_01_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_02_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_03_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_04_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_05_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_06_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_07_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_08_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_09_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_10_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_11_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_12_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_13_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_14_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_15_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_16_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_17_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_18_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_19_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_20_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_21_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_22_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_23_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_24_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_25_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_26_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_27_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_28_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_29_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_30_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_31_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_32_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_33_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_34_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_35_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_36_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_37_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_38_get_label
+    ToPortId: array
+  - FromNodeId: get_slot_labels
+    FromPortId: value
+    ToNodeId: slot_39_get_label
+    ToPortId: array
+  - FromNodeId: slot_00_get_label
+    FromPortId: item
+    ToNodeId: slot_00_set_label
+    ToPortId: value
+  - FromNodeId: slot_00_is_selected
+    FromPortId: result
+    ToNodeId: slot_00_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_01_get_label
+    FromPortId: item
+    ToNodeId: slot_01_set_label
+    ToPortId: value
+  - FromNodeId: slot_01_is_selected
+    FromPortId: result
+    ToNodeId: slot_01_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_02_get_label
+    FromPortId: item
+    ToNodeId: slot_02_set_label
+    ToPortId: value
+  - FromNodeId: slot_02_is_selected
+    FromPortId: result
+    ToNodeId: slot_02_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_03_get_label
+    FromPortId: item
+    ToNodeId: slot_03_set_label
+    ToPortId: value
+  - FromNodeId: slot_03_is_selected
+    FromPortId: result
+    ToNodeId: slot_03_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_04_get_label
+    FromPortId: item
+    ToNodeId: slot_04_set_label
+    ToPortId: value
+  - FromNodeId: slot_04_is_selected
+    FromPortId: result
+    ToNodeId: slot_04_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_05_get_label
+    FromPortId: item
+    ToNodeId: slot_05_set_label
+    ToPortId: value
+  - FromNodeId: slot_05_is_selected
+    FromPortId: result
+    ToNodeId: slot_05_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_06_get_label
+    FromPortId: item
+    ToNodeId: slot_06_set_label
+    ToPortId: value
+  - FromNodeId: slot_06_is_selected
+    FromPortId: result
+    ToNodeId: slot_06_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_07_get_label
+    FromPortId: item
+    ToNodeId: slot_07_set_label
+    ToPortId: value
+  - FromNodeId: slot_07_is_selected
+    FromPortId: result
+    ToNodeId: slot_07_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_08_get_label
+    FromPortId: item
+    ToNodeId: slot_08_set_label
+    ToPortId: value
+  - FromNodeId: slot_08_is_selected
+    FromPortId: result
+    ToNodeId: slot_08_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_09_get_label
+    FromPortId: item
+    ToNodeId: slot_09_set_label
+    ToPortId: value
+  - FromNodeId: slot_09_is_selected
+    FromPortId: result
+    ToNodeId: slot_09_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_10_get_label
+    FromPortId: item
+    ToNodeId: slot_10_set_label
+    ToPortId: value
+  - FromNodeId: slot_10_is_selected
+    FromPortId: result
+    ToNodeId: slot_10_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_11_get_label
+    FromPortId: item
+    ToNodeId: slot_11_set_label
+    ToPortId: value
+  - FromNodeId: slot_11_is_selected
+    FromPortId: result
+    ToNodeId: slot_11_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_12_get_label
+    FromPortId: item
+    ToNodeId: slot_12_set_label
+    ToPortId: value
+  - FromNodeId: slot_12_is_selected
+    FromPortId: result
+    ToNodeId: slot_12_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_13_get_label
+    FromPortId: item
+    ToNodeId: slot_13_set_label
+    ToPortId: value
+  - FromNodeId: slot_13_is_selected
+    FromPortId: result
+    ToNodeId: slot_13_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_14_get_label
+    FromPortId: item
+    ToNodeId: slot_14_set_label
+    ToPortId: value
+  - FromNodeId: slot_14_is_selected
+    FromPortId: result
+    ToNodeId: slot_14_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_15_get_label
+    FromPortId: item
+    ToNodeId: slot_15_set_label
+    ToPortId: value
+  - FromNodeId: slot_15_is_selected
+    FromPortId: result
+    ToNodeId: slot_15_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_16_get_label
+    FromPortId: item
+    ToNodeId: slot_16_set_label
+    ToPortId: value
+  - FromNodeId: slot_16_is_selected
+    FromPortId: result
+    ToNodeId: slot_16_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_17_get_label
+    FromPortId: item
+    ToNodeId: slot_17_set_label
+    ToPortId: value
+  - FromNodeId: slot_17_is_selected
+    FromPortId: result
+    ToNodeId: slot_17_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_18_get_label
+    FromPortId: item
+    ToNodeId: slot_18_set_label
+    ToPortId: value
+  - FromNodeId: slot_18_is_selected
+    FromPortId: result
+    ToNodeId: slot_18_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_19_get_label
+    FromPortId: item
+    ToNodeId: slot_19_set_label
+    ToPortId: value
+  - FromNodeId: slot_19_is_selected
+    FromPortId: result
+    ToNodeId: slot_19_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_20_get_label
+    FromPortId: item
+    ToNodeId: slot_20_set_label
+    ToPortId: value
+  - FromNodeId: slot_20_is_selected
+    FromPortId: result
+    ToNodeId: slot_20_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_21_get_label
+    FromPortId: item
+    ToNodeId: slot_21_set_label
+    ToPortId: value
+  - FromNodeId: slot_21_is_selected
+    FromPortId: result
+    ToNodeId: slot_21_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_22_get_label
+    FromPortId: item
+    ToNodeId: slot_22_set_label
+    ToPortId: value
+  - FromNodeId: slot_22_is_selected
+    FromPortId: result
+    ToNodeId: slot_22_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_23_get_label
+    FromPortId: item
+    ToNodeId: slot_23_set_label
+    ToPortId: value
+  - FromNodeId: slot_23_is_selected
+    FromPortId: result
+    ToNodeId: slot_23_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_24_get_label
+    FromPortId: item
+    ToNodeId: slot_24_set_label
+    ToPortId: value
+  - FromNodeId: slot_24_is_selected
+    FromPortId: result
+    ToNodeId: slot_24_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_25_get_label
+    FromPortId: item
+    ToNodeId: slot_25_set_label
+    ToPortId: value
+  - FromNodeId: slot_25_is_selected
+    FromPortId: result
+    ToNodeId: slot_25_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_26_get_label
+    FromPortId: item
+    ToNodeId: slot_26_set_label
+    ToPortId: value
+  - FromNodeId: slot_26_is_selected
+    FromPortId: result
+    ToNodeId: slot_26_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_27_get_label
+    FromPortId: item
+    ToNodeId: slot_27_set_label
+    ToPortId: value
+  - FromNodeId: slot_27_is_selected
+    FromPortId: result
+    ToNodeId: slot_27_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_28_get_label
+    FromPortId: item
+    ToNodeId: slot_28_set_label
+    ToPortId: value
+  - FromNodeId: slot_28_is_selected
+    FromPortId: result
+    ToNodeId: slot_28_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_29_get_label
+    FromPortId: item
+    ToNodeId: slot_29_set_label
+    ToPortId: value
+  - FromNodeId: slot_29_is_selected
+    FromPortId: result
+    ToNodeId: slot_29_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_30_get_label
+    FromPortId: item
+    ToNodeId: slot_30_set_label
+    ToPortId: value
+  - FromNodeId: slot_30_is_selected
+    FromPortId: result
+    ToNodeId: slot_30_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_31_get_label
+    FromPortId: item
+    ToNodeId: slot_31_set_label
+    ToPortId: value
+  - FromNodeId: slot_31_is_selected
+    FromPortId: result
+    ToNodeId: slot_31_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_32_get_label
+    FromPortId: item
+    ToNodeId: slot_32_set_label
+    ToPortId: value
+  - FromNodeId: slot_32_is_selected
+    FromPortId: result
+    ToNodeId: slot_32_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_33_get_label
+    FromPortId: item
+    ToNodeId: slot_33_set_label
+    ToPortId: value
+  - FromNodeId: slot_33_is_selected
+    FromPortId: result
+    ToNodeId: slot_33_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_34_get_label
+    FromPortId: item
+    ToNodeId: slot_34_set_label
+    ToPortId: value
+  - FromNodeId: slot_34_is_selected
+    FromPortId: result
+    ToNodeId: slot_34_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_35_get_label
+    FromPortId: item
+    ToNodeId: slot_35_set_label
+    ToPortId: value
+  - FromNodeId: slot_35_is_selected
+    FromPortId: result
+    ToNodeId: slot_35_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_36_get_label
+    FromPortId: item
+    ToNodeId: slot_36_set_label
+    ToPortId: value
+  - FromNodeId: slot_36_is_selected
+    FromPortId: result
+    ToNodeId: slot_36_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_37_get_label
+    FromPortId: item
+    ToNodeId: slot_37_set_label
+    ToPortId: value
+  - FromNodeId: slot_37_is_selected
+    FromPortId: result
+    ToNodeId: slot_37_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_38_get_label
+    FromPortId: item
+    ToNodeId: slot_38_set_label
+    ToPortId: value
+  - FromNodeId: slot_38_is_selected
+    FromPortId: result
+    ToNodeId: slot_38_branch_selected
+    ToPortId: condition
+  - FromNodeId: slot_39_get_label
+    FromPortId: item
+    ToNodeId: slot_39_set_label
+    ToPortId: value
+  - FromNodeId: slot_39_is_selected
+    FromPortId: result
+    ToNodeId: slot_39_branch_selected
+    ToPortId: condition
+  eventEntries:
+  - EventName: RefreshRequested
+    NodeId: event_refresh

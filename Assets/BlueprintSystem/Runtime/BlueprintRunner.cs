@@ -7,7 +7,8 @@ namespace BlueprintSystem
     public sealed class BlueprintReloadOptions
     {
         public bool PreserveVariables = true;
-        public bool TriggerReloadEvent;
+        public bool TriggerReloadEvent = true;
+        public bool RefreshReactiveBindings = true;
         public bool Log = true;
     }
 
@@ -252,6 +253,11 @@ namespace BlueprintSystem
             get { return compiledBlueprint; }
         }
 
+        internal BlueprintExecutionContext ReactiveBindingContext
+        {
+            get { return _context; }
+        }
+
         public string SourcePath
         {
             get { return compiledBlueprint == null ? null : compiledBlueprint.SourcePath; }
@@ -345,6 +351,11 @@ namespace BlueprintSystem
             }
         }
 
+        protected virtual void OnDestroy()
+        {
+            InvalidateRuntimeState();
+        }
+
         public bool Compile()
         {
             BlueprintRuntimeState state;
@@ -369,8 +380,13 @@ namespace BlueprintSystem
                 return false;
             }
 
+            BlueprintReactiveBindingSnapshot reactiveBindingSnapshot = options.RefreshReactiveBindings
+                ? BlueprintReactiveBindingRuntime.CaptureForInstance(this)
+                : null;
+
             InvalidateRuntimeState();
             ApplyRuntimeState(state);
+            BlueprintReactiveBindingRuntime.RestoreForInstance(reactiveBindingSnapshot, this);
 
             if (options.Log)
             {
@@ -380,6 +396,11 @@ namespace BlueprintSystem
             if (options.TriggerReloadEvent)
             {
                 TriggerReloadLifecycleEvent();
+            }
+
+            if (options.RefreshReactiveBindings)
+            {
+                BlueprintReactiveBindingRuntime.RefreshInstance(this);
             }
 
             return true;
@@ -533,6 +554,7 @@ namespace BlueprintSystem
             if (_context != null)
             {
                 _context.InvalidateScheduledExecution();
+                BlueprintReactiveBindingRuntime.Clear(_context);
             }
 
             foreach (IBlueprintInstance component in _componentsByName.Values)
@@ -541,6 +563,23 @@ namespace BlueprintSystem
                 if (runtimeComponent != null)
                 {
                     runtimeComponent.InvalidateRuntimeState();
+                }
+            }
+        }
+
+        protected void ClearReactiveBindings()
+        {
+            if (_context != null)
+            {
+                BlueprintReactiveBindingRuntime.Clear(_context);
+            }
+
+            foreach (IBlueprintInstance component in _componentsByName.Values)
+            {
+                BlueprintRuntimeComponent runtimeComponent = component as BlueprintRuntimeComponent;
+                if (runtimeComponent != null)
+                {
+                    runtimeComponent.ClearReactiveBindings();
                 }
             }
         }

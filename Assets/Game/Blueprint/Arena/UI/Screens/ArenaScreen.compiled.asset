@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: ArenaScreen.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: ArenaScreen
+  sourceGuid: f5e322f91da75449f980814fdcdf0853
+  sourcePath: Assets/Game/Blueprint/Arena/UI/Screens/ArenaScreen.blueprint.json
+  sourceHash: 29fcedc9db11bd6b7dd9d1dc0759473ea15ded2ac0b7daff1e02ec687c9f86ad
+  manifestHash: bd9897afacb21ba181c42c5eec62a4f75fd572aedd8102a2666ed56a14514f7c
+  variables: []
+  bindings: []
+  components:
+  - Name: ArenaData
+    BlueprintPath: Assets/Game/Blueprint/Arena/Data/ArenaData.blueprint.json
+    BlueprintGuid: 7a21cec4d8ef4466ab2b1e859d5b3ee0
+    Required: 1
+    CompiledBlueprint: {fileID: 11400000, guid: 0826ffde5be05457097979177412a15c, type: 2}
+  - Name: EntryBehavior
+    BlueprintPath: Assets/Game/Blueprint/Arena/Behavior/ArenaEntryBehavior.blueprint.json
+    BlueprintGuid: d86fe16a68a9142479104f4969f4838c
+    Required: 1
+    CompiledBlueprint: {fileID: 11400000, guid: e79e4793ee50146c7bb608674b65c88c, type: 2}
+  - Name: RegularPvpPresenter
+    BlueprintPath: Assets/Game/Blueprint/Arena/UI/Presenters/ArenaRegularPvpPresenter.blueprint.json
+    BlueprintGuid: 137544e488c114c0a96c3274079d9f35
+    Required: 1
+    CompiledBlueprint: {fileID: 11400000, guid: 2aa15d24da0ff4016afc8db96193e9f6, type: 2}
+  nodes:
+  - Id: event_open
+    TypeId: UI.Event.OnOpen
+    ExecutorId: Flow.Event
+    Properties: []
+  - Id: get_regular_presenter
+    TypeId: Blueprint.GetComponent
+    ExecutorId: Blueprint.GetComponent
+    Properties:
+    - Id: name
+      JsonValue: '"RegularPvpPresenter"'
+  - Id: refresh_regular_presenter
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: break_struct_struct__new_user_struct
+    TypeId: Variable.BreakStruct
+    ExecutorId: Variable.BreakStruct
+    Properties:
+    - Id: structAssetGuid
+      JsonValue: '"e58daf2021ac447f693b3eb0114171c1"'
+    - Id: structTypeId
+      JsonValue: '"Struct.NewUserStruct"'
+  execEdges:
+  - FromNodeId: event_open
+    FromPortId: execOut
+    ToNodeId: refresh_regular_presenter
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: get_regular_presenter
+    FromPortId: target
+    ToNodeId: refresh_regular_presenter
+    ToPortId: target
+  eventEntries:
+  - EventName: OnOpen
+    NodeId: event_open

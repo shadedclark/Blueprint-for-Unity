@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Unity.GraphToolkit.Editor;
+using UnityEditor;
 
 namespace BlueprintSystem.Editor
 {
@@ -648,6 +650,32 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.BindText")]
+    public sealed class UIBindTextVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.BindText", "Bind Text", "UI", "Binds TMP_Text.text to a blueprint value and refreshes it reactively.");
+            AddExecInput("execIn");
+            AddValueInput("target", "UIBinding<TMP_Text>", true, "property");
+            AddValueInput("variableName", "string", false, "propertyOrConnection", "Variable");
+            AddValueInput("variableTarget", BlueprintVariableTypeRegistry.BlueprintAssetTypeId, false, "propertyOrConnection", "Variable Target");
+            AddValueInput("value", "string", false, "propertyOrConnection", "Fallback Value");
+            AddExecOutput("bound");
+            AddProperty("target", "UIBinding<TMP_Text>", true);
+            AddProperty("variableName", "string", false, null, "Variable");
+            AddProperty("variableTarget", BlueprintVariableTypeRegistry.BlueprintAssetTypeId, false, null, null, true);
+            AddProperty("value", "string", false, null, "Fallback Value");
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            SetPropertyInspectorOnly("variableTarget", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("UI.BindButtonEvents")]
     public sealed class UIBindButtonEventsVisualNode : BlueprintVisualNode
     {
@@ -1124,6 +1152,322 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Variable.BreakStruct")]
+    public sealed class VariableBreakStructVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Variable.BreakStruct", "Break Struct", "Variables", "Breaks a Blueprint user struct into field outputs.");
+            AddValueInput("target", null, true, "connection");
+            AddProperty("structTypeId", "string", true, null, null, false, true);
+            AddProperty("structAssetGuid", "string", false, null, null, false, true);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            BlueprintBreakStructVisualMetadata.Apply(this);
+        }
+
+        protected override bool ShouldSuppressEmbeddedInputValue(BlueprintVisualPortData port)
+        {
+            return port != null && port.Id == BlueprintBreakStructNodeUtility.TargetPortId;
+        }
+    }
+
+    internal static class BlueprintBreakStructVisualMetadata
+    {
+        public static bool Apply(BlueprintVisualNode node, BlueprintNodeSource nodeSource = null)
+        {
+            if (node == null || node.TypeId != BlueprintBreakStructNodeUtility.NodeTypeId)
+            {
+                return false;
+            }
+
+            EnsureLists(node);
+            bool changed = false;
+            changed |= EnsureHiddenProperty(node.Properties, BlueprintBreakStructNodeUtility.StructTypePropertyId, "string", true);
+            changed |= EnsureHiddenProperty(node.Properties, BlueprintBreakStructNodeUtility.StructAssetGuidPropertyId, "string", false);
+
+            string structTypeId;
+            BlueprintUserStructDefinition definition;
+            if (!TryResolveDefinition(nodeSource, node.Properties, out structTypeId, out definition))
+            {
+                return changed;
+            }
+
+            string title = "Break " + structTypeId;
+            if (node.Title != title)
+            {
+                node.Title = title;
+                changed = true;
+            }
+
+            changed |= SetInputPortType(node.Inputs, BlueprintBreakStructNodeUtility.TargetPortId, structTypeId);
+            changed |= SetPropertyValue(node.Properties, BlueprintBreakStructNodeUtility.StructTypePropertyId, "string", true, structTypeId);
+            changed |= RebuildOutputs(node, definition);
+            return changed;
+        }
+
+        private static bool TryResolveDefinition(
+            BlueprintNodeSource nodeSource,
+            List<BlueprintVisualPropertyData> properties,
+            out string structTypeId,
+            out BlueprintUserStructDefinition definition)
+        {
+            structTypeId = null;
+            definition = null;
+
+            string assetGuid = GetStringProperty(nodeSource, BlueprintBreakStructNodeUtility.StructAssetGuidPropertyId);
+            if (string.IsNullOrEmpty(assetGuid))
+            {
+                assetGuid = GetStringProperty(properties, BlueprintBreakStructNodeUtility.StructAssetGuidPropertyId);
+            }
+
+            if (!string.IsNullOrEmpty(assetGuid))
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+                BlueprintUserStructAsset asset = string.IsNullOrEmpty(assetPath)
+                    ? null
+                    : AssetDatabase.LoadAssetAtPath<BlueprintUserStructAsset>(assetPath);
+                if (asset != null)
+                {
+                    structTypeId = asset.TypeId;
+                    definition = asset.ToDefinition();
+                    return !string.IsNullOrEmpty(structTypeId) && definition != null;
+                }
+            }
+
+            structTypeId = GetStringProperty(nodeSource, BlueprintBreakStructNodeUtility.StructTypePropertyId);
+            if (string.IsNullOrEmpty(structTypeId))
+            {
+                structTypeId = GetStringProperty(properties, BlueprintBreakStructNodeUtility.StructTypePropertyId);
+            }
+
+            return !string.IsNullOrEmpty(structTypeId) &&
+                BlueprintUserStructRegistry.TryGet(structTypeId, out definition);
+        }
+
+        private static bool RebuildOutputs(BlueprintVisualNode node, BlueprintUserStructDefinition definition)
+        {
+            List<BlueprintVisualPortData> outputs = node.Outputs;
+            List<BlueprintVisualPortData> rebuilt = new List<BlueprintVisualPortData>();
+            if (definition == null)
+            {
+                return ReplaceOutputsIfChanged(outputs, rebuilt);
+            }
+
+            for (int i = 0; i < definition.Fields.Count; i++)
+            {
+                BlueprintUserStructField field = definition.Fields[i];
+                if (field == null || field.Deprecated || string.IsNullOrEmpty(field.Id))
+                {
+                    continue;
+                }
+
+                rebuilt.Add(new BlueprintVisualPortData
+                {
+                    Id = field.Id,
+                    DisplayName = string.IsNullOrEmpty(field.Name) ? field.Id : field.Name,
+                    Kind = "value",
+                    Type = field.Type,
+                    Required = false,
+                    Source = null,
+                    AllowMultiple = false
+                });
+            }
+
+            return ReplaceOutputsIfChanged(outputs, rebuilt);
+        }
+
+        private static bool ReplaceOutputsIfChanged(List<BlueprintVisualPortData> outputs, List<BlueprintVisualPortData> rebuilt)
+        {
+            if (PortListsEqual(outputs, rebuilt))
+            {
+                return false;
+            }
+
+            outputs.Clear();
+            outputs.AddRange(rebuilt);
+            return true;
+        }
+
+        private static bool PortListsEqual(List<BlueprintVisualPortData> left, List<BlueprintVisualPortData> right)
+        {
+            if (left == null || right == null || left.Count != right.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (!PortsEqual(left[i], right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool PortsEqual(BlueprintVisualPortData left, BlueprintVisualPortData right)
+        {
+            if (left == null || right == null)
+            {
+                return left == right;
+            }
+
+            return left.Id == right.Id &&
+                left.DisplayName == right.DisplayName &&
+                left.Kind == right.Kind &&
+                left.Type == right.Type &&
+                left.Required == right.Required &&
+                left.Source == right.Source &&
+                left.AllowMultiple == right.AllowMultiple;
+        }
+
+        private static void EnsureLists(BlueprintVisualNode node)
+        {
+            if (node.Inputs == null)
+            {
+                node.Inputs = new List<BlueprintVisualPortData>();
+            }
+
+            if (node.Outputs == null)
+            {
+                node.Outputs = new List<BlueprintVisualPortData>();
+            }
+
+            if (node.Properties == null)
+            {
+                node.Properties = new List<BlueprintVisualPropertyData>();
+            }
+        }
+
+        private static bool SetInputPortType(List<BlueprintVisualPortData> ports, string portId, string type)
+        {
+            for (int i = 0; i < ports.Count; i++)
+            {
+                BlueprintVisualPortData port = ports[i];
+                if (port != null && port.Id == portId)
+                {
+                    if (port.Type == type)
+                    {
+                        return false;
+                    }
+
+                    port.Type = type;
+                    return true;
+                }
+            }
+
+            ports.Add(new BlueprintVisualPortData
+            {
+                Id = portId,
+                DisplayName = null,
+                Kind = "value",
+                Type = type,
+                Required = true,
+                Source = "connection",
+                AllowMultiple = false
+            });
+            return true;
+        }
+
+        private static bool EnsureHiddenProperty(List<BlueprintVisualPropertyData> properties, string propertyId, string type, bool required)
+        {
+            BlueprintVisualPropertyData property = FindProperty(properties, propertyId);
+            if (property == null)
+            {
+                properties.Add(new BlueprintVisualPropertyData
+                {
+                    Id = propertyId,
+                    Type = type,
+                    Required = required,
+                    HasValue = false,
+                    JsonValue = string.Empty,
+                    Hidden = true
+                });
+                return true;
+            }
+
+            bool changed = property.Type != type || property.Required != required || !property.Hidden;
+            property.Type = type;
+            property.Required = required;
+            property.Hidden = true;
+            return changed;
+        }
+
+        private static bool SetPropertyValue(List<BlueprintVisualPropertyData> properties, string propertyId, string type, bool required, object value)
+        {
+            BlueprintVisualPropertyData property = FindProperty(properties, propertyId);
+            bool changed = false;
+            if (property == null)
+            {
+                property = new BlueprintVisualPropertyData { Id = propertyId };
+                properties.Add(property);
+                changed = true;
+            }
+
+            string jsonValue = BlueprintVisualValueUtility.ToJson(value);
+            changed |= property.Type != type ||
+                property.Required != required ||
+                !property.Hidden ||
+                !property.HasValue ||
+                property.JsonValue != jsonValue;
+
+            property.Type = type;
+            property.Required = required;
+            property.Hidden = true;
+            property.HasValue = true;
+            property.JsonValue = jsonValue;
+            return changed;
+        }
+
+        private static BlueprintVisualPropertyData FindProperty(List<BlueprintVisualPropertyData> properties, string propertyId)
+        {
+            if (properties == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < properties.Count; i++)
+            {
+                BlueprintVisualPropertyData property = properties[i];
+                if (property != null && property.Id == propertyId)
+                {
+                    return property;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetStringProperty(BlueprintNodeSource nodeSource, string propertyId)
+        {
+            object value;
+            if (nodeSource != null && nodeSource.Properties.TryGetValue(propertyId, out value) && value != null)
+            {
+                return value.ToString();
+            }
+
+            return null;
+        }
+
+        private static string GetStringProperty(List<BlueprintVisualPropertyData> properties, string propertyId)
+        {
+            BlueprintVisualPropertyData property = FindProperty(properties, propertyId);
+            if (property == null || !property.HasValue)
+            {
+                return null;
+            }
+
+            object value = BlueprintVisualValueUtility.FromJson(property.JsonValue);
+            return value == null ? null : value.ToString();
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("Variable.GetField")]
     public sealed class VariableGetFieldVisualNode : BlueprintVisualNode
     {
@@ -1134,6 +1478,23 @@ namespace BlueprintSystem.Editor
             AddValueInput("path", "string", true, "propertyOrConnection");
             AddValueOutput("value", null);
             AddProperty("path", "string", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Variable.SetField")]
+    public sealed class VariableSetFieldVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Variable.SetField", "Set Field", "Variables", "Returns a copy of a structured value with one field or nested field path changed.");
+            AddValueInput("target", null, true, "connection");
+            AddValueInput("path", "string", true, "propertyOrConnection");
+            AddValueInput("value", null, true, "propertyOrConnection");
+            AddValueOutput("result", null);
+            AddProperty("path", "string", true);
+            AddProperty("value", null, false);
         }
     }
 
