@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Data Table",
+  "type": "object",
+  "required": ["schemaVersion", "tableId", "rowStructTypeId", "rows"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "tableId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rowStructTypeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/row"
+      }
+    }
+  },
+  "$defs": {
+    "row": {
+      "type": "object",
+      "required": ["rowName", "value"],
+      "properties": {
+        "rowName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {}
+      }
+    }
+  }
+}

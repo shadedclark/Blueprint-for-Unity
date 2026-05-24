@@ -24,7 +24,7 @@ Implement input decisions in the blueprint Tick flow by default. Use `Game.Event
 
 `Input.ListenAction` and `Input.ListenKey` poll state when executed. For feature input, wire Tick into the first input node and chain additional checks through `bound`; do not wire them only from `Game.Event.OnStart`, because that polls once and misses later input.
 
-Do not build new feature input by registering hidden listener-host callbacks through `BlueprintInputListenerHost` unless the user explicitly approves that architecture for the current task. If a required input capability cannot be represented as a Tick-driven polling chain, stop at the unsupported capability gate and ask whether to add such a node or skip the input path.
+Do not build new feature input through hidden listener-host callbacks. If a required input capability cannot be represented as a Tick-driven polling chain, stop at the unsupported capability gate and ask whether to add such a node or skip the input path.
 
 ## New Blueprint Node Confirmation Gate
 
@@ -52,6 +52,84 @@ rg -n "CreateDefault|Register" Assets/BlueprintSystem/Runtime/BlueprintExecutor.
 ```
 
 Treat `.blueprint.json` as the source of truth. Use `.bpgraph` only as an editor visualization/cache when specifically requested.
+
+## Local Sample Design References
+
+Use these samples for graph design patterns only. Do not create new feature-owned blueprints, structs, tables, prefabs, or compiled assets under the sample paths.
+
+### Data Table Graph Pattern
+
+Reference files:
+
+- `Assets/BlueprintSystem/Specs/Structs/SampleItemConfigRow.bpstruct.json`
+- `Assets/BlueprintSystem/Specs/Tables/SampleItemConfig.bpdatatable.json`
+- `Assets/BlueprintSystem/Samples/DataTable/Behavior/PrintItemConfigRows.blueprint.json`
+
+The sample models a typed config table:
+
+```text
+Struct.SampleItemConfigRow:
+itemId:string, displayName:string, category:string, price:int
+
+Table.SampleItemConfig:
+potion_small, iron_sword, silver_ore
+```
+
+The traversal graph demonstrates this supported flow:
+
+```text
+Game.Event.OnStart
+  -> Array.ForEachLoop
+       array = DataTable.GetAllRows.rows
+       arrayElement -> Variable.BreakStruct(Struct.SampleItemConfigRow)
+       fields -> String.Format
+       loopBody -> Game.Log
+```
+
+Use this pattern when a feature needs static config rows, item catalogs, economy prices, reward definitions, tuning constants, or other designer-authored records. Record both `tablePath` and `rowStructTypeId` on data table nodes. After reading a typed row, use `Variable.BreakStruct`, `Variable.GetField`, or `Variable.SetField` rather than string parsing.
+
+### Inventory Feature Pattern
+
+Reference root:
+
+```text
+Assets/BlueprintSystem/Samples/Inventory/
+```
+
+The inventory sample shows the preferred feature split:
+
+```text
+Data/InventoryData.blueprint.json
+  Runtime state and static catalog arrays: capacity, screen_open, selected_index, filter_index, status_message, slot_item_ids, slot_counts, slot_labels.
+
+Behavior/InventoryOpenCloseBehavior.blueprint.json
+  Opens/closes the root and refreshes presenters.
+
+Behavior/InventoryFocusMoveBehavior.blueprint.json
+  Changes selected slot with math nodes and refreshes presenters.
+
+Behavior/InventoryItemActionBehavior.blueprint.json
+  Handles add/use/equip/drop mutations with array and branch nodes.
+
+Behavior/InventoryFilterSortBehavior.blueprint.json
+  Updates filter state and reports unsupported pure-blueprint sorting limits.
+
+UI/Screens/InventoryScreen.blueprint.json
+  Screen shell for root visibility, Tick-driven input polling, and component declarations.
+
+UI/Presenters/InventoryHeaderPresenter.blueprint.json
+UI/Presenters/InventoryGridPresenter.blueprint.json
+UI/Presenters/InventoryDetailPresenter.blueprint.json
+UI/Presenters/InventoryConfirmPresenter.blueprint.json
+  Separate display units for header, grid, detail, and confirmation.
+
+UI/Interactions/*Interaction.blueprint.json
+  Component-owned Button interactions; InventorySlotSelectClickInteraction is reusable with a slot_index override.
+```
+
+Use the sample's cross-blueprint pattern: declare a `Blueprint` variable for each target data/behavior/presenter asset, read it with `Variable.Get`, then feed that output into `Blueprint.GetVariable`, `Blueprint.SetVariable`, or `Blueprint.TriggerEvent`.
+
+The sample is also a reminder to keep UI display and UI interaction separate. Presenters write bindings such as `inventory_header_title_text`, `inventory_slot_00_label_text`, `inventory_detail_name_text`, and `inventory_confirm_root`. Interaction blueprints bind a local owner control such as `self_button` and emit behavior events or tightly local view-state updates such as slot selection. For new repeated or option-group controls, prefer one reusable interaction blueprint with an override such as `slot_index`, `filter_key`, or `filter_index`.
 
 ## Hard Rules
 

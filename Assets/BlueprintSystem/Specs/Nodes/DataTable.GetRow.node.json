@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "DataTable.GetRow",
+  "title": "Data Table Get Row",
+  "category": "DataTable",
+  "description": "Returns a row from a Blueprint data table by row name.",
+  "executor": "DataTable.GetRow",
+  "inputs": [
+    {
+      "id": "rowName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "row",
+      "kind": "value"
+    },
+    {
+      "id": "found",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "rowName",
+      "type": "string",
+      "required": false,
+      "defaultValue": ""
+    },
+    {
+      "id": "tablePath",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "tableAssetGuid",
+      "type": "string",
+      "required": false
+    },
+    {
+      "id": "rowStructTypeId",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

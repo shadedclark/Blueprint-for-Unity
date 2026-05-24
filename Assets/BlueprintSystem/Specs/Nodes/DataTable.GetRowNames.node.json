@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "DataTable.GetRowNames",
+  "title": "Data Table Get Row Names",
+  "category": "DataTable",
+  "description": "Returns all row names from a Blueprint data table.",
+  "executor": "DataTable.GetRowNames",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "rowNames",
+      "kind": "value",
+      "type": "Array<string>"
+    }
+  ],
+  "properties": [
+    {
+      "id": "tablePath",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "tableAssetGuid",
+      "type": "string",
+      "required": false
+    },
+    {
+      "id": "rowStructTypeId",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

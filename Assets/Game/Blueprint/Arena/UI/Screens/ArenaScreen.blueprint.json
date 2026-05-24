@@ -66,6 +66,19 @@
         "structTypeId": "Struct.NewUserStruct",
         "structAssetGuid": "e58daf2021ac447f693b3eb0114171c1"
       }
+    },
+    {
+      "id": "datatable_all_rows_assets__blueprint_system__specs__structs__new_data_table_bpdatatable_json",
+      "typeId": "DataTable.GetAllRows",
+      "position": [
+        66.67599,
+        493.6175
+      ],
+      "properties": {
+        "tablePath": "Assets/BlueprintSystem/Specs/Structs/NewDataTable.bpdatatable.json",
+        "tableAssetGuid": "1802ddea5cd5b419c9222e6105656e48",
+        "rowStructTypeId": "Struct.NewUserStruct"
+      }
     }
   ],
   "edges": [

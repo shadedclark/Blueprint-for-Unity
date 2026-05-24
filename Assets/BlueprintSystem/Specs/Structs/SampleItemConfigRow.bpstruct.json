@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Struct.SampleItemConfigRow",
+  "fields": [
+    {
+      "id": "itemId",
+      "name": "itemId",
+      "type": "string"
+    },
+    {
+      "id": "displayName",
+      "name": "displayName",
+      "type": "string"
+    },
+    {
+      "id": "category",
+      "name": "category",
+      "type": "string"
+    },
+    {
+      "id": "price",
+      "name": "price",
+      "type": "int"
+    }
+  ]
+}

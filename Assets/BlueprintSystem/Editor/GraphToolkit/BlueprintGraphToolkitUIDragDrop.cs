@@ -311,6 +311,10 @@ namespace BlueprintSystem.Editor
             public string StructTypeId;
             public string StructAssetGuid;
             public BlueprintUserStructAsset StructAsset;
+            public string DataTableAssetPath;
+            public string DataTableAssetGuid;
+            public string DataTableRowStructTypeId;
+            public BlueprintDataTableAsset DataTableAsset;
             public string MenuPath;
 
             public bool IsVariable
@@ -327,6 +331,11 @@ namespace BlueprintSystem.Editor
             {
                 get { return StructAsset != null && !string.IsNullOrEmpty(StructTypeId); }
             }
+
+            public bool IsDataTableAsset
+            {
+                get { return DataTableAsset != null && !string.IsNullOrEmpty(DataTableAssetPath); }
+            }
         }
 
         private static List<DropNodeChoice> BuildDropChoices(BlueprintVisualGraph graph)
@@ -334,6 +343,7 @@ namespace BlueprintSystem.Editor
             List<DropNodeChoice> choices = new List<DropNodeChoice>();
             AddVariableDropChoices(graph, choices);
             AddBlueprintAssetDropChoices(graph, choices);
+            AddDataTableAssetDropChoices(choices);
             AddUserStructAssetDropChoices(choices);
             AddSpriteBindingDropChoices(choices);
             AddUIBindingDropChoices(graph, choices);
@@ -486,6 +496,59 @@ namespace BlueprintSystem.Editor
                     MenuPath = "Variables/Break " + asset.TypeId
                 });
             }
+        }
+
+        private static void AddDataTableAssetDropChoices(List<DropNodeChoice> choices)
+        {
+            List<BlueprintDataTableAsset> tableAssets = ResolveDataTableAssets(DragAndDrop.objectReferences);
+            if (tableAssets.Count == 0)
+            {
+                return;
+            }
+
+            BlueprintNodeManifestCollection manifests = BlueprintGraphToolkitBridge.LoadProjectManifests();
+            BlueprintNodeManifest getRowManifest;
+            BlueprintNodeManifest getRowNamesManifest;
+            BlueprintNodeManifest getAllRowsManifest;
+            manifests.TryGet(BlueprintDataTableNodeUtility.GetRowNodeTypeId, out getRowManifest);
+            manifests.TryGet(BlueprintDataTableNodeUtility.GetRowNamesNodeTypeId, out getRowNamesManifest);
+            manifests.TryGet(BlueprintDataTableNodeUtility.GetAllRowsNodeTypeId, out getAllRowsManifest);
+
+            for (int i = 0; i < tableAssets.Count; i++)
+            {
+                BlueprintDataTableAsset asset = tableAssets[i];
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                string tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
+                string guid = string.IsNullOrEmpty(assetPath) ? string.Empty : AssetDatabase.AssetPathToGUID(assetPath);
+
+                AddDataTableChoice(choices, getRowManifest, asset, tablePath, guid, "DataTable/Get Row " + asset.TableId);
+                AddDataTableChoice(choices, getRowNamesManifest, asset, tablePath, guid, "DataTable/Get Row Names " + asset.TableId);
+                AddDataTableChoice(choices, getAllRowsManifest, asset, tablePath, guid, "DataTable/Get All Rows " + asset.TableId);
+            }
+        }
+
+        private static void AddDataTableChoice(
+            List<DropNodeChoice> choices,
+            BlueprintNodeManifest manifest,
+            BlueprintDataTableAsset asset,
+            string assetPath,
+            string guid,
+            string menuPath)
+        {
+            if (manifest == null || asset == null || string.IsNullOrEmpty(assetPath))
+            {
+                return;
+            }
+
+            choices.Add(new DropNodeChoice
+            {
+                Manifest = manifest,
+                DataTableAsset = asset,
+                DataTableAssetPath = assetPath,
+                DataTableAssetGuid = guid,
+                DataTableRowStructTypeId = asset.RowStructTypeId,
+                MenuPath = menuPath
+            });
         }
 
         private static void AddUIBindingDropChoices(BlueprintVisualGraph graph, List<DropNodeChoice> choices)
@@ -649,6 +712,12 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
+            if (choice.IsDataTableAsset)
+            {
+                CreateDataTableNodeFromChoice(graph, choice, graphPosition);
+                return;
+            }
+
             CreateUIBindingNodeFromChoice(graph, choice, graphPosition);
         }
 
@@ -757,6 +826,23 @@ namespace BlueprintSystem.Editor
             Debug.Log("[Blueprint] Added 'Variable.BreakStruct' for '" + choice.StructTypeId + "'.");
         }
 
+        private static void CreateDataTableNodeFromChoice(BlueprintVisualGraph graph, DropNodeChoice choice, Vector2 graphPosition)
+        {
+            BlueprintNodeSource source = CreateDataTableNodeSource(
+                graph,
+                choice.Manifest.TypeId,
+                choice.DataTableAssetPath,
+                choice.DataTableAssetGuid,
+                choice.DataTableRowStructTypeId,
+                graphPosition);
+            BlueprintVisualNode visualNode = BlueprintGraphToolkitBridge.CreateVisualNode(source, choice.Manifest, ConvertGraphVariables(graph));
+            BlueprintGraphToolkitReflection.CreateNodeWithUndo(graph, visualNode, graphPosition, "Create Blueprint Data Table Node");
+            BlueprintGraphToolkitReflection.MarkDirty(graph);
+            GraphDatabase.SaveGraphIfDirty(graph);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[Blueprint] Added '" + choice.Manifest.TypeId + "' for '" + choice.DataTableAssetPath + "'.");
+        }
+
         internal static BlueprintNodeSource CreateBreakStructNodeSource(
             BlueprintVisualGraph graph,
             string structTypeId,
@@ -785,6 +871,47 @@ namespace BlueprintSystem.Editor
             if (!string.IsNullOrEmpty(structAssetGuid))
             {
                 source.Properties[BlueprintBreakStructNodeUtility.StructAssetGuidPropertyId] = structAssetGuid;
+            }
+
+            return source;
+        }
+
+        internal static BlueprintNodeSource CreateDataTableNodeSource(
+            BlueprintVisualGraph graph,
+            string nodeTypeId,
+            string tablePath,
+            string tableAssetGuid,
+            string rowStructTypeId,
+            Vector2 graphPosition)
+        {
+            if (graph == null)
+            {
+                throw new ArgumentNullException("graph");
+            }
+
+            if (!BlueprintDataTableNodeUtility.IsDataTableNode(nodeTypeId))
+            {
+                throw new ArgumentException("Expected a DataTable node type id.", "nodeTypeId");
+            }
+
+            if (string.IsNullOrEmpty(tablePath))
+            {
+                throw new ArgumentException("Data table asset path is required.", "tablePath");
+            }
+
+            BlueprintNodeSource source = new BlueprintNodeSource
+            {
+                Id = CreateUniqueNodeId(nodeTypeId, tablePath, graph),
+                TypeId = nodeTypeId,
+                X = graphPosition.x,
+                Y = graphPosition.y
+            };
+
+            source.Properties[BlueprintDataTableNodeUtility.TablePathPropertyId] = tablePath;
+            source.Properties[BlueprintDataTableNodeUtility.RowStructTypePropertyId] = rowStructTypeId;
+            if (!string.IsNullOrEmpty(tableAssetGuid))
+            {
+                source.Properties[BlueprintDataTableNodeUtility.TableAssetGuidPropertyId] = tableAssetGuid;
             }
 
             return source;
@@ -1070,6 +1197,27 @@ namespace BlueprintSystem.Editor
             for (int i = 0; i < draggedObjects.Length; i++)
             {
                 BlueprintUserStructAsset asset = draggedObjects[i] as BlueprintUserStructAsset;
+                if (asset != null && addedInstanceIds.Add(asset.GetInstanceID()))
+                {
+                    assets.Add(asset);
+                }
+            }
+
+            return assets;
+        }
+
+        internal static List<BlueprintDataTableAsset> ResolveDataTableAssets(Object[] draggedObjects)
+        {
+            List<BlueprintDataTableAsset> assets = new List<BlueprintDataTableAsset>();
+            if (draggedObjects == null || draggedObjects.Length == 0)
+            {
+                return assets;
+            }
+
+            HashSet<int> addedInstanceIds = new HashSet<int>();
+            for (int i = 0; i < draggedObjects.Length; i++)
+            {
+                BlueprintDataTableAsset asset = draggedObjects[i] as BlueprintDataTableAsset;
                 if (asset != null && addedInstanceIds.Add(asset.GetInstanceID()))
                 {
                     assets.Add(asset);
@@ -1664,6 +1812,12 @@ namespace BlueprintSystem.Editor
                     return "get_field";
                 case "Variable.BreakStruct":
                     return "break_struct";
+                case "DataTable.GetRow":
+                    return "datatable_get_row";
+                case "DataTable.GetRowNames":
+                    return "datatable_row_names";
+                case "DataTable.GetAllRows":
+                    return "datatable_all_rows";
                 case "Array.Count":
                     return "array_count";
                 case "Array.Get":

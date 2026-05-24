@@ -56,7 +56,7 @@ Blueprint input handling should be explicit in the blueprint tick flow. Prefer `
 
 `Input.ListenAction` and `Input.ListenKey` are polling nodes when executed: wire Tick into the first input node, then chain additional input checks through `bound`. Do not wire these nodes only from `Game.Event.OnStart`, because that polls once and misses later input.
 
-Do not rely on hidden listener-host behavior such as `BlueprintInputListenerHost` as the default implementation strategy. If a required input capability cannot be represented as a Tick-driven polling chain, treat it as unsupported and ask whether to add the needed polling/query node or temporarily skip that input path.
+Do not rely on hidden listener-host behavior as the default implementation strategy. If a required input capability cannot be represented as a Tick-driven polling chain, treat it as unsupported and ask whether to add the needed polling/query node or temporarily skip that input path.
 
 The final report must call out any input path that was not implemented with Tick-based polling.
 
@@ -114,6 +114,69 @@ Before routing work, read:
 5. Relevant existing examples under `Assets/Game/**` and `Assets/BlueprintSystem/Sources/**`
 
 Existing examples are reference material only. New feature-owned assets must use the output root below.
+
+## Local Sample Design References
+
+Use these local samples as design references during decomposition and handoff planning. They show currently supported patterns, but new feature-owned assets must still be created under the feature output root, not copied into `Assets/BlueprintSystem/**`.
+
+### Data Table Sample
+
+Use the data table sample when a feature needs static catalog/config rows that are read by Blueprint graphs:
+
+- Row struct: `Assets/BlueprintSystem/Specs/Structs/SampleItemConfigRow.bpstruct.json`
+- Table: `Assets/BlueprintSystem/Specs/Tables/SampleItemConfig.bpdatatable.json`
+- Traversal graph: `Assets/BlueprintSystem/Samples/DataTable/Behavior/PrintItemConfigRows.blueprint.json`
+
+Design pattern:
+
+```text
+Struct.SampleItemConfigRow fields -> table rows keyed by rowName -> DataTable.GetAllRows or DataTable.GetRow -> Variable.BreakStruct -> behavior/UI formatting
+```
+
+The sample row struct uses `itemId`, `displayName`, `category`, and `price`. The sample table has rows such as `potion_small`, `iron_sword`, and `silver_ore`. The traversal graph demonstrates `Game.Event.OnStart -> DataTable.GetAllRows -> Array.ForEachLoop -> Variable.BreakStruct -> String.Format -> Game.Log`.
+
+When planning a real feature, put feature-owned structs/tables in the chosen feature data location or project config convention, report their paths in the handoff contract, and include the row struct type ID and table path beside any behavior that reads them.
+
+### Inventory UI Sample
+
+Use the inventory sample when planning a full UI feature with data, behavior, presenters, and component-owned interactions:
+
+- Prefab: `Assets/BlueprintSystem/Samples/Inventory/Prefabs/inventory_screen_root.prefab`
+- Screen shell: `Assets/BlueprintSystem/Samples/Inventory/UI/Screens/InventoryScreen.blueprint.json`
+- Data: `Assets/BlueprintSystem/Samples/Inventory/Data/InventoryData.blueprint.json`
+- Behaviors: `Assets/BlueprintSystem/Samples/Inventory/Behavior/*.blueprint.json`
+- Presenters: `Assets/BlueprintSystem/Samples/Inventory/UI/Presenters/*.blueprint.json`
+- Interactions: `Assets/BlueprintSystem/Samples/Inventory/UI/Interactions/*.blueprint.json`
+
+Reference split:
+
+```text
+Screen shell -> owns lifecycle, root visibility, input polling, component tree
+Data blueprint -> owns capacity, open state, selection, filter, catalog arrays, slot arrays
+Behavior blueprints -> OpenClose, FocusMove, ItemAction, FilterSort
+Presenter blueprints -> Header, Grid, Detail, Confirm
+Interaction blueprints -> one owning UI component intent per Button or repeated slot selector
+```
+
+Reference display rows:
+
+```text
+header -> InventoryHeaderPresenter -> reads status/filter/equipment/capacity -> writes inventory_header_*_text -> none
+grid -> InventoryGridPresenter -> reads slot_labels/selected_index -> writes inventory_slot_00..39_label_text and frame colors -> none
+detail -> InventoryDetailPresenter -> reads selected slot/catalog arrays -> writes inventory_detail_*_text and action button interactable states -> none
+confirm -> InventoryConfirmPresenter -> reads confirm_drop_visible/selected item -> writes inventory_confirm_root and message -> none
+```
+
+Reference interaction rows:
+
+```text
+inventory_action_use_button -> click -> InventoryUseButtonClickInteraction -> self_button -> ItemActionBehavior.UseSelectedRequested
+inventory_action_equip_button -> click -> InventoryEquipButtonClickInteraction -> self_button -> ItemActionBehavior.EquipSelectedRequested
+inventory_action_drop_button -> click -> InventoryDropButtonClickInteraction -> self_button -> ItemActionBehavior.DropSelectedRequested
+inventory_slot_00..39_button -> click/slot_index override -> InventorySlotSelectClickInteraction -> self_button -> sets selected_index/status_message and refreshes Header/Grid/Detail
+```
+
+The sample includes some option-specific filter button interaction files for demonstration. For new work, prefer the stricter reusable option-group rule in this document: one shared filter/tab/toggle interaction blueprint with a per-instance `filter_key`, `filter_index`, or `category_id` override when the runtime integration can supply it.
 
 ## Output Root
 

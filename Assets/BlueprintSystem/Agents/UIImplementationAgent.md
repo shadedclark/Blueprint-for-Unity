@@ -65,6 +65,45 @@ Before changing UI assets, read:
 4. The handoff contract from the entry agent
 5. Existing UI assets and prefabs under `Assets/Game/**`
 
+## Local Sample Design References
+
+Use the inventory UI sample as a visual hierarchy and anchor naming reference:
+
+```text
+Assets/BlueprintSystem/Samples/Inventory/Prefabs/inventory_screen_root.prefab
+Assets/BlueprintSystem/Samples/Inventory/UI/Screens/InventoryScreen.blueprint.json
+Assets/BlueprintSystem/Samples/Inventory/UI/Presenters/*.blueprint.json
+Assets/BlueprintSystem/Samples/Inventory/UI/Interactions/*.blueprint.json
+```
+
+Reference display-unit hierarchy:
+
+```text
+inventory_screen_root
+  inventory_root
+    inventory_panel
+      inventory_header_root
+      inventory_filter_bar
+      inventory_grid_root
+      inventory_detail_root
+      inventory_confirm_root
+      inventory_debug_bar
+```
+
+Reference anchor groups:
+
+```text
+Header: inventory_header_title_text, inventory_header_capacity_text, inventory_header_status_text, inventory_header_filter_text, inventory_header_equipped_text
+Filter bar: inventory_filter_all_button, inventory_filter_materials_button, inventory_filter_consumables_button, inventory_filter_equipment_button, inventory_sort_button
+Grid: inventory_slot_00..39_button, inventory_slot_00..39_label_text, inventory_slot_00..39_frame_image
+Detail/actions: inventory_detail_name_text, inventory_detail_type_text, inventory_detail_quality_text, inventory_detail_count_text, inventory_detail_description_text, inventory_action_use_button, inventory_action_equip_button, inventory_action_drop_button
+Confirmation: inventory_confirm_root, inventory_confirm_message_text, inventory_confirm_drop_button, inventory_cancel_drop_button
+```
+
+Use the same style for new UI work: split the prefab into stable display-unit roots, keep names in snake_case, and expose every interactive Button, Toggle, list, tab, confirm/cancel control, and repeated slot as its own anchor. For fixed repeated groups, report the concrete anchor pattern plus the intended shared interaction owner, for example `inventory_slot_00..39_button -> InventorySlotSelectClickInteraction with slot_index override`.
+
+The data table sample is not a visual UI pattern, but it can inform UI prototypes that display static catalogs. If a UI needs config-backed content, ask the entry/BlueprintSystem pass to include the table path, row struct type, and the presenter bindings that will show fields such as item name, category, and price.
+
 ## Output Root
 
 Use the feature root chosen by the entry agent:

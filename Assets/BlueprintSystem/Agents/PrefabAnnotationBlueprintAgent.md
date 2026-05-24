@@ -66,6 +66,30 @@ rg -n "\"typeId\"|\"executor\"" Assets/BlueprintSystem/Specs/Nodes
 
 Use existing nodes first. Never add nodes from this agent.
 
+## Local Sample Design References
+
+Use these local samples when converting a prefab plus annotation into a BlueprintSystem design:
+
+- Data table sample: `Assets/BlueprintSystem/Samples/DataTable/Behavior/PrintItemConfigRows.blueprint.json`
+- Row struct: `Assets/BlueprintSystem/Specs/Structs/SampleItemConfigRow.bpstruct.json`
+- Table: `Assets/BlueprintSystem/Specs/Tables/SampleItemConfig.bpdatatable.json`
+- Inventory prefab sample: `Assets/BlueprintSystem/Samples/Inventory/Prefabs/inventory_screen_root.prefab`
+- Inventory blueprint sample root: `Assets/BlueprintSystem/Samples/Inventory/`
+
+Data table reference pattern:
+
+```text
+DataTable.GetAllRows or DataTable.GetRow -> typed row Struct.* -> Variable.BreakStruct/GetField -> behavior or presenter output
+```
+
+Inventory UI reference pattern:
+
+```text
+Screen shell -> Data blueprint -> one behavior per operation -> one presenter per display unit -> one interaction blueprint per UI component intent
+```
+
+When inspecting an annotated prefab, compare its anchors to the inventory sample's stable naming style (`inventory_header_*`, `inventory_slot_00..39_*`, `inventory_detail_*`, `inventory_confirm_*`). Do not rename or rebuild the provided prefab to match the sample. Instead, derive the binding contract from the actual prefab anchors and only use the sample to guide display-unit, interaction, and data-table decomposition.
+
 ## Annotation Parsing
 
 The annotation document may be loose Markdown: headings, paragraphs, bullet lists, checklists, tables, or mixed natural language. Parse it into this internal contract:

@@ -8,14 +8,6 @@ namespace BlueprintSystem
         }
     }
 
-    public sealed class FlowPassExecutor : BlueprintNodeExecutor
-    {
-        public override string ExecutorId
-        {
-            get { return "Flow.Pass"; }
-        }
-    }
-
     public sealed class FlowBranchExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

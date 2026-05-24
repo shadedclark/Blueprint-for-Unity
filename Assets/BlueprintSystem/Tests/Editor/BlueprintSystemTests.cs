@@ -3336,11 +3336,60 @@ namespace BlueprintSystem.Tests
 
                 Assert.AreEqual("Break Struct.TestInventoryItem", visualNode.Title);
                 Assert.NotNull(target);
-                Assert.AreEqual("Struct.TestInventoryItem", target.Type);
+                Assert.IsNull(target.Type);
                 Assert.AreEqual(3, visualNode.Outputs.Count);
                 Assert.NotNull(count);
                 Assert.AreEqual("count", count.DisplayName);
                 Assert.AreEqual("int", count.Type);
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void GraphToolkitArrayLoopElementCanConnectToBreakStructTarget()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                BlueprintNodeManifest loopManifest;
+                BlueprintNodeManifest loopWithBreakManifest;
+                BlueprintNodeManifest breakManifest;
+                BlueprintNodeManifestCollection manifests = LoadManifests();
+                Assert.True(manifests.TryGet("Array.ForEachLoop", out loopManifest));
+                Assert.True(manifests.TryGet("Array.ForEachLoopWithBreak", out loopWithBreakManifest));
+                Assert.True(manifests.TryGet("Variable.BreakStruct", out breakManifest));
+
+                BlueprintVisualNode loopNode = BlueprintGraphToolkitBridge.CreateVisualNode(
+                    new BlueprintNodeSource { Id = "loop_items", TypeId = "Array.ForEachLoop" },
+                    loopManifest);
+                BlueprintVisualNode loopWithBreakNode = BlueprintGraphToolkitBridge.CreateVisualNode(
+                    new BlueprintNodeSource { Id = "loop_items_with_break", TypeId = "Array.ForEachLoopWithBreak" },
+                    loopWithBreakManifest);
+                BlueprintNodeSource breakSource = new BlueprintNodeSource
+                {
+                    Id = "break_item",
+                    TypeId = "Variable.BreakStruct"
+                };
+                breakSource.Properties["structTypeId"] = "Struct.TestInventoryItem";
+                BlueprintVisualNode breakNode = BlueprintGraphToolkitBridge.CreateVisualNode(breakSource, breakManifest);
+
+                BlueprintVisualPortData loopElement = loopNode.Outputs.Find(port => port.Id == "arrayElement");
+                BlueprintVisualPortData loopWithBreakElement = loopWithBreakNode.Outputs.Find(port => port.Id == "arrayElement");
+                BlueprintVisualPortData breakTarget = breakNode.Inputs.Find(port => port.Id == "target");
+
+                Assert.NotNull(loopElement);
+                Assert.NotNull(loopWithBreakElement);
+                Assert.NotNull(breakTarget);
+                Assert.IsNull(loopElement.Type);
+                Assert.IsNull(loopWithBreakElement.Type);
+                Assert.IsNull(breakTarget.Type);
+                Assert.AreEqual(typeof(object), BlueprintVisualValueUtility.ToGraphType(loopElement.Type));
+                Assert.AreEqual(typeof(object), BlueprintVisualValueUtility.ToGraphType(loopWithBreakElement.Type));
+                Assert.AreEqual(typeof(object), BlueprintVisualValueUtility.ToGraphType(breakTarget.Type));
             }
             finally
             {
@@ -3444,6 +3493,220 @@ namespace BlueprintSystem.Tests
                 AssetDatabase.DeleteAsset(assetPath);
                 AssetDatabase.DeleteAsset(renamedAssetPath);
                 BlueprintUserStructRegistry.Refresh();
+            }
+        }
+
+        [Test]
+        public void DataTableRegistryLoadsJsonAndScriptableObjectAssets()
+        {
+            WriteUserStructDefinition();
+            string tableJsonPath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+            string tableAssetPath = "Assets/BlueprintSystem/Specs/Tables/LiveItems.asset";
+            AssetDatabase.DeleteAsset(tableJsonPath);
+            AssetDatabase.DeleteAsset(tableAssetPath);
+
+            try
+            {
+                WriteDataTableDefinition(tableJsonPath);
+                BlueprintDataTableRegistry.Refresh();
+
+                BlueprintDataTableDefinition jsonDefinition;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(tableJsonPath, out jsonDefinition));
+                Assert.AreEqual("Table.TestItems", jsonDefinition.TableId);
+                Assert.AreEqual("Struct.TestInventoryItem", jsonDefinition.RowStructTypeId);
+                Assert.AreEqual(2, jsonDefinition.Rows.Count);
+
+                BlueprintDataTableAsset asset = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                asset.RowStructTypeId = "Struct.TestInventoryItem";
+                asset.Rows.Add(new BlueprintDataTableAssetRow
+                {
+                    rowName = "wand_01",
+                    valueJson = "{\"itemId\":\"wand_01\",\"count\":4,\"position\":[5,6]}"
+                });
+                Directory.CreateDirectory(Path.GetDirectoryName(tableAssetPath));
+                AssetDatabase.CreateAsset(asset, tableAssetPath);
+                AssetDatabase.ImportAsset(tableAssetPath);
+                BlueprintDataTableRegistry.Refresh();
+
+                BlueprintDataTableDefinition assetDefinition;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(tableAssetPath, out assetDefinition));
+                Assert.AreEqual("Table.LiveItems", assetDefinition.TableId);
+                Assert.AreEqual(1, assetDefinition.Rows.Count);
+                Assert.AreEqual("wand_01", assetDefinition.Rows[0].RowName);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(tableJsonPath);
+                AssetDatabase.DeleteAsset(tableJsonPath + ".meta");
+                AssetDatabase.DeleteAsset(tableAssetPath);
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableAssetValidationReportsInvalidRows()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                BlueprintDataTableAsset missingStruct = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                missingStruct.RowStructTypeId = "Struct.Missing";
+                missingStruct.Rows.Add(new BlueprintDataTableAssetRow { rowName = "item", valueJson = "{}" });
+
+                List<string> missingStructErrors = BlueprintDataTableAssetEditor.Validate(missingStruct);
+                Assert.True(missingStructErrors.Exists(error => error.Contains("Unknown row struct type")), string.Join("\n", missingStructErrors.ToArray()));
+
+                BlueprintDataTableAsset invalidRows = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                invalidRows.RowStructTypeId = "Struct.TestInventoryItem";
+                invalidRows.Rows.Add(new BlueprintDataTableAssetRow { rowName = "item", valueJson = "{\"itemId\":\"item\",\"count\":1,\"position\":[1,2]}" });
+                invalidRows.Rows.Add(new BlueprintDataTableAssetRow { rowName = "item", valueJson = "not-json" });
+                invalidRows.Rows.Add(new BlueprintDataTableAssetRow { rowName = "bad_count", valueJson = "{\"itemId\":\"bad_count\",\"count\":\"many\",\"position\":[1,2]}" });
+
+                List<string> invalidRowErrors = BlueprintDataTableAssetEditor.Validate(invalidRows);
+                Assert.True(invalidRowErrors.Exists(error => error.Contains("duplicates rowName")), string.Join("\n", invalidRowErrors.ToArray()));
+                Assert.True(invalidRowErrors.Exists(error => error.Contains("must be valid JSON")), string.Join("\n", invalidRowErrors.ToArray()));
+                Assert.True(invalidRowErrors.Exists(error => error.Contains("does not match type")), string.Join("\n", invalidRowErrors.ToArray()));
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableExecutorsReadRowsNamesAndAllRows()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+
+            try
+            {
+                WriteDataTableDefinition(tablePath);
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+                RuntimeNode getRow = CreateDataTableRuntimeNode("get_row", "DataTable.GetRow", tablePath);
+                getRow.Properties["rowName"] = "shield_01";
+
+                object row = new DataTableGetRowExecutor().Evaluate(context, getRow, "row");
+                object count;
+
+                Assert.True((bool)new DataTableGetRowExecutor().Evaluate(context, getRow, "found"));
+                Assert.IsInstanceOf<BlueprintStructValue>(row);
+                Assert.True(BlueprintFieldUtility.TryGetValue(row, "count", out count));
+                Assert.AreEqual(2, System.Convert.ToInt32(count));
+
+                getRow.Properties["rowName"] = "missing";
+                object missingRow = new DataTableGetRowExecutor().Evaluate(context, getRow, "row");
+                object defaultCount;
+
+                Assert.False((bool)new DataTableGetRowExecutor().Evaluate(context, getRow, "found"));
+                Assert.True(BlueprintFieldUtility.TryGetValue(missingRow, "count", out defaultCount));
+                Assert.AreEqual(1, System.Convert.ToInt32(defaultCount));
+
+                RuntimeNode rowNames = CreateDataTableRuntimeNode("row_names", "DataTable.GetRowNames", tablePath);
+                IList names = (IList)new DataTableGetRowNamesExecutor().Evaluate(context, rowNames, "rowNames");
+
+                Assert.AreEqual(2, names.Count);
+                Assert.AreEqual("sword_01", names[0]);
+                Assert.AreEqual("shield_01", names[1]);
+
+                RuntimeNode allRows = CreateDataTableRuntimeNode("all_rows", "DataTable.GetAllRows", tablePath);
+                IList rows = (IList)new DataTableGetAllRowsExecutor().Evaluate(context, allRows, "rows");
+
+                Assert.AreEqual(2, rows.Count);
+                Assert.IsInstanceOf<BlueprintStructValue>(rows[0]);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void ValidatorTypesDataTableDynamicOutputs()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+
+            try
+            {
+                WriteDataTableDefinition(tablePath);
+                BlueprintSource valid = CreateDataTableValidationSource(tablePath, "Struct.TestInventoryItem");
+                BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(valid, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+                BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(valid, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+                Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+                BlueprintSource mismatch = CreateDataTableValidationSource(tablePath, "string");
+                BlueprintDiagnosticList mismatchDiagnostics = new BlueprintValidator().Validate(mismatch, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.True(mismatchDiagnostics.Exists(diagnostic => diagnostic.Code == "BP003"), mismatchDiagnostics.ToDisplayString());
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableAssetDragCreatesTypedNodeSource()
+        {
+            string graphPath = "Assets/BlueprintSystem/Tests/Editor/DataTableDragTest.bpgraph";
+            string assetPath = "Assets/BlueprintSystem/Specs/Tables/DragItems.asset";
+            AssetDatabase.DeleteAsset(graphPath);
+            AssetDatabase.DeleteAsset(assetPath);
+            WriteUserStructDefinition();
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                BlueprintVisualGraph graph = GraphDatabase.CreateGraph<BlueprintVisualGraph>(graphPath);
+                BlueprintDataTableAsset asset = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                asset.RowStructTypeId = "Struct.TestInventoryItem";
+                asset.Rows.Add(new BlueprintDataTableAssetRow
+                {
+                    rowName = "sword_01",
+                    valueJson = "{\"itemId\":\"sword_01\",\"count\":1,\"position\":[1,2]}"
+                });
+                AssetDatabase.CreateAsset(asset, assetPath);
+                AssetDatabase.ImportAsset(assetPath);
+
+                string guid = AssetDatabase.AssetPathToGUID(assetPath);
+                string tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
+                BlueprintNodeSource sourceNode = BlueprintGraphToolkitUIDragDrop.CreateDataTableNodeSource(
+                    graph,
+                    "DataTable.GetRow",
+                    tablePath,
+                    guid,
+                    asset.RowStructTypeId,
+                    new Vector2(10, 20));
+
+                BlueprintNodeManifest manifest;
+                Assert.True(LoadManifests().TryGet("DataTable.GetRow", out manifest));
+                BlueprintVisualNode visualNode = BlueprintGraphToolkitBridge.CreateVisualNode(sourceNode, manifest);
+                BlueprintVisualPortData row = visualNode.Outputs.Find(port => port.Id == "row");
+
+                Assert.AreEqual("DataTable.GetRow", sourceNode.TypeId);
+                Assert.AreEqual(tablePath, sourceNode.Properties["tablePath"]);
+                Assert.AreEqual(guid, sourceNode.Properties["tableAssetGuid"]);
+                Assert.AreEqual("Struct.TestInventoryItem", sourceNode.Properties["rowStructTypeId"]);
+                Assert.NotNull(row);
+                Assert.AreEqual("Struct.TestInventoryItem", row.Type);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(graphPath);
+                AssetDatabase.DeleteAsset(assetPath);
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
             }
         }
 
@@ -4481,6 +4744,68 @@ namespace BlueprintSystem.Tests
                 "}\n");
             AssetDatabase.ImportAsset(assetPath);
             BlueprintUserStructRegistry.Refresh();
+        }
+
+        private static void WriteDataTableDefinition(string assetPath)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.WriteAllText(assetPath, "{\n" +
+                "  \"schemaVersion\": \"0.1\",\n" +
+                "  \"tableId\": \"Table.TestItems\",\n" +
+                "  \"rowStructTypeId\": \"Struct.TestInventoryItem\",\n" +
+                "  \"rows\": [\n" +
+                "    { \"rowName\": \"sword_01\", \"value\": { \"itemId\": \"sword_01\", \"count\": 1, \"position\": [1, 2] } },\n" +
+                "    { \"rowName\": \"shield_01\", \"value\": { \"itemId\": \"shield_01\", \"count\": 2, \"position\": [3, 4] } }\n" +
+                "  ]\n" +
+                "}\n");
+            AssetDatabase.ImportAsset(assetPath);
+            BlueprintDataTableRegistry.Refresh();
+        }
+
+        private static RuntimeNode CreateDataTableRuntimeNode(string id, string typeId, string tablePath)
+        {
+            RuntimeNode node = CreateRuntimeNode(id, typeId);
+            node.Properties["tablePath"] = tablePath;
+            node.Properties["rowStructTypeId"] = "Struct.TestInventoryItem";
+            return node;
+        }
+
+        private static BlueprintSource CreateDataTableValidationSource(string tablePath, string sinkType)
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "DataTableValidationTest";
+            source.Variables.Add(new BlueprintVariableDeclaration
+            {
+                Name = "selectedItem",
+                Type = sinkType,
+                Scope = "runtime"
+            });
+            source.Variables.Add(new BlueprintVariableDeclaration
+            {
+                Name = "items",
+                Type = "Array<Struct.TestInventoryItem>",
+                Scope = "runtime"
+            });
+
+            BlueprintNodeSource getRow = AddNode(source, "get_row", "DataTable.GetRow");
+            getRow.Properties["tablePath"] = tablePath;
+            getRow.Properties["rowStructTypeId"] = "Struct.TestInventoryItem";
+            getRow.Properties["rowName"] = "sword_01";
+
+            BlueprintNodeSource setItem = AddNode(source, "set_item", "Variable.Set");
+            setItem.Properties["name"] = "selectedItem";
+
+            BlueprintNodeSource getAllRows = AddNode(source, "get_all_rows", "DataTable.GetAllRows");
+            getAllRows.Properties["tablePath"] = tablePath;
+            getAllRows.Properties["rowStructTypeId"] = "Struct.TestInventoryItem";
+
+            BlueprintNodeSource setRows = AddNode(source, "set_rows", "Variable.Set");
+            setRows.Properties["name"] = "items";
+
+            source.Edges.Add(new BlueprintEdgeSource { From = "get_row.row", To = "set_item.value" });
+            source.Edges.Add(new BlueprintEdgeSource { From = "get_all_rows.rows", To = "set_rows.value" });
+            return source;
         }
 
         private static void DeleteUserStructDefinition()

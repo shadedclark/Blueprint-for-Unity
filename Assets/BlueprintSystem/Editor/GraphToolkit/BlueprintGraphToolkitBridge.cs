@@ -728,6 +728,8 @@ namespace BlueprintSystem.Editor
             ApplyCustomEventNodeMetadata(node, nodeSource);
             ApplyVariableNodeMetadata(node, nodeSource, variables);
             ApplyBlueprintAccessNodeMetadata(node, nodeSource);
+            BlueprintBreakStructVisualMetadata.Apply(node, nodeSource);
+            BlueprintDataTableVisualMetadata.Apply(node, nodeSource);
             return node;
         }
 

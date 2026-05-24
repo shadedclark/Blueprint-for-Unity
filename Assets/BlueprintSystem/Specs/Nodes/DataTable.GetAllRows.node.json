@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "DataTable.GetAllRows",
+  "title": "Data Table Get All Rows",
+  "category": "DataTable",
+  "description": "Returns all rows from a Blueprint data table.",
+  "executor": "DataTable.GetAllRows",
+  "inputs": [],
+  "outputs": [
+    {
+      "id": "rows",
+      "kind": "value"
+    }
+  ],
+  "properties": [
+    {
+      "id": "tablePath",
+      "type": "string",
+      "required": true
+    },
+    {
+      "id": "tableAssetGuid",
+      "type": "string",
+      "required": false
+    },
+    {
+      "id": "rowStructTypeId",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

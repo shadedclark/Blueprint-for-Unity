@@ -100,6 +100,9 @@ connected value edge -> compiled node property -> null
 | `Variable.GetField` | Get Field | Variables | `Variable.GetField` | `VariableGetFieldExecutor` | Reads a field or nested field path from a structured value. |
 | `Variable.SetField` | Set Field | Variables | `Variable.SetField` | `VariableSetFieldExecutor` | Returns a copy of a structured value with one field or nested field path changed. |
 | `Variable.BreakStruct` | Break Struct | Variables | `Variable.BreakStruct` | `VariableBreakStructExecutor` | Breaks a Blueprint user struct into one output per field. |
+| `DataTable.GetRow` | Data Table Get Row | DataTable | `DataTable.GetRow` | `DataTableGetRowExecutor` | Reads a typed struct row from a Blueprint data table by row name. |
+| `DataTable.GetRowNames` | Data Table Get Row Names | DataTable | `DataTable.GetRowNames` | `DataTableGetRowNamesExecutor` | Returns all row names from a Blueprint data table. |
+| `DataTable.GetAllRows` | Data Table Get All Rows | DataTable | `DataTable.GetAllRows` | `DataTableGetAllRowsExecutor` | Returns all typed struct rows from a Blueprint data table. |
 | `Array.Count` | Array Count | Array | `Array.Count` | `ArrayCountExecutor` | Returns item count from an array value. |
 | `Array.Get` | Array Get | Array | `Array.Get` | `ArrayGetExecutor` | Returns an item from an array by index. |
 | `Array.ForEachLoop` | For Each Loop | Array | `Array.ForEachLoop` | `ArrayForEachLoopExecutor` | Executes a loop body once per array item. |
@@ -2097,7 +2100,7 @@ Ports and parameters:
 
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `target` | input value | `Struct.{FileName}` | connection | yes | Struct value to split. The editor resolves this from `structAssetGuid` first, then `structTypeId`. |
+| `target` | input value | `Struct.{FileName}` at runtime; untyped/object in Graph Toolkit | connection | yes | Struct value to split. The editor resolves this from `structAssetGuid` first, then `structTypeId`. |
 | `field.id` | output value | `field.type` | none | no | One dynamic output per non-deprecated struct field. Display name is `field.name`; connection identity is `field.id`. |
 | `structTypeId` | hidden property | string | property | yes | Runtime struct type id such as `Struct.InventoryItem`. |
 | `structAssetGuid` | hidden property | string | property | no | Editor-only asset tracking so renamed `BlueprintUserStructAsset` files refresh to the latest `Struct.{FileName}`. |
@@ -2108,7 +2111,7 @@ Graph Toolkit behavior:
 Dragging a BlueprintUserStructAsset into the canvas offers `Variables/Break Struct.{FileName}`.
 The created node does not create a variable; connect an existing struct variable or struct output into `target`.
 An unconnected Break Struct node can remain on the canvas as a preview; `target` becomes a compile-time requirement once any field output is connected.
-The `target` input is connection-only in Graph Toolkit and hides the embedded struct `Type`/`JSON` constant editor.
+The `target` input is connection-only in Graph Toolkit, hides the embedded struct `Type`/`JSON` constant editor, and stays untyped/object so generic item outputs such as `Array.ForEachLoop.arrayElement` can connect to it.
 When the visual node is built, it creates dynamic outputs from the current struct fields and hides the tracking properties from manual editing.
 ```
 
@@ -2152,6 +2155,141 @@ Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryIte
 The editor refreshes `.bpgraph` Break Struct display caches when `BlueprintUserStructAsset` or generated `.bpstruct.json` definitions are imported, moved, or deleted. `.blueprint.json` remains the behavior source of truth; the refresh updates visual ports and suppresses graph auto-export so a display-only struct refresh does not rewrite blueprint behavior.
 
 ScriptableObject-authored user struct fields support the enum choices `String`, `Bool`, `Int`, `Float`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Rect`, `ForceMode`, `ForceMode2D`, `LoadSceneMode`, `Key`, `ComparisonMode`, `TickPhase`, and `Blueprint`. `BlueprintRef` and `UIBinding<T>` are intentionally not supported as user struct fields because they are runtime/editor binding handles, not portable data.
+
+## Blueprint Data Tables
+
+Preferred authoring uses a ScriptableObject asset:
+
+```text
+Create > Blueprint System > Data Table
+```
+
+Save these assets under:
+
+```text
+Assets/BlueprintSystem/Specs/Tables/*.asset
+```
+
+Each table selects one Blueprint user struct row type. Rows use a unique string `rowName`; row values are JSON objects matching the selected struct. The inspector includes `Sync JSON`, which writes the portable/runtime-readable table next to the asset:
+
+```text
+Assets/BlueprintSystem/Specs/Tables/*.bpdatatable.json
+```
+
+Generated JSON shape:
+
+```json
+{
+  "schemaVersion": "0.1",
+  "tableId": "Table.ItemTable",
+  "rowStructTypeId": "Struct.ItemRow",
+  "rows": [
+    { "rowName": "sword_01", "value": { "itemId": "sword_01", "count": 1 } }
+  ]
+}
+```
+
+`tableId` is read-only and derived from the asset file name as `Table.{FileName}`. Blueprint node JSON stores the generated `.bpdatatable.json` path in `tablePath`; Graph Toolkit also stores a hidden `tableAssetGuid` so dragged table nodes can refresh to the current asset after editor moves or renames. Runtime row values are normalized through the selected user struct definition and returned as `BlueprintStructValue`.
+
+### `DataTable.GetRow`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/DataTable.GetRow.node.json
+```
+
+Executor:
+
+```text
+ID: DataTable.GetRow
+Class: DataTableGetRowExecutor
+File: Assets/BlueprintSystem/Executors/Variables/DataTableExecutors.cs
+```
+
+Function:
+
+```text
+Reads `rowName` from the configured data table.
+Returns the typed struct row through `row` and whether it was found through `found`.
+Missing rows return the selected struct default value and `found=false`.
+Invalid tables or row struct types log an error and return `row=null`, `found=false`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `rowName` | input value | string | propertyOrConnection | yes | Unique row key. |
+| `row` | output value | `Struct.{RowType}` | none | no | Dynamic type from the table row struct. |
+| `found` | output value | bool | none | no | True only when `rowName` exists. |
+| `tablePath` | hidden property | string | property | yes | Generated `.bpdatatable.json` path. |
+| `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
+| `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
+
+### `DataTable.GetRowNames`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/DataTable.GetRowNames.node.json
+```
+
+Executor:
+
+```text
+ID: DataTable.GetRowNames
+Class: DataTableGetRowNamesExecutor
+File: Assets/BlueprintSystem/Executors/Variables/DataTableExecutors.cs
+```
+
+Function:
+
+```text
+Returns all row names from the configured data table in table order.
+Invalid tables log an error and return an empty array.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `rowNames` | output value | `Array<string>` | none | no | Row names in table order. |
+| `tablePath` | hidden property | string | property | yes | Generated `.bpdatatable.json` path. |
+| `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
+| `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
+
+### `DataTable.GetAllRows`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/DataTable.GetAllRows.node.json
+```
+
+Executor:
+
+```text
+ID: DataTable.GetAllRows
+Class: DataTableGetAllRowsExecutor
+File: Assets/BlueprintSystem/Executors/Variables/DataTableExecutors.cs
+```
+
+Function:
+
+```text
+Returns every row value from the configured data table in table order.
+Invalid tables or row values log an error and return an empty array.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `rows` | output value | `Array<Struct.{RowType}>` | none | no | Dynamic type from the table row struct. |
+| `tablePath` | hidden property | string | property | yes | Generated `.bpdatatable.json` path. |
+| `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
+| `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
 
 ## Array Nodes
 
@@ -2219,40 +2357,6 @@ Ports and parameters:
 | `index` | input value | int | propertyOrConnection | yes | `0` | Zero-based item index. |
 | `index` | property | int | property | no | `0` | Used when no value edge is connected. |
 | `item` | output value | untyped | none | no | none | Item value. |
-
-## Registered Executor Without Public Manifest
-
-### `Flow.Pass`
-
-Executor:
-
-```text
-ID: Flow.Pass
-Class: FlowPassExecutor
-File: Assets/BlueprintSystem/Executors/Flow/FlowExecutors.cs
-```
-
-Current status:
-
-```text
-Registered in BlueprintExecutorRegistry.CreateDefault().
-No matching Assets/BlueprintSystem/Specs/Nodes/*.node.json manifest currently exists.
-No dedicated Graph Toolkit visual node currently exists.
-Not available as a normal user-facing node through current validation/import workflows.
-```
-
-Behavior:
-
-```text
-Inherits BlueprintNodeExecutor default Execute behavior: Continue("execOut").
-```
-
-Avoid duplicates:
-
-```text
-If a no-op/pass-through execution node is needed, promote `Flow.Pass` by adding a manifest and visual node.
-Do not create another executor called NoOp, PassThrough, or Continue.
-```
 
 ## Existing Node Families Not Yet Implemented
 

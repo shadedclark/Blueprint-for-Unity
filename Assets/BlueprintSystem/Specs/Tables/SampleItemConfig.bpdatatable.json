@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "0.1",
+  "tableId": "Table.SampleItemConfig",
+  "rowStructTypeId": "Struct.SampleItemConfigRow",
+  "rows": [
+    {
+      "rowName": "potion_small",
+      "value": {
+        "itemId": "potion_small",
+        "displayName": "Small Potion",
+        "category": "Consumable",
+        "price": 25
+      }
+    },
+    {
+      "rowName": "iron_sword",
+      "value": {
+        "itemId": "iron_sword",
+        "displayName": "Iron Sword",
+        "category": "Equipment",
+        "price": 120
+      }
+    },
+    {
+      "rowName": "silver_ore",
+      "value": {
+        "itemId": "silver_ore",
+        "displayName": "Silver Ore",
+        "category": "Material",
+        "price": 40
+      }
+    }
+  ]
+}

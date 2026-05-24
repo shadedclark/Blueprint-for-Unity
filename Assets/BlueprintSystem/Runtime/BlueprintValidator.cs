@@ -185,6 +185,7 @@ namespace BlueprintSystem
                 ValidateProperties(node, manifest, bindingsByName, diagnostics);
                 ValidateVariableReference(node, variablesByName, diagnostics);
                 ValidateBreakStructNode(node, diagnostics);
+                ValidateDataTableNode(node, diagnostics);
             }
         }
 
@@ -356,6 +357,34 @@ namespace BlueprintSystem
             }
         }
 
+        private static void ValidateDataTableNode(BlueprintNodeSource node, BlueprintDiagnosticList diagnostics)
+        {
+            if (node == null || !BlueprintDataTableNodeUtility.IsDataTableNode(node.TypeId))
+            {
+                return;
+            }
+
+            string tablePath;
+            BlueprintDataTableDefinition definition;
+            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node, out tablePath, out definition))
+            {
+                string tableLabel = BlueprintDataTableNodeUtility.GetTablePath(node);
+                if (string.IsNullOrEmpty(tableLabel))
+                {
+                    tableLabel = "<missing>";
+                }
+
+                diagnostics.Add(BlueprintDiagnostic.Error("BP025", "Unknown data table '" + tableLabel + "'.", node.Id, BlueprintDataTableNodeUtility.TablePathPropertyId));
+                return;
+            }
+
+            if (!BlueprintUserStructRegistry.IsUserStructType(definition.RowStructTypeId))
+            {
+                string typeLabel = string.IsNullOrEmpty(definition.RowStructTypeId) ? "<missing>" : definition.RowStructTypeId;
+                diagnostics.Add(BlueprintDiagnostic.Error("BP025", "Unknown row struct type '" + typeLabel + "' for data table '" + tablePath + "'.", node.Id, BlueprintDataTableNodeUtility.RowStructTypePropertyId));
+            }
+        }
+
         private static BlueprintPortSpec FindEffectiveOutputPort(BlueprintNodeSource node, BlueprintNodeManifest manifest, string portId)
         {
             BlueprintPortSpec output = manifest == null ? null : manifest.FindOutput(portId);
@@ -420,7 +449,38 @@ namespace BlueprintSystem
                 }
             }
 
+            if (node != null && output != null)
+            {
+                string rowStructTypeId = GetDataTableOutputRowStructType(node);
+                if (!string.IsNullOrEmpty(rowStructTypeId))
+                {
+                    if (node.TypeId == BlueprintDataTableNodeUtility.GetRowNodeTypeId && output.Id == "row")
+                    {
+                        return rowStructTypeId;
+                    }
+
+                    if (node.TypeId == BlueprintDataTableNodeUtility.GetAllRowsNodeTypeId && output.Id == "rows")
+                    {
+                        return "Array<" + rowStructTypeId + ">";
+                    }
+                }
+            }
+
             return output == null ? null : output.Type;
+        }
+
+        private static string GetDataTableOutputRowStructType(BlueprintNodeSource node)
+        {
+            string tablePath;
+            BlueprintDataTableDefinition definition;
+            if (BlueprintDataTableNodeUtility.TryResolveDefinition(node, out tablePath, out definition) &&
+                definition != null &&
+                !string.IsNullOrEmpty(definition.RowStructTypeId))
+            {
+                return definition.RowStructTypeId;
+            }
+
+            return BlueprintDataTableNodeUtility.GetRowStructTypeId(node);
         }
 
         private static string GetEffectiveInputType(

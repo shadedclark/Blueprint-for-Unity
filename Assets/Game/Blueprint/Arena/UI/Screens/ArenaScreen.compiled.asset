@@ -16,8 +16,8 @@ MonoBehaviour:
   blueprintName: ArenaScreen
   sourceGuid: f5e322f91da75449f980814fdcdf0853
   sourcePath: Assets/Game/Blueprint/Arena/UI/Screens/ArenaScreen.blueprint.json
-  sourceHash: eba9c7a6b0957e8fd61ba7cf42c860f0b16731df03db68bae0ad0dec23d3889c
-  manifestHash: bd9897afacb21ba181c42c5eec62a4f75fd572aedd8102a2666ed56a14514f7c
+  sourceHash: 41634ea7146e4252d98a216cbe2ef24273c9a64889ffedfbcd5cc8ac8d717226
+  manifestHash: 8f002058c13f949771fdbbac3ab5deb19077a0b8ee5974655018f2b5e4859a79
   variables: []
   bindings: []
   components:
@@ -63,6 +63,16 @@ MonoBehaviour:
       JsonValue: '"e58daf2021ac447f693b3eb0114171c1"'
     - Id: structTypeId
       JsonValue: '"Struct.NewUserStruct"'
+  - Id: datatable_all_rows_assets__blueprint_system__specs__structs__new_data_table_bpdatatable_json
+    TypeId: DataTable.GetAllRows
+    ExecutorId: DataTable.GetAllRows
+    Properties:
+    - Id: rowStructTypeId
+      JsonValue: '"Struct.NewUserStruct"'
+    - Id: tableAssetGuid
+      JsonValue: '"1802ddea5cd5b419c9222e6105656e48"'
+    - Id: tablePath
+      JsonValue: '"Assets/BlueprintSystem/Specs/Structs/NewDataTable.bpdatatable.json"'
   execEdges:
   - FromNodeId: event_open
     FromPortId: execOut

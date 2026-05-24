@@ -91,7 +91,6 @@ namespace BlueprintSystem
         {
             BlueprintExecutorRegistry registry = new BlueprintExecutorRegistry();
             registry.Register(new FlowEventExecutor());
-            registry.Register(new FlowPassExecutor());
             registry.Register(new FlowBranchExecutor());
             registry.Register(new FlowSequenceExecutor());
             registry.Register(new FlowDelayExecutor());
@@ -194,6 +193,9 @@ namespace BlueprintSystem
             registry.Register(new VariableGetFieldExecutor());
             registry.Register(new VariableSetFieldExecutor());
             registry.Register(new VariableBreakStructExecutor());
+            registry.Register(new DataTableGetRowExecutor());
+            registry.Register(new DataTableGetRowNamesExecutor());
+            registry.Register(new DataTableGetAllRowsExecutor());
             registry.Register(new UISetTextExecutor());
             registry.Register(new UIBindTextExecutor());
             registry.Register(new UISetVisibleExecutor());

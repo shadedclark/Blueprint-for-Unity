@@ -1187,6 +1187,7 @@ namespace BlueprintSystem.Editor
             bool changed = false;
             changed |= EnsureHiddenProperty(node.Properties, BlueprintBreakStructNodeUtility.StructTypePropertyId, "string", true);
             changed |= EnsureHiddenProperty(node.Properties, BlueprintBreakStructNodeUtility.StructAssetGuidPropertyId, "string", false);
+            changed |= SetInputPortType(node.Inputs, BlueprintBreakStructNodeUtility.TargetPortId, null);
 
             string structTypeId;
             BlueprintUserStructDefinition definition;
@@ -1202,7 +1203,6 @@ namespace BlueprintSystem.Editor
                 changed = true;
             }
 
-            changed |= SetInputPortType(node.Inputs, BlueprintBreakStructNodeUtility.TargetPortId, structTypeId);
             changed |= SetPropertyValue(node.Properties, BlueprintBreakStructNodeUtility.StructTypePropertyId, "string", true, structTypeId);
             changed |= RebuildOutputs(node, definition);
             return changed;
@@ -1371,6 +1371,376 @@ namespace BlueprintSystem.Editor
                 AllowMultiple = false
             });
             return true;
+        }
+
+        private static bool EnsureHiddenProperty(List<BlueprintVisualPropertyData> properties, string propertyId, string type, bool required)
+        {
+            BlueprintVisualPropertyData property = FindProperty(properties, propertyId);
+            if (property == null)
+            {
+                properties.Add(new BlueprintVisualPropertyData
+                {
+                    Id = propertyId,
+                    Type = type,
+                    Required = required,
+                    HasValue = false,
+                    JsonValue = string.Empty,
+                    Hidden = true
+                });
+                return true;
+            }
+
+            bool changed = property.Type != type || property.Required != required || !property.Hidden;
+            property.Type = type;
+            property.Required = required;
+            property.Hidden = true;
+            return changed;
+        }
+
+        private static bool SetPropertyValue(List<BlueprintVisualPropertyData> properties, string propertyId, string type, bool required, object value)
+        {
+            BlueprintVisualPropertyData property = FindProperty(properties, propertyId);
+            bool changed = false;
+            if (property == null)
+            {
+                property = new BlueprintVisualPropertyData { Id = propertyId };
+                properties.Add(property);
+                changed = true;
+            }
+
+            string jsonValue = BlueprintVisualValueUtility.ToJson(value);
+            changed |= property.Type != type ||
+                property.Required != required ||
+                !property.Hidden ||
+                !property.HasValue ||
+                property.JsonValue != jsonValue;
+
+            property.Type = type;
+            property.Required = required;
+            property.Hidden = true;
+            property.HasValue = true;
+            property.JsonValue = jsonValue;
+            return changed;
+        }
+
+        private static BlueprintVisualPropertyData FindProperty(List<BlueprintVisualPropertyData> properties, string propertyId)
+        {
+            if (properties == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < properties.Count; i++)
+            {
+                BlueprintVisualPropertyData property = properties[i];
+                if (property != null && property.Id == propertyId)
+                {
+                    return property;
+                }
+            }
+
+            return null;
+        }
+
+        private static string GetStringProperty(BlueprintNodeSource nodeSource, string propertyId)
+        {
+            object value;
+            if (nodeSource != null && nodeSource.Properties.TryGetValue(propertyId, out value) && value != null)
+            {
+                return value.ToString();
+            }
+
+            return null;
+        }
+
+        private static string GetStringProperty(List<BlueprintVisualPropertyData> properties, string propertyId)
+        {
+            BlueprintVisualPropertyData property = FindProperty(properties, propertyId);
+            if (property == null || !property.HasValue)
+            {
+                return null;
+            }
+
+            object value = BlueprintVisualValueUtility.FromJson(property.JsonValue);
+            return value == null ? null : value.ToString();
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("DataTable.GetRow")]
+    public sealed class DataTableGetRowVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("DataTable.GetRow", "Data Table Get Row", "DataTable", "Returns a row from a Blueprint data table by row name.");
+            AddValueInput("rowName", "string", true, "propertyOrConnection");
+            AddValueOutput("row", null);
+            AddValueOutput("found", "bool");
+            AddProperty("rowName", "string", false, string.Empty);
+            AddProperty("tablePath", "string", true, null, null, false, true);
+            AddProperty("tableAssetGuid", "string", false, null, null, false, true);
+            AddProperty("rowStructTypeId", "string", true, null, null, false, true);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            BlueprintDataTableVisualMetadata.Apply(this);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("DataTable.GetRowNames")]
+    public sealed class DataTableGetRowNamesVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("DataTable.GetRowNames", "Data Table Get Row Names", "DataTable", "Returns all row names from a Blueprint data table.");
+            AddValueOutput("rowNames", "Array<string>");
+            AddProperty("tablePath", "string", true, null, null, false, true);
+            AddProperty("tableAssetGuid", "string", false, null, null, false, true);
+            AddProperty("rowStructTypeId", "string", true, null, null, false, true);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            BlueprintDataTableVisualMetadata.Apply(this);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("DataTable.GetAllRows")]
+    public sealed class DataTableGetAllRowsVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("DataTable.GetAllRows", "Data Table Get All Rows", "DataTable", "Returns all rows from a Blueprint data table.");
+            AddValueOutput("rows", null);
+            AddProperty("tablePath", "string", true, null, null, false, true);
+            AddProperty("tableAssetGuid", "string", false, null, null, false, true);
+            AddProperty("rowStructTypeId", "string", true, null, null, false, true);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            BlueprintDataTableVisualMetadata.Apply(this);
+        }
+    }
+
+    internal static class BlueprintDataTableVisualMetadata
+    {
+        public static bool Apply(BlueprintVisualNode node, BlueprintNodeSource nodeSource = null)
+        {
+            if (node == null || !BlueprintDataTableNodeUtility.IsDataTableNode(node.TypeId))
+            {
+                return false;
+            }
+
+            EnsureLists(node);
+            bool changed = false;
+            changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.TablePathPropertyId, "string", true);
+            changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.TableAssetGuidPropertyId, "string", false);
+            changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.RowStructTypePropertyId, "string", true);
+
+            string tablePath;
+            BlueprintDataTableDefinition definition;
+            if (!TryResolveDefinition(nodeSource, node.Properties, out tablePath, out definition))
+            {
+                string fallbackStructTypeId = GetStringProperty(nodeSource, BlueprintDataTableNodeUtility.RowStructTypePropertyId);
+                if (string.IsNullOrEmpty(fallbackStructTypeId))
+                {
+                    fallbackStructTypeId = GetStringProperty(node.Properties, BlueprintDataTableNodeUtility.RowStructTypePropertyId);
+                }
+
+                changed |= RebuildOutputs(node, fallbackStructTypeId);
+                return changed;
+            }
+
+            string title = GetNodeTitle(node.TypeId, definition);
+            if (node.Title != title)
+            {
+                node.Title = title;
+                changed = true;
+            }
+
+            changed |= SetPropertyValue(node.Properties, BlueprintDataTableNodeUtility.TablePathPropertyId, "string", true, tablePath);
+            changed |= SetPropertyValue(node.Properties, BlueprintDataTableNodeUtility.RowStructTypePropertyId, "string", true, definition.RowStructTypeId);
+            changed |= RebuildOutputs(node, definition.RowStructTypeId);
+            return changed;
+        }
+
+        private static string GetNodeTitle(string typeId, BlueprintDataTableDefinition definition)
+        {
+            string tableLabel = definition == null || string.IsNullOrEmpty(definition.TableId) ? "Data Table" : definition.TableId;
+            if (typeId == BlueprintDataTableNodeUtility.GetRowNodeTypeId)
+            {
+                return "Get Row " + tableLabel;
+            }
+
+            if (typeId == BlueprintDataTableNodeUtility.GetRowNamesNodeTypeId)
+            {
+                return "Get Row Names " + tableLabel;
+            }
+
+            return "Get All Rows " + tableLabel;
+        }
+
+        private static bool TryResolveDefinition(
+            BlueprintNodeSource nodeSource,
+            List<BlueprintVisualPropertyData> properties,
+            out string tablePath,
+            out BlueprintDataTableDefinition definition)
+        {
+            tablePath = null;
+            definition = null;
+
+            string assetGuid = GetStringProperty(nodeSource, BlueprintDataTableNodeUtility.TableAssetGuidPropertyId);
+            if (string.IsNullOrEmpty(assetGuid))
+            {
+                assetGuid = GetStringProperty(properties, BlueprintDataTableNodeUtility.TableAssetGuidPropertyId);
+            }
+
+            if (!string.IsNullOrEmpty(assetGuid))
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
+                BlueprintDataTableAsset asset = string.IsNullOrEmpty(assetPath)
+                    ? null
+                    : AssetDatabase.LoadAssetAtPath<BlueprintDataTableAsset>(assetPath);
+                if (asset != null)
+                {
+                    tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
+                    definition = asset.ToDefinition();
+                    definition.SourcePath = tablePath;
+                    return true;
+                }
+            }
+
+            tablePath = GetStringProperty(nodeSource, BlueprintDataTableNodeUtility.TablePathPropertyId);
+            if (string.IsNullOrEmpty(tablePath))
+            {
+                tablePath = GetStringProperty(properties, BlueprintDataTableNodeUtility.TablePathPropertyId);
+            }
+
+            return !string.IsNullOrEmpty(tablePath) &&
+                BlueprintDataTableRegistry.TryGetByPath(tablePath, out definition);
+        }
+
+        private static bool RebuildOutputs(BlueprintVisualNode node, string rowStructTypeId)
+        {
+            List<BlueprintVisualPortData> rebuilt = new List<BlueprintVisualPortData>();
+            if (node.TypeId == BlueprintDataTableNodeUtility.GetRowNodeTypeId)
+            {
+                rebuilt.Add(new BlueprintVisualPortData
+                {
+                    Id = "row",
+                    Kind = "value",
+                    Type = rowStructTypeId,
+                    Required = false,
+                    Source = null,
+                    AllowMultiple = false
+                });
+                rebuilt.Add(new BlueprintVisualPortData
+                {
+                    Id = "found",
+                    Kind = "value",
+                    Type = "bool",
+                    Required = false,
+                    Source = null,
+                    AllowMultiple = false
+                });
+            }
+            else if (node.TypeId == BlueprintDataTableNodeUtility.GetRowNamesNodeTypeId)
+            {
+                rebuilt.Add(new BlueprintVisualPortData
+                {
+                    Id = "rowNames",
+                    Kind = "value",
+                    Type = "Array<string>",
+                    Required = false,
+                    Source = null,
+                    AllowMultiple = false
+                });
+            }
+            else if (node.TypeId == BlueprintDataTableNodeUtility.GetAllRowsNodeTypeId)
+            {
+                rebuilt.Add(new BlueprintVisualPortData
+                {
+                    Id = "rows",
+                    Kind = "value",
+                    Type = string.IsNullOrEmpty(rowStructTypeId) ? null : "Array<" + rowStructTypeId + ">",
+                    Required = false,
+                    Source = null,
+                    AllowMultiple = false
+                });
+            }
+
+            return ReplaceOutputsIfChanged(node.Outputs, rebuilt);
+        }
+
+        private static bool ReplaceOutputsIfChanged(List<BlueprintVisualPortData> outputs, List<BlueprintVisualPortData> rebuilt)
+        {
+            if (PortListsEqual(outputs, rebuilt))
+            {
+                return false;
+            }
+
+            outputs.Clear();
+            outputs.AddRange(rebuilt);
+            return true;
+        }
+
+        private static bool PortListsEqual(List<BlueprintVisualPortData> left, List<BlueprintVisualPortData> right)
+        {
+            if (left == null || right == null || left.Count != right.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (!PortsEqual(left[i], right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool PortsEqual(BlueprintVisualPortData left, BlueprintVisualPortData right)
+        {
+            if (left == null || right == null)
+            {
+                return left == right;
+            }
+
+            return left.Id == right.Id &&
+                left.DisplayName == right.DisplayName &&
+                left.Kind == right.Kind &&
+                left.Type == right.Type &&
+                left.Required == right.Required &&
+                left.Source == right.Source &&
+                left.AllowMultiple == right.AllowMultiple;
+        }
+
+        private static void EnsureLists(BlueprintVisualNode node)
+        {
+            if (node.Inputs == null)
+            {
+                node.Inputs = new List<BlueprintVisualPortData>();
+            }
+
+            if (node.Outputs == null)
+            {
+                node.Outputs = new List<BlueprintVisualPortData>();
+            }
+
+            if (node.Properties == null)
+            {
+                node.Properties = new List<BlueprintVisualPropertyData>();
+            }
         }
 
         private static bool EnsureHiddenProperty(List<BlueprintVisualPropertyData> properties, string propertyId, string type, bool required)

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "0.1",
+  "name": "PrintItemConfigRows",
+  "category": "Samples/DataTable",
+  "description": "Traverses a sample item config table and prints each row.",
+  "variables": [],
+  "bindings": [],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_start",
+      "typeId": "Game.Event.OnStart",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_all_item_rows",
+      "typeId": "DataTable.GetAllRows",
+      "position": [
+        0,
+        220
+      ],
+      "properties": {
+        "tablePath": "Assets/BlueprintSystem/Specs/Tables/SampleItemConfig.bpdatatable.json",
+        "rowStructTypeId": "Struct.SampleItemConfigRow"
+      }
+    },
+    {
+      "id": "foreach_item_row",
+      "typeId": "Array.ForEachLoop",
+      "position": [
+        280,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "break_item_row",
+      "typeId": "Variable.BreakStruct",
+      "position": [
+        560,
+        180
+      ],
+      "properties": {
+        "structTypeId": "Struct.SampleItemConfigRow",
+        "structAssetGuid": "5129ede6081645a8a271cdb5332ec0f5"
+      }
+    },
+    {
+      "id": "format_row_log",
+      "typeId": "String.Format",
+      "position": [
+        820,
+        180
+      ],
+      "properties": {
+        "format": "[ItemConfig] id={0}, name={1}, category={2}, price={3}",
+        "arg0": "",
+        "arg1": "",
+        "arg2": "",
+        "arg3": ""
+      }
+    },
+    {
+      "id": "log_row",
+      "typeId": "Game.Log",
+      "position": [
+        1080,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "log_completed",
+      "typeId": "Game.Log",
+      "position": [
+        1080,
+        240
+      ],
+      "properties": {
+        "message": "[ItemConfig] traversal completed"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_start.execOut",
+      "to": "foreach_item_row.execIn"
+    },
+    {
+      "from": "get_all_item_rows.rows",
+      "to": "foreach_item_row.array"
+    },
+    {
+      "from": "foreach_item_row.loopBody",
+      "to": "log_row.execIn"
+    },
+    {
+      "from": "foreach_item_row.completed",
+      "to": "log_completed.execIn"
+    },
+    {
+      "from": "foreach_item_row.arrayElement",
+      "to": "break_item_row.target"
+    },
+    {
+      "from": "break_item_row.itemId",
+      "to": "format_row_log.arg0"
+    },
+    {
+      "from": "break_item_row.displayName",
+      "to": "format_row_log.arg1"
+    },
+    {
+      "from": "break_item_row.category",
+      "to": "format_row_log.arg2"
+    },
+    {
+      "from": "break_item_row.price",
+      "to": "format_row_log.arg3"
+    },
+    {
+      "from": "format_row_log.result",
+      "to": "log_row.message"
+    }
+  ]
+}

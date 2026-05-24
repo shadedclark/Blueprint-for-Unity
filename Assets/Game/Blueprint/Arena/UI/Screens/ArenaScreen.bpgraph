@@ -34,6 +34,7 @@ MonoBehaviour:
         - rid: 2881252042042769989
         - rid: 2881252042042769990
         - rid: 2881252042042769991
+        - rid: 2881252042042770057
         m_GraphWireModels:
         - rid: 2881252042042769994
         - rid: 2881252042042769995
@@ -99,6 +100,14 @@ MonoBehaviour:
             Hash: a98cac0b30dc21276bbc12ab569bc68f
           m_Category: 2
           m_Index: 1
+        - m_Guid:
+            m_Value0: 12566452345750384412
+            m_Value1: 9313260863937160688
+          m_HashGuid:
+            serializedVersion: 2
+            Hash: 1c6f531bd40165aef0a5857769593f81
+          m_Category: 0
+          m_Index: 4
         m_EntryPoint:
           rid: 2881252042042769988
         m_Graph:
@@ -567,6 +576,13 @@ MonoBehaviour:
           Required: 0
           Source: 
           AllowMultiple: 0
+        - Id: fld_8f0cbaef2be64c4e88b825141401bd33
+          DisplayName: kjk
+          Kind: value
+          Type: string
+          Required: 0
+          Source: 
+          AllowMultiple: 0
         Properties:
         - Id: structTypeId
           DisplayName: 
@@ -582,5 +598,93 @@ MonoBehaviour:
           Required: 0
           HasValue: 1
           JsonValue: '"e58daf2021ac447f693b3eb0114171c1"'
+          ShowInInspectorOnly: 0
+          Hidden: 1
+    - rid: 2881252042042770057
+      type: {class: UserNodeModelImp, ns: Unity.GraphToolkit.Editor.Implementation, asm: Unity.GraphToolkit.Editor}
+      data:
+        m_Guid:
+          m_Value0: 12566452345750384412
+          m_Value1: 9313260863937160688
+        m_HashGuid:
+          serializedVersion: 2
+          Hash: 1c6f531bd40165aef0a5857769593f81
+        m_Version: 2
+        m_Position: {x: 66.67599, y: 493.61752}
+        m_Title: 
+        m_Tooltip: 
+        m_NodePreviewModel:
+          rid: -2
+        m_State: 0
+        m_InputConstantsById:
+          m_KeyList:
+          - __option___bp_type_label
+          - __option___bp_node_id
+          m_ValueList:
+          - rid: 2881252042042770058
+          - rid: 2881252042042770059
+        m_InputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_OutputPortInfos:
+          expandedPortsById:
+            m_KeyList: []
+            m_ValueList: 
+        m_Collapsed: 0
+        m_CurrentModeIndex: 0
+        m_ElementColor:
+          m_Color: {r: 0, g: 0, b: 0, a: 0}
+          m_HasUserColor: 0
+        m_Node:
+          rid: 2881252042042770060
+    - rid: 2881252042042770058
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: Get All Rows Table.NewDataTable
+    - rid: 2881252042042770059
+      type: {class: 'Constant`1[[System.String, mscorlib]]', ns: Unity.GraphToolkit.Editor, asm: Unity.GraphToolkit.Internal.Editor}
+      data:
+        m_Value: datatable_all_rows_assets__blueprint_system__specs__structs__new_data_table_bpdatatable_json
+    - rid: 2881252042042770060
+      type: {class: DataTableGetAllRowsVisualNode, ns: BlueprintSystem.Editor, asm: Assembly-CSharp-Editor}
+      data:
+        NodeId: datatable_all_rows_assets__blueprint_system__specs__structs__new_data_table_bpdatatable_json
+        TypeId: DataTable.GetAllRows
+        Title: Get All Rows Table.NewDataTable
+        Category: DataTable
+        Description: Returns all rows from a Blueprint data table.
+        Inputs: []
+        Outputs:
+        - Id: rows
+          DisplayName: 
+          Kind: value
+          Type: Array<Struct.NewUserStruct>
+          Required: 0
+          Source: 
+          AllowMultiple: 0
+        Properties:
+        - Id: tablePath
+          DisplayName: 
+          Type: string
+          Required: 1
+          HasValue: 1
+          JsonValue: '"Assets/BlueprintSystem/Specs/Structs/NewDataTable.bpdatatable.json"'
+          ShowInInspectorOnly: 0
+          Hidden: 1
+        - Id: tableAssetGuid
+          DisplayName: 
+          Type: string
+          Required: 0
+          HasValue: 1
+          JsonValue: '"1802ddea5cd5b419c9222e6105656e48"'
+          ShowInInspectorOnly: 0
+          Hidden: 1
+        - Id: rowStructTypeId
+          DisplayName: 
+          Type: string
+          Required: 1
+          HasValue: 1
+          JsonValue: '"Struct.NewUserStruct"'
           ShowInInspectorOnly: 0
           Hidden: 1
