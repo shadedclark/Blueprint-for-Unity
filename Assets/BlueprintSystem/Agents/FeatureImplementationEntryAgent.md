@@ -28,6 +28,8 @@ The entry agent owns the final integration pass after the UI and Blueprint passe
 
 For repeated UI components or option groups such as inventory slots, list rows, item cards, reward cells, category tabs, filter buttons/toggles, segmented options, option chips, or shop entries, integrate one reusable interaction blueprint asset across all concrete instances. Each concrete UI component still owns its own `BlueprintRunner`/`UIBlueprintBinder`, but the assigned compiled blueprint should be the shared repeated/option-group interaction blueprint, with per-instance context supplied through runner variable overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, `category_id`, or row-bind variables. Do not create or wire index- or option-specific blueprint assets such as `InventorySlot00SelectInteraction` through `InventorySlot39SelectInteraction`, or `InventoryFilterAllClickInteraction` through `InventoryFilterEquipmentClickInteraction`.
 
+Keep root component declarations and scene `UIBlueprintBinder` attachments mutually exclusive for the same UI presenter/interaction blueprint. A blueprint listed in a screen/dialog/panel `components` array becomes an in-memory runtime component and uses that parent runner's binding resolver. A blueprint assigned to a concrete child GameObject's `UIBlueprintBinder.compiledBlueprint` uses that child binder's local `bindings` list. If a presenter or interaction is attached to a child GameObject binder, do not also list the same blueprint in the root screen `components`; doing both runs the blueprint twice and the root-owned copy cannot resolve child-local bindings such as `self_button` or `regular_enter_button`. Only declare UI presenter/interaction blueprints as root components when they are intentionally executed by the root resolver and every required UI binding is present on that root binder.
+
 ## Existing Prefab + Annotation Route
 
 When the user provides both an existing prefab path and an annotation Markdown path, route the task through:
@@ -370,10 +372,11 @@ For each target asset path, create or reuse a `Blueprint` variable with that pat
 8. Run the Blueprint subagent second. It implements logic and interaction blueprints against the inspected UI prefab/scene structure, then returns the binding contract and validation/compile results.
 9. Reconcile the handoff contract: every blueprint binding must map to an actual UI prefab/scene anchor, and every UI event must map to a component-owned interaction blueprint, blueprint event, or supported node.
 10. Perform the final integration pass with `unity_mcp`: add BlueprintSystem runtime components, `UIBlueprintBinder` entries, blueprint references, and final component bindings to the relevant Unity objects or prefabs. For UI interactions, attach or reference each interaction blueprint from its owning Button, Toggle, ScrollView/list, tab, confirm/cancel, or repeated-item component when supported.
-11. For repeated UI components and option groups, attach the same reusable interaction blueprint to every concrete instance and set a variable override for the instance context. Do not generate, compile, or attach index-specific repeated-item blueprint files or option-specific filter/tab/toggle blueprint files.
-12. Re-run required BlueprintSystem validation/valid and compile if final integration changed blueprint-facing assets.
-13. Do not run Unity Play Mode tests unless the user explicitly asks. Editor-time validation, compile, scene/prefab inspection, and console checks are allowed when needed.
-14. Final response must list BlueprintSystem outputs, UI outputs, final component attachment results, validation/compile results, skipped unsupported behavior, and any unresolved binding or integration issue.
+11. Before saving final integration, audit every UI presenter/interaction ownership mode: if the blueprint is assigned to a child GameObject `UIBlueprintBinder`, remove or avoid the duplicate root screen component declaration; if it remains in root `components`, ensure the root binder owns every binding it uses.
+12. For repeated UI components and option groups, attach the same reusable interaction blueprint to every concrete instance and set a variable override for the instance context. Do not generate, compile, or attach index-specific repeated-item blueprint files or option-specific filter/tab/toggle blueprint files.
+13. Re-run required BlueprintSystem validation/valid and compile if final integration changed blueprint-facing assets.
+14. Do not run Unity Play Mode tests unless the user explicitly asks. Editor-time validation, compile, scene/prefab inspection, and console checks are allowed when needed.
+15. Final response must list BlueprintSystem outputs, UI outputs, final component attachment results, validation/compile results, skipped unsupported behavior, and any unresolved binding or integration issue.
 
 ## Unsupported Capability Gate
 

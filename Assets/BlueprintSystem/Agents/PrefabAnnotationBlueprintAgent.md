@@ -44,6 +44,7 @@ Normalize the chosen feature name to PascalCase for folders and asset names.
 7. Treat `.blueprint.json` files as behavior source of truth. Treat `.bpgraph` files as editor visualization/cache only.
 8. Store Unity object access as binding names in JSON. Do not serialize Unity object references into `.blueprint.json`.
 9. New feature-owned assets must live under `Assets/Game/Blueprint/<FeatureName>/`, not under `Assets/BlueprintSystem/**`.
+10. Do not attach the same UI presenter/interaction blueprint in two ownership modes. If a blueprint is assigned to a concrete prefab child `UIBlueprintBinder.compiledBlueprint`, do not also declare it in the root screen/dialog/panel blueprint `components` array. A root component uses the root binder's resolver and cannot resolve child-local bindings owned by the child binder.
 
 ## Required Context Pass
 
@@ -169,6 +170,7 @@ Follow `BlueprintFeatureAgent.md` for JSON graph design, with these prefab-first
 - Use one reusable interaction blueprint for repeated controls or option groups, with per-instance variable overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, or `category_id`.
 - Do not create index-specific or option-specific interaction blueprint files when one reusable blueprint can serve all instances.
 - Every cross-blueprint node must use a declared `Blueprint` variable and a connected `Variable.Get.value` target input. A raw target path property may remain only as fallback metadata.
+- Choose one runtime owner for each UI presenter/interaction blueprint. Root `components` are for in-memory modules that intentionally use the root resolver; child `UIBlueprintBinder` attachments are for local UI binders on a display unit or interactive control. If the prefab integration attaches a presenter/interaction to a child binder, leave that blueprint out of root `components` and route shared data/behavior access through `ownerRunner`, `Blueprint.GetOwner`, `Blueprint.GetComponent`, or declared `Blueprint` variables.
 
 Use these row shapes while designing:
 
@@ -195,8 +197,9 @@ Final attachment target -> Component -> Compiled blueprint -> Bindings/overrides
 12. Attach or update `BlueprintRunner` / `UIBlueprintBinder` components and binding entries on the prefab through Unity MCP.
 13. Assign current `.compiled.asset` references to the appropriate prefab components.
 14. For repeated or option-group controls, attach the shared interaction compiled blueprint to each concrete owner and set per-instance variable overrides.
-15. Reconcile every declared blueprint binding against a real prefab object/component.
-16. Check the Unity Console for errors.
+15. Audit ownership before saving: any blueprint assigned to a child `UIBlueprintBinder` must not also appear in the root screen/dialog/panel `components` list unless it intentionally uses root-owned bindings.
+16. Reconcile every declared blueprint binding against a real prefab object/component.
+17. Check the Unity Console for errors.
 
 ## Final Report
 
@@ -242,6 +245,7 @@ Before handing back:
 - JSON parses successfully.
 - BlueprintSystem validation and compile completed, or the blocker is reported.
 - Each binding maps to an actual prefab object/component.
+- No child-binder-owned presenter/interaction blueprint is duplicated as a root screen/dialog/panel component.
 - Repeated controls use shared interaction blueprints with per-instance overrides.
 - Unity Console has no new relevant errors.
 - No Play Mode test was run unless explicitly requested.

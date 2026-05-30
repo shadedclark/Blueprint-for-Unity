@@ -83,16 +83,7 @@ namespace BlueprintSystem.Editor
 
             string assetPath = GetCompiledAssetPath(sourcePath);
             bool created = false;
-            compiledAsset = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(assetPath);
-            if (compiledAsset == null && !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)))
-            {
-                if (log)
-                {
-                    Debug.LogError("[Blueprint] Cannot create compiled blueprint at '" + assetPath + "' because another asset already exists there.", blueprintJson);
-                }
-
-                return false;
-            }
+            compiledAsset = LoadCompiledAssetForWrite(assetPath, log, blueprintJson);
 
             if (compiledAsset == null)
             {
@@ -116,6 +107,53 @@ namespace BlueprintSystem.Editor
             }
 
             return true;
+        }
+
+        private static BlueprintCompiledAsset LoadCompiledAssetForWrite(string assetPath, bool log, UnityEngine.Object context)
+        {
+            BlueprintCompiledAsset compiledAsset = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(assetPath);
+            if (compiledAsset != null)
+            {
+                return compiledAsset;
+            }
+
+            string existingGuid = AssetDatabase.AssetPathToGUID(assetPath);
+            if (string.IsNullOrEmpty(existingGuid))
+            {
+                return null;
+            }
+
+            AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            compiledAsset = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(assetPath);
+            if (compiledAsset != null)
+            {
+                return compiledAsset;
+            }
+
+            Type mainAssetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+            if (log)
+            {
+                Debug.LogWarning(
+                    "[Blueprint] Rebuilding stale compiled blueprint asset record at '" + assetPath +
+                    "' (guid " + existingGuid + ", main type " + (mainAssetType == null ? "null" : mainAssetType.FullName) + ").",
+                    context);
+            }
+
+            DeleteGeneratedCompiledAsset(assetPath);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            return null;
+        }
+
+        private static void DeleteGeneratedCompiledAsset(string assetPath)
+        {
+            if (File.Exists(assetPath))
+            {
+                File.Delete(assetPath);
+            }
+            else if (!string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(assetPath)))
+            {
+                AssetDatabase.DeleteAsset(assetPath);
+            }
         }
 
         public static bool IsCompiledAssetCurrent(BlueprintCompiledAsset compiledAsset, TextAsset blueprintJson, out string reason)
@@ -931,6 +969,7 @@ namespace BlueprintSystem.Editor
         private static readonly HashSet<string> PendingBlueprintPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static bool _pendingManifestRecompile;
         private static bool _flushScheduled;
+        private static int _suppressDepth;
 
         static BlueprintHotReloadService()
         {
@@ -961,6 +1000,11 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
+            if (_suppressDepth > 0)
+            {
+                return;
+            }
+
             bool changed = false;
             changed |= AddChangedPaths(importedAssets, false);
             changed |= AddChangedPaths(movedAssets, false);
@@ -968,6 +1012,30 @@ namespace BlueprintSystem.Editor
             if (changed)
             {
                 ScheduleFlush();
+            }
+        }
+
+        internal static IDisposable SuppressAutoCompile(IEnumerable<string> sourcePaths)
+        {
+            _suppressDepth++;
+            ForgetPendingBlueprintPaths(sourcePaths);
+            return new SuppressScope(sourcePaths);
+        }
+
+        internal static void ForgetPendingBlueprintPaths(IEnumerable<string> sourcePaths)
+        {
+            if (sourcePaths == null)
+            {
+                return;
+            }
+
+            foreach (string sourcePath in sourcePaths)
+            {
+                string path = NormalizeAssetPath(sourcePath);
+                if (IsBlueprintJsonPath(path))
+                {
+                    PendingBlueprintPaths.Remove(path);
+                }
             }
         }
 
@@ -1072,6 +1140,11 @@ namespace BlueprintSystem.Editor
         private static void FlushPendingChanges()
         {
             _flushScheduled = false;
+            if (_suppressDepth > 0)
+            {
+                ScheduleFlush();
+                return;
+            }
 
             HashSet<string> blueprintPaths = new HashSet<string>(PendingBlueprintPaths, StringComparer.OrdinalIgnoreCase);
             bool recompileAll = _pendingManifestRecompile;
@@ -1119,6 +1192,29 @@ namespace BlueprintSystem.Editor
             }
 
             return recompiledSourcePaths;
+        }
+
+        private sealed class SuppressScope : IDisposable
+        {
+            private readonly IEnumerable<string> _sourcePaths;
+            private bool _disposed;
+
+            public SuppressScope(IEnumerable<string> sourcePaths)
+            {
+                _sourcePaths = sourcePaths;
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                _disposed = true;
+                ForgetPendingBlueprintPaths(_sourcePaths);
+                _suppressDepth = Math.Max(0, _suppressDepth - 1);
+            }
         }
 
         private static void ReloadAffectedRunners(HashSet<string> recompiledSourcePaths)
@@ -1304,6 +1400,8 @@ namespace BlueprintSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnFixedTick"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnLateTick"));
 
+            DrawUIBlueprintBinderFields();
+
             EditorGUILayout.Space();
             DrawExposedVariableOverrides(compiledProperty == null ? null : compiledProperty.objectReferenceValue as BlueprintCompiledAsset);
 
@@ -1320,6 +1418,44 @@ namespace BlueprintSystem.Editor
             if (compileReloadClicked)
             {
                 CompileAndReloadTargets();
+            }
+        }
+
+        private void DrawUIBlueprintBinderFields()
+        {
+            SerializedProperty bindingsProperty = serializedObject.FindProperty("bindings");
+            if (bindingsProperty == null)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("UI Bindings", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(bindingsProperty, true);
+
+            SerializedProperty triggerOnEnableProperty = serializedObject.FindProperty("triggerOnEnable");
+            SerializedProperty enableEventNameProperty = serializedObject.FindProperty("enableEventName");
+            SerializedProperty triggerOnDisableProperty = serializedObject.FindProperty("triggerOnDisable");
+            SerializedProperty disableEventNameProperty = serializedObject.FindProperty("disableEventName");
+
+            if (triggerOnEnableProperty != null)
+            {
+                EditorGUILayout.PropertyField(triggerOnEnableProperty);
+            }
+
+            if (enableEventNameProperty != null)
+            {
+                EditorGUILayout.PropertyField(enableEventNameProperty);
+            }
+
+            if (triggerOnDisableProperty != null)
+            {
+                EditorGUILayout.PropertyField(triggerOnDisableProperty);
+            }
+
+            if (disableEventNameProperty != null)
+            {
+                EditorGUILayout.PropertyField(disableEventNameProperty);
             }
         }
 

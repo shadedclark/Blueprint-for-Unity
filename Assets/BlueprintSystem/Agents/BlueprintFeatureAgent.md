@@ -150,6 +150,7 @@ The sample is also a reminder to keep UI display and UI interaction separate. Pr
 15. Split UI interactions into one blueprint per interactive UI component and intent. A button click, button long press, toggle changed, scroll/list refresh, tab selected, confirm, or cancel interaction each gets its own blueprint bound to the owning UI component. Do not create catch-all adapters that bind multiple controls or multiple unrelated intents.
 16. Split behavior into one blueprint per behavior. Do not create a catch-all feature behavior blueprint.
 17. Repeated item, row, card, slot, tab, reward, grid-cell, filter button, filter toggle, segmented option, category tab, or option-chip interactions must reuse one interaction blueprint per repeated/option-group control type and intent. Do not create index- or option-specific blueprint files such as `InventorySlot00SelectInteraction`, `InventorySlot01SelectInteraction`, `InventoryFilterAllClickInteraction`, or `InventoryFilterMaterialsClickInteraction`. Pass per-instance context through exposed variables/runner overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, or `category_id`, then attach that same compiled blueprint to each owning UI component instance.
+18. In the final integration contract, choose exactly one ownership mode for each UI presenter/interaction blueprint: root `components` runtime component or concrete GameObject `UIBlueprintBinder`. If a blueprint is meant to be assigned to a child GameObject's `UIBlueprintBinder.compiledBlueprint`, do not also add it to the screen/dialog/panel `components` array. Root component instances use the root runner's binding resolver and cannot see child-local binder entries such as `self_button` or `regular_enter_button`.
 
 ## Output Root
 
@@ -282,6 +283,7 @@ Rules:
 - A repeated-item interaction blueprint should bind a local owner control such as `self_button`, `self_toggle`, or `self_row_root`, and use `Blueprint.GetOwner` plus `Blueprint.GetComponent` or supplied row variables to reach shared data/behavior/presenter components. Do not bind all repeated controls from one root interaction blueprint.
 - Interaction blueprints should send intent to behavior blueprints through `Blueprint.TriggerEvent` or exposed variables. They should not mutate domain data directly unless the requested interaction itself is the behavior.
 - The screen blueprint may dispatch lifecycle setup, but it must not bind every Button/Toggle/ScrollView event itself.
+- If an interaction blueprint is bound to its owning Button/Toggle/repeated-item GameObject through that object's `UIBlueprintBinder`, leave it out of the screen blueprint's `components` array. The screen may own shared data/behavior components, while the child interaction reaches those shared components through `Blueprint.GetOwner`, `Blueprint.GetComponent`, or an explicit `Blueprint` variable.
 - If the current runtime integration path cannot attach or reference the interaction blueprint from the owning UI component while preserving access to shared data/behavior components, report that integration blocker. Do not work around it by merging many interactions into one root adapter.
 
 Every UI interaction blueprint must report an ownership row:
@@ -353,6 +355,8 @@ The parent/root blueprint should declare components for the owned data and behav
 ```
 
 Use `Blueprint` variables connected into cross-blueprint `target` inputs to access those components. A raw `.blueprint.json` path may remain in node properties as fallback metadata, but the graph must include `Variable.Get.value -> target`. Only access variables marked `"exposed": true`.
+
+Do not declare a UI presenter or interaction blueprint as a parent/root component when the final integration attaches that same blueprint to a child GameObject `UIBlueprintBinder`. Parent/root `components` create in-memory runtime components that share the parent binding resolver; child `UIBlueprintBinder` attachments are scene runners with their own serialized `bindings`. Mixing both ownership modes for the same blueprint causes duplicate lifecycle execution and binding misses. If a presenter/interaction needs child-local UI bindings, attach it to the smallest owning GameObject binder and keep only shared data/behavior modules in the root component tree unless a root-owned UI binding contract is explicitly required.
 
 ## Unsupported Capability Gate
 
@@ -430,6 +434,7 @@ Before handing back:
 - Cross-blueprint access uses `Blueprint` asset paths and exposed variables/events.
 - Cross-blueprint target inputs are backed by `Blueprint` variables connected via `Variable.Get.value`, not only raw string properties.
 - UI object access uses binding names, not serialized Unity object references.
+- UI presenter/interaction ownership is not duplicated: child `UIBlueprintBinder` blueprints are not also listed in root screen/dialog/panel `components`, unless all their bindings intentionally live on the root binder.
 - BlueprintSystem runtime components, per-component interaction blueprint references, and final UI binder entries are left for the entry agent's final integration pass.
 - JSON parses successfully.
 - BlueprintSystem validation/valid check was run for changed blueprints.
