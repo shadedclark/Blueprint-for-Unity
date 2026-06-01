@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using BlueprintSystem;
 using BlueprintSystem.Editor;
+using Newtonsoft.Json.Linq;
 using Unity.AI.Assistant.Editor.Api;
 using Unity.AI.MCP.Editor.ToolRegistry;
 using UnityEditor;
@@ -117,6 +119,95 @@ namespace BlueprintLangGraph.Editor
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        [McpTool("blueprint_collect_feature_context", "Collect relevant Blueprint feature context from .blueprint.json files for LangGraph generation.", EnabledByDefault = true)]
+        public static object CollectFeatureContext(CollectFeatureContextParams parameters)
+        {
+            parameters ??= new CollectFeatureContextParams();
+
+            string blueprintRoot = NormalizeAssetPath(string.IsNullOrWhiteSpace(parameters.BlueprintRoot)
+                ? "Assets/Game/Blueprint"
+                : parameters.BlueprintRoot);
+            string featureName = parameters.FeatureName ?? "";
+            string query = parameters.Query ?? "";
+            int maxBlueprints = parameters.MaxBlueprints <= 0 ? 300 : parameters.MaxBlueprints;
+            var includeFeatures = (parameters.IncludeFeatures ?? new List<string>())
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Select(value => value.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var includeSet = includeFeatures
+                .Select(NormalizeSearchToken)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var searchTerms = BuildSearchTerms(featureName, query);
+
+            var parseErrors = new List<object>();
+            var candidates = new List<BlueprintContextCandidate>();
+            foreach (string assetPath in FindBlueprintJsonPaths(blueprintRoot))
+            {
+                JObject content;
+                try
+                {
+                    content = JObject.Parse(File.ReadAllText(ToProjectFilePath(assetPath)));
+                }
+                catch (Exception ex)
+                {
+                    parseErrors.Add(new { path = assetPath, error = ex.Message });
+                    continue;
+                }
+
+                var fact = BuildBlueprintFact(assetPath, content, blueprintRoot);
+                int score = ScoreBlueprintFact(fact, searchTerms);
+                string feature = fact.TryGetValue("feature", out object featureValue) ? Convert.ToString(featureValue) ?? "" : "";
+                bool explicitlyIncluded = includeSet.Count > 0 && includeSet.Contains(NormalizeSearchToken(feature));
+                if (!explicitlyIncluded && includeSet.Count > 0)
+                    explicitlyIncluded = includeSet.Any(token => NormalizeSearchToken(assetPath).Contains(token));
+
+                if (includeSet.Count > 0)
+                {
+                    if (!explicitlyIncluded)
+                        continue;
+                }
+                else if (score <= 0)
+                {
+                    continue;
+                }
+
+                candidates.Add(new BlueprintContextCandidate(assetPath, feature, score + (explicitlyIncluded ? 10000 : 0), fact));
+            }
+
+            var selected = candidates
+                .OrderByDescending(candidate => candidate.Score)
+                .ThenBy(candidate => candidate.Path, StringComparer.OrdinalIgnoreCase)
+                .Take(maxBlueprints)
+                .ToList();
+            var selectedFeatures = selected
+                .Select(candidate => candidate.Feature)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+            var docs = BuildFeatureContextDocs(blueprintRoot, selectedFeatures);
+
+            return new
+            {
+                success = true,
+                message = $"Collected {selected.Count} Blueprint context files.",
+                data = new
+                {
+                    blueprintRoot,
+                    featureName,
+                    query,
+                    includeFeatures,
+                    selectedFeatures,
+                    blueprints = selected.Select(candidate => candidate.Fact).ToArray(),
+                    docs,
+                    parseErrors
+                }
+            };
         }
 
         [McpTool("blueprint_compile_blueprints", "Compile Blueprint .blueprint.json files into .compiled.asset files through the project Blueprint compiler.", EnabledByDefault = true)]
@@ -237,6 +328,388 @@ namespace BlueprintLangGraph.Editor
                     applied
                 }
             };
+        }
+
+        private static List<string> FindBlueprintJsonPaths(string blueprintRoot)
+        {
+            string normalizedRoot = NormalizeAssetPath(blueprintRoot);
+            string absoluteRoot = ToProjectFilePath(normalizedRoot);
+            if (!Directory.Exists(absoluteRoot))
+                return new List<string>();
+
+            return Directory.GetFiles(absoluteRoot, "*.blueprint.json", SearchOption.AllDirectories)
+                .Select(ToAssetPath)
+                .Where(path => !string.IsNullOrWhiteSpace(path))
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        private static Dictionary<string, object> BuildBlueprintFact(string assetPath, JObject content, string blueprintRoot)
+        {
+            var variables = ReadObjectArray(content["variables"], "id", "name", "type", "defaultValue", "scope", "exposed", "description");
+            var bindings = ReadObjectArray(content["bindings"], "name", "type", "required", "description");
+            var components = ReadObjectArray(content["components"], "name", "blueprint", "required", "description");
+            var nodes = ReadNodes(content["nodes"]);
+            var edges = ReadPlainArray(content["edges"]);
+            var eventEntries = BuildEventEntries(nodes);
+            var eventTriggers = BuildEventTriggers(nodes);
+            var externalRefs = BuildExternalRefs(variables, components, nodes);
+
+            return new Dictionary<string, object>
+            {
+                ["path"] = NormalizeAssetPath(assetPath),
+                ["guid"] = AssetDatabase.AssetPathToGUID(assetPath),
+                ["feature"] = DeriveFeatureName(assetPath, blueprintRoot),
+                ["name"] = ReadString(content, "name", Path.GetFileNameWithoutExtension(Path.GetFileNameWithoutExtension(assetPath))),
+                ["category"] = ReadString(content, "category", ""),
+                ["description"] = ReadString(content, "description", ""),
+                ["variables"] = variables,
+                ["bindings"] = bindings,
+                ["components"] = components,
+                ["nodes"] = nodes,
+                ["edges"] = edges,
+                ["eventEntries"] = eventEntries,
+                ["eventTriggers"] = eventTriggers,
+                ["externalRefs"] = externalRefs
+            };
+        }
+
+        private static List<Dictionary<string, object>> ReadObjectArray(JToken token, params string[] keys)
+        {
+            var result = new List<Dictionary<string, object>>();
+            if (token is not JArray array)
+                return result;
+
+            foreach (JToken item in array)
+            {
+                if (item is not JObject obj)
+                    continue;
+
+                var entry = new Dictionary<string, object>();
+                foreach (string key in keys)
+                {
+                    JToken value = obj[key];
+                    if (value != null)
+                        entry[key] = ToPlainObject(value);
+                }
+                result.Add(entry);
+            }
+
+            return result;
+        }
+
+        private static List<object> ReadPlainArray(JToken token)
+        {
+            if (token is not JArray array)
+                return new List<object>();
+            return array.Select(ToPlainObject).ToList();
+        }
+
+        private static List<Dictionary<string, object>> ReadNodes(JToken token)
+        {
+            var result = new List<Dictionary<string, object>>();
+            if (token is not JArray array)
+                return result;
+
+            foreach (JToken item in array)
+            {
+                if (item is not JObject obj)
+                    continue;
+
+                var properties = obj["properties"] is JObject propertyObject
+                    ? (Dictionary<string, object>)ToPlainObject(propertyObject)
+                    : new Dictionary<string, object>();
+                var entry = new Dictionary<string, object>
+                {
+                    ["id"] = ReadString(obj, "id", ""),
+                    ["typeId"] = ReadString(obj, "typeId", ""),
+                    ["properties"] = properties
+                };
+                if (obj["position"] != null)
+                    entry["position"] = ToPlainObject(obj["position"]);
+
+                string eventName = EventNameForNode(entry);
+                if (!string.IsNullOrWhiteSpace(eventName))
+                    entry["eventName"] = eventName;
+                result.Add(entry);
+            }
+
+            return result;
+        }
+
+        private static List<object> BuildEventEntries(List<Dictionary<string, object>> nodes)
+        {
+            var entries = new List<object>();
+            foreach (var node in nodes)
+            {
+                string eventName = GetString(node, "eventName");
+                if (string.IsNullOrWhiteSpace(eventName))
+                    continue;
+
+                entries.Add(new
+                {
+                    nodeId = GetString(node, "id"),
+                    typeId = GetString(node, "typeId"),
+                    eventName
+                });
+            }
+
+            return entries;
+        }
+
+        private static List<object> BuildEventTriggers(List<Dictionary<string, object>> nodes)
+        {
+            var triggers = new List<object>();
+            foreach (var node in nodes)
+            {
+                if (!string.Equals(GetString(node, "typeId"), "Blueprint.TriggerEvent", StringComparison.Ordinal))
+                    continue;
+
+                var properties = GetDictionary(node, "properties");
+                triggers.Add(new
+                {
+                    nodeId = GetString(node, "id"),
+                    target = NormalizeAssetPath(GetString(properties, "target")),
+                    eventName = GetString(properties, "eventName")
+                });
+            }
+
+            return triggers;
+        }
+
+        private static string[] BuildExternalRefs(
+            List<Dictionary<string, object>> variables,
+            List<Dictionary<string, object>> components,
+            List<Dictionary<string, object>> nodes)
+        {
+            var refs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var component in components)
+                AddBlueprintRef(refs, GetString(component, "blueprint"));
+
+            foreach (var variable in variables)
+            {
+                if (string.Equals(GetString(variable, "type"), "Blueprint", StringComparison.OrdinalIgnoreCase))
+                    AddBlueprintRef(refs, GetString(variable, "defaultValue"));
+            }
+
+            foreach (var node in nodes)
+            {
+                var properties = GetDictionary(node, "properties");
+                AddBlueprintRef(refs, GetString(properties, "target"));
+            }
+
+            return refs.OrderBy(value => value, StringComparer.OrdinalIgnoreCase).ToArray();
+        }
+
+        private static void AddBlueprintRef(HashSet<string> refs, string value)
+        {
+            string path = NormalizeAssetPath(value);
+            if (path.EndsWith(".blueprint.json", StringComparison.OrdinalIgnoreCase))
+                refs.Add(path);
+        }
+
+        private static string EventNameForNode(Dictionary<string, object> node)
+        {
+            var properties = GetDictionary(node, "properties");
+            string explicitName = GetString(properties, "eventName");
+            if (!string.IsNullOrWhiteSpace(explicitName))
+                return explicitName;
+
+            string typeId = GetString(node, "typeId");
+            if (typeId == "UI.Event.OnOpen")
+                return "OnOpen";
+            if (typeId == "UI.Event.OnClose")
+                return "OnClose";
+            if (typeId == "Game.Event.OnStart")
+                return "OnStart";
+            if (typeId == "Game.Event.OnTick")
+            {
+                string phase = string.IsNullOrWhiteSpace(GetString(properties, "phase")) ? "Update" : GetString(properties, "phase");
+                if (phase == "FixedUpdate")
+                    return "OnFixedTick";
+                if (phase == "LateUpdate")
+                    return "OnLateTick";
+                return "OnTick";
+            }
+            if (typeId.Contains(".Event.", StringComparison.Ordinal))
+                return typeId.Split('.').Last();
+            return "";
+        }
+
+        private static int ScoreBlueprintFact(Dictionary<string, object> fact, List<string> searchTerms)
+        {
+            if (searchTerms.Count == 0)
+                return 0;
+
+            string haystack = NormalizeSearchToken(string.Join(" ", FlattenSearchText(fact)));
+            int score = 0;
+            foreach (string term in searchTerms)
+            {
+                if (string.IsNullOrWhiteSpace(term))
+                    continue;
+                if (haystack.Contains(term, StringComparison.OrdinalIgnoreCase))
+                    score += term.Length > 2 ? 5 : 1;
+            }
+            return score;
+        }
+
+        private static IEnumerable<string> FlattenSearchText(object value)
+        {
+            if (value == null)
+                yield break;
+            if (value is string text)
+            {
+                yield return text;
+                yield break;
+            }
+            if (value is Dictionary<string, object> dict)
+            {
+                foreach (object child in dict.Values)
+                    foreach (string textValue in FlattenSearchText(child))
+                        yield return textValue;
+                yield break;
+            }
+            if (value is IEnumerable<object> list)
+            {
+                foreach (object child in list)
+                    foreach (string textValue in FlattenSearchText(child))
+                        yield return textValue;
+            }
+        }
+
+        private static List<string> BuildSearchTerms(string featureName, string query)
+        {
+            var terms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string raw in new[] { featureName ?? "", query ?? "" })
+            {
+                foreach (string term in SplitSearchTerms(raw))
+                {
+                    string normalized = NormalizeSearchToken(term);
+                    if (!string.IsNullOrWhiteSpace(normalized))
+                        terms.Add(normalized);
+                }
+            }
+            return terms.ToList();
+        }
+
+        private static IEnumerable<string> SplitSearchTerms(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                yield break;
+
+            yield return value;
+            string spacedCamelCase = Regex.Replace(value, "([a-z0-9])([A-Z])", "$1 $2");
+            foreach (string part in Regex.Split(spacedCamelCase, @"[^0-9A-Za-z\u4e00-\u9fff]+"))
+            {
+                if (!string.IsNullOrWhiteSpace(part))
+                    yield return part;
+            }
+        }
+
+        private static string NormalizeSearchToken(string value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? ""
+                : Regex.Replace(value.Trim().ToLowerInvariant(), @"[^0-9a-z\u4e00-\u9fff]+", "");
+        }
+
+        private static object[] BuildFeatureContextDocs(string blueprintRoot, string[] selectedFeatures)
+        {
+            var docs = new List<object>();
+            foreach (string feature in selectedFeatures)
+            {
+                string docsAssetPath = $"{blueprintRoot.TrimEnd('/')}/{feature}/Docs";
+                string docsFilePath = ToProjectFilePath(docsAssetPath);
+                if (!Directory.Exists(docsFilePath))
+                    continue;
+
+                foreach (string file in Directory.GetFiles(docsFilePath, "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    string extension = Path.GetExtension(file);
+                    if (!string.Equals(extension, ".json", StringComparison.OrdinalIgnoreCase) &&
+                        !string.Equals(extension, ".md", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    string text = File.ReadAllText(file);
+                    docs.Add(new
+                    {
+                        path = ToAssetPath(file),
+                        feature,
+                        kind = extension.Equals(".json", StringComparison.OrdinalIgnoreCase) ? "manifest" : "summary",
+                        text = text.Length > 12000 ? text.Substring(0, 12000) : text
+                    });
+                }
+            }
+
+            return docs.ToArray();
+        }
+
+        private static string DeriveFeatureName(string assetPath, string blueprintRoot)
+        {
+            string path = NormalizeAssetPath(assetPath);
+            string root = NormalizeAssetPath(blueprintRoot).TrimEnd('/');
+            if (path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                string remainder = path.Substring(root.Length + 1);
+                int slash = remainder.IndexOf('/');
+                return slash < 0 ? remainder : remainder.Substring(0, slash);
+            }
+
+            string[] segments = path.Split('/');
+            return segments.Length > 3 && segments[0] == "Assets" && segments[1] == "Game" && segments[2] == "Blueprint"
+                ? segments[3]
+                : "";
+        }
+
+        private static object ToPlainObject(JToken token)
+        {
+            if (token == null || token.Type == JTokenType.Null)
+                return null;
+            if (token is JObject obj)
+                return obj.Properties().ToDictionary(prop => prop.Name, prop => ToPlainObject(prop.Value));
+            if (token is JArray array)
+                return array.Select(ToPlainObject).ToList();
+            if (token is JValue value)
+                return value.Value;
+            return token.ToString();
+        }
+
+        private static string ReadString(JObject obj, string key, string fallback)
+        {
+            JToken token = obj[key];
+            return token == null ? fallback : token.ToString();
+        }
+
+        private static string GetString(Dictionary<string, object> dict, string key)
+        {
+            if (dict == null || !dict.TryGetValue(key, out object value) || value == null)
+                return "";
+            return Convert.ToString(value) ?? "";
+        }
+
+        private static Dictionary<string, object> GetDictionary(Dictionary<string, object> dict, string key)
+        {
+            if (dict != null && dict.TryGetValue(key, out object value) && value is Dictionary<string, object> nested)
+                return nested;
+            return new Dictionary<string, object>();
+        }
+
+        private static string ToProjectFilePath(string assetPath)
+        {
+            string normalized = NormalizeAssetPath(assetPath);
+            string projectRoot = Directory.GetCurrentDirectory();
+            return Path.Combine(projectRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
+        }
+
+        private static string ToAssetPath(string filePath)
+        {
+            string normalized = filePath.Replace('\\', '/');
+            string projectRoot = Directory.GetCurrentDirectory().Replace('\\', '/').TrimEnd('/');
+            if (normalized.StartsWith(projectRoot + "/", StringComparison.OrdinalIgnoreCase))
+                normalized = normalized.Substring(projectRoot.Length + 1);
+            return NormalizeAssetPath(normalized);
         }
 
         private static string BuildFigmaToUiPrompt(string figmaUrl, string featureName, string outputRoot)
@@ -952,6 +1425,40 @@ namespace BlueprintLangGraph.Editor
     {
         [McpDescription("Assets-relative prefab path.", Required = true)]
         public string PrefabPath { get; set; }
+    }
+
+    public sealed class CollectFeatureContextParams
+    {
+        [McpDescription("Assets-relative root folder that contains feature Blueprint folders.")]
+        public string BlueprintRoot { get; set; } = "Assets/Game/Blueprint";
+
+        [McpDescription("Feature currently being generated.")]
+        public string FeatureName { get; set; }
+
+        [McpDescription("Natural language query used to find relevant existing Blueprint features.")]
+        public string Query { get; set; }
+
+        [McpDescription("Feature names to force into the collected context.")]
+        public List<string> IncludeFeatures { get; set; } = new List<string>();
+
+        [McpDescription("Maximum number of .blueprint.json files to return.")]
+        public int MaxBlueprints { get; set; } = 300;
+    }
+
+    internal sealed class BlueprintContextCandidate
+    {
+        public BlueprintContextCandidate(string path, string feature, int score, Dictionary<string, object> fact)
+        {
+            Path = path;
+            Feature = feature;
+            Score = score;
+            Fact = fact;
+        }
+
+        public string Path { get; }
+        public string Feature { get; }
+        public int Score { get; }
+        public Dictionary<string, object> Fact { get; }
     }
 
     public sealed class CompileBlueprintsParams
