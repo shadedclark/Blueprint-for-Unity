@@ -4,6 +4,7 @@
     "references": [
         "BlueprintSystem",
         "BlueprintSystem.Editor",
+        "Unity.GraphToolkit.Common.Editor",
         "Unity.GraphToolkit.Editor",
         "Unity.InputSystem",
         "Unity.TextMeshPro",
