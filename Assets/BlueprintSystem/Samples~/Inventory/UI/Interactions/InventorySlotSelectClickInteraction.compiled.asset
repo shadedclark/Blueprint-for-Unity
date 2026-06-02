@@ -1,0 +1,222 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: InventorySlotSelectClickInteraction.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: InventorySlotSelectClickInteraction
+  sourceGuid: 67961dbc9a8af441d9a5c9733b3dc3a9
+  sourcePath: Assets/BlueprintSystem/Samples~/Inventory/UI/Interactions/InventorySlotSelectClickInteraction.blueprint.json
+  sourceHash: 09d8b834765a91a974989a9a2a138be3862994f6a202bc50e7e3a50d79093e61
+  manifestHash: ba65e89184298f2db3f42d598335a9b41304504f06760177bb439f004ebfc886
+  variables:
+  - Id: var_3e9e2de2138d458fbd95db09c68b71d2
+    Name: slot_index
+    Type: int
+    DefaultValueJson: 0
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Zero-based inventory slot index for this UI slot.
+  bindings:
+  - Name: self_button
+    Type: Button
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_start
+    TypeId: Game.Event.OnStart
+    ExecutorId: Flow.Event
+    Properties: []
+  - Id: bind_click
+    TypeId: UI.BindButtonClick
+    ExecutorId: UI.BindButtonClick
+    Properties:
+    - Id: target
+      JsonValue: '"self_button"'
+  - Id: get_owner
+    TypeId: Blueprint.GetOwner
+    ExecutorId: Blueprint.GetOwner
+    Properties: []
+  - Id: get_data_component
+    TypeId: Blueprint.GetComponent
+    ExecutorId: Blueprint.GetComponent
+    Properties:
+    - Id: name
+      JsonValue: '"InventoryData"'
+  - Id: get_header_component
+    TypeId: Blueprint.GetComponent
+    ExecutorId: Blueprint.GetComponent
+    Properties:
+    - Id: name
+      JsonValue: '"HeaderPresenter"'
+  - Id: get_grid_component
+    TypeId: Blueprint.GetComponent
+    ExecutorId: Blueprint.GetComponent
+    Properties:
+    - Id: name
+      JsonValue: '"GridPresenter"'
+  - Id: get_detail_component
+    TypeId: Blueprint.GetComponent
+    ExecutorId: Blueprint.GetComponent
+    Properties:
+    - Id: name
+      JsonValue: '"DetailPresenter"'
+  - Id: get_slot_index
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"slot_index"'
+  - Id: set_selected
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '""'
+  - Id: slot_display_add_one
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 1
+  - Id: format_status
+    TypeId: String.Format
+    ExecutorId: String.Format
+    Properties:
+    - Id: arg0
+      JsonValue: '""'
+    - Id: arg1
+      JsonValue: '""'
+    - Id: arg2
+      JsonValue: '""'
+    - Id: arg3
+      JsonValue: '""'
+    - Id: format
+      JsonValue: '"Selected slot {0}."'
+  - Id: set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '""'
+  - Id: refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  - Id: refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '""'
+  execEdges:
+  - FromNodeId: bind_click
+    FromPortId: clicked
+    ToNodeId: set_selected
+    ToPortId: execIn
+  - FromNodeId: event_start
+    FromPortId: execOut
+    ToNodeId: bind_click
+    ToPortId: execIn
+  - FromNodeId: refresh_grid
+    FromPortId: execOut
+    ToNodeId: refresh_detail
+    ToPortId: execIn
+  - FromNodeId: refresh_header
+    FromPortId: execOut
+    ToNodeId: refresh_grid
+    ToPortId: execIn
+  - FromNodeId: set_selected
+    FromPortId: execOut
+    ToNodeId: set_status
+    ToPortId: execIn
+  - FromNodeId: set_status
+    FromPortId: execOut
+    ToNodeId: refresh_header
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: format_status
+    FromPortId: result
+    ToNodeId: set_status
+    ToPortId: value
+  - FromNodeId: get_data_component
+    FromPortId: target
+    ToNodeId: set_selected
+    ToPortId: target
+  - FromNodeId: get_data_component
+    FromPortId: target
+    ToNodeId: set_status
+    ToPortId: target
+  - FromNodeId: get_detail_component
+    FromPortId: target
+    ToNodeId: refresh_detail
+    ToPortId: target
+  - FromNodeId: get_grid_component
+    FromPortId: target
+    ToNodeId: refresh_grid
+    ToPortId: target
+  - FromNodeId: get_header_component
+    FromPortId: target
+    ToNodeId: refresh_header
+    ToPortId: target
+  - FromNodeId: get_owner
+    FromPortId: target
+    ToNodeId: get_data_component
+    ToPortId: target
+  - FromNodeId: get_owner
+    FromPortId: target
+    ToNodeId: get_detail_component
+    ToPortId: target
+  - FromNodeId: get_owner
+    FromPortId: target
+    ToNodeId: get_grid_component
+    ToPortId: target
+  - FromNodeId: get_owner
+    FromPortId: target
+    ToNodeId: get_header_component
+    ToPortId: target
+  - FromNodeId: get_slot_index
+    FromPortId: value
+    ToNodeId: set_selected
+    ToPortId: value
+  - FromNodeId: get_slot_index
+    FromPortId: value
+    ToNodeId: slot_display_add_one
+    ToPortId: a
+  - FromNodeId: slot_display_add_one
+    FromPortId: result
+    ToNodeId: format_status
+    ToPortId: arg0
+  eventEntries:
+  - EventName: OnStart
+    NodeId: event_start

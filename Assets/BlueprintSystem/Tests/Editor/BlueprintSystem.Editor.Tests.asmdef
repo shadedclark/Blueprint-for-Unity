@@ -1,0 +1,29 @@
+{
+    "name": "BlueprintSystem.Editor.Tests",
+    "rootNamespace": "BlueprintSystem.Tests",
+    "references": [
+        "BlueprintSystem",
+        "BlueprintSystem.Editor",
+        "Unity.GraphToolkit.Editor",
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

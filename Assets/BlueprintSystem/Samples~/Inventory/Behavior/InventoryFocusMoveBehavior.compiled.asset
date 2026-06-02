@@ -1,0 +1,603 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: InventoryFocusMoveBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: InventoryFocusMoveBehavior
+  sourceGuid: d00cb3d3a34f44e8897e5c9286877f69
+  sourcePath: Assets/BlueprintSystem/Samples~/Inventory/Behavior/InventoryFocusMoveBehavior.blueprint.json
+  sourceHash: 0356b6a8f9f628396cca6eb68ddaf2236fdfe49f9a416a8f75b899d801112cf4
+  manifestHash: c671f7914bb95741e575d8ee0c1999036fa02ef8f9fd694b80b97639428dae6f
+  variables:
+  - Id: var_inventory_data_blueprint
+    Name: inventory_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json
+  - Id: var_inventory_header_presenter_blueprint
+    Name: inventory_header_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json
+  - Id: var_inventory_grid_presenter_blueprint
+    Name: inventory_grid_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json
+  - Id: var_inventory_detail_presenter_blueprint
+    Name: inventory_detail_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json
+  - Id: var_inventory_confirm_presenter_blueprint
+    Name: inventory_confirm_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json
+  bindings: []
+  components: []
+  nodes:
+  - Id: event_move_left
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"MoveLeftRequested"'
+  - Id: move_left_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: move_left_get_selected
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_left_add_delta
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: -1
+  - Id: move_left_clamp
+    TypeId: Math.Clamp
+    ExecutorId: Math.Clamp
+    Properties:
+    - Id: max
+      JsonValue: 39
+    - Id: min
+      JsonValue: 0
+    - Id: value
+      JsonValue: 0
+  - Id: move_left_set_selected
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_left_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Selection moved."'
+  - Id: move_left_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: move_left_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: move_left_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: move_left_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_move_right
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"MoveRightRequested"'
+  - Id: move_right_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: move_right_get_selected
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_right_add_delta
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 1
+  - Id: move_right_clamp
+    TypeId: Math.Clamp
+    ExecutorId: Math.Clamp
+    Properties:
+    - Id: max
+      JsonValue: 39
+    - Id: min
+      JsonValue: 0
+    - Id: value
+      JsonValue: 0
+  - Id: move_right_set_selected
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_right_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Selection moved."'
+  - Id: move_right_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: move_right_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: move_right_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: move_right_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_move_up
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"MoveUpRequested"'
+  - Id: move_up_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: move_up_get_selected
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_up_add_delta
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: -8
+  - Id: move_up_clamp
+    TypeId: Math.Clamp
+    ExecutorId: Math.Clamp
+    Properties:
+    - Id: max
+      JsonValue: 39
+    - Id: min
+      JsonValue: 0
+    - Id: value
+      JsonValue: 0
+  - Id: move_up_set_selected
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_up_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Selection moved."'
+  - Id: move_up_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: move_up_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: move_up_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: move_up_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_move_down
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"MoveDownRequested"'
+  - Id: move_down_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: move_down_get_selected
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_down_add_delta
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 8
+  - Id: move_down_clamp
+    TypeId: Math.Clamp
+    ExecutorId: Math.Clamp
+    Properties:
+    - Id: max
+      JsonValue: 39
+    - Id: min
+      JsonValue: 0
+    - Id: value
+      JsonValue: 0
+  - Id: move_down_set_selected
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"selected_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: move_down_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Selection moved."'
+  - Id: move_down_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: move_down_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: move_down_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: move_down_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  execEdges:
+  - FromNodeId: event_move_down
+    FromPortId: execOut
+    ToNodeId: move_down_set_selected
+    ToPortId: execIn
+  - FromNodeId: event_move_left
+    FromPortId: execOut
+    ToNodeId: move_left_set_selected
+    ToPortId: execIn
+  - FromNodeId: event_move_right
+    FromPortId: execOut
+    ToNodeId: move_right_set_selected
+    ToPortId: execIn
+  - FromNodeId: event_move_up
+    FromPortId: execOut
+    ToNodeId: move_up_set_selected
+    ToPortId: execIn
+  - FromNodeId: move_down_refresh_grid
+    FromPortId: execOut
+    ToNodeId: move_down_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: move_down_set_selected
+    FromPortId: execOut
+    ToNodeId: move_down_set_status
+    ToPortId: execIn
+  - FromNodeId: move_down_set_status
+    FromPortId: execOut
+    ToNodeId: move_down_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: move_left_refresh_grid
+    FromPortId: execOut
+    ToNodeId: move_left_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: move_left_set_selected
+    FromPortId: execOut
+    ToNodeId: move_left_set_status
+    ToPortId: execIn
+  - FromNodeId: move_left_set_status
+    FromPortId: execOut
+    ToNodeId: move_left_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: move_right_refresh_grid
+    FromPortId: execOut
+    ToNodeId: move_right_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: move_right_set_selected
+    FromPortId: execOut
+    ToNodeId: move_right_set_status
+    ToPortId: execIn
+  - FromNodeId: move_right_set_status
+    FromPortId: execOut
+    ToNodeId: move_right_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: move_up_refresh_grid
+    FromPortId: execOut
+    ToNodeId: move_up_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: move_up_set_selected
+    FromPortId: execOut
+    ToNodeId: move_up_set_status
+    ToPortId: execIn
+  - FromNodeId: move_up_set_status
+    FromPortId: execOut
+    ToNodeId: move_up_refresh_grid
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: move_down_add_delta
+    FromPortId: result
+    ToNodeId: move_down_clamp
+    ToPortId: value
+  - FromNodeId: move_down_clamp
+    FromPortId: result
+    ToNodeId: move_down_set_selected
+    ToPortId: value
+  - FromNodeId: move_down_get_data
+    FromPortId: value
+    ToNodeId: move_down_get_selected
+    ToPortId: target
+  - FromNodeId: move_down_get_data
+    FromPortId: value
+    ToNodeId: move_down_set_selected
+    ToPortId: target
+  - FromNodeId: move_down_get_data
+    FromPortId: value
+    ToNodeId: move_down_set_status
+    ToPortId: target
+  - FromNodeId: move_down_get_detail
+    FromPortId: value
+    ToNodeId: move_down_refresh_detail
+    ToPortId: target
+  - FromNodeId: move_down_get_grid
+    FromPortId: value
+    ToNodeId: move_down_refresh_grid
+    ToPortId: target
+  - FromNodeId: move_down_get_selected
+    FromPortId: value
+    ToNodeId: move_down_add_delta
+    ToPortId: a
+  - FromNodeId: move_left_add_delta
+    FromPortId: result
+    ToNodeId: move_left_clamp
+    ToPortId: value
+  - FromNodeId: move_left_clamp
+    FromPortId: result
+    ToNodeId: move_left_set_selected
+    ToPortId: value
+  - FromNodeId: move_left_get_data
+    FromPortId: value
+    ToNodeId: move_left_get_selected
+    ToPortId: target
+  - FromNodeId: move_left_get_data
+    FromPortId: value
+    ToNodeId: move_left_set_selected
+    ToPortId: target
+  - FromNodeId: move_left_get_data
+    FromPortId: value
+    ToNodeId: move_left_set_status
+    ToPortId: target
+  - FromNodeId: move_left_get_detail
+    FromPortId: value
+    ToNodeId: move_left_refresh_detail
+    ToPortId: target
+  - FromNodeId: move_left_get_grid
+    FromPortId: value
+    ToNodeId: move_left_refresh_grid
+    ToPortId: target
+  - FromNodeId: move_left_get_selected
+    FromPortId: value
+    ToNodeId: move_left_add_delta
+    ToPortId: a
+  - FromNodeId: move_right_add_delta
+    FromPortId: result
+    ToNodeId: move_right_clamp
+    ToPortId: value
+  - FromNodeId: move_right_clamp
+    FromPortId: result
+    ToNodeId: move_right_set_selected
+    ToPortId: value
+  - FromNodeId: move_right_get_data
+    FromPortId: value
+    ToNodeId: move_right_get_selected
+    ToPortId: target
+  - FromNodeId: move_right_get_data
+    FromPortId: value
+    ToNodeId: move_right_set_selected
+    ToPortId: target
+  - FromNodeId: move_right_get_data
+    FromPortId: value
+    ToNodeId: move_right_set_status
+    ToPortId: target
+  - FromNodeId: move_right_get_detail
+    FromPortId: value
+    ToNodeId: move_right_refresh_detail
+    ToPortId: target
+  - FromNodeId: move_right_get_grid
+    FromPortId: value
+    ToNodeId: move_right_refresh_grid
+    ToPortId: target
+  - FromNodeId: move_right_get_selected
+    FromPortId: value
+    ToNodeId: move_right_add_delta
+    ToPortId: a
+  - FromNodeId: move_up_add_delta
+    FromPortId: result
+    ToNodeId: move_up_clamp
+    ToPortId: value
+  - FromNodeId: move_up_clamp
+    FromPortId: result
+    ToNodeId: move_up_set_selected
+    ToPortId: value
+  - FromNodeId: move_up_get_data
+    FromPortId: value
+    ToNodeId: move_up_get_selected
+    ToPortId: target
+  - FromNodeId: move_up_get_data
+    FromPortId: value
+    ToNodeId: move_up_set_selected
+    ToPortId: target
+  - FromNodeId: move_up_get_data
+    FromPortId: value
+    ToNodeId: move_up_set_status
+    ToPortId: target
+  - FromNodeId: move_up_get_detail
+    FromPortId: value
+    ToNodeId: move_up_refresh_detail
+    ToPortId: target
+  - FromNodeId: move_up_get_grid
+    FromPortId: value
+    ToNodeId: move_up_refresh_grid
+    ToPortId: target
+  - FromNodeId: move_up_get_selected
+    FromPortId: value
+    ToNodeId: move_up_add_delta
+    ToPortId: a
+  eventEntries:
+  - EventName: MoveDownRequested
+    NodeId: event_move_down
+  - EventName: MoveLeftRequested
+    NodeId: event_move_left
+  - EventName: MoveRightRequested
+    NodeId: event_move_right
+  - EventName: MoveUpRequested
+    NodeId: event_move_up

@@ -1,0 +1,1325 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: InventoryFilterSortBehavior.compiled
+  m_EditorClassIdentifier: Assembly-CSharp::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: InventoryFilterSortBehavior
+  sourceGuid: 65e4cdf5e70724807af3f4957405f2be
+  sourcePath: Assets/BlueprintSystem/Samples~/Inventory/Behavior/InventoryFilterSortBehavior.blueprint.json
+  sourceHash: 484a1bdf31ab00e95236433f16826545aa4b36063e63a7b8394f739aa882a864
+  manifestHash: ebf151bc2134c6c49dab332d29fcf3affbe1badae5fbe9625f10060673afb818
+  variables:
+  - Id: var_inventory_data_blueprint
+    Name: inventory_data_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json
+  - Id: var_inventory_header_presenter_blueprint
+    Name: inventory_header_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json
+  - Id: var_inventory_grid_presenter_blueprint
+    Name: inventory_grid_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json
+  - Id: var_inventory_detail_presenter_blueprint
+    Name: inventory_detail_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json
+  - Id: var_inventory_confirm_presenter_blueprint
+    Name: inventory_confirm_presenter_blueprint
+    Type: Blueprint
+    DefaultValueJson: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json"'
+    Scope: runtime
+    Exposed: 0
+    Persistent: 0
+    Description: Target Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryConfirmPresenter.blueprint.json
+  bindings: []
+  components: []
+  nodes:
+  - Id: event_filter_all
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"SetFilterAll"'
+  - Id: filter_all_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: filter_all_set_index
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: 0
+  - Id: filter_all_set_label
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"All"'
+  - Id: filter_all_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Filter: All."'
+  - Id: filter_all_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_all_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_all_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: filter_all_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: filter_all_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: filter_all_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_filter_materials
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"SetFilterMaterials"'
+  - Id: filter_materials_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: filter_materials_set_index
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: 1
+  - Id: filter_materials_set_label
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Materials"'
+  - Id: filter_materials_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Filter: Materials."'
+  - Id: filter_materials_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_materials_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_materials_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: filter_materials_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: filter_materials_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: filter_materials_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_filter_consumables
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"SetFilterConsumables"'
+  - Id: filter_consumables_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: filter_consumables_set_index
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: 2
+  - Id: filter_consumables_set_label
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Consumables"'
+  - Id: filter_consumables_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Filter: Consumables."'
+  - Id: filter_consumables_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_consumables_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_consumables_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: filter_consumables_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: filter_consumables_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: filter_consumables_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_filter_equipment
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"SetFilterEquipment"'
+  - Id: filter_equipment_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: filter_equipment_set_index
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: 3
+  - Id: filter_equipment_set_label
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Equipment"'
+  - Id: filter_equipment_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Filter: Equipment."'
+  - Id: filter_equipment_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_equipment_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_equipment_get_grid
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_grid_presenter_blueprint"'
+  - Id: filter_equipment_refresh_grid
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryGridPresenter.blueprint.json"'
+  - Id: filter_equipment_get_detail
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_detail_presenter_blueprint"'
+  - Id: filter_equipment_refresh_detail
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryDetailPresenter.blueprint.json"'
+  - Id: event_filter_next
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"FilterNextRequested"'
+  - Id: filter_next_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: filter_next_get_index
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: filter_next_add
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 1
+  - Id: filter_next_mod
+    TypeId: Math.Modulo
+    ExecutorId: Math.Modulo
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 4
+  - Id: filter_next_set_index
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: event_filter_prev
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"FilterPrevRequested"'
+  - Id: filter_prev_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: filter_prev_get_index
+    TypeId: Blueprint.GetVariable
+    ExecutorId: Blueprint.GetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: filter_prev_add
+    TypeId: Math.Add
+    ExecutorId: Math.Add
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 3
+  - Id: filter_prev_mod
+    TypeId: Math.Modulo
+    ExecutorId: Math.Modulo
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 4
+  - Id: filter_prev_set_index
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_index"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+  - Id: event_sort_requested
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"SortRequested"'
+  - Id: sort_get_data
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_data_blueprint"'
+  - Id: sort_set_status
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"status_message"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Sort requires a sort/comparator node; skipped by no-new-node constraint."'
+  - Id: sort_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: sort_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_next_compare_0
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 0
+  - Id: filter_next_branch_0
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_next_set_label_0
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"All"'
+  - Id: filter_next_0_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_next_0_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_next_compare_1
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 1
+  - Id: filter_next_branch_1
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_next_set_label_1
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Materials"'
+  - Id: filter_next_1_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_next_1_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_next_compare_2
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 2
+  - Id: filter_next_branch_2
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_next_set_label_2
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Consumables"'
+  - Id: filter_next_2_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_next_2_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_next_compare_3
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 3
+  - Id: filter_next_branch_3
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_next_set_label_3
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Equipment"'
+  - Id: filter_next_3_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_next_3_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_prev_compare_0
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 0
+  - Id: filter_prev_branch_0
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_prev_set_label_0
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"All"'
+  - Id: filter_prev_0_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_prev_0_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_prev_compare_1
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 1
+  - Id: filter_prev_branch_1
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_prev_set_label_1
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Materials"'
+  - Id: filter_prev_1_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_prev_1_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_prev_compare_2
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 2
+  - Id: filter_prev_branch_2
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_prev_set_label_2
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Consumables"'
+  - Id: filter_prev_2_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_prev_2_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  - Id: filter_prev_compare_3
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: 3
+  - Id: filter_prev_branch_3
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: filter_prev_set_label_3
+    TypeId: Blueprint.SetVariable
+    ExecutorId: Blueprint.SetVariable
+    Properties:
+    - Id: name
+      JsonValue: '"filter_label"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/Data/InventoryData.blueprint.json"'
+    - Id: value
+      JsonValue: '"Equipment"'
+  - Id: filter_prev_3_get_header
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"inventory_header_presenter_blueprint"'
+  - Id: filter_prev_3_refresh_header
+    TypeId: Blueprint.TriggerEvent
+    ExecutorId: Blueprint.TriggerEvent
+    Properties:
+    - Id: eventName
+      JsonValue: '"RefreshRequested"'
+    - Id: target
+      JsonValue: '"Assets/Game/Blueprint/Inventory/UI/Presenters/InventoryHeaderPresenter.blueprint.json"'
+  execEdges:
+  - FromNodeId: event_filter_all
+    FromPortId: execOut
+    ToNodeId: filter_all_set_index
+    ToPortId: execIn
+  - FromNodeId: event_filter_consumables
+    FromPortId: execOut
+    ToNodeId: filter_consumables_set_index
+    ToPortId: execIn
+  - FromNodeId: event_filter_equipment
+    FromPortId: execOut
+    ToNodeId: filter_equipment_set_index
+    ToPortId: execIn
+  - FromNodeId: event_filter_materials
+    FromPortId: execOut
+    ToNodeId: filter_materials_set_index
+    ToPortId: execIn
+  - FromNodeId: event_filter_next
+    FromPortId: execOut
+    ToNodeId: filter_next_set_index
+    ToPortId: execIn
+  - FromNodeId: event_filter_prev
+    FromPortId: execOut
+    ToNodeId: filter_prev_set_index
+    ToPortId: execIn
+  - FromNodeId: event_sort_requested
+    FromPortId: execOut
+    ToNodeId: sort_set_status
+    ToPortId: execIn
+  - FromNodeId: filter_all_refresh_grid
+    FromPortId: execOut
+    ToNodeId: filter_all_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: filter_all_refresh_header
+    FromPortId: execOut
+    ToNodeId: filter_all_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: filter_all_set_index
+    FromPortId: execOut
+    ToNodeId: filter_all_set_label
+    ToPortId: execIn
+  - FromNodeId: filter_all_set_label
+    FromPortId: execOut
+    ToNodeId: filter_all_set_status
+    ToPortId: execIn
+  - FromNodeId: filter_all_set_status
+    FromPortId: execOut
+    ToNodeId: filter_all_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_consumables_refresh_grid
+    FromPortId: execOut
+    ToNodeId: filter_consumables_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: filter_consumables_refresh_header
+    FromPortId: execOut
+    ToNodeId: filter_consumables_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: filter_consumables_set_index
+    FromPortId: execOut
+    ToNodeId: filter_consumables_set_label
+    ToPortId: execIn
+  - FromNodeId: filter_consumables_set_label
+    FromPortId: execOut
+    ToNodeId: filter_consumables_set_status
+    ToPortId: execIn
+  - FromNodeId: filter_consumables_set_status
+    FromPortId: execOut
+    ToNodeId: filter_consumables_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_equipment_refresh_grid
+    FromPortId: execOut
+    ToNodeId: filter_equipment_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: filter_equipment_refresh_header
+    FromPortId: execOut
+    ToNodeId: filter_equipment_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: filter_equipment_set_index
+    FromPortId: execOut
+    ToNodeId: filter_equipment_set_label
+    ToPortId: execIn
+  - FromNodeId: filter_equipment_set_label
+    FromPortId: execOut
+    ToNodeId: filter_equipment_set_status
+    ToPortId: execIn
+  - FromNodeId: filter_equipment_set_status
+    FromPortId: execOut
+    ToNodeId: filter_equipment_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_materials_refresh_grid
+    FromPortId: execOut
+    ToNodeId: filter_materials_refresh_detail
+    ToPortId: execIn
+  - FromNodeId: filter_materials_refresh_header
+    FromPortId: execOut
+    ToNodeId: filter_materials_refresh_grid
+    ToPortId: execIn
+  - FromNodeId: filter_materials_set_index
+    FromPortId: execOut
+    ToNodeId: filter_materials_set_label
+    ToPortId: execIn
+  - FromNodeId: filter_materials_set_label
+    FromPortId: execOut
+    ToNodeId: filter_materials_set_status
+    ToPortId: execIn
+  - FromNodeId: filter_materials_set_status
+    FromPortId: execOut
+    ToNodeId: filter_materials_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_0
+    FromPortId: false
+    ToNodeId: filter_next_branch_1
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_0
+    FromPortId: true
+    ToNodeId: filter_next_set_label_0
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_1
+    FromPortId: false
+    ToNodeId: filter_next_branch_2
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_1
+    FromPortId: true
+    ToNodeId: filter_next_set_label_1
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_2
+    FromPortId: false
+    ToNodeId: filter_next_branch_3
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_2
+    FromPortId: true
+    ToNodeId: filter_next_set_label_2
+    ToPortId: execIn
+  - FromNodeId: filter_next_branch_3
+    FromPortId: true
+    ToNodeId: filter_next_set_label_3
+    ToPortId: execIn
+  - FromNodeId: filter_next_set_index
+    FromPortId: execOut
+    ToNodeId: filter_next_branch_0
+    ToPortId: execIn
+  - FromNodeId: filter_next_set_label_0
+    FromPortId: execOut
+    ToNodeId: filter_next_0_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_next_set_label_1
+    FromPortId: execOut
+    ToNodeId: filter_next_1_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_next_set_label_2
+    FromPortId: execOut
+    ToNodeId: filter_next_2_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_next_set_label_3
+    FromPortId: execOut
+    ToNodeId: filter_next_3_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_0
+    FromPortId: false
+    ToNodeId: filter_prev_branch_1
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_0
+    FromPortId: true
+    ToNodeId: filter_prev_set_label_0
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_1
+    FromPortId: false
+    ToNodeId: filter_prev_branch_2
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_1
+    FromPortId: true
+    ToNodeId: filter_prev_set_label_1
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_2
+    FromPortId: false
+    ToNodeId: filter_prev_branch_3
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_2
+    FromPortId: true
+    ToNodeId: filter_prev_set_label_2
+    ToPortId: execIn
+  - FromNodeId: filter_prev_branch_3
+    FromPortId: true
+    ToNodeId: filter_prev_set_label_3
+    ToPortId: execIn
+  - FromNodeId: filter_prev_set_index
+    FromPortId: execOut
+    ToNodeId: filter_prev_branch_0
+    ToPortId: execIn
+  - FromNodeId: filter_prev_set_label_0
+    FromPortId: execOut
+    ToNodeId: filter_prev_0_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_prev_set_label_1
+    FromPortId: execOut
+    ToNodeId: filter_prev_1_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_prev_set_label_2
+    FromPortId: execOut
+    ToNodeId: filter_prev_2_refresh_header
+    ToPortId: execIn
+  - FromNodeId: filter_prev_set_label_3
+    FromPortId: execOut
+    ToNodeId: filter_prev_3_refresh_header
+    ToPortId: execIn
+  - FromNodeId: sort_set_status
+    FromPortId: execOut
+    ToNodeId: sort_refresh_header
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: filter_all_get_data
+    FromPortId: value
+    ToNodeId: filter_all_set_index
+    ToPortId: target
+  - FromNodeId: filter_all_get_data
+    FromPortId: value
+    ToNodeId: filter_all_set_label
+    ToPortId: target
+  - FromNodeId: filter_all_get_data
+    FromPortId: value
+    ToNodeId: filter_all_set_status
+    ToPortId: target
+  - FromNodeId: filter_all_get_detail
+    FromPortId: value
+    ToNodeId: filter_all_refresh_detail
+    ToPortId: target
+  - FromNodeId: filter_all_get_grid
+    FromPortId: value
+    ToNodeId: filter_all_refresh_grid
+    ToPortId: target
+  - FromNodeId: filter_all_get_header
+    FromPortId: value
+    ToNodeId: filter_all_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_consumables_get_data
+    FromPortId: value
+    ToNodeId: filter_consumables_set_index
+    ToPortId: target
+  - FromNodeId: filter_consumables_get_data
+    FromPortId: value
+    ToNodeId: filter_consumables_set_label
+    ToPortId: target
+  - FromNodeId: filter_consumables_get_data
+    FromPortId: value
+    ToNodeId: filter_consumables_set_status
+    ToPortId: target
+  - FromNodeId: filter_consumables_get_detail
+    FromPortId: value
+    ToNodeId: filter_consumables_refresh_detail
+    ToPortId: target
+  - FromNodeId: filter_consumables_get_grid
+    FromPortId: value
+    ToNodeId: filter_consumables_refresh_grid
+    ToPortId: target
+  - FromNodeId: filter_consumables_get_header
+    FromPortId: value
+    ToNodeId: filter_consumables_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_equipment_get_data
+    FromPortId: value
+    ToNodeId: filter_equipment_set_index
+    ToPortId: target
+  - FromNodeId: filter_equipment_get_data
+    FromPortId: value
+    ToNodeId: filter_equipment_set_label
+    ToPortId: target
+  - FromNodeId: filter_equipment_get_data
+    FromPortId: value
+    ToNodeId: filter_equipment_set_status
+    ToPortId: target
+  - FromNodeId: filter_equipment_get_detail
+    FromPortId: value
+    ToNodeId: filter_equipment_refresh_detail
+    ToPortId: target
+  - FromNodeId: filter_equipment_get_grid
+    FromPortId: value
+    ToNodeId: filter_equipment_refresh_grid
+    ToPortId: target
+  - FromNodeId: filter_equipment_get_header
+    FromPortId: value
+    ToNodeId: filter_equipment_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_materials_get_data
+    FromPortId: value
+    ToNodeId: filter_materials_set_index
+    ToPortId: target
+  - FromNodeId: filter_materials_get_data
+    FromPortId: value
+    ToNodeId: filter_materials_set_label
+    ToPortId: target
+  - FromNodeId: filter_materials_get_data
+    FromPortId: value
+    ToNodeId: filter_materials_set_status
+    ToPortId: target
+  - FromNodeId: filter_materials_get_detail
+    FromPortId: value
+    ToNodeId: filter_materials_refresh_detail
+    ToPortId: target
+  - FromNodeId: filter_materials_get_grid
+    FromPortId: value
+    ToNodeId: filter_materials_refresh_grid
+    ToPortId: target
+  - FromNodeId: filter_materials_get_header
+    FromPortId: value
+    ToNodeId: filter_materials_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_next_0_get_header
+    FromPortId: value
+    ToNodeId: filter_next_0_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_next_1_get_header
+    FromPortId: value
+    ToNodeId: filter_next_1_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_next_2_get_header
+    FromPortId: value
+    ToNodeId: filter_next_2_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_next_3_get_header
+    FromPortId: value
+    ToNodeId: filter_next_3_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_next_add
+    FromPortId: result
+    ToNodeId: filter_next_mod
+    ToPortId: a
+  - FromNodeId: filter_next_compare_0
+    FromPortId: result
+    ToNodeId: filter_next_branch_0
+    ToPortId: condition
+  - FromNodeId: filter_next_compare_1
+    FromPortId: result
+    ToNodeId: filter_next_branch_1
+    ToPortId: condition
+  - FromNodeId: filter_next_compare_2
+    FromPortId: result
+    ToNodeId: filter_next_branch_2
+    ToPortId: condition
+  - FromNodeId: filter_next_compare_3
+    FromPortId: result
+    ToNodeId: filter_next_branch_3
+    ToPortId: condition
+  - FromNodeId: filter_next_get_data
+    FromPortId: value
+    ToNodeId: filter_next_get_index
+    ToPortId: target
+  - FromNodeId: filter_next_get_data
+    FromPortId: value
+    ToNodeId: filter_next_set_index
+    ToPortId: target
+  - FromNodeId: filter_next_get_data
+    FromPortId: value
+    ToNodeId: filter_next_set_label_0
+    ToPortId: target
+  - FromNodeId: filter_next_get_data
+    FromPortId: value
+    ToNodeId: filter_next_set_label_1
+    ToPortId: target
+  - FromNodeId: filter_next_get_data
+    FromPortId: value
+    ToNodeId: filter_next_set_label_2
+    ToPortId: target
+  - FromNodeId: filter_next_get_data
+    FromPortId: value
+    ToNodeId: filter_next_set_label_3
+    ToPortId: target
+  - FromNodeId: filter_next_get_index
+    FromPortId: value
+    ToNodeId: filter_next_add
+    ToPortId: a
+  - FromNodeId: filter_next_mod
+    FromPortId: result
+    ToNodeId: filter_next_compare_0
+    ToPortId: left
+  - FromNodeId: filter_next_mod
+    FromPortId: result
+    ToNodeId: filter_next_compare_1
+    ToPortId: left
+  - FromNodeId: filter_next_mod
+    FromPortId: result
+    ToNodeId: filter_next_compare_2
+    ToPortId: left
+  - FromNodeId: filter_next_mod
+    FromPortId: result
+    ToNodeId: filter_next_compare_3
+    ToPortId: left
+  - FromNodeId: filter_next_mod
+    FromPortId: result
+    ToNodeId: filter_next_set_index
+    ToPortId: value
+  - FromNodeId: filter_prev_0_get_header
+    FromPortId: value
+    ToNodeId: filter_prev_0_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_prev_1_get_header
+    FromPortId: value
+    ToNodeId: filter_prev_1_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_prev_2_get_header
+    FromPortId: value
+    ToNodeId: filter_prev_2_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_prev_3_get_header
+    FromPortId: value
+    ToNodeId: filter_prev_3_refresh_header
+    ToPortId: target
+  - FromNodeId: filter_prev_add
+    FromPortId: result
+    ToNodeId: filter_prev_mod
+    ToPortId: a
+  - FromNodeId: filter_prev_compare_0
+    FromPortId: result
+    ToNodeId: filter_prev_branch_0
+    ToPortId: condition
+  - FromNodeId: filter_prev_compare_1
+    FromPortId: result
+    ToNodeId: filter_prev_branch_1
+    ToPortId: condition
+  - FromNodeId: filter_prev_compare_2
+    FromPortId: result
+    ToNodeId: filter_prev_branch_2
+    ToPortId: condition
+  - FromNodeId: filter_prev_compare_3
+    FromPortId: result
+    ToNodeId: filter_prev_branch_3
+    ToPortId: condition
+  - FromNodeId: filter_prev_get_data
+    FromPortId: value
+    ToNodeId: filter_prev_get_index
+    ToPortId: target
+  - FromNodeId: filter_prev_get_data
+    FromPortId: value
+    ToNodeId: filter_prev_set_index
+    ToPortId: target
+  - FromNodeId: filter_prev_get_data
+    FromPortId: value
+    ToNodeId: filter_prev_set_label_0
+    ToPortId: target
+  - FromNodeId: filter_prev_get_data
+    FromPortId: value
+    ToNodeId: filter_prev_set_label_1
+    ToPortId: target
+  - FromNodeId: filter_prev_get_data
+    FromPortId: value
+    ToNodeId: filter_prev_set_label_2
+    ToPortId: target
+  - FromNodeId: filter_prev_get_data
+    FromPortId: value
+    ToNodeId: filter_prev_set_label_3
+    ToPortId: target
+  - FromNodeId: filter_prev_get_index
+    FromPortId: value
+    ToNodeId: filter_prev_add
+    ToPortId: a
+  - FromNodeId: filter_prev_mod
+    FromPortId: result
+    ToNodeId: filter_prev_compare_0
+    ToPortId: left
+  - FromNodeId: filter_prev_mod
+    FromPortId: result
+    ToNodeId: filter_prev_compare_1
+    ToPortId: left
+  - FromNodeId: filter_prev_mod
+    FromPortId: result
+    ToNodeId: filter_prev_compare_2
+    ToPortId: left
+  - FromNodeId: filter_prev_mod
+    FromPortId: result
+    ToNodeId: filter_prev_compare_3
+    ToPortId: left
+  - FromNodeId: filter_prev_mod
+    FromPortId: result
+    ToNodeId: filter_prev_set_index
+    ToPortId: value
+  - FromNodeId: sort_get_data
+    FromPortId: value
+    ToNodeId: sort_set_status
+    ToPortId: target
+  - FromNodeId: sort_get_header
+    FromPortId: value
+    ToNodeId: sort_refresh_header
+    ToPortId: target
+  eventEntries:
+  - EventName: FilterNextRequested
+    NodeId: event_filter_next
+  - EventName: FilterPrevRequested
+    NodeId: event_filter_prev
+  - EventName: SetFilterAll
+    NodeId: event_filter_all
+  - EventName: SetFilterConsumables
+    NodeId: event_filter_consumables
+  - EventName: SetFilterEquipment
+    NodeId: event_filter_equipment
+  - EventName: SetFilterMaterials
+    NodeId: event_filter_materials
+  - EventName: SortRequested
+    NodeId: event_sort_requested
