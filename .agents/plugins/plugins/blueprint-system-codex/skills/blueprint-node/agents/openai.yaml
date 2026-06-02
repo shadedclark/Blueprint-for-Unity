@@ -1,0 +1,6 @@
+interface:
+  display_name: "Blueprint Node"
+  short_description: "Add public BlueprintSystem nodes safely"
+  default_prompt: "Use $blueprint-node to add the missing BlueprintSystem node."
+policy:
+  allow_implicit_invocation: true

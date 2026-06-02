@@ -1,0 +1,6 @@
+interface:
+  display_name: "Blueprint Prefab Annotation"
+  short_description: "Wire annotated prefabs to BlueprintSystem"
+  default_prompt: "Use $blueprint-prefab-annotation to wire this prefab from its annotation document."
+policy:
+  allow_implicit_invocation: true

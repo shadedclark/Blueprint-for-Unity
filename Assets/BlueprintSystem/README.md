@@ -10,6 +10,36 @@ Primary rule:
 Runtime code must not depend on UnityEditor or Graph Toolkit.
 ```
 
+## Codex Companion Plugin
+
+This repository includes a Codex companion plugin in two forms:
+
+- Project-local marketplace for this repo: `.agents/plugins/marketplace.json`
+- Package-contained marketplace for Git/UPM installs: `Assets/BlueprintSystem/CodexPlugin~/marketplace.json`
+
+For a project that installed BlueprintSystem as a Git/UPM package, sync the package-contained
+plugin into that Unity project's Codex marketplace from the project root:
+
+```bash
+python3 Assets/BlueprintSystem/CodexPlugin~/scripts/install_blueprint_codex_plugin.py .
+```
+
+If the package lives under `Packages/` or `Library/PackageCache/`, run the same script by absolute
+path and pass the Unity project root as the argument. The script copies the companion plugin to
+`<ProjectRoot>/.agents/plugins/plugins/blueprint-system-codex` and updates
+`<ProjectRoot>/.agents/plugins/marketplace.json`.
+
+After the marketplace is available in Codex, use these direct skill entrypoints instead of manually
+pasting agent Markdown:
+
+- `$blueprint-feature` for complete feature implementation through `Agents/FeatureImplementationEntryAgent.md`.
+- `$blueprint-prefab-annotation` for existing prefab plus annotation workflows through `Agents/PrefabAnnotationBlueprintAgent.md`.
+- `$blueprint-node` for explicitly approved public BlueprintSystem node work.
+
+The companion skills are thin entrypoints. They locate the installed BlueprintSystem package and
+read the live `README.md`, `GUIDE.md`, and `Agents/*.md` files before acting, so Git or UPM package
+updates keep the Codex workflow aligned with the package docs.
+
 ## 1. Mental Model
 
 BlueprintSystem is a JSON-first blueprint runtime and editor bridge.

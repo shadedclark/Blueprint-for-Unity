@@ -1,0 +1,6 @@
+interface:
+  display_name: "Blueprint Feature"
+  short_description: "Implement Unity features through BlueprintSystem"
+  default_prompt: "Use $blueprint-feature to implement this Unity gameplay or UI feature."
+policy:
+  allow_implicit_invocation: true

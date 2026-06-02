@@ -1,0 +1,35 @@
+{
+  "name": "blueprint-system-codex",
+  "version": "0.1.0",
+  "description": "Codex entrypoints for the Unity BlueprintSystem package agents and MCP bridge.",
+  "author": {
+    "name": "ShadedClark"
+  },
+  "license": "MIT",
+  "keywords": [
+    "unity",
+    "blueprint",
+    "codex",
+    "mcp",
+    "game-development"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "BlueprintSystem",
+    "shortDescription": "Call BlueprintSystem agents directly in Codex.",
+    "longDescription": "BlueprintSystem exposes direct Codex skills for feature implementation, prefab annotation binding, and public node creation while reusing the Unity package's live agent documents and MCP bridge tools.",
+    "developerName": "ShadedClark",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use $blueprint-feature to implement this Unity UI feature.",
+      "Use $blueprint-prefab-annotation to wire this prefab from annotations.",
+      "Use $blueprint-node to add the missing BlueprintSystem node."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
