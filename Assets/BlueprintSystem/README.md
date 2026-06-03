@@ -32,6 +32,12 @@ current directory. The script copies the companion plugin to
 `<ProjectRoot>/.agents/plugins/marketplace.json`. You can still pass an explicit project root when
 needed.
 
+Register the project root as a Codex marketplace before opening the plugin link:
+
+```bash
+codex plugin marketplace add <ProjectRoot>
+```
+
 After the marketplace is available in Codex, use these direct skill entrypoints instead of manually
 pasting agent Markdown:
 

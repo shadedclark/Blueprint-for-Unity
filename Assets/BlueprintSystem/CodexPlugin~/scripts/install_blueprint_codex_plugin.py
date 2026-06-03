@@ -175,7 +175,9 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
         "packageRoot": str(package_root),
         "sourcePlugin": str(source_plugin),
         "targetPlugin": str(target_plugin),
+        "marketplaceRoot": str(project_root),
         "marketplacePath": str(target_marketplace),
+        "marketplaceAddCommand": f"codex plugin marketplace add {project_root}",
         "viewUrl": build_deeplink(target_marketplace, share=False),
         "shareUrl": build_deeplink(target_marketplace, share=True),
     }
