@@ -5137,6 +5137,12 @@ namespace BlueprintSystem.Tests
 
         private static void WriteManifest(string assetPath, string description)
         {
+            string directory = Path.GetDirectoryName(assetPath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             File.WriteAllText(assetPath, "{\n" +
                 "  \"schemaVersion\": \"0.1\",\n" +
                 "  \"typeId\": \"Test.CompiledManifestStale\",\n" +
@@ -5153,14 +5159,7 @@ namespace BlueprintSystem.Tests
 
         private static BlueprintNodeManifestCollection LoadManifests()
         {
-            List<string> texts = new List<string>();
-            string[] files = Directory.GetFiles("Assets/BlueprintSystem/Specs/Nodes", "*.node.json");
-            for (int i = 0; i < files.Length; i++)
-            {
-                texts.Add(File.ReadAllText(files[i]));
-            }
-
-            return BlueprintNodeManifestCollection.FromJsonTexts(texts);
+            return BlueprintNodeManifestAssetUtility.LoadManifests();
         }
 
         private enum TestInventoryItemRarity

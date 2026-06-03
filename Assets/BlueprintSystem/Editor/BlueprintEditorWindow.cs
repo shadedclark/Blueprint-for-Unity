@@ -272,18 +272,7 @@ namespace BlueprintSystem.Editor
 
         private static BlueprintNodeManifestCollection LoadProjectManifests()
         {
-            string root = Path.Combine(Application.dataPath, "BlueprintSystem/Specs/Nodes");
-            List<string> jsonTexts = new List<string>();
-            if (Directory.Exists(root))
-            {
-                string[] files = Directory.GetFiles(root, "*.node.json", SearchOption.TopDirectoryOnly);
-                for (int i = 0; i < files.Length; i++)
-                {
-                    jsonTexts.Add(File.ReadAllText(files[i]));
-                }
-            }
-
-            return BlueprintNodeManifestCollection.FromJsonTexts(jsonTexts);
+            return BlueprintNodeManifestAssetUtility.LoadManifests();
         }
 
         internal static bool IsBlueprintJsonPath(string path)

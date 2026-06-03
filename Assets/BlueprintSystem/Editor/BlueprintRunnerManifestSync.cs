@@ -12,7 +12,6 @@ namespace BlueprintSystem.Editor
 {
     public static class BlueprintCompiledAssetCompiler
     {
-        private const string NodeManifestRoot = "Assets/BlueprintSystem/Specs/Nodes";
         private const string CompiledAssetSuffix = ".compiled.asset";
 
         public static bool CompileBlueprintAtPath(string sourcePath, bool log, out BlueprintCompiledAsset compiledAsset)
@@ -280,44 +279,7 @@ namespace BlueprintSystem.Editor
 
         internal static BlueprintNodeManifestCollection LoadProjectManifests(out Dictionary<string, string> manifestTextsByTypeId)
         {
-            manifestTextsByTypeId = new Dictionary<string, string>(StringComparer.Ordinal);
-            BlueprintNodeManifestCollection manifests = new BlueprintNodeManifestCollection();
-            if (!AssetDatabase.IsValidFolder(NodeManifestRoot))
-            {
-                return manifests;
-            }
-
-            string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { NodeManifestRoot });
-            for (int i = 0; i < guids.Length; i++)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
-                if (!path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                TextAsset manifestAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-                if (manifestAsset == null)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    BlueprintNodeManifest manifest = BlueprintNodeManifest.FromJson(manifestAsset.text);
-                    if (manifest != null && !string.IsNullOrEmpty(manifest.TypeId))
-                    {
-                        manifests.Add(manifest);
-                        manifestTextsByTypeId[manifest.TypeId] = manifestAsset.text;
-                    }
-                }
-                catch (Exception exception)
-                {
-                    Debug.LogWarning("[Blueprint] Could not parse node manifest at '" + path + "': " + exception.Message, manifestAsset);
-                }
-            }
-
-            return manifests;
+            return BlueprintNodeManifestAssetUtility.LoadManifests(out manifestTextsByTypeId);
         }
 
         private static bool TryBuildCompilationData(
@@ -774,6 +736,125 @@ namespace BlueprintSystem.Editor
             public string SourceHash;
             public string ManifestHash;
             public List<BlueprintCompiledComponent> Components;
+        }
+    }
+
+    internal static class BlueprintNodeManifestAssetUtility
+    {
+        private const string PackageManifestRoot = "Packages/com.shadedclark.blueprint-system/Specs/Nodes";
+        private const string ProjectManifestRoot = "Assets/BlueprintSystem/Specs/Nodes";
+
+        internal static BlueprintNodeManifestCollection LoadManifests()
+        {
+            Dictionary<string, string> manifestTextsByTypeId;
+            return LoadManifests(out manifestTextsByTypeId);
+        }
+
+        internal static BlueprintNodeManifestCollection LoadManifests(out Dictionary<string, string> manifestTextsByTypeId)
+        {
+            manifestTextsByTypeId = new Dictionary<string, string>(StringComparer.Ordinal);
+            BlueprintNodeManifestCollection manifests = new BlueprintNodeManifestCollection();
+            List<string> manifestPaths = FindManifestAssetPaths();
+
+            for (int i = 0; i < manifestPaths.Count; i++)
+            {
+                string path = manifestPaths[i];
+                TextAsset manifestAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                if (manifestAsset == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    BlueprintNodeManifest manifest = BlueprintNodeManifest.FromJson(manifestAsset.text);
+                    if (manifest != null && !string.IsNullOrEmpty(manifest.TypeId))
+                    {
+                        manifests.Add(manifest);
+                        manifestTextsByTypeId[manifest.TypeId] = manifestAsset.text;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning("[Blueprint] Could not parse node manifest at '" + path + "': " + exception.Message, manifestAsset);
+                }
+            }
+
+            return manifests;
+        }
+
+        internal static bool IsManifestPath(string path)
+        {
+            path = NormalizeAssetPath(path);
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return IsPathInRoot(path, PackageManifestRoot) || IsPathInRoot(path, ProjectManifestRoot);
+        }
+
+        private static List<string> FindManifestAssetPaths()
+        {
+            List<string> paths = new List<string>();
+            List<string> roots = FindManifestRoots();
+            for (int i = 0; i < roots.Count; i++)
+            {
+                List<string> rootPaths = FindManifestAssetPathsInRoot(roots[i]);
+                rootPaths.Sort(StringComparer.OrdinalIgnoreCase);
+                paths.AddRange(rootPaths);
+            }
+
+            return paths;
+        }
+
+        private static List<string> FindManifestRoots()
+        {
+            List<string> roots = new List<string>();
+            AddManifestRootIfValid(roots, PackageManifestRoot);
+            AddManifestRootIfValid(roots, ProjectManifestRoot);
+            return roots;
+        }
+
+        private static void AddManifestRootIfValid(List<string> roots, string root)
+        {
+            root = NormalizeAssetPath(root);
+            if (string.IsNullOrEmpty(root) || !AssetDatabase.IsValidFolder(root) || roots.Contains(root))
+            {
+                return;
+            }
+
+            roots.Add(root);
+        }
+
+        private static List<string> FindManifestAssetPathsInRoot(string root)
+        {
+            List<string> paths = new List<string>();
+            string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { root });
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string path = NormalizeAssetPath(AssetDatabase.GUIDToAssetPath(guids[i]));
+                if (IsPathInRoot(path, root) && path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
+                {
+                    paths.Add(path);
+                }
+            }
+
+            return paths;
+        }
+
+        private static bool IsPathInRoot(string path, string root)
+        {
+            path = NormalizeAssetPath(path);
+            root = NormalizeAssetPath(root);
+            return !string.IsNullOrEmpty(path) &&
+                   !string.IsNullOrEmpty(root) &&
+                   path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeAssetPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
         }
     }
 
@@ -1329,9 +1410,7 @@ namespace BlueprintSystem.Editor
 
         private static bool IsNodeManifestPath(string path)
         {
-            return !string.IsNullOrEmpty(path) &&
-                   path.StartsWith("Assets/BlueprintSystem/Specs/Nodes/", StringComparison.OrdinalIgnoreCase) &&
-                   path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase);
+            return BlueprintNodeManifestAssetUtility.IsManifestPath(path);
         }
 
         private static string NormalizeAssetPath(string path)
