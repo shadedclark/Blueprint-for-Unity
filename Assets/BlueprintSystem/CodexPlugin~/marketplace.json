@@ -1,7 +1,7 @@
 {
-  "name": "personal",
+  "name": "blueprint-system-codex",
   "interface": {
-    "displayName": "Personal"
+    "displayName": "BlueprintSystem Codex"
   },
   "plugins": [
     {

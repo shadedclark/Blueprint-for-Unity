@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -98,17 +99,34 @@ def find_blueprint_package(project_root: Path, script_path: Path) -> Path:
     )
 
 
-def load_marketplace(path: Path) -> dict[str, Any]:
+def title_from_slug(value: str) -> str:
+    return " ".join(part.capitalize() for part in value.split("-") if part)
+
+
+def slug_from_name(value: str) -> str:
+    with_word_breaks = re.sub(r"(?<!^)(?=[A-Z])", "-", value)
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", with_word_breaks).strip("-").lower()
+    return re.sub(r"-{2,}", "-", slug) or "unity-project"
+
+
+def default_marketplace_name(project_root: Path) -> str:
+    return f"{slug_from_name(project_root.name)}-blueprint"
+
+
+def load_marketplace(path: Path, marketplace_name: str) -> dict[str, Any]:
     if path.is_file():
         payload = read_json(path)
-        payload.setdefault("name", DEFAULT_MARKETPLACE_NAME)
-        payload.setdefault("interface", {"displayName": "Personal"})
+        if payload.get("name") in (None, "", DEFAULT_MARKETPLACE_NAME):
+            payload["name"] = marketplace_name
+        interface = payload.setdefault("interface", {})
+        if isinstance(interface, dict) and interface.get("displayName") in (None, "", "Personal"):
+            interface["displayName"] = title_from_slug(marketplace_name)
         payload.setdefault("plugins", [])
         return payload
     return {
-        "name": DEFAULT_MARKETPLACE_NAME,
+        "name": marketplace_name,
         "interface": {
-            "displayName": "Personal",
+            "displayName": title_from_slug(marketplace_name),
         },
         "plugins": [],
     }
@@ -157,14 +175,14 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
     if not source_marketplace.is_file():
         raise FileNotFoundError(f"Missing source marketplace file: {source_marketplace}")
 
-    target_plugin = marketplace_root / "plugins" / PLUGIN_NAME
+    target_plugin = project_root / "plugins" / PLUGIN_NAME
     target_marketplace = marketplace_root / "marketplace.json"
 
     if not dry_run:
         target_plugin.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source_plugin, target_plugin, dirs_exist_ok=True)
 
-        marketplace = load_marketplace(target_marketplace)
+        marketplace = load_marketplace(target_marketplace, default_marketplace_name(project_root))
         upsert_marketplace_entry(marketplace)
         write_json(target_marketplace, marketplace)
 
@@ -199,7 +217,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--marketplace-root",
         default="",
-        help="Marketplace root directory. Defaults to <project_root>/.agents/plugins.",
+        help=(
+            "Marketplace manifest directory. Defaults to <project_root>/.agents/plugins. "
+            "Plugin folders are installed under <project_root>/plugins."
+        ),
     )
     parser.add_argument(
         "--dry-run",

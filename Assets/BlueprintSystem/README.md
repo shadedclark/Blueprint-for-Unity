@@ -28,7 +28,7 @@ If the package lives under `Packages/` or `Library/PackageCache/`, run the same 
 path. When no project root argument is provided, the script first infers the Unity project from its
 own package path, so package-cache execution installs into that project instead of the shell's
 current directory. The script copies the companion plugin to
-`<ProjectRoot>/.agents/plugins/plugins/blueprint-system-codex` and updates
+`<ProjectRoot>/plugins/blueprint-system-codex` and updates
 `<ProjectRoot>/.agents/plugins/marketplace.json`. You can still pass an explicit project root when
 needed.
 
