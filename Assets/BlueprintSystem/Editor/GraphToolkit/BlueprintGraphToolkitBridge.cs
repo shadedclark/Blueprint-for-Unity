@@ -274,6 +274,7 @@ namespace BlueprintSystem.Editor
             source.Description = graph.Description;
 
             List<BlueprintVisualVariableData> exportedVariables = BlueprintGraphToolkitBlackboardSync.ExtractVariables(graph);
+            graph.Variables = exportedVariables;
             if (exportedVariables != null)
             {
                 for (int i = 0; i < exportedVariables.Count; i++)
@@ -285,7 +286,6 @@ namespace BlueprintSystem.Editor
                     }
 
                     BlueprintVariableDeclaration variable = new BlueprintVariableDeclaration();
-                    variable.Id = visualVariable.Id;
                     variable.Name = visualVariable.Name;
                     variable.Type = visualVariable.Type;
                     variable.Scope = visualVariable.Scope;

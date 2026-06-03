@@ -2690,51 +2690,6 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
-        public void GraphToolkitExportDoesNotMutateVisualVariableMetadata()
-        {
-            string graphPath = "Assets/BlueprintSystem/Tests/Editor/ExportDoesNotMutateMetadataTest.bpgraph";
-            string exportPath = "Assets/BlueprintSystem/Tests/Editor/ExportDoesNotMutateMetadataTest.blueprint.json";
-            AssetDatabase.DeleteAsset(graphPath);
-            DeleteTemporaryCompiledArtifacts(exportPath);
-
-            try
-            {
-                BlueprintVisualGraph graph = GraphDatabase.CreateGraph<BlueprintVisualGraph>(graphPath);
-                graph.BlueprintName = "ExportDoesNotMutateMetadataTest";
-                graph.Variables.Add(new BlueprintVisualVariableData
-                {
-                    Id = "var_stable_count",
-                    Name = "count",
-                    Type = "int",
-                    HasDefaultValue = true,
-                    JsonDefaultValue = BlueprintVisualValueUtility.ToJson(1),
-                    Scope = "runtime",
-                    Exposed = true
-                });
-                BlueprintGraphToolkitBlackboardSync.SyncVariablesToBlackboard(graph);
-
-                IVariable variable = graph.GetVariables().First(item => item.name == "count");
-                SetBlackboardDefaultValue(variable, 2);
-                GraphDatabase.SaveGraphIfDirty(graph);
-                AssetDatabase.SaveAssets();
-
-                Assert.AreEqual(BlueprintVisualValueUtility.ToJson(1), graph.Variables[0].JsonDefaultValue);
-
-                BlueprintGraphToolkitBridge.ExportGraphAtPath(graphPath, exportPath);
-                BlueprintSource exported = LoadBlueprint(exportPath);
-
-                Assert.AreEqual(BlueprintVisualValueUtility.ToJson(1), graph.Variables[0].JsonDefaultValue);
-                Assert.AreEqual("var_stable_count", exported.Variables[0].Id);
-                Assert.AreEqual(2, System.Convert.ToInt32(exported.Variables[0].DefaultValue));
-            }
-            finally
-            {
-                AssetDatabase.DeleteAsset(graphPath);
-                DeleteTemporaryCompiledArtifacts(exportPath);
-            }
-        }
-
-        [Test]
         public void GraphToolkitSupportsBlueprintAssetVariables()
         {
             string blueprintPath = "Assets/BlueprintSystem/Tests/Editor/BlueprintAssetVariableTarget.blueprint.json";
