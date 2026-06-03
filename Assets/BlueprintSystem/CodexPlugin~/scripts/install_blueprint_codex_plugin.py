@@ -6,7 +6,10 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
@@ -164,6 +167,52 @@ def build_deeplink(marketplace_path: Path, *, share: bool) -> str:
     return f"codex://plugins/{PLUGIN_NAME}?marketplacePath={query}{suffix}"
 
 
+def shell_join(command: list[str]) -> str:
+    return " ".join(shlex.quote(part) for part in command)
+
+
+def run_process(command: list[str]) -> dict[str, Any]:
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        return {
+            "success": False,
+            "command": shell_join(command),
+            "returnCode": None,
+            "stdout": "",
+            "stderr": str(exc),
+        }
+
+    return {
+        "success": completed.returncode == 0,
+        "command": shell_join(command),
+        "returnCode": completed.returncode,
+        "stdout": completed.stdout.strip(),
+        "stderr": completed.stderr.strip(),
+    }
+
+
+def register_marketplace(project_root: Path, codex_command: str) -> dict[str, Any]:
+    command = [codex_command, "plugin", "marketplace", "add", str(project_root)]
+    return run_process(command)
+
+
+def open_url(url: str) -> dict[str, Any]:
+    if sys.platform == "darwin":
+        command = ["open", url]
+    elif sys.platform.startswith("win"):
+        command = ["cmd", "/c", "start", "", url]
+    else:
+        command = ["xdg-open", url]
+
+    return run_process(command)
+
+
 def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[str, Any]:
     package_root = find_blueprint_package(project_root, Path(__file__))
     codex_plugin_root = package_root / "CodexPlugin~"
@@ -227,6 +276,21 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print the planned paths without copying files.",
     )
+    parser.add_argument(
+        "--no-register",
+        action="store_true",
+        help="Do not run `codex plugin marketplace add <project_root>` after installing.",
+    )
+    parser.add_argument(
+        "--no-open",
+        action="store_true",
+        help="Do not open the Codex plugin view URL after a successful install.",
+    )
+    parser.add_argument(
+        "--codex-command",
+        default="codex",
+        help="Codex CLI command used for marketplace registration. Defaults to `codex`.",
+    )
     return parser.parse_args()
 
 
@@ -239,6 +303,33 @@ def main() -> None:
         else project_root / ".agents" / "plugins"
     )
     result = install(project_root, marketplace_root, args.dry_run)
+    if not args.dry_run and not args.no_register:
+        registration = register_marketplace(project_root, args.codex_command)
+        result["marketplaceRegistration"] = registration
+    else:
+        result["marketplaceRegistration"] = {
+            "success": False,
+            "skipped": True,
+            "reason": "dry-run" if args.dry_run else "--no-register",
+        }
+
+    registration_succeeded = bool(result["marketplaceRegistration"].get("success"))
+    can_open = args.no_register or registration_succeeded
+    if not args.dry_run and not args.no_open and can_open:
+        result["openViewUrl"] = open_url(result["viewUrl"])
+    else:
+        if args.dry_run:
+            reason = "dry-run"
+        elif args.no_open:
+            reason = "--no-open"
+        else:
+            reason = "marketplace registration failed"
+        result["openViewUrl"] = {
+            "success": False,
+            "skipped": True,
+            "reason": reason,
+        }
+
     print(json.dumps(result, indent=2))
 
 

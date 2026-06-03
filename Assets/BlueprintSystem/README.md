@@ -29,14 +29,11 @@ path. When no project root argument is provided, the script first infers the Uni
 own package path, so package-cache execution installs into that project instead of the shell's
 current directory. The script copies the companion plugin to
 `<ProjectRoot>/plugins/blueprint-system-codex` and updates
-`<ProjectRoot>/.agents/plugins/marketplace.json`. You can still pass an explicit project root when
-needed.
+`<ProjectRoot>/.agents/plugins/marketplace.json`, registers the project root with Codex, and opens
+the plugin view URL. You can still pass an explicit project root when needed.
 
-Register the project root as a Codex marketplace before opening the plugin link:
-
-```bash
-codex plugin marketplace add <ProjectRoot>
-```
+Use `--no-register` to skip `codex plugin marketplace add <ProjectRoot>`, and `--no-open` to skip
+opening the plugin link after installation.
 
 After the marketplace is available in Codex, use these direct skill entrypoints instead of manually
 pasting agent Markdown:
