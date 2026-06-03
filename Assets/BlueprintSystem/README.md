@@ -18,16 +18,19 @@ This repository includes a Codex companion plugin in two forms:
 - Package-contained marketplace for Git/UPM installs: `Assets/BlueprintSystem/CodexPlugin~/marketplace.json`
 
 For a project that installed BlueprintSystem as a Git/UPM package, sync the package-contained
-plugin into that Unity project's Codex marketplace from the project root:
+plugin into that Unity project's Codex marketplace:
 
 ```bash
-python3 Assets/BlueprintSystem/CodexPlugin~/scripts/install_blueprint_codex_plugin.py .
+python3 Assets/BlueprintSystem/CodexPlugin~/scripts/install_blueprint_codex_plugin.py
 ```
 
 If the package lives under `Packages/` or `Library/PackageCache/`, run the same script by absolute
-path and pass the Unity project root as the argument. The script copies the companion plugin to
+path. When no project root argument is provided, the script first infers the Unity project from its
+own package path, so package-cache execution installs into that project instead of the shell's
+current directory. The script copies the companion plugin to
 `<ProjectRoot>/.agents/plugins/plugins/blueprint-system-codex` and updates
-`<ProjectRoot>/.agents/plugins/marketplace.json`.
+`<ProjectRoot>/.agents/plugins/marketplace.json`. You can still pass an explicit project root when
+needed.
 
 After the marketplace is available in Codex, use these direct skill entrypoints instead of manually
 pasting agent Markdown:

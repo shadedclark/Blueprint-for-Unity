@@ -47,14 +47,29 @@ def is_project_root(path: Path) -> bool:
     return (path / "Assets").is_dir() or (path / "Packages" / "manifest.json").is_file()
 
 
-def find_project_root(start: Path) -> Path:
+def find_project_root_or_none(start: Path) -> Path | None:
     current = start.resolve()
     if current.is_file():
         current = current.parent
     for candidate in [current, *current.parents]:
         if is_project_root(candidate):
             return candidate
-    return current
+    return None
+
+
+def find_project_root(start: Path) -> Path:
+    return find_project_root_or_none(start) or start.resolve()
+
+
+def resolve_project_root(project_root_arg: str | None, script_path: Path) -> Path:
+    if project_root_arg:
+        return find_project_root(Path(project_root_arg).expanduser())
+
+    script_project_root = find_project_root_or_none(script_path)
+    if script_project_root is not None:
+        return script_project_root
+
+    return find_project_root(Path.cwd())
 
 
 def is_blueprint_package(path: Path) -> bool:
@@ -173,8 +188,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "project_root",
         nargs="?",
-        default=".",
-        help="Unity project root. Defaults to the current directory.",
+        default=None,
+        help=(
+            "Unity project root. Defaults to the project containing this script, "
+            "then falls back to the current directory."
+        ),
     )
     parser.add_argument(
         "--marketplace-root",
@@ -191,7 +209,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    project_root = find_project_root(Path(args.project_root))
+    project_root = resolve_project_root(args.project_root, Path(__file__))
     marketplace_root = (
         Path(args.marketplace_root).expanduser().resolve()
         if args.marketplace_root
