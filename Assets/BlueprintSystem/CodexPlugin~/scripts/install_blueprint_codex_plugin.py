@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 import json
 import re
 import shlex
@@ -18,6 +19,7 @@ from urllib.parse import quote
 PLUGIN_NAME = "blueprint-system-codex"
 PACKAGE_NAME = "com.shadedclark.blueprint-system"
 DEFAULT_MARKETPLACE_NAME = "personal"
+DEFAULT_PLUGIN_VERSION = "0.1.0"
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -33,6 +35,31 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2)
         handle.write("\n")
+
+
+def utc_cachebuster() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+
+
+def version_with_codex_cachebuster(version: str | None, cachebuster: str) -> str:
+    base_version = version.split("+", 1)[0].strip() if isinstance(version, str) else ""
+    if not base_version:
+        base_version = DEFAULT_PLUGIN_VERSION
+    return f"{base_version}+codex.{cachebuster}"
+
+
+def refresh_plugin_cachebuster(plugin_root: Path, cachebuster: str) -> dict[str, Any]:
+    manifest_path = plugin_root / ".codex-plugin" / "plugin.json"
+    manifest = read_json(manifest_path)
+    previous_version = manifest.get("version")
+    next_version = version_with_codex_cachebuster(previous_version, cachebuster)
+    manifest["version"] = next_version
+    write_json(manifest_path, manifest)
+    return {
+        "manifestPath": str(manifest_path),
+        "previousVersion": previous_version,
+        "version": next_version,
+    }
 
 
 def package_name(package_root: Path) -> str:
@@ -135,6 +162,19 @@ def load_marketplace(path: Path, marketplace_name: str) -> dict[str, Any]:
     }
 
 
+def resolved_marketplace_name(path: Path, default_name: str) -> str:
+    if not path.is_file():
+        return default_name
+    try:
+        payload = read_json(path)
+    except (OSError, json.JSONDecodeError, ValueError):
+        return default_name
+    name = payload.get("name")
+    if isinstance(name, str) and name not in ("", DEFAULT_MARKETPLACE_NAME):
+        return name
+    return default_name
+
+
 def upsert_marketplace_entry(marketplace: dict[str, Any]) -> None:
     plugins = marketplace.setdefault("plugins", [])
     if not isinstance(plugins, list):
@@ -159,6 +199,17 @@ def upsert_marketplace_entry(marketplace: dict[str, Any]) -> None:
             break
     else:
         plugins.append(entry)
+
+
+def installed_skill_names(plugin_root: Path) -> list[str]:
+    skills_root = plugin_root / "skills"
+    if not skills_root.is_dir():
+        return []
+    return sorted(
+        path.name
+        for path in skills_root.iterdir()
+        if path.is_dir() and (path / "SKILL.md").is_file()
+    )
 
 
 def build_deeplink(marketplace_path: Path, *, share: bool) -> str:
@@ -226,14 +277,28 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
 
     target_plugin = marketplace_root / "plugins" / PLUGIN_NAME
     target_marketplace = marketplace_root / "marketplace.json"
+    marketplace_name = resolved_marketplace_name(
+        target_marketplace,
+        default_marketplace_name(project_root),
+    )
+    cachebuster = utc_cachebuster()
+    cachebuster_result: dict[str, Any] = {
+        "success": False,
+        "skipped": True,
+        "reason": "dry-run",
+    }
 
     if not dry_run:
         target_plugin.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(source_plugin, target_plugin, dirs_exist_ok=True)
 
-        marketplace = load_marketplace(target_marketplace, default_marketplace_name(project_root))
+        cachebuster_result = refresh_plugin_cachebuster(target_plugin, cachebuster)
+        cachebuster_result["success"] = True
+
+        marketplace = load_marketplace(target_marketplace, marketplace_name)
         upsert_marketplace_entry(marketplace)
         write_json(target_marketplace, marketplace)
+        marketplace_name = str(marketplace.get("name") or marketplace_name)
 
     return {
         "success": True,
@@ -244,6 +309,9 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
         "targetPlugin": str(target_plugin),
         "marketplaceRoot": str(marketplace_root),
         "marketplacePath": str(target_marketplace),
+        "marketplaceName": marketplace_name,
+        "pluginCachebuster": cachebuster_result,
+        "installedSkills": installed_skill_names(target_plugin),
         "marketplaceAddCommand": f"codex plugin marketplace add {project_root}",
         "viewUrl": build_deeplink(target_marketplace, share=False),
         "shareUrl": build_deeplink(target_marketplace, share=True),

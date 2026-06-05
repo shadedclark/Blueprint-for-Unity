@@ -28,7 +28,8 @@ If the package lives under `Packages/` or `Library/PackageCache/`, run the same 
 path. When no project root argument is provided, the script first infers the Unity project from its
 own package path, so package-cache execution installs into that project instead of the shell's
 current directory. The script copies the companion plugin to
-`<ProjectRoot>/plugins/blueprint-system-codex` and updates
+`<ProjectRoot>/.agents/plugins/plugins/blueprint-system-codex`, refreshes the installed plugin
+manifest's Codex cachebuster so newly added skills are visible in new Codex threads, updates
 `<ProjectRoot>/.agents/plugins/marketplace.json`, registers the project root with Codex, and opens
 the plugin view URL. You can still pass an explicit project root when needed.
 
@@ -39,6 +40,7 @@ After the marketplace is available in Codex, use these direct skill entrypoints 
 pasting agent Markdown:
 
 - `$blueprint-feature` for complete feature implementation through `Agents/FeatureImplementationEntryAgent.md`.
+- `$blueprint-ai-behavior-tree` for Behavior Tree AI through `BehaviorTree/GUIDE.md` and the behavior tree runtime.
 - `$blueprint-prefab-annotation` for existing prefab plus annotation workflows through `Agents/PrefabAnnotationBlueprintAgent.md`.
 - `$blueprint-node` for explicitly approved public BlueprintSystem node work.
 
