@@ -28,10 +28,12 @@ If the package lives under `Packages/` or `Library/PackageCache/`, run the same 
 path. When no project root argument is provided, the script first infers the Unity project from its
 own package path, so package-cache execution installs into that project instead of the shell's
 current directory. The script copies the companion plugin to
-`<ProjectRoot>/.agents/plugins/plugins/blueprint-system-codex`, refreshes the installed plugin
-manifest's Codex cachebuster so newly added skills are visible in new Codex threads, updates
-`<ProjectRoot>/.agents/plugins/marketplace.json`, registers the project root with Codex, and opens
-the plugin view URL. You can still pass an explicit project root when needed.
+`<ProjectRoot>/plugins/blueprint-system-codex` and mirrors it under
+`<ProjectRoot>/.agents/plugins/plugins/blueprint-system-codex` for marketplace-file deeplinks,
+refreshes the installed plugin manifest's Codex cachebuster so newly added skills are visible in
+new Codex threads, updates `<ProjectRoot>/.agents/plugins/marketplace.json`, registers the project
+root with Codex, and opens the plugin view URL. You can still pass an explicit project root when
+needed.
 
 Use `--no-register` to skip `codex plugin marketplace add <ProjectRoot>`, and `--no-open` to skip
 opening the plugin link after installation.

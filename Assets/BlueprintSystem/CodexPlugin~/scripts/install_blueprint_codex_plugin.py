@@ -212,6 +212,18 @@ def installed_skill_names(plugin_root: Path) -> list[str]:
     )
 
 
+def unique_paths(paths: list[Path]) -> list[Path]:
+    result: list[Path] = []
+    seen: set[Path] = set()
+    for path in paths:
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        result.append(resolved)
+    return result
+
+
 def build_deeplink(marketplace_path: Path, *, share: bool) -> str:
     query = quote(str(marketplace_path), safe="")
     suffix = "&mode=share" if share else ""
@@ -264,7 +276,12 @@ def open_url(url: str) -> dict[str, Any]:
     return run_process(command)
 
 
-def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[str, Any]:
+def install(
+    project_root: Path,
+    marketplace_root: Path,
+    plugin_install_root: Path,
+    dry_run: bool,
+) -> dict[str, Any]:
     package_root = find_blueprint_package(project_root, Path(__file__))
     codex_plugin_root = package_root / "CodexPlugin~"
     source_plugin = codex_plugin_root / "plugins" / PLUGIN_NAME
@@ -275,7 +292,13 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
     if not source_marketplace.is_file():
         raise FileNotFoundError(f"Missing source marketplace file: {source_marketplace}")
 
-    target_plugin = marketplace_root / "plugins" / PLUGIN_NAME
+    target_plugin = plugin_install_root / PLUGIN_NAME
+    compatibility_plugins = unique_paths(
+        [
+            target_plugin,
+            marketplace_root / "plugins" / PLUGIN_NAME,
+        ]
+    )
     target_marketplace = marketplace_root / "marketplace.json"
     marketplace_name = resolved_marketplace_name(
         target_marketplace,
@@ -289,11 +312,15 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
     }
 
     if not dry_run:
-        target_plugin.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(source_plugin, target_plugin, dirs_exist_ok=True)
-
-        cachebuster_result = refresh_plugin_cachebuster(target_plugin, cachebuster)
-        cachebuster_result["success"] = True
+        cachebuster_result = {
+            "success": True,
+            "installations": [],
+        }
+        for plugin_path in compatibility_plugins:
+            plugin_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(source_plugin, plugin_path, dirs_exist_ok=True)
+            refreshed = refresh_plugin_cachebuster(plugin_path, cachebuster)
+            cachebuster_result["installations"].append(refreshed)
 
         marketplace = load_marketplace(target_marketplace, marketplace_name)
         upsert_marketplace_entry(marketplace)
@@ -307,8 +334,10 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
         "packageRoot": str(package_root),
         "sourcePlugin": str(source_plugin),
         "targetPlugin": str(target_plugin),
+        "compatibilityPlugins": [str(path) for path in compatibility_plugins],
         "marketplaceRoot": str(marketplace_root),
         "marketplacePath": str(target_marketplace),
+        "pluginInstallRoot": str(plugin_install_root),
         "marketplaceName": marketplace_name,
         "pluginCachebuster": cachebuster_result,
         "installedSkills": installed_skill_names(target_plugin),
@@ -336,7 +365,8 @@ def parse_args() -> argparse.Namespace:
         default="",
         help=(
             "Marketplace manifest directory. Defaults to <project_root>/.agents/plugins. "
-            "Plugin folders are installed under <marketplace-root>/plugins."
+            "With the default project marketplace, plugin folders are installed under "
+            "<project_root>/plugins so `codex plugin marketplace add <project_root>` can resolve them."
         ),
     )
     parser.add_argument(
@@ -370,7 +400,12 @@ def main() -> None:
         if args.marketplace_root
         else project_root / ".agents" / "plugins"
     )
-    result = install(project_root, marketplace_root, args.dry_run)
+    plugin_install_root = (
+        marketplace_root / "plugins"
+        if args.marketplace_root
+        else project_root / "plugins"
+    )
+    result = install(project_root, marketplace_root, plugin_install_root, args.dry_run)
     if not args.dry_run and not args.no_register:
         registration = register_marketplace(project_root, args.codex_command)
         result["marketplaceRegistration"] = registration

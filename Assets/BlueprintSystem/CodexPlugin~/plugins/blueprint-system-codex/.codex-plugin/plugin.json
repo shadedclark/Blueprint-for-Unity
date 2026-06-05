@@ -30,8 +30,7 @@
     "defaultPrompt": [
       "Use $blueprint-feature to implement this Unity UI feature.",
       "Use $blueprint-ai-behavior-tree to implement this enemy AI behavior.",
-      "Use $blueprint-prefab-annotation to wire this prefab from annotations.",
-      "Use $blueprint-node to add the missing BlueprintSystem node."
+      "Use $blueprint-prefab-annotation to wire this prefab from annotations."
     ],
     "brandColor": "#2563EB"
   }
