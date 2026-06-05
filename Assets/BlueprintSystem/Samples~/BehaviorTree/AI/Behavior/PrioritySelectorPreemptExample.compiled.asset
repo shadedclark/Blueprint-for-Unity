@@ -1,0 +1,166 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7032c2202864a4ad697f8020c888f449, type: 3}
+  m_Name: PrioritySelectorPreemptExample.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BehaviorTreeCompiledAsset
+  schemaVersion: 0.1
+  behaviorTreeName: PrioritySelectorPreemptExample
+  sourceGuid: c663b775b889441e0abc2bef6ee07cf9
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/AI/Behavior/PrioritySelectorPreemptExample.btree.json
+  sourceHash: 1fa52cc07fc66934b394bd4abcea6eab482a335f184935e4b872093896a930f1
+  rootNodeId: root
+  blackboard:
+  - Name: AlertMode
+    Type: bool
+    DefaultValueJson: false
+    Exposed: 1
+    Persistent: 0
+    Description: Set true at runtime to let the alert branch preempt idle.
+  - Name: SelectedPriority
+    Type: string
+    DefaultValueJson: '"None"'
+    Exposed: 1
+    Persistent: 0
+    Description: Records which priority branch completed.
+  nodes:
+  - Id: root
+    TypeId: BT.Root
+    Children:
+    - priority_selector_alert_or_idle
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: priority_selector_alert_or_idle
+    TypeId: BT.PrioritySelector
+    Children:
+    - alert_sequence
+    - idle_sequence
+    Decorators: []
+    Services:
+    - sync_alert_requested
+    Inputs: []
+    Properties: []
+  - Id: alert_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_priority_alert
+    - trigger_priority_alert
+    - log_alert
+    Decorators:
+    - condition_alert_mode
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_priority_alert
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"SelectedPriority"'
+    - Id: value
+      JsonValue: '"Alert"'
+  - Id: log_alert
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"PrioritySelector selected the high-priority alert branch."'
+  - Id: idle_sequence
+    TypeId: BT.Sequence
+    Children:
+    - idle_wait
+    - set_priority_idle
+    - trigger_priority_idle
+    - log_idle
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: idle_wait
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 8
+  - Id: set_priority_idle
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"SelectedPriority"'
+    - Id: value
+      JsonValue: '"Idle"'
+  - Id: log_idle
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"PrioritySelector stayed on idle because AlertMode is false."'
+  - Id: trigger_priority_alert
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"AlertSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  - Id: trigger_priority_idle
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"IdleSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  decorators:
+  - Id: condition_alert_mode
+    TypeId: BT.CompareBool
+    Inputs:
+    - InputId: value
+      BlackboardKey: AlertMode
+    Properties:
+    - Id: expected
+      JsonValue: true
+    - Id: operator
+      JsonValue: '"Equals"'
+  services:
+  - Id: sync_alert_requested
+    TypeId: BT.SetBlackboardFromBlueprint
+    Interval: 0
+    RandomDeviation: 0
+    Properties:
+    - Id: blackboardKey
+      JsonValue: '"AlertMode"'
+    - Id: variableName
+      JsonValue: '"alert_requested"'

@@ -48,6 +48,7 @@ namespace BlueprintSystem
         public string Type;
         public bool Enabled;
         public string JsonValue;
+        public UnityEngine.Object ObjectValue;
     }
 
     [Serializable]

@@ -76,6 +76,38 @@ namespace BlueprintSystem.Tests
             BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
 
             Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BP005"), diagnostics.ToDisplayString());
+            Assert.True(diagnostics.Exists(diagnostic => diagnostic.Message.Contains("Unknown binding")), diagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void ValidatorRejectsLegacyUIBindingType()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "LegacyBindingTypeTest";
+
+            BlueprintNodeSource node = AddNode(source, "legacy_binding", "Test.LegacyBinding");
+            node.Properties["target"] = "Actor";
+
+            BlueprintNodeManifest manifest = new BlueprintNodeManifest();
+            manifest.SchemaVersion = "0.1";
+            manifest.TypeId = "Test.LegacyBinding";
+            manifest.Title = "Legacy Binding";
+            manifest.Category = "Tests";
+            manifest.Executor = "Game.Log";
+            manifest.Properties.Add(new BlueprintPropertySpec
+            {
+                Id = "target",
+                Type = "UI" + "Binding<Transform>",
+                Required = true
+            });
+
+            BlueprintNodeManifestCollection manifests = new BlueprintNodeManifestCollection();
+            manifests.Add(manifest);
+
+            BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, manifests, BlueprintExecutorRegistry.CreateDefault());
+
+            Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BP012"), diagnostics.ToDisplayString());
         }
 
         [Test]
@@ -317,6 +349,866 @@ namespace BlueprintSystem.Tests
             finally
             {
                 DeleteTemporaryCompiledArtifacts(blueprintPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeSourceRoundTripPreservesTreeModel()
+        {
+            BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+
+            BehaviorTreeSource roundTripped = BehaviorTreeSource.FromJson(source.ToJson());
+
+            Assert.AreEqual("BehaviorTreeTest", roundTripped.Name);
+            Assert.AreEqual("root", roundTripped.Root);
+            Assert.AreEqual(2, roundTripped.Blackboard.Count);
+            Assert.AreEqual("main_sequence", roundTripped.Nodes.Find(node => node.Id == "root").Children[0]);
+            Assert.AreEqual("flag", roundTripped.Nodes.Find(node => node.Id == "set_flag").Properties["key"]);
+            Assert.AreEqual("flag", roundTripped.Decorators.Find(item => item.Id == "flag_is_set").Properties["key"]);
+
+            BehaviorTreeNodeSource wait = roundTripped.Nodes.Find(node => node.Id == "wait_short");
+            wait.Inputs["duration"] = "WaitDuration";
+            BehaviorTreeSource bindingRoundTrip = BehaviorTreeSource.FromJson(roundTripped.ToJson());
+            Assert.AreEqual("WaitDuration", bindingRoundTrip.Nodes.Find(node => node.Id == "wait_short").Inputs["duration"]);
+        }
+
+        [Test]
+        public void BehaviorTreeValidatorReportsStructuralAndBlackboardProblems()
+        {
+            BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+            source.Nodes.Find(node => node.Id == "wait_short").Children.Add("set_flag");
+            source.Decorators.Find(item => item.Id == "flag_is_set").Properties["key"] = "MissingKey";
+            source.Nodes.Find(node => node.Id == "set_flag").Inputs["value"] = "MissingValueKey";
+
+            BlueprintDiagnosticList diagnostics = new BehaviorTreeValidator().Validate(source, BehaviorTreeExecutorRegistry.CreateDefault());
+
+            Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BT073"), diagnostics.ToDisplayString());
+            Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BT100"), diagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeTicksSequenceWaitAndBlackboard()
+        {
+            BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            Assert.AreEqual(true, runtime.Blackboard.GetValue("flag"));
+
+            BehaviorTreeDebugSnapshot runningSnapshot = runtime.CreateDebugSnapshot();
+            Assert.Contains("wait_short", runningSnapshot.ActivePath);
+            Assert.AreEqual("Running", runningSnapshot.NodeStatuses["wait_short"]);
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.15f));
+            BehaviorTreeDebugSnapshot successSnapshot = runtime.CreateDebugSnapshot();
+            Assert.AreEqual("Success", successSnapshot.NodeStatuses["root"]);
+            Assert.True(successSnapshot.DecoratorResults["flag_is_set"]);
+        }
+
+        [Test]
+        public void BehaviorTreeTaskInputsResolveBlackboardBindings()
+        {
+            BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "flagValue",
+                Type = "bool",
+                DefaultValue = true
+            });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "WaitDuration",
+                Type = "float",
+                DefaultValue = 0.1f
+            });
+
+            BehaviorTreeNodeSource setFlag = source.Nodes.Find(node => node.Id == "set_flag");
+            setFlag.Properties.Clear();
+            setFlag.Inputs["key"] = "flag";
+            setFlag.Inputs["value"] = "flagValue";
+
+            BehaviorTreeNodeSource wait = source.Nodes.Find(node => node.Id == "wait_short");
+            wait.Properties.Clear();
+            wait.Inputs["duration"] = "WaitDuration";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            Assert.AreEqual(true, runtime.Blackboard.GetValue("flag"));
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.15f));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeFalseConditionDecoratorBlocksBranch()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "FalseConditionDecoratorTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "allowed",
+                Type = "bool",
+                DefaultValue = false
+            });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "entered",
+                Type = "bool",
+                DefaultValue = false
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("set_entered");
+
+            BehaviorTreeNodeSource setEntered = AddBehaviorTreeNode(source, "set_entered", "BT.SetBlackboard");
+            setEntered.Properties["key"] = "entered";
+            setEntered.Properties["value"] = true;
+            setEntered.Decorators.Add("must_be_allowed");
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = "must_be_allowed";
+            decorator.TypeId = "BT.CompareBool";
+            decorator.Properties["key"] = "allowed";
+            decorator.Properties["operator"] = "Equals";
+            decorator.Properties["value"] = true;
+            source.Decorators.Add(decorator);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Failure, runtime.Tick(0f));
+            Assert.AreEqual(false, runtime.Blackboard.GetValue("entered"));
+            Assert.False(runtime.CreateDebugSnapshot().DecoratorResults["must_be_allowed"]);
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeEvaluatesBuiltInConditionDecorators()
+        {
+            Assert.AreEqual(BehaviorTreeStatus.Success, TickSingleDecorator(
+                "BT.BlackboardCondition",
+                new Dictionary<string, object>
+                {
+                    { "key", "flag" },
+                    { "operator", "IsTrue" }
+                },
+                new[]
+                {
+                    CreateBlackboardKey("flag", "bool", true)
+                }));
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, TickSingleDecorator(
+                "BT.CompareFloat",
+                new Dictionary<string, object>
+                {
+                    { "leftKey", "distance" },
+                    { "operator", "LessOrEqual" },
+                    { "value", 5f }
+                },
+                new[]
+                {
+                    CreateBlackboardKey("distance", "float", 3f)
+                }));
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, TickSingleDecorator(
+                "BT.CompareBool",
+                new Dictionary<string, object>
+                {
+                    { "key", "flag" },
+                    { "operator", "Equals" },
+                    { "value", true }
+                },
+                new[]
+                {
+                    CreateBlackboardKey("flag", "bool", true)
+                }));
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, TickSingleDecorator(
+                "BT.ObjectIsSet",
+                new Dictionary<string, object>
+                {
+                    { "key", "target" }
+                },
+                new[]
+                {
+                    CreateBlackboardKey("target", "string", "set")
+                }));
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, TickSingleDecorator(
+                "BT.DistanceLessThan",
+                new Dictionary<string, object>
+                {
+                    { "distanceKey", "distance" },
+                    { "maxDistance", 5f }
+                },
+                new[]
+                {
+                    CreateBlackboardKey("distance", "float", 3f)
+                }));
+
+            BehaviorTreeRuntime cooldownRuntime = CreateSingleDecoratorRuntime(
+                "BT.Cooldown",
+                new Dictionary<string, object>
+                {
+                    { "duration", 0.5f }
+                },
+                new BehaviorTreeBlackboardKey[0]);
+            Assert.AreEqual(BehaviorTreeStatus.Success, cooldownRuntime.Tick(0f));
+            Assert.AreEqual(BehaviorTreeStatus.Failure, cooldownRuntime.Tick(0f));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeTicksParallelUntilAllChildrenComplete()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "ParallelBehaviorTreeTest";
+            source.Root = "root";
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("parallel");
+
+            BehaviorTreeNodeSource parallel = AddBehaviorTreeNode(source, "parallel", "BT.Parallel");
+            parallel.Children.Add("wait_short");
+            parallel.Children.Add("wait_long");
+
+            BehaviorTreeNodeSource waitShort = AddBehaviorTreeNode(source, "wait_short", "BT.Wait");
+            waitShort.Properties["duration"] = 0.1f;
+
+            BehaviorTreeNodeSource waitLong = AddBehaviorTreeNode(source, "wait_long", "BT.Wait");
+            waitLong.Properties["duration"] = 0.2f;
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0.15f));
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeParallelFailureAbortsRunningChildren()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "ParallelFailureBehaviorTreeTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "allowFailingBranch",
+                Type = "bool",
+                DefaultValue = false
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("parallel");
+
+            BehaviorTreeNodeSource parallel = AddBehaviorTreeNode(source, "parallel", "BT.Parallel");
+            parallel.Children.Add("wait_long");
+            parallel.Children.Add("blocked_log");
+
+            BehaviorTreeNodeSource waitLong = AddBehaviorTreeNode(source, "wait_long", "BT.Wait");
+            waitLong.Properties["duration"] = 1f;
+
+            BehaviorTreeNodeSource blockedLog = AddBehaviorTreeNode(source, "blocked_log", "BT.Log");
+            blockedLog.Decorators.Add("allow_branch");
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = "allow_branch";
+            decorator.TypeId = "BT.CompareBool";
+            decorator.Properties["key"] = "allowFailingBranch";
+            decorator.Properties["operator"] = "Equals";
+            decorator.Properties["value"] = true;
+            source.Decorators.Add(decorator);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Failure, runtime.Tick(0f));
+            BehaviorTreeDebugSnapshot snapshot = runtime.CreateDebugSnapshot();
+            Assert.AreEqual("Failure", snapshot.NodeStatuses["wait_long"]);
+            Assert.False(snapshot.ActivePath.Contains("wait_long"));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeTicksRandomSelectorThroughFailure()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "RandomSelectorBehaviorTreeTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "allowBlockedBranch",
+                Type = "bool",
+                DefaultValue = false
+            });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "picked",
+                Type = "bool",
+                DefaultValue = false
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("random_selector");
+
+            BehaviorTreeNodeSource randomSelector = AddBehaviorTreeNode(source, "random_selector", "BT.RandomSelector");
+            randomSelector.Children.Add("blocked_log");
+            randomSelector.Children.Add("set_picked");
+
+            BehaviorTreeNodeSource blockedLog = AddBehaviorTreeNode(source, "blocked_log", "BT.Log");
+            blockedLog.Decorators.Add("allow_blocked_branch");
+
+            BehaviorTreeNodeSource setPicked = AddBehaviorTreeNode(source, "set_picked", "BT.SetBlackboard");
+            setPicked.Properties["key"] = "picked";
+            setPicked.Properties["value"] = true;
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = "allow_blocked_branch";
+            decorator.TypeId = "BT.CompareBool";
+            decorator.Properties["key"] = "allowBlockedBranch";
+            decorator.Properties["operator"] = "Equals";
+            decorator.Properties["value"] = true;
+            source.Decorators.Add(decorator);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+            Assert.AreEqual(true, runtime.Blackboard.GetValue("picked"));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeWeightedSelectorUsesDefaultWeightsWhenMissing()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "WeightedSelectorDefaultWeightTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "picked",
+                Type = "bool",
+                DefaultValue = false
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("weighted_selector");
+
+            BehaviorTreeNodeSource weightedSelector = AddBehaviorTreeNode(source, "weighted_selector", "BT.WeightedSelector");
+            weightedSelector.Children.Add("set_picked");
+
+            BehaviorTreeNodeSource setPicked = AddBehaviorTreeNode(source, "set_picked", "BT.SetBlackboard");
+            setPicked.Properties["key"] = "picked";
+            setPicked.Properties["value"] = true;
+
+            BlueprintDiagnosticList diagnostics = new BehaviorTreeValidator().Validate(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+            Assert.AreEqual(true, runtime.Blackboard.GetValue("picked"));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeWeightedSelectorSkipsInvalidWeightsAndUsesMissingDefaults()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "WeightedSelectorInvalidWeightTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "selected",
+                Type = "string",
+                DefaultValue = "none"
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("weighted_selector");
+
+            BehaviorTreeNodeSource weightedSelector = AddBehaviorTreeNode(source, "weighted_selector", "BT.WeightedSelector");
+            weightedSelector.Children.Add("zero_weight");
+            weightedSelector.Children.Add("negative_weight");
+            weightedSelector.Children.Add("invalid_weight");
+            weightedSelector.Children.Add("default_weight");
+            weightedSelector.Properties["weights"] = new List<object> { 0f, -2f, "not-a-number" };
+
+            AddSetStringBlackboardNode(source, "zero_weight", "selected", "zero");
+            AddSetStringBlackboardNode(source, "negative_weight", "selected", "negative");
+            AddSetStringBlackboardNode(source, "invalid_weight", "selected", "invalid");
+            AddSetStringBlackboardNode(source, "default_weight", "selected", "default");
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+            Assert.AreEqual("default", runtime.Blackboard.GetValue("selected"));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeWeightedSelectorFallsBackWhenAllWeightsAreInvalid()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "WeightedSelectorFallbackWeightTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "picked",
+                Type = "bool",
+                DefaultValue = false
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("weighted_selector");
+
+            BehaviorTreeNodeSource weightedSelector = AddBehaviorTreeNode(source, "weighted_selector", "BT.WeightedSelector");
+            weightedSelector.Children.Add("set_picked");
+            weightedSelector.Properties["weights"] = new List<object> { "not-a-number" };
+
+            BehaviorTreeNodeSource setPicked = AddBehaviorTreeNode(source, "set_picked", "BT.SetBlackboard");
+            setPicked.Properties["key"] = "picked";
+            setPicked.Properties["value"] = true;
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+            Assert.AreEqual(true, runtime.Blackboard.GetValue("picked"));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeWeightedSelectorKeepsRunningChildOrder()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "WeightedSelectorRunningOrderTest";
+            source.Root = "root";
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("weighted_selector");
+
+            BehaviorTreeNodeSource weightedSelector = AddBehaviorTreeNode(source, "weighted_selector", "BT.WeightedSelector");
+            weightedSelector.Children.Add("unselectable_log");
+            weightedSelector.Children.Add("wait_running");
+            weightedSelector.Properties["weights"] = new List<object> { 0f, 1f };
+
+            BehaviorTreeNodeSource unselectableLog = AddBehaviorTreeNode(source, "unselectable_log", "BT.Log");
+            unselectableLog.Properties["message"] = "This branch should not be selected.";
+
+            BehaviorTreeNodeSource waitRunning = AddBehaviorTreeNode(source, "wait_running", "BT.Wait");
+            waitRunning.Properties["duration"] = 0.1f;
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            Assert.Contains("wait_running", runtime.CreateDebugSnapshot().ActivePath);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0.05f));
+            BehaviorTreeDebugSnapshot runningSnapshot = runtime.CreateDebugSnapshot();
+            Assert.Contains("wait_running", runningSnapshot.ActivePath);
+            Assert.False(runningSnapshot.ActivePath.Contains("unselectable_log"));
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.15f));
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimePrioritySelectorReevaluatesHigherPriorityChildren()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "PrioritySelectorBehaviorTreeTest";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "allowHighPriority",
+                Type = "bool",
+                DefaultValue = false
+            });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "selectedHighPriority",
+                Type = "bool",
+                DefaultValue = false
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("priority_selector");
+
+            BehaviorTreeNodeSource prioritySelector = AddBehaviorTreeNode(source, "priority_selector", "BT.PrioritySelector");
+            prioritySelector.Children.Add("set_high_priority");
+            prioritySelector.Children.Add("wait_low_priority");
+
+            BehaviorTreeNodeSource setHighPriority = AddBehaviorTreeNode(source, "set_high_priority", "BT.SetBlackboard");
+            setHighPriority.Properties["key"] = "selectedHighPriority";
+            setHighPriority.Properties["value"] = true;
+            setHighPriority.Decorators.Add("allow_high_priority");
+
+            BehaviorTreeNodeSource waitLowPriority = AddBehaviorTreeNode(source, "wait_low_priority", "BT.Wait");
+            waitLowPriority.Properties["duration"] = 1f;
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = "allow_high_priority";
+            decorator.TypeId = "BT.CompareBool";
+            decorator.Properties["key"] = "allowHighPriority";
+            decorator.Properties["operator"] = "Equals";
+            decorator.Properties["value"] = true;
+            source.Decorators.Add(decorator);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            Assert.Contains("wait_low_priority", runtime.CreateDebugSnapshot().ActivePath);
+
+            runtime.Blackboard.SetValue("allowHighPriority", true);
+
+            Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+            Assert.AreEqual(true, runtime.Blackboard.GetValue("selectedHighPriority"));
+            BehaviorTreeDebugSnapshot snapshot = runtime.CreateDebugSnapshot();
+            Assert.False(snapshot.ActivePath.Contains("wait_low_priority"));
+            Assert.AreEqual("Failure", snapshot.NodeStatuses["wait_low_priority"]);
+        }
+
+        [Test]
+        public void BehaviorTreeCompiledAssetHydratesRuntimeTree()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/CompiledBehaviorTreeTest.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+
+            try
+            {
+                BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+                source.Blackboard.Add(new BehaviorTreeBlackboardKey
+                {
+                    Name = "WaitDuration",
+                    Type = "float",
+                    DefaultValue = 0.1f
+                });
+                source.Nodes.Find(node => node.Id == "wait_short").Inputs["duration"] = "WaitDuration";
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, source);
+
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                RuntimeBehaviorTree runtimeTree = compiledAsset.CreateRuntimeTree(BehaviorTreeExecutorRegistry.CreateDefault());
+                Assert.AreEqual("BehaviorTreeTest", runtimeTree.Name);
+                Assert.AreEqual("root", runtimeTree.RootNodeId);
+                Assert.True(runtimeTree.NodesById.ContainsKey("wait_short"));
+                Assert.True(runtimeTree.DecoratorsById.ContainsKey("flag_is_set"));
+                Assert.AreEqual("flag", runtimeTree.NodesById["set_flag"].Properties["key"]);
+                Assert.AreEqual("WaitDuration", runtimeTree.NodesById["wait_short"].Inputs["duration"]);
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerInspectorSyncsBlackboardOverridesFromCompiledAsset()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/RunnerOverrideSyncBehaviorTree.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            GameObject gameObject = null;
+
+            try
+            {
+                BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+                source.Blackboard.Add(new BehaviorTreeBlackboardKey
+                {
+                    Name = "HiddenRuntimeOnly",
+                    Type = "float",
+                    DefaultValue = 7f,
+                    Exposed = false
+                });
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, source);
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                gameObject = new GameObject("BehaviorTreeRunnerOverrideSyncTest");
+                BehaviorTreeRunner runner = gameObject.AddComponent<BehaviorTreeRunner>();
+                SerializedObject runnerObject = new SerializedObject(runner);
+                runnerObject.FindProperty("compiledBehaviorTree").objectReferenceValue = compiledAsset;
+                SerializedProperty overridesProperty = runnerObject.FindProperty("blackboardOverrides");
+                overridesProperty.InsertArrayElementAtIndex(0);
+                SerializedProperty manualEntry = overridesProperty.GetArrayElementAtIndex(0);
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(manualEntry, "VariableId", "manual-id");
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(manualEntry, "Name", "ManualKey");
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(manualEntry, "Type", "string");
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetBool(manualEntry, "Enabled", true);
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(manualEntry, "JsonValue", "\"manual\"");
+                overridesProperty.InsertArrayElementAtIndex(1);
+                SerializedProperty hiddenEntry = overridesProperty.GetArrayElementAtIndex(1);
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(hiddenEntry, "Name", "HiddenRuntimeOnly");
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(hiddenEntry, "Type", "float");
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetBool(hiddenEntry, "Enabled", true);
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SetString(hiddenEntry, "JsonValue", "3");
+                runnerObject.ApplyModifiedProperties();
+
+                runnerObject.Update();
+                overridesProperty = runnerObject.FindProperty("blackboardOverrides");
+                BehaviorTreeRunnerBlackboardOverrideEditorUtility.SyncOverrideArray(runnerObject, overridesProperty, compiledAsset.Blackboard);
+                runnerObject.Update();
+                overridesProperty = runnerObject.FindProperty("blackboardOverrides");
+
+                Assert.AreEqual(2, overridesProperty.arraySize);
+                SerializedProperty flagEntry = BehaviorTreeRunnerBlackboardOverrideEditorUtility.FindOverrideEntry(overridesProperty, "flag");
+                SerializedProperty targetPositionEntry = BehaviorTreeRunnerBlackboardOverrideEditorUtility.FindOverrideEntry(overridesProperty, "TargetPosition");
+                Assert.NotNull(flagEntry);
+                Assert.NotNull(targetPositionEntry);
+                Assert.AreEqual("bool", BehaviorTreeRunnerBlackboardOverrideEditorUtility.GetString(flagEntry, "Type"));
+                Assert.AreEqual("Vector3", BehaviorTreeRunnerBlackboardOverrideEditorUtility.GetString(targetPositionEntry, "Type"));
+                Assert.AreEqual(string.Empty, BehaviorTreeRunnerBlackboardOverrideEditorUtility.GetString(flagEntry, "VariableId"));
+                Assert.False(BehaviorTreeRunnerBlackboardOverrideEditorUtility.IsOverrideEnabled(flagEntry));
+                Assert.Null(BehaviorTreeRunnerBlackboardOverrideEditorUtility.FindOverrideEntry(overridesProperty, "ManualKey"));
+                Assert.Null(BehaviorTreeRunnerBlackboardOverrideEditorUtility.FindOverrideEntry(overridesProperty, "HiddenRuntimeOnly"));
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(gameObject);
+                }
+
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerAppliesObjectBlackboardOverride()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/RunnerObjectOverrideBehaviorTree.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            GameObject runnerObject = null;
+            GameObject targetObject = null;
+
+            try
+            {
+                BehaviorTreeSource source = CreateBehaviorTreeTestSource();
+                source.Blackboard.Add(new BehaviorTreeBlackboardKey
+                {
+                    Name = "Target",
+                    Type = "GameObject",
+                    DefaultValue = null,
+                    Exposed = true
+                });
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, source);
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                runnerObject = new GameObject("BehaviorTreeRunnerObjectOverrideTest");
+                targetObject = new GameObject("BehaviorTreeTargetOverrideTest");
+                BehaviorTreeRunner runner = runnerObject.AddComponent<BehaviorTreeRunner>();
+                SetPrivateField(runner, "compiledBehaviorTree", compiledAsset);
+                SetPrivateField(runner, "blackboardOverrides", new List<BlueprintVariableOverride>
+                {
+                    new BlueprintVariableOverride
+                    {
+                        Name = "Target",
+                        Type = "GameObject",
+                        Enabled = true,
+                        ObjectValue = targetObject
+                    }
+                });
+
+                Assert.True(runner.StartTree());
+                Assert.AreSame(targetObject, runner.GetBlackboardValue("Target"));
+            }
+            finally
+            {
+                if (runnerObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(runnerObject);
+                }
+
+                if (targetObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(targetObject);
+                }
+
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeGraphToolkitBridgeRoundTripsBehaviorTree()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripBehaviorTree.btree.json";
+            string graphPath = BehaviorTreeGraphToolkitBridge.GetDefaultGraphPath(behaviorTreePath);
+            string exportedPath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripBehaviorTreeExport.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            DeleteTemporaryBehaviorTreeArtifacts(exportedPath);
+            AssetDatabase.DeleteAsset(graphPath);
+
+            try
+            {
+                WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeTestSource());
+                string createdGraphPath = BehaviorTreeGraphToolkitBridge.ImportBehaviorTreeAtPath(behaviorTreePath, graphPath, false);
+                Assert.AreEqual(graphPath, createdGraphPath);
+
+                BehaviorTreeVisualGraph graph = GraphDatabase.LoadGraph<BehaviorTreeVisualGraph>(graphPath);
+                Assert.NotNull(graph);
+                Assert.AreEqual(4, graph.GetNodes().OfType<BehaviorTreeVisualNode>().Count());
+                Assert.AreEqual(1, graph.GetNodes().OfType<BehaviorTreeVisualDecoratorNode>().Count());
+                Assert.True(graph.GetNodes().OfType<BehaviorTreeVisualNode>().Any(node => node.ReadNodeId() == "root"));
+                Assert.True(graph.GetNodes().OfType<BTCompositeRootNode>().Any(node => node.ReadNodeId() == "root"));
+                Assert.True(graph.GetNodes().OfType<BTCompositeSequenceNode>().Any(node => node.ReadNodeId() == "main_sequence"));
+                Assert.True(graph.GetNodes().OfType<BTTaskSetBlackboardNode>().Any(node => node.ReadNodeId() == "set_flag"));
+                Assert.True(graph.GetNodes().OfType<BTDecoratorBlackboardConditionNode>().Any(node => node.ReadDecoratorId() == "flag_is_set"));
+                Assert.AreEqual(2, graph.GetVariables().Count());
+
+                IVariable flagVariable = graph.GetVariables().FirstOrDefault(variable => variable.name == "flag");
+                Assert.NotNull(flagVariable);
+                Assert.AreEqual(typeof(bool), flagVariable.dataType);
+                bool flagDefault;
+                Assert.True(flagVariable.TryGetDefaultValue(out flagDefault));
+                Assert.False(flagDefault);
+
+                IVariable targetPositionVariable = graph.GetVariables().FirstOrDefault(variable => variable.name == "TargetPosition");
+                Assert.NotNull(targetPositionVariable);
+                Assert.AreEqual(typeof(Vector3), targetPositionVariable.dataType);
+                SetBlackboardDefaultValue(flagVariable, true);
+                BehaviorTreeGraphToolkitReflection.MarkDirty(graph);
+                GraphDatabase.SaveGraphIfDirty(graph);
+                AssetDatabase.SaveAssets();
+
+                string outputPath = BehaviorTreeGraphToolkitBridge.ExportGraphAtPath(graphPath, exportedPath);
+                Assert.AreEqual(exportedPath, outputPath);
+
+                BehaviorTreeSource exported = BehaviorTreeSource.FromJson(File.ReadAllText(exportedPath));
+                BlueprintDiagnosticList diagnostics = new BehaviorTreeValidator().Validate(exported, BehaviorTreeExecutorRegistry.CreateDefault());
+                Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+                Assert.AreEqual("BehaviorTreeTest", exported.Name);
+                Assert.AreEqual(2, exported.Blackboard.Count);
+                Assert.AreEqual(true, exported.Blackboard.First(key => key.Name == "flag").DefaultValue);
+                Assert.AreEqual("flag", exported.Nodes.Find(node => node.Id == "set_flag").Inputs["key"]);
+                Assert.AreEqual("flag_is_set", exported.Nodes.Find(node => node.Id == "wait_short").Decorators[0]);
+                Assert.AreEqual("BT.BlackboardCondition", exported.Decorators.Find(item => item.Id == "flag_is_set").TypeId);
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+                DeleteTemporaryBehaviorTreeArtifacts(exportedPath);
+                AssetDatabase.DeleteAsset(graphPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeGraphToolkitBridgeRoundTripsBuiltInDecoratorVisualNodes()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripConditionDecorators.btree.json";
+            string graphPath = BehaviorTreeGraphToolkitBridge.GetDefaultGraphPath(behaviorTreePath);
+            string exportedPath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripConditionDecoratorsExport.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            DeleteTemporaryBehaviorTreeArtifacts(exportedPath);
+            AssetDatabase.DeleteAsset(graphPath);
+
+            try
+            {
+                WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeAllDecoratorSource());
+                string createdGraphPath = BehaviorTreeGraphToolkitBridge.ImportBehaviorTreeAtPath(behaviorTreePath, graphPath, false);
+                Assert.AreEqual(graphPath, createdGraphPath);
+
+                BehaviorTreeVisualGraph graph = GraphDatabase.LoadGraph<BehaviorTreeVisualGraph>(graphPath);
+                Assert.NotNull(graph);
+                Assert.AreEqual(6, graph.GetNodes().OfType<BehaviorTreeVisualDecoratorNode>().Count());
+                Assert.True(graph.GetNodes().OfType<BTDecoratorBlackboardConditionNode>().Any(node => node.ReadDecoratorId() == "condition_flag_true"));
+                Assert.True(graph.GetNodes().OfType<BTDecoratorCompareFloatNode>().Any(node => node.ReadDecoratorId() == "condition_distance_close"));
+                Assert.True(graph.GetNodes().OfType<BTDecoratorCompareBoolNode>().Any(node => node.ReadDecoratorId() == "condition_flag_equals"));
+                Assert.True(graph.GetNodes().OfType<BTDecoratorObjectIsSetNode>().Any(node => node.ReadDecoratorId() == "condition_object_set"));
+                Assert.True(graph.GetNodes().OfType<BTDecoratorDistanceLessThanNode>().Any(node => node.ReadDecoratorId() == "condition_distance_less"));
+                Assert.True(graph.GetNodes().OfType<BTDecoratorCooldownNode>().Any(node => node.ReadDecoratorId() == "condition_cooldown"));
+
+                string outputPath = BehaviorTreeGraphToolkitBridge.ExportGraphAtPath(graphPath, exportedPath);
+                Assert.AreEqual(exportedPath, outputPath);
+
+                BehaviorTreeSource exported = BehaviorTreeSource.FromJson(File.ReadAllText(exportedPath));
+                BlueprintDiagnosticList diagnostics = new BehaviorTreeValidator().Validate(exported, BehaviorTreeExecutorRegistry.CreateDefault());
+                Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+                Assert.AreEqual(6, exported.Decorators.Count);
+                AssertBehaviorTreeDecorator(exported, "condition_flag_true", "BT.BlackboardCondition", "blackboard_condition_log");
+                AssertBehaviorTreeDecorator(exported, "condition_distance_close", "BT.CompareFloat", "compare_float_log");
+                AssertBehaviorTreeDecorator(exported, "condition_flag_equals", "BT.CompareBool", "compare_bool_log");
+                AssertBehaviorTreeDecorator(exported, "condition_object_set", "BT.ObjectIsSet", "object_is_set_log");
+                AssertBehaviorTreeDecorator(exported, "condition_distance_less", "BT.DistanceLessThan", "distance_less_than_log");
+                AssertBehaviorTreeDecorator(exported, "condition_cooldown", "BT.Cooldown", "cooldown_log");
+                Assert.AreEqual(5f, BlueprintTypeUtility.ConvertValue(exported.Decorators.Find(item => item.Id == "condition_distance_less").Properties["maxDistance"], 0f));
+                Assert.AreEqual(0.25f, BlueprintTypeUtility.ConvertValue(exported.Decorators.Find(item => item.Id == "condition_cooldown").Properties["duration"], 0f));
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+                DeleteTemporaryBehaviorTreeArtifacts(exportedPath);
+                AssetDatabase.DeleteAsset(graphPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeCompilerRecognizesBehaviorTreeAssetExtensions()
+        {
+            Assert.True(BehaviorTreeCompiledAssetCompiler.IsBehaviorTreeJsonPath("Assets/Test/EnemyPatrolChaseAttack.btree.json"));
+            Assert.True(BehaviorTreeCompiledAssetCompiler.IsBehaviorTreeJsonPath("Assets/Test/EnemyPatrolChaseAttack.btree"));
+            Assert.False(BehaviorTreeCompiledAssetCompiler.IsBehaviorTreeJsonPath("Assets/Test/EnemyPatrolChaseAttack.json"));
+            Assert.AreEqual("Assets/Test/EnemyPatrolChaseAttack.btgraph", BehaviorTreeGraphToolkitBridge.GetDefaultGraphPath("Assets/Test/EnemyPatrolChaseAttack.btree"));
+        }
+
+        [Test]
+        public void BehaviorTreeGraphToolkitBridgeOpenAssetCallbackHandlesBehaviorTreeJsonAndCompiledAsset()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/EditorOpenBehaviorTreeCallbackTest.btree.json";
+            string graphPath = BehaviorTreeGraphToolkitBridge.GetDefaultGraphPath(behaviorTreePath);
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            AssetDatabase.DeleteAsset(graphPath);
+
+            try
+            {
+                TextAsset behaviorTreeAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeTestSource());
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(behaviorTreeAsset, false, out compiledAsset));
+
+                Assert.NotNull(behaviorTreeAsset);
+                Assert.NotNull(compiledAsset);
+                Assert.True(BehaviorTreeGraphToolkitBridge.OnOpenAsset(behaviorTreeAsset.GetInstanceID(), 0));
+                Assert.True(File.Exists(graphPath));
+
+                AssetDatabase.DeleteAsset(graphPath);
+                Assert.True(BehaviorTreeGraphToolkitBridge.OnOpenAsset(compiledAsset.GetInstanceID(), 0));
+                Assert.True(File.Exists(graphPath));
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+                AssetDatabase.DeleteAsset(graphPath);
             }
         }
 
@@ -1625,6 +2517,122 @@ namespace BlueprintSystem.Tests
             finally
             {
                 Object.DestroyImmediate(actor);
+            }
+        }
+
+        [Test]
+        public void BlueprintRunnerResolvesBindingsForTransformNodes()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "RunnerBindingRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration
+            {
+                Name = "Actor",
+                Type = "Transform",
+                Required = true
+            });
+
+            BlueprintNodeSource position = AddNode(source, "set_position", "Game.SetTransformPosition");
+            position.Properties["target"] = "Actor";
+            position.Properties["value"] = new List<object> { 4f, 5f, 6f };
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject runnerObject = new GameObject("Runner");
+            GameObject actor = new GameObject("Actor");
+            string assetPath = "Assets/BlueprintSystem/Tests/Editor/RunnerBindingAsset.asset";
+            AssetDatabase.DeleteAsset(assetPath);
+            try
+            {
+                BlueprintUserStructAsset structAsset = ScriptableObject.CreateInstance<BlueprintUserStructAsset>();
+                AssetDatabase.CreateAsset(structAsset, assetPath);
+                BlueprintUserStructAsset loadedAsset = AssetDatabase.LoadAssetAtPath<BlueprintUserStructAsset>(assetPath);
+                Assert.NotNull(loadedAsset);
+
+                BlueprintRunner runner = runnerObject.AddComponent<BlueprintRunner>();
+                AddSerializedBinding(runner, "Actor", actor);
+                AddSerializedBinding(runner, "ActorTransform", actor.transform);
+                AddSerializedBinding(runner, "StructAsset", loadedAsset);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, actor, runner);
+
+                ExecuteNode(compileResult.Blueprint, context, "set_position");
+
+                Assert.AreEqual(actor, runner.Resolve<GameObject>("Actor"));
+                Assert.AreEqual(actor.transform, runner.Resolve<Transform>("Actor"));
+                Assert.AreEqual(actor.transform, runner.Resolve<Transform>("ActorTransform"));
+                Assert.AreEqual(loadedAsset, runner.Resolve<BlueprintUserStructAsset>("StructAsset"));
+                Assert.AreEqual(new Vector3(4f, 5f, 6f), actor.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(runnerObject);
+                Object.DestroyImmediate(actor);
+                AssetDatabase.DeleteAsset(assetPath);
+            }
+        }
+
+        [Test]
+        public void UIBlueprintBinderInheritsBindingResolver()
+        {
+            GameObject runnerObject = new GameObject("UIRunner");
+            GameObject target = new GameObject("Target");
+            try
+            {
+                UIBlueprintBinder runner = runnerObject.AddComponent<UIBlueprintBinder>();
+                AddSerializedBinding(runner, "Target", target);
+
+                Assert.AreEqual(target, runner.Resolve<GameObject>("Target"));
+                Assert.AreEqual(target.transform, runner.Resolve<Transform>("Target"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(runnerObject);
+                Object.DestroyImmediate(target);
+            }
+        }
+
+        [Test]
+        public void UIBlueprintBinderTriggersOpenAndCloseLifecycleEvents()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "UILifecycleRuntimeTest";
+
+            AddNode(source, "event_open", "UI.Event.OnOpen");
+            BlueprintNodeSource logOpen = AddNode(source, "log_open", "Game.Log");
+            logOpen.Properties["message"] = "opened";
+            AddNode(source, "event_close", "UI.Event.OnClose");
+            BlueprintNodeSource logClose = AddNode(source, "log_close", "Game.Log");
+            logClose.Properties["message"] = "closed";
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "event_open.execOut",
+                To = "log_open.execIn"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "event_close.execOut",
+                To = "log_close.execIn"
+            });
+
+            RuntimeBlueprint blueprint = CompileSource(source);
+            GameObject runnerObject = new GameObject("UIRunner");
+            try
+            {
+                UIBlueprintBinder runner = runnerObject.AddComponent<UIBlueprintBinder>();
+                RecordingBlueprintLogger logger = InitializeRunnerRuntime(runner, blueprint);
+
+                typeof(UIBlueprintBinder).GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(runner, null);
+                typeof(UIBlueprintBinder).GetMethod("OnDisable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(runner, null);
+
+                Assert.True(logger.Entries.Exists(entry => entry.Contains("opened")), string.Join("\n", logger.Entries.ToArray()));
+                Assert.True(logger.Entries.Exists(entry => entry.Contains("closed")), string.Join("\n", logger.Entries.ToArray()));
+            }
+            finally
+            {
+                Object.DestroyImmediate(runnerObject);
             }
         }
 
@@ -4989,16 +5997,23 @@ namespace BlueprintSystem.Tests
         {
             GameObject gameObject = new GameObject(name);
             BlueprintRunner runner = gameObject.AddComponent<BlueprintRunner>();
+            InitializeRunnerRuntime(runner, blueprint);
+            return runner;
+        }
+
+        private static RecordingBlueprintLogger InitializeRunnerRuntime(BlueprintRunner runner, RuntimeBlueprint blueprint)
+        {
             BlueprintVM vm = new BlueprintVM();
             BlueprintExecutionContext context = null;
+            RecordingBlueprintLogger logger = new RecordingBlueprintLogger();
             context = new BlueprintExecutionContext(
                 blueprint,
-                gameObject,
+                runner.gameObject,
                 runner,
-                new NullBlueprintBindingResolver(),
+                runner,
                 new DictionaryBlueprintVariableStore(blueprint),
                 new ActionBlueprintEventBus(eventName => vm.TriggerEvent(context, eventName)),
-                new RecordingBlueprintLogger(),
+                logger,
                 (node, outputPortId) => vm.ExecuteFromOutput(context, node, outputPortId),
                 runner,
                 null);
@@ -5006,7 +6021,23 @@ namespace BlueprintSystem.Tests
             SetPrivateField(runner, "_blueprint", blueprint);
             SetPrivateField(runner, "_vm", vm);
             SetPrivateField(runner, "_context", context);
-            return runner;
+            return logger;
+        }
+
+        private static void AddSerializedBinding(BlueprintRunner runner, string bindingName, Object target)
+        {
+            SerializedObject serializedObject = new SerializedObject(runner);
+            SerializedProperty bindings = serializedObject.FindProperty("bindings");
+            Assert.NotNull(bindings);
+            Assert.True(bindings.isArray);
+
+            int index = bindings.arraySize;
+            bindings.InsertArrayElementAtIndex(index);
+            SerializedProperty entry = bindings.GetArrayElementAtIndex(index);
+            entry.FindPropertyRelative("Name").stringValue = bindingName;
+            entry.FindPropertyRelative("Target").objectReferenceValue = target;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            runner.RebuildBindingCache();
         }
 
         private static BlueprintExecutionContext CreateTestExecutionContext(RuntimeBlueprint blueprint, GameObject owner, IBlueprintBindingResolver resolver)
@@ -5057,6 +6088,234 @@ namespace BlueprintSystem.Tests
             return (bool)node.Executor.Evaluate(context, node, "result");
         }
 
+        private static BehaviorTreeSource CreateBehaviorTreeTestSource()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "BehaviorTreeTest";
+            source.Category = "AI";
+            source.Root = "root";
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "flag",
+                Type = "bool",
+                DefaultValue = false,
+                Exposed = true
+            });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey
+            {
+                Name = "TargetPosition",
+                Type = "Vector3",
+                DefaultValue = new List<object> { 1f, 0f, 0f },
+                Exposed = true
+            });
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("main_sequence");
+
+            BehaviorTreeNodeSource sequence = AddBehaviorTreeNode(source, "main_sequence", "BT.Sequence");
+            sequence.Children.Add("set_flag");
+            sequence.Children.Add("wait_short");
+
+            BehaviorTreeNodeSource setFlag = AddBehaviorTreeNode(source, "set_flag", "BT.SetBlackboard");
+            setFlag.Properties["key"] = "flag";
+            setFlag.Properties["value"] = true;
+
+            BehaviorTreeNodeSource wait = AddBehaviorTreeNode(source, "wait_short", "BT.Wait");
+            wait.Decorators.Add("flag_is_set");
+            wait.Properties["duration"] = 0.1f;
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = "flag_is_set";
+            decorator.TypeId = "BT.BlackboardCondition";
+            decorator.Properties["key"] = "flag";
+            decorator.Properties["operator"] = "IsSet";
+            source.Decorators.Add(decorator);
+
+            return source;
+        }
+
+        private static BehaviorTreeSource CreateBehaviorTreeAllDecoratorSource()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "ConditionDecoratorsBehaviorTreeTest";
+            source.Category = "AI";
+            source.Root = "root";
+            source.Blackboard.Add(CreateBlackboardKey("flag", "bool", true));
+            source.Blackboard.Add(CreateBlackboardKey("distance", "float", 3f));
+            source.Blackboard.Add(CreateBlackboardKey("target", "string", "set"));
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("selector");
+
+            BehaviorTreeNodeSource selector = AddBehaviorTreeNode(source, "selector", "BT.Selector");
+            AddDecoratorLogBranch(source, selector, "blackboard_condition_log", "condition_flag_true", "BT.BlackboardCondition",
+                new Dictionary<string, object>
+                {
+                    { "key", "flag" },
+                    { "operator", "IsTrue" }
+                });
+            AddDecoratorLogBranch(source, selector, "compare_float_log", "condition_distance_close", "BT.CompareFloat",
+                new Dictionary<string, object>
+                {
+                    { "leftKey", "distance" },
+                    { "operator", "LessOrEqual" },
+                    { "value", 5f }
+                });
+            AddDecoratorLogBranch(source, selector, "compare_bool_log", "condition_flag_equals", "BT.CompareBool",
+                new Dictionary<string, object>
+                {
+                    { "key", "flag" },
+                    { "operator", "Equals" },
+                    { "value", true }
+                });
+            AddDecoratorLogBranch(source, selector, "object_is_set_log", "condition_object_set", "BT.ObjectIsSet",
+                new Dictionary<string, object>
+                {
+                    { "key", "target" }
+                });
+            AddDecoratorLogBranch(source, selector, "distance_less_than_log", "condition_distance_less", "BT.DistanceLessThan",
+                new Dictionary<string, object>
+                {
+                    { "distanceKey", "distance" },
+                    { "maxDistance", 5f }
+                });
+            AddDecoratorLogBranch(source, selector, "cooldown_log", "condition_cooldown", "BT.Cooldown",
+                new Dictionary<string, object>
+                {
+                    { "duration", 0.25f }
+                });
+
+            return source;
+        }
+
+        private static void AddDecoratorLogBranch(
+            BehaviorTreeSource source,
+            BehaviorTreeNodeSource parent,
+            string nodeId,
+            string decoratorId,
+            string decoratorTypeId,
+            Dictionary<string, object> decoratorProperties)
+        {
+            BehaviorTreeNodeSource logNode = AddBehaviorTreeNode(source, nodeId, "BT.Log");
+            logNode.Properties["message"] = nodeId;
+            logNode.Decorators.Add(decoratorId);
+            parent.Children.Add(nodeId);
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = decoratorId;
+            decorator.TypeId = decoratorTypeId;
+            foreach (KeyValuePair<string, object> pair in decoratorProperties)
+            {
+                decorator.Properties[pair.Key] = pair.Value;
+            }
+
+            source.Decorators.Add(decorator);
+        }
+
+        private static void AssertBehaviorTreeDecorator(
+            BehaviorTreeSource source,
+            string decoratorId,
+            string typeId,
+            string attachedNodeId)
+        {
+            BehaviorTreeDecoratorSource decorator = source.Decorators.Find(item => item.Id == decoratorId);
+            Assert.NotNull(decorator);
+            Assert.AreEqual(typeId, decorator.TypeId);
+
+            BehaviorTreeNodeSource node = source.Nodes.Find(item => item.Id == attachedNodeId);
+            Assert.NotNull(node);
+            Assert.Contains(decoratorId, node.Decorators);
+        }
+
+        private static BehaviorTreeStatus TickSingleDecorator(
+            string decoratorTypeId,
+            Dictionary<string, object> decoratorProperties,
+            BehaviorTreeBlackboardKey[] blackboard)
+        {
+            return CreateSingleDecoratorRuntime(decoratorTypeId, decoratorProperties, blackboard).Tick(0f);
+        }
+
+        private static BehaviorTreeRuntime CreateSingleDecoratorRuntime(
+            string decoratorTypeId,
+            Dictionary<string, object> decoratorProperties,
+            BehaviorTreeBlackboardKey[] blackboard)
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "SingleDecoratorBehaviorTreeTest";
+            source.Root = "root";
+            source.Blackboard.AddRange(blackboard);
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("log");
+
+            BehaviorTreeNodeSource log = AddBehaviorTreeNode(source, "log", "BT.Log");
+            log.Properties["message"] = "condition passed";
+            log.Decorators.Add("condition");
+
+            BehaviorTreeDecoratorSource decorator = new BehaviorTreeDecoratorSource();
+            decorator.Id = "condition";
+            decorator.TypeId = decoratorTypeId;
+            foreach (KeyValuePair<string, object> pair in decoratorProperties)
+            {
+                decorator.Properties[pair.Key] = pair.Value;
+            }
+
+            source.Decorators.Add(decorator);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+            return new BehaviorTreeRuntime(compileResult.Tree, null, null);
+        }
+
+        private static BehaviorTreeBlackboardKey CreateBlackboardKey(string name, string type, object defaultValue)
+        {
+            return new BehaviorTreeBlackboardKey
+            {
+                Name = name,
+                Type = type,
+                DefaultValue = defaultValue
+            };
+        }
+
+        private static BehaviorTreeNodeSource AddBehaviorTreeNode(BehaviorTreeSource source, string id, string typeId)
+        {
+            BehaviorTreeNodeSource node = new BehaviorTreeNodeSource();
+            node.Id = id;
+            node.TypeId = typeId;
+            source.Nodes.Add(node);
+            return node;
+        }
+
+        private static BehaviorTreeNodeSource AddSetStringBlackboardNode(
+            BehaviorTreeSource source,
+            string id,
+            string key,
+            string value)
+        {
+            BehaviorTreeNodeSource node = AddBehaviorTreeNode(source, id, "BT.SetBlackboard");
+            node.Properties["key"] = key;
+            node.Properties["value"] = value;
+            return node;
+        }
+
+        private static TextAsset WriteTemporaryBehaviorTreeAsset(string assetPath, BehaviorTreeSource source)
+        {
+            File.WriteAllText(assetPath, source.ToJson());
+            AssetDatabase.ImportAsset(assetPath);
+            TextAsset asset = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
+            Assert.NotNull(asset, assetPath);
+            return asset;
+        }
+
+        private static void DeleteTemporaryBehaviorTreeArtifacts(string behaviorTreePath)
+        {
+            string compiledPath = BehaviorTreeCompiledAssetCompiler.GetCompiledAssetPath(behaviorTreePath);
+            AssetDatabase.DeleteAsset(compiledPath);
+            AssetDatabase.DeleteAsset(behaviorTreePath);
+        }
 
         private static BlueprintNodeSource AddNode(BlueprintSource source, string id, string typeId)
         {
@@ -5097,7 +6356,12 @@ namespace BlueprintSystem.Tests
 
         private static void SetPrivateField(object target, string fieldName, object value)
         {
-            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo field = null;
+            for (System.Type type = target.GetType(); type != null && field == null; type = type.BaseType)
+            {
+                field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            }
+
             Assert.NotNull(field, fieldName);
             field.SetValue(target, value);
         }

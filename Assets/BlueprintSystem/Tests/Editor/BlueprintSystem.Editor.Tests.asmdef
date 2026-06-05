@@ -3,6 +3,7 @@
     "rootNamespace": "BlueprintSystem.Tests",
     "references": [
         "BlueprintSystem",
+        "BlueprintSystem.BehaviorTree.Editor",
         "BlueprintSystem.Editor",
         "Unity.GraphToolkit.Common.Editor",
         "Unity.GraphToolkit.Editor",

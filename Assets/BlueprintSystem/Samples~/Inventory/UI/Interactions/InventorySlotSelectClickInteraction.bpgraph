@@ -1720,7 +1720,7 @@ MonoBehaviour:
         - Id: target
           DisplayName: 
           Kind: value
-          Type: UIBinding<Button>
+          Type: Binding<Button>
           Required: 1
           Source: property
           AllowMultiple: 0
@@ -1748,7 +1748,7 @@ MonoBehaviour:
         Properties:
         - Id: target
           DisplayName: 
-          Type: UIBinding<Button>
+          Type: Binding<Button>
           Required: 1
           HasValue: 1
           JsonValue: '"self_button"'

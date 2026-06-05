@@ -9,13 +9,13 @@
     {
       "id": "value",
       "kind": "value",
-      "type": "UIBinding<Sprite>"
+      "type": "Binding<Sprite>"
     }
   ],
   "properties": [
     {
       "id": "sprite",
-      "type": "UIBinding<Sprite>",
+      "type": "Binding<Sprite>",
       "required": true
     }
   ]

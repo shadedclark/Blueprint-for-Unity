@@ -1,0 +1,160 @@
+{
+  "schemaVersion": "0.1",
+  "name": "SelectorFallbackExample",
+  "category": "AI/Examples",
+  "description": "Composite node example: Selector tries a guarded high-priority branch, then falls back to patrol.",
+  "blackboard": [
+    {
+      "name": "EnemyVisible",
+      "type": "bool",
+      "defaultValue": false,
+      "exposed": true,
+      "persistent": false,
+      "description": "Set true to let the selector choose the engage branch."
+    },
+    {
+      "name": "SelectedBranch",
+      "type": "string",
+      "defaultValue": "None",
+      "exposed": true,
+      "persistent": false,
+      "description": "Records which selector branch succeeded."
+    }
+  ],
+  "root": "root",
+  "nodes": [
+    {
+      "id": "root",
+      "typeId": "BT.Root",
+      "position": [
+        0,
+        0
+      ],
+      "children": [
+        "selector_choose_behavior"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "selector_choose_behavior",
+      "typeId": "BT.Selector",
+      "position": [
+        0,
+        160
+      ],
+      "children": [
+        "engage_sequence",
+        "patrol_fallback_sequence"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "engage_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        -180,
+        320
+      ],
+      "children": [
+        "set_branch_engage",
+        "log_engage"
+      ],
+      "decorators": [
+        "condition_enemy_visible"
+      ],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_branch_engage",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -260,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "SelectedBranch",
+        "value": "Engage"
+      }
+    },
+    {
+      "id": "log_engage",
+      "typeId": "BT.Log",
+      "position": [
+        -100,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "Selector chose the guarded engage branch."
+      }
+    },
+    {
+      "id": "patrol_fallback_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        220,
+        320
+      ],
+      "children": [
+        "set_branch_patrol",
+        "log_patrol"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_branch_patrol",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        140,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "SelectedBranch",
+        "value": "PatrolFallback"
+      }
+    },
+    {
+      "id": "log_patrol",
+      "typeId": "BT.Log",
+      "position": [
+        300,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "Selector fell back to patrol because EnemyVisible is false."
+      }
+    }
+  ],
+  "decorators": [
+    {
+      "id": "condition_enemy_visible",
+      "typeId": "BT.CompareBool",
+      "inputs": {
+        "value": "EnemyVisible"
+      },
+      "properties": {
+        "operator": "Equals",
+        "expected": true
+      }
+    }
+  ],
+  "services": []
+}

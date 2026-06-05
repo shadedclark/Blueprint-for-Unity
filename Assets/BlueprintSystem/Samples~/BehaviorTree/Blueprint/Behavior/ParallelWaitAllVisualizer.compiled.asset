@@ -1,0 +1,517 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: ParallelWaitAllVisualizer.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: ParallelWaitAllVisualizer
+  sourceGuid: 2e3b44fd76d414de6b1587f987ad69a1
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/Blueprint/Behavior/ParallelWaitAllVisualizer.blueprint.json
+  sourceHash: 9be84203ba5aedb087332b43063ddb92571ad6f0cc8ebd15101d647272c495af
+  manifestHash: b566693e8f84a25928fe71a421c579ee6e4f33e95bee09db8944682fd56c2af3
+  variables:
+  - Id: var_b01632b8bc874e81ae96ead890797e8c
+    Name: left_done
+    Type: bool
+    DefaultValueJson: false
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: True after the left branch reports completion.
+  - Id: var_a66c221847344cc68c8952aac5636707
+    Name: right_done
+    Type: bool
+    DefaultValueJson: false
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: True after the right branch reports completion.
+  bindings:
+  - Name: left_renderer
+    Type: Renderer
+    Required: 1
+  - Name: left_lift
+    Type: Transform
+    Required: 1
+  - Name: right_renderer
+    Type: Renderer
+    Required: 1
+  - Name: right_lift
+    Type: Transform
+    Required: 1
+  - Name: gate
+    Type: Transform
+    Required: 1
+  - Name: status_label
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_left_done
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"LeftDone"'
+  - Id: set_left_done
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"left_done"'
+    - Id: value
+      JsonValue: true
+  - Id: event_right_done
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RightDone"'
+  - Id: set_right_done
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"right_done"'
+    - Id: value
+      JsonValue: true
+  - Id: event_tick
+    TypeId: Game.Event.OnTick
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: phase
+      JsonValue: '"Update"'
+  - Id: sequence_tick
+    TypeId: Flow.Sequence
+    ExecutorId: Flow.Sequence
+    Properties: []
+  - Id: get_delta_time
+    TypeId: Game.GetDeltaTime
+    ExecutorId: Game.GetDeltaTime
+    Properties: []
+  - Id: lift_lerp_t
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 8
+  - Id: gate_lerp_t
+    TypeId: Math.Multiply
+    ExecutorId: Math.Multiply
+    Properties:
+    - Id: a
+      JsonValue: 0
+    - Id: b
+      JsonValue: 6
+  - Id: get_left_done
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"left_done"'
+  - Id: branch_left
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: get_left_position
+    TypeId: Game.GetTransformLocalPosition
+    ExecutorId: Game.GetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"left_lift"'
+  - Id: left_position_active
+    TypeId: Vector.Lerp
+    ExecutorId: Vector.Lerp
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[-0.8,0.95,0.25]'
+    - Id: t
+      JsonValue: 0
+  - Id: left_position_inactive
+    TypeId: Vector.Lerp
+    ExecutorId: Vector.Lerp
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[-0.8,0.15,0.25]'
+    - Id: t
+      JsonValue: 0
+  - Id: set_left_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"left_renderer"'
+    - Id: value
+      JsonValue: '[0.2,0.85,0.45,1]'
+  - Id: set_left_active_position
+    TypeId: Game.SetTransformLocalPosition
+    ExecutorId: Game.SetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"left_lift"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: set_left_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"left_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_left_inactive_position
+    TypeId: Game.SetTransformLocalPosition
+    ExecutorId: Game.SetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"left_lift"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: get_right_done
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"right_done"'
+  - Id: branch_right
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: get_right_position
+    TypeId: Game.GetTransformLocalPosition
+    ExecutorId: Game.GetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"right_lift"'
+  - Id: right_position_active
+    TypeId: Vector.Lerp
+    ExecutorId: Vector.Lerp
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[0.8,0.95,0.25]'
+    - Id: t
+      JsonValue: 0
+  - Id: right_position_inactive
+    TypeId: Vector.Lerp
+    ExecutorId: Vector.Lerp
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[0.8,0.15,0.25]'
+    - Id: t
+      JsonValue: 0
+  - Id: set_right_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"right_renderer"'
+    - Id: value
+      JsonValue: '[0.2,0.85,0.45,1]'
+  - Id: set_right_active_position
+    TypeId: Game.SetTransformLocalPosition
+    ExecutorId: Game.SetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"right_lift"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: set_right_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"right_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_right_inactive_position
+    TypeId: Game.SetTransformLocalPosition
+    ExecutorId: Game.SetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"right_lift"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: both_done
+    TypeId: Logic.And
+    ExecutorId: Logic.And
+    Properties:
+    - Id: left
+      JsonValue: false
+    - Id: right
+      JsonValue: false
+  - Id: branch_gate
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: get_gate_position
+    TypeId: Game.GetTransformLocalPosition
+    ExecutorId: Game.GetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"gate"'
+  - Id: gate_open_position
+    TypeId: Vector.Lerp
+    ExecutorId: Vector.Lerp
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[0,2.25,1.3]'
+    - Id: t
+      JsonValue: 0
+  - Id: gate_closed_position
+    TypeId: Vector.Lerp
+    ExecutorId: Vector.Lerp
+    Properties:
+    - Id: a
+      JsonValue: '[0,0,0]'
+    - Id: b
+      JsonValue: '[0,0.65,1.3]'
+    - Id: t
+      JsonValue: 0
+  - Id: set_gate_open_position
+    TypeId: Game.SetTransformLocalPosition
+    ExecutorId: Game.SetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"gate"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: set_status_complete
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"status_label"'
+    - Id: value
+      JsonValue: '"All Complete"'
+  - Id: set_gate_closed_position
+    TypeId: Game.SetTransformLocalPosition
+    ExecutorId: Game.SetTransformLocalPosition
+    Properties:
+    - Id: target
+      JsonValue: '"gate"'
+    - Id: value
+      JsonValue: '[0,0,0]'
+  - Id: set_status_running
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"status_label"'
+    - Id: value
+      JsonValue: '"Running"'
+  execEdges:
+  - FromNodeId: branch_gate
+    FromPortId: false
+    ToNodeId: set_gate_closed_position
+    ToPortId: execIn
+  - FromNodeId: branch_gate
+    FromPortId: true
+    ToNodeId: set_gate_open_position
+    ToPortId: execIn
+  - FromNodeId: branch_left
+    FromPortId: false
+    ToNodeId: set_left_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_left
+    FromPortId: true
+    ToNodeId: set_left_active_color
+    ToPortId: execIn
+  - FromNodeId: branch_right
+    FromPortId: false
+    ToNodeId: set_right_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_right
+    FromPortId: true
+    ToNodeId: set_right_active_color
+    ToPortId: execIn
+  - FromNodeId: event_left_done
+    FromPortId: execOut
+    ToNodeId: set_left_done
+    ToPortId: execIn
+  - FromNodeId: event_right_done
+    FromPortId: execOut
+    ToNodeId: set_right_done
+    ToPortId: execIn
+  - FromNodeId: event_tick
+    FromPortId: execOut
+    ToNodeId: sequence_tick
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then0
+    ToNodeId: branch_left
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then1
+    ToNodeId: branch_right
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then2
+    ToNodeId: branch_gate
+    ToPortId: execIn
+  - FromNodeId: set_gate_closed_position
+    FromPortId: execOut
+    ToNodeId: set_status_running
+    ToPortId: execIn
+  - FromNodeId: set_gate_open_position
+    FromPortId: execOut
+    ToNodeId: set_status_complete
+    ToPortId: execIn
+  - FromNodeId: set_left_active_color
+    FromPortId: execOut
+    ToNodeId: set_left_active_position
+    ToPortId: execIn
+  - FromNodeId: set_left_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_left_inactive_position
+    ToPortId: execIn
+  - FromNodeId: set_right_active_color
+    FromPortId: execOut
+    ToNodeId: set_right_active_position
+    ToPortId: execIn
+  - FromNodeId: set_right_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_right_inactive_position
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: both_done
+    FromPortId: result
+    ToNodeId: branch_gate
+    ToPortId: condition
+  - FromNodeId: gate_closed_position
+    FromPortId: result
+    ToNodeId: set_gate_closed_position
+    ToPortId: value
+  - FromNodeId: gate_lerp_t
+    FromPortId: result
+    ToNodeId: gate_closed_position
+    ToPortId: t
+  - FromNodeId: gate_lerp_t
+    FromPortId: result
+    ToNodeId: gate_open_position
+    ToPortId: t
+  - FromNodeId: gate_open_position
+    FromPortId: result
+    ToNodeId: set_gate_open_position
+    ToPortId: value
+  - FromNodeId: get_delta_time
+    FromPortId: value
+    ToNodeId: gate_lerp_t
+    ToPortId: a
+  - FromNodeId: get_delta_time
+    FromPortId: value
+    ToNodeId: lift_lerp_t
+    ToPortId: a
+  - FromNodeId: get_gate_position
+    FromPortId: value
+    ToNodeId: gate_closed_position
+    ToPortId: a
+  - FromNodeId: get_gate_position
+    FromPortId: value
+    ToNodeId: gate_open_position
+    ToPortId: a
+  - FromNodeId: get_left_done
+    FromPortId: value
+    ToNodeId: both_done
+    ToPortId: left
+  - FromNodeId: get_left_done
+    FromPortId: value
+    ToNodeId: branch_left
+    ToPortId: condition
+  - FromNodeId: get_left_position
+    FromPortId: value
+    ToNodeId: left_position_active
+    ToPortId: a
+  - FromNodeId: get_left_position
+    FromPortId: value
+    ToNodeId: left_position_inactive
+    ToPortId: a
+  - FromNodeId: get_right_done
+    FromPortId: value
+    ToNodeId: both_done
+    ToPortId: right
+  - FromNodeId: get_right_done
+    FromPortId: value
+    ToNodeId: branch_right
+    ToPortId: condition
+  - FromNodeId: get_right_position
+    FromPortId: value
+    ToNodeId: right_position_active
+    ToPortId: a
+  - FromNodeId: get_right_position
+    FromPortId: value
+    ToNodeId: right_position_inactive
+    ToPortId: a
+  - FromNodeId: left_position_active
+    FromPortId: result
+    ToNodeId: set_left_active_position
+    ToPortId: value
+  - FromNodeId: left_position_inactive
+    FromPortId: result
+    ToNodeId: set_left_inactive_position
+    ToPortId: value
+  - FromNodeId: lift_lerp_t
+    FromPortId: result
+    ToNodeId: left_position_active
+    ToPortId: t
+  - FromNodeId: lift_lerp_t
+    FromPortId: result
+    ToNodeId: left_position_inactive
+    ToPortId: t
+  - FromNodeId: lift_lerp_t
+    FromPortId: result
+    ToNodeId: right_position_active
+    ToPortId: t
+  - FromNodeId: lift_lerp_t
+    FromPortId: result
+    ToNodeId: right_position_inactive
+    ToPortId: t
+  - FromNodeId: right_position_active
+    FromPortId: result
+    ToNodeId: set_right_active_position
+    ToPortId: value
+  - FromNodeId: right_position_inactive
+    FromPortId: result
+    ToNodeId: set_right_inactive_position
+    ToPortId: value
+  eventEntries:
+  - EventName: LeftDone
+    NodeId: event_left_done
+  - EventName: OnTick
+    NodeId: event_tick
+  - EventName: RightDone
+    NodeId: event_right_done

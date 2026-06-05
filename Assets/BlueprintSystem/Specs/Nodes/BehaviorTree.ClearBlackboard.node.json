@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "BehaviorTree.ClearBlackboard",
+  "title": "Clear Blackboard",
+  "category": "BehaviorTree/Blackboard",
+  "description": "Clears one key on a bound BehaviorTreeRunner Blackboard.",
+  "executor": "BehaviorTree.ClearBlackboard",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "key",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true
+    },
+    {
+      "id": "key",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "behavior tree",
+    "blackboard"
+  ]
+}

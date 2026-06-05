@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ParallelWaitAllExample",
+  "category": "AI/Examples",
+  "description": "Composite node example: Parallel ticks both branches and succeeds only after every branch completes.",
+  "blackboard": [
+    {
+      "name": "LeftDone",
+      "type": "bool",
+      "defaultValue": false,
+      "exposed": true,
+      "persistent": false,
+      "description": "Set true by the shorter parallel branch."
+    },
+    {
+      "name": "RightDone",
+      "type": "bool",
+      "defaultValue": false,
+      "exposed": true,
+      "persistent": false,
+      "description": "Set true by the longer parallel branch."
+    }
+  ],
+  "root": "root",
+  "nodes": [
+    {
+      "id": "root",
+      "typeId": "BT.Root",
+      "position": [
+        0,
+        0
+      ],
+      "children": [
+        "parallel_wait_for_all"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "parallel_wait_for_all",
+      "typeId": "BT.Parallel",
+      "position": [
+        0,
+        160
+      ],
+      "children": [
+        "left_sequence",
+        "right_sequence"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "left_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        -180,
+        320
+      ],
+      "children": [
+        "left_wait_short",
+        "set_left_done",
+        "log_left_done"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "left_wait_short",
+      "typeId": "BT.Wait",
+      "position": [
+        -300,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 0.35
+      }
+    },
+    {
+      "id": "set_left_done",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -140,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "LeftDone",
+        "value": true
+      }
+    },
+    {
+      "id": "log_left_done",
+      "typeId": "BT.Log",
+      "position": [
+        20,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "Parallel left branch completed."
+      }
+    },
+    {
+      "id": "right_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        260,
+        320
+      ],
+      "children": [
+        "right_wait_long",
+        "set_right_done",
+        "log_right_done"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "right_wait_long",
+      "typeId": "BT.Wait",
+      "position": [
+        140,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 0.9
+      }
+    },
+    {
+      "id": "set_right_done",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        300,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "RightDone",
+        "value": true
+      }
+    },
+    {
+      "id": "log_right_done",
+      "typeId": "BT.Log",
+      "position": [
+        460,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "Parallel right branch completed; the composite can now succeed."
+      }
+    }
+  ],
+  "decorators": [],
+  "services": []
+}

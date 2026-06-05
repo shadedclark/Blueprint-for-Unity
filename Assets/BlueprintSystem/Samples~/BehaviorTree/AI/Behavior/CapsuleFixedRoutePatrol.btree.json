@@ -1,0 +1,352 @@
+{
+  "schemaVersion": "0.1",
+  "name": "CapsuleFixedRoutePatrol",
+  "category": "AI/Examples",
+  "description": "Behavior tree demo: a capsule patrols a fixed four-point route in the current scene.",
+  "blackboard": [
+    {
+      "name": "PatrolPoint",
+      "type": "Vector3",
+      "defaultValue": [
+        -3,
+        0.5,
+        -4
+      ],
+      "exposed": true,
+      "persistent": false,
+      "description": "Current route destination for the patrol capsule."
+    }
+  ],
+  "root": "root",
+  "nodes": [
+    {
+      "id": "root",
+      "typeId": "BT.Root",
+      "position": [
+        0,
+        0
+      ],
+      "children": [
+        "patrol_sequence"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "patrol_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        0,
+        160
+      ],
+      "children": [
+        "set_point_01",
+        "turn_to_point_01",
+        "move_to_point_01",
+        "wait_at_point_01",
+        "set_point_02",
+        "turn_to_point_02",
+        "move_to_point_02",
+        "wait_at_point_02",
+        "set_point_03",
+        "turn_to_point_03",
+        "move_to_point_03",
+        "wait_at_point_03",
+        "set_point_04",
+        "turn_to_point_04",
+        "move_to_point_04",
+        "wait_at_point_04"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_point_01",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -480,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "PatrolPoint",
+        "value": [
+          -3,
+          0.5,
+          -4
+        ]
+      }
+    },
+    {
+      "id": "turn_to_point_01",
+      "typeId": "BT.RotateTo",
+      "position": [
+        -320,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "angleTolerance": 3,
+        "rotationSpeed": 420,
+        "ignoreY": true
+      }
+    },
+    {
+      "id": "move_to_point_01",
+      "typeId": "BT.MoveTo",
+      "position": [
+        -160,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "acceptableRadius": 0.15,
+        "allowTransformFallback": true,
+        "speed": 2.1
+      }
+    },
+    {
+      "id": "wait_at_point_01",
+      "typeId": "BT.Wait",
+      "position": [
+        0,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 0.45
+      }
+    },
+    {
+      "id": "set_point_02",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        160,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "PatrolPoint",
+        "value": [
+          3,
+          0.5,
+          -4
+        ]
+      }
+    },
+    {
+      "id": "turn_to_point_02",
+      "typeId": "BT.RotateTo",
+      "position": [
+        320,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "angleTolerance": 3,
+        "rotationSpeed": 420,
+        "ignoreY": true
+      }
+    },
+    {
+      "id": "move_to_point_02",
+      "typeId": "BT.MoveTo",
+      "position": [
+        480,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "acceptableRadius": 0.15,
+        "allowTransformFallback": true,
+        "speed": 2.1
+      }
+    },
+    {
+      "id": "wait_at_point_02",
+      "typeId": "BT.Wait",
+      "position": [
+        640,
+        320
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 0.45
+      }
+    },
+    {
+      "id": "set_point_03",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -480,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "PatrolPoint",
+        "value": [
+          3,
+          0.5,
+          2
+        ]
+      }
+    },
+    {
+      "id": "turn_to_point_03",
+      "typeId": "BT.RotateTo",
+      "position": [
+        -320,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "angleTolerance": 3,
+        "rotationSpeed": 420,
+        "ignoreY": true
+      }
+    },
+    {
+      "id": "move_to_point_03",
+      "typeId": "BT.MoveTo",
+      "position": [
+        -160,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "acceptableRadius": 0.15,
+        "allowTransformFallback": true,
+        "speed": 2.1
+      }
+    },
+    {
+      "id": "wait_at_point_03",
+      "typeId": "BT.Wait",
+      "position": [
+        0,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 0.45
+      }
+    },
+    {
+      "id": "set_point_04",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        160,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "PatrolPoint",
+        "value": [
+          -3,
+          0.5,
+          2
+        ]
+      }
+    },
+    {
+      "id": "turn_to_point_04",
+      "typeId": "BT.RotateTo",
+      "position": [
+        320,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "angleTolerance": 3,
+        "rotationSpeed": 420,
+        "ignoreY": true
+      }
+    },
+    {
+      "id": "move_to_point_04",
+      "typeId": "BT.MoveTo",
+      "position": [
+        480,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "acceptableRadius": 0.15,
+        "allowTransformFallback": true,
+        "speed": 2.1
+      }
+    },
+    {
+      "id": "wait_at_point_04",
+      "typeId": "BT.Wait",
+      "position": [
+        640,
+        520
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 0.45
+      }
+    }
+  ],
+  "decorators": [],
+  "services": []
+}

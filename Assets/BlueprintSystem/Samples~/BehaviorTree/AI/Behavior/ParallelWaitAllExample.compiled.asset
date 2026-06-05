@@ -1,0 +1,155 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7032c2202864a4ad697f8020c888f449, type: 3}
+  m_Name: ParallelWaitAllExample.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BehaviorTreeCompiledAsset
+  schemaVersion: 0.1
+  behaviorTreeName: ParallelWaitAllExample
+  sourceGuid: 6891f488fabb54c0ebfb4ea5c2abdafe
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/AI/Behavior/ParallelWaitAllExample.btree.json
+  sourceHash: 45aa68e30b0bc8f7e02165a16fe44d07a454b78317ba47035d9255be1b99803c
+  rootNodeId: root
+  blackboard:
+  - Name: LeftDone
+    Type: bool
+    DefaultValueJson: false
+    Exposed: 1
+    Persistent: 0
+    Description: Set true by the shorter parallel branch.
+  - Name: RightDone
+    Type: bool
+    DefaultValueJson: false
+    Exposed: 1
+    Persistent: 0
+    Description: Set true by the longer parallel branch.
+  nodes:
+  - Id: root
+    TypeId: BT.Root
+    Children:
+    - parallel_wait_for_all
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: parallel_wait_for_all
+    TypeId: BT.Parallel
+    Children:
+    - left_sequence
+    - right_sequence
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: left_sequence
+    TypeId: BT.Sequence
+    Children:
+    - left_wait_short
+    - set_left_done
+    - trigger_left_done
+    - log_left_done
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: left_wait_short
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 0.35
+  - Id: set_left_done
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"LeftDone"'
+    - Id: value
+      JsonValue: true
+  - Id: log_left_done
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"Parallel left branch completed."'
+  - Id: right_sequence
+    TypeId: BT.Sequence
+    Children:
+    - right_wait_long
+    - set_right_done
+    - trigger_right_done
+    - log_right_done
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: right_wait_long
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 0.9
+  - Id: set_right_done
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"RightDone"'
+    - Id: value
+      JsonValue: true
+  - Id: log_right_done
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"Parallel right branch completed; the composite can now succeed."'
+  - Id: trigger_left_done
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"LeftDone"'
+    - Id: successOnMissing
+      JsonValue: true
+  - Id: trigger_right_done
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"RightDone"'
+    - Id: successOnMissing
+      JsonValue: true
+  decorators: []
+  services: []

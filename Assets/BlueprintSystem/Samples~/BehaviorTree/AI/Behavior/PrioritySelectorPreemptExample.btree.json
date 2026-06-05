@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "0.1",
+  "name": "PrioritySelectorPreemptExample",
+  "category": "AI/Examples",
+  "description": "Composite node example: PrioritySelector rechecks higher-priority children each tick so AlertMode can preempt idle work.",
+  "blackboard": [
+    {
+      "name": "AlertMode",
+      "type": "bool",
+      "defaultValue": false,
+      "exposed": true,
+      "persistent": false,
+      "description": "Set true at runtime to let the alert branch preempt idle."
+    },
+    {
+      "name": "SelectedPriority",
+      "type": "string",
+      "defaultValue": "None",
+      "exposed": true,
+      "persistent": false,
+      "description": "Records which priority branch completed."
+    }
+  ],
+  "root": "root",
+  "nodes": [
+    {
+      "id": "root",
+      "typeId": "BT.Root",
+      "position": [
+        0,
+        0
+      ],
+      "children": [
+        "priority_selector_alert_or_idle"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "priority_selector_alert_or_idle",
+      "typeId": "BT.PrioritySelector",
+      "position": [
+        0,
+        160
+      ],
+      "children": [
+        "alert_sequence",
+        "idle_sequence"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "alert_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        -180,
+        320
+      ],
+      "children": [
+        "set_priority_alert",
+        "log_alert"
+      ],
+      "decorators": [
+        "condition_alert_mode"
+      ],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_priority_alert",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -260,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "SelectedPriority",
+        "value": "Alert"
+      }
+    },
+    {
+      "id": "log_alert",
+      "typeId": "BT.Log",
+      "position": [
+        -100,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "PrioritySelector selected the high-priority alert branch."
+      }
+    },
+    {
+      "id": "idle_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        220,
+        320
+      ],
+      "children": [
+        "idle_wait",
+        "set_priority_idle",
+        "log_idle"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "idle_wait",
+      "typeId": "BT.Wait",
+      "position": [
+        100,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 8
+      }
+    },
+    {
+      "id": "set_priority_idle",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        260,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "SelectedPriority",
+        "value": "Idle"
+      }
+    },
+    {
+      "id": "log_idle",
+      "typeId": "BT.Log",
+      "position": [
+        420,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "PrioritySelector stayed on idle because AlertMode is false."
+      }
+    }
+  ],
+  "decorators": [
+    {
+      "id": "condition_alert_mode",
+      "typeId": "BT.CompareBool",
+      "inputs": {
+        "value": "AlertMode"
+      },
+      "properties": {
+        "operator": "Equals",
+        "expected": true
+      }
+    }
+  ],
+  "services": []
+}

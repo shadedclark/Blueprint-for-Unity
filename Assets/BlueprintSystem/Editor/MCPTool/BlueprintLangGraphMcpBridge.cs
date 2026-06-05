@@ -84,8 +84,8 @@ namespace BlueprintLangGraph.Editor
                 };
         }
 
-        [McpTool("blueprint_inspect_prefab_ui", "Inspect a prefab hierarchy for UI anchors, components, Blueprint runners, and UIBlueprintBinder bindings.", EnabledByDefault = true)]
-        public static object InspectPrefabUi(InspectPrefabUiParams parameters)
+        [McpTool("blueprint_inspect_prefab_bindings", "Inspect a prefab hierarchy for UI anchors, components, Blueprint runners, and bindings.", EnabledByDefault = true)]
+        public static object InspectPrefabBindings(InspectPrefabBindingsParams parameters)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -94,8 +94,8 @@ namespace BlueprintLangGraph.Editor
             GameObject root = PrefabUtility.LoadPrefabContents(prefabPath);
             try
             {
-                var binders = root.GetComponentsInChildren<UIBlueprintBinder>(true)
-                    .Select(BuildBinderSummary)
+                var runners = root.GetComponentsInChildren<BlueprintRunner>(true)
+                    .Select(BuildRunnerSummary)
                     .ToArray();
 
                 var nodes = root.GetComponentsInChildren<Transform>(true)
@@ -110,7 +110,7 @@ namespace BlueprintLangGraph.Editor
                     {
                         prefabPath,
                         rootName = root.name,
-                        binders,
+                        runners,
                         nodes
                     }
                 };
@@ -264,8 +264,8 @@ namespace BlueprintLangGraph.Editor
             };
         }
 
-        [McpTool("blueprint_apply_ui_bindings", "Apply Blueprint runner assets and UIBlueprintBinder target bindings to a prefab without changing its visual layout.", EnabledByDefault = true)]
-        public static object ApplyUiBindings(ApplyUiBindingsParams parameters)
+        [McpTool("blueprint_apply_bindings", "Apply Blueprint runner assets and target bindings to a prefab without changing its visual layout.", EnabledByDefault = true)]
+        public static object ApplyBindings(ApplyBindingsParams parameters)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -276,32 +276,33 @@ namespace BlueprintLangGraph.Editor
 
             try
             {
-                UIBlueprintBinder rootBinder = null;
+                BlueprintRunner rootRunner = null;
                 if (!string.IsNullOrWhiteSpace(parameters.RootBlueprintPath))
                 {
-                    rootBinder = EnsureBinder(root);
-                    ApplyRunnerSerializedState(rootBinder, parameters.RootBlueprintPath, null);
+                    rootRunner = EnsureRunner(root, "BlueprintRunner");
+                    ApplyRunnerSerializedState(rootRunner, parameters.RootBlueprintPath, null);
                 }
 
-                foreach (BindingApplication binderSpec in parameters.Binders ?? new List<BindingApplication>())
+                foreach (BindingApplication runnerSpec in parameters.Runners ?? new List<BindingApplication>())
                 {
-                    string binderPath = NormalizeHierarchyPath(binderSpec.BinderPath);
-                    GameObject binderObject = FindGameObjectByPath(root, binderPath) ?? root;
-                    UIBlueprintBinder binder = EnsureBinder(binderObject);
-                    BlueprintRunner ownerRunner = ResolveOwnerRunner(root, binderSpec.OwnerRunnerPath, rootBinder, binder);
+                    string runnerPath = NormalizeHierarchyPath(runnerSpec.RunnerPath);
+                    GameObject runnerObject = FindGameObjectByPath(root, runnerPath) ?? root;
+                    BlueprintRunner runner = EnsureRunner(runnerObject, runnerSpec.ComponentType);
+                    BlueprintRunner ownerRunner = ResolveOwnerRunner(root, runnerSpec.OwnerRunnerPath, rootRunner, runner);
 
-                    string blueprintPath = string.IsNullOrWhiteSpace(binderSpec.BlueprintPath)
+                    string blueprintPath = string.IsNullOrWhiteSpace(runnerSpec.BlueprintPath)
                         ? parameters.RootBlueprintPath
-                        : binderSpec.BlueprintPath;
-                    ApplyRunnerSerializedState(binder, blueprintPath, ownerRunner);
-                    ApplyBinderLifecycle(binder, binderSpec);
+                        : runnerSpec.BlueprintPath;
+                    ApplyRunnerSerializedState(runner, blueprintPath, ownerRunner);
+                    ApplyRunnerLifecycle(runner, runnerSpec);
 
-                    int bindingCount = ApplyBindingEntries(root, binder, binderSpec.Bindings ?? new List<BindingTargetSpec>());
-                    EditorUtility.SetDirty(binder);
+                    int bindingCount = ApplyBindingEntries(root, runner, runnerSpec.Bindings ?? new List<BindingTargetSpec>());
+                    EditorUtility.SetDirty(runner);
 
                     applied.Add(new
                     {
-                        binderPath = GetHierarchyPath(root.transform, binder.transform),
+                        runnerPath = GetHierarchyPath(root.transform, runner.transform),
+                        componentType = runner.GetType().Name,
                         blueprintPath = NormalizeAssetPath(blueprintPath),
                         ownerRunnerPath = ownerRunner == null ? "" : GetHierarchyPath(root.transform, ownerRunner.transform),
                         bindingCount
@@ -1028,14 +1029,18 @@ namespace BlueprintLangGraph.Editor
             return new[] { value.x, value.y, value.z };
         }
 
-        private static object BuildBinderSummary(UIBlueprintBinder binder)
+        private static object BuildRunnerSummary(BlueprintRunner runner)
         {
-            var so = new SerializedObject(binder);
+            var so = new SerializedObject(runner);
             var compiledProperty = so.FindProperty("compiledBlueprint");
             var ownerProperty = so.FindProperty("ownerRunner");
             var bindingsProperty = so.FindProperty("bindings");
             var compiledAsset = compiledProperty?.objectReferenceValue as BlueprintCompiledAsset;
             var owner = ownerProperty?.objectReferenceValue as BlueprintRunner;
+            var triggerOnEnable = so.FindProperty("triggerOnEnable");
+            var enableEventName = so.FindProperty("enableEventName");
+            var triggerOnDisable = so.FindProperty("triggerOnDisable");
+            var disableEventName = so.FindProperty("disableEventName");
 
             var bindings = new List<object>();
             if (bindingsProperty != null && bindingsProperty.isArray)
@@ -1057,10 +1062,18 @@ namespace BlueprintLangGraph.Editor
 
             return new
             {
-                path = GetHierarchyPath(binder.transform.root, binder.transform),
+                path = GetHierarchyPath(runner.transform.root, runner.transform),
+                componentType = runner.GetType().Name,
                 blueprintPath = BlueprintCompiledAssetCompiler.GetCompiledAssetSourcePath(compiledAsset),
                 compiledAssetPath = compiledAsset == null ? "" : AssetDatabase.GetAssetPath(compiledAsset),
-                ownerRunnerPath = owner == null ? "" : GetHierarchyPath(binder.transform.root, owner.transform),
+                ownerRunnerPath = owner == null ? "" : GetHierarchyPath(runner.transform.root, owner.transform),
+                uiLifecycle = triggerOnEnable == null ? null : new
+                {
+                    triggerOnEnable = triggerOnEnable.boolValue,
+                    enableEventName = enableEventName == null ? "" : enableEventName.stringValue,
+                    triggerOnDisable = triggerOnDisable == null || triggerOnDisable.boolValue,
+                    disableEventName = disableEventName == null ? "" : disableEventName.stringValue
+                },
                 bindings
             };
         }
@@ -1101,12 +1114,12 @@ namespace BlueprintLangGraph.Editor
             return image == null || image.sprite == null ? "" : AssetDatabase.GetAssetPath(image.sprite);
         }
 
-        private static int ApplyBindingEntries(GameObject root, UIBlueprintBinder binder, List<BindingTargetSpec> bindings)
+        private static int ApplyBindingEntries(GameObject root, BlueprintRunner runner, List<BindingTargetSpec> bindings)
         {
-            var so = new SerializedObject(binder);
+            var so = new SerializedObject(runner);
             SerializedProperty bindingsProperty = so.FindProperty("bindings");
             if (bindingsProperty == null || !bindingsProperty.isArray)
-                throw new InvalidOperationException("UIBlueprintBinder serialized bindings field was not found.");
+                throw new InvalidOperationException("BlueprintRunner serialized bindings field was not found.");
 
             bindingsProperty.ClearArray();
             for (int i = 0; i < bindings.Count; i++)
@@ -1127,7 +1140,7 @@ namespace BlueprintLangGraph.Editor
             }
 
             so.ApplyModifiedPropertiesWithoutUndo();
-            binder.RebuildBindingCache();
+            runner.RebuildBindingCache();
             return bindingsProperty.arraySize;
         }
 
@@ -1195,25 +1208,42 @@ namespace BlueprintLangGraph.Editor
                     (!string.IsNullOrWhiteSpace(type.FullName) && type.FullName.EndsWith("." + requestedType, StringComparison.OrdinalIgnoreCase)));
         }
 
-        private static BlueprintRunner ResolveOwnerRunner(GameObject root, string ownerRunnerPath, BlueprintRunner rootBinder, BlueprintRunner binder)
+        private static BlueprintRunner ResolveOwnerRunner(GameObject root, string ownerRunnerPath, BlueprintRunner rootRunner, BlueprintRunner runner)
         {
             if (!string.IsNullOrWhiteSpace(ownerRunnerPath))
             {
                 GameObject ownerObject = FindGameObjectByPath(root, ownerRunnerPath);
                 BlueprintRunner owner = ownerObject == null ? null : ownerObject.GetComponent<BlueprintRunner>();
-                if (owner != null && owner != binder)
+                if (owner != null && owner != runner)
                     return owner;
             }
 
-            return rootBinder != null && rootBinder != binder ? rootBinder : null;
+            return rootRunner != null && rootRunner != runner ? rootRunner : null;
         }
 
-        private static UIBlueprintBinder EnsureBinder(GameObject gameObject)
+        private static BlueprintRunner EnsureRunner(GameObject gameObject, string componentType)
         {
-            UIBlueprintBinder binder = gameObject.GetComponent<UIBlueprintBinder>();
-            if (binder == null)
-                binder = gameObject.AddComponent<UIBlueprintBinder>();
-            return binder;
+            string normalizedType = string.IsNullOrWhiteSpace(componentType) ? "BlueprintRunner" : componentType.Trim();
+            if (normalizedType == "UIBlueprintBinder")
+            {
+                UIBlueprintBinder uiRunner = gameObject.GetComponent<UIBlueprintBinder>();
+                if (uiRunner != null)
+                    return uiRunner;
+
+                BlueprintRunner existingRunner = gameObject.GetComponent<BlueprintRunner>();
+                if (existingRunner != null)
+                    throw new InvalidOperationException($"GameObject '{gameObject.name}' already has {existingRunner.GetType().Name}; cannot add UIBlueprintBinder.");
+
+                return gameObject.AddComponent<UIBlueprintBinder>();
+            }
+
+            if (normalizedType != "BlueprintRunner")
+                throw new InvalidOperationException($"Unsupported Blueprint runner component type '{componentType}'. Expected BlueprintRunner or UIBlueprintBinder.");
+
+            BlueprintRunner runner = gameObject.GetComponent<BlueprintRunner>();
+            if (runner == null)
+                runner = gameObject.AddComponent<BlueprintRunner>();
+            return runner;
         }
 
         private static void ApplyRunnerSerializedState(BlueprintRunner runner, string blueprintPath, BlueprintRunner ownerRunner)
@@ -1238,13 +1268,17 @@ namespace BlueprintLangGraph.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void ApplyBinderLifecycle(UIBlueprintBinder binder, BindingApplication binderSpec)
+        private static void ApplyRunnerLifecycle(BlueprintRunner runner, BindingApplication runnerSpec)
         {
-            var so = new SerializedObject(binder);
-            so.FindProperty("triggerOnEnable").boolValue = binderSpec.TriggerOnEnable;
-            so.FindProperty("enableEventName").stringValue = string.IsNullOrWhiteSpace(binderSpec.EnableEventName) ? "OnOpen" : binderSpec.EnableEventName;
-            so.FindProperty("triggerOnDisable").boolValue = binderSpec.TriggerOnDisable;
-            so.FindProperty("disableEventName").stringValue = string.IsNullOrWhiteSpace(binderSpec.DisableEventName) ? "OnClose" : binderSpec.DisableEventName;
+            UIBlueprintBinder uiRunner = runner as UIBlueprintBinder;
+            if (uiRunner == null)
+                return;
+
+            var so = new SerializedObject(uiRunner);
+            so.FindProperty("triggerOnEnable").boolValue = runnerSpec.TriggerOnEnable;
+            so.FindProperty("enableEventName").stringValue = string.IsNullOrWhiteSpace(runnerSpec.EnableEventName) ? "OnOpen" : runnerSpec.EnableEventName;
+            so.FindProperty("triggerOnDisable").boolValue = runnerSpec.TriggerOnDisable;
+            so.FindProperty("disableEventName").stringValue = string.IsNullOrWhiteSpace(runnerSpec.DisableEventName) ? "OnClose" : runnerSpec.DisableEventName;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -1421,7 +1455,7 @@ namespace BlueprintLangGraph.Editor
         public int TimeoutSeconds { get; set; } = 300;
     }
 
-    public sealed class InspectPrefabUiParams
+    public sealed class InspectPrefabBindingsParams
     {
         [McpDescription("Assets-relative prefab path.", Required = true)]
         public string PrefabPath { get; set; }
@@ -1470,7 +1504,7 @@ namespace BlueprintLangGraph.Editor
         public bool Log { get; set; } = true;
     }
 
-    public sealed class ApplyUiBindingsParams
+    public sealed class ApplyBindingsParams
     {
         [McpDescription("Assets-relative prefab path.", Required = true)]
         public string PrefabPath { get; set; }
@@ -1478,40 +1512,43 @@ namespace BlueprintLangGraph.Editor
         [McpDescription("Optional root Blueprint .blueprint.json path.")]
         public string RootBlueprintPath { get; set; }
 
-        [McpDescription("Binder applications to apply to prefab objects.")]
-        public List<BindingApplication> Binders { get; set; } = new List<BindingApplication>();
+        [McpDescription("Runner applications to apply to prefab objects.")]
+        public List<BindingApplication> Runners { get; set; } = new List<BindingApplication>();
     }
 
     public sealed class BindingApplication
     {
-        [McpDescription("Hierarchy path to the GameObject that owns this UIBlueprintBinder.")]
-        public string BinderPath { get; set; }
+        [McpDescription("Hierarchy path to the GameObject that owns this Blueprint runner.")]
+        public string RunnerPath { get; set; }
 
-        [McpDescription("Blueprint .blueprint.json source path for this binder.")]
+        [McpDescription("Component type to ensure on the runner GameObject. Use BlueprintRunner or UIBlueprintBinder.")]
+        public string ComponentType { get; set; } = "BlueprintRunner";
+
+        [McpDescription("Blueprint .blueprint.json source path for this runner.")]
         public string BlueprintPath { get; set; }
 
         [McpDescription("Optional hierarchy path to the owner BlueprintRunner.")]
         public string OwnerRunnerPath { get; set; }
 
-        [McpDescription("Whether this binder should trigger its enable event.")]
+        [McpDescription("Whether a UIBlueprintBinder runner should trigger its enable event.")]
         public bool TriggerOnEnable { get; set; } = true;
 
         [McpDescription("Enable event name.")]
         public string EnableEventName { get; set; } = "OnOpen";
 
-        [McpDescription("Whether this binder should trigger its disable event.")]
+        [McpDescription("Whether a UIBlueprintBinder runner should trigger its disable event.")]
         public bool TriggerOnDisable { get; set; } = true;
 
         [McpDescription("Disable event name.")]
         public string DisableEventName { get; set; } = "OnClose";
 
-        [McpDescription("Named UI binding targets.")]
+        [McpDescription("Named binding targets.")]
         public List<BindingTargetSpec> Bindings { get; set; } = new List<BindingTargetSpec>();
     }
 
     public sealed class BindingTargetSpec
     {
-        [McpDescription("Binding key used by Blueprint UI nodes.", Required = true)]
+        [McpDescription("Binding key used by Blueprint nodes.", Required = true)]
         public string Name { get; set; }
 
         [McpDescription("Hierarchy path to the target GameObject.")]

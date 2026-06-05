@@ -13,7 +13,7 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<BlueprintLoopScrollView>",
+      "type": "Binding<BlueprintLoopScrollView>",
       "required": true,
       "source": "property"
     },
@@ -40,7 +40,7 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<BlueprintLoopScrollView>",
+      "type": "Binding<BlueprintLoopScrollView>",
       "required": true
     },
     {

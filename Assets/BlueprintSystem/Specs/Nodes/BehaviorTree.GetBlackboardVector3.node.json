@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "BehaviorTree.GetBlackboardVector3",
+  "title": "Get Blackboard Vector3",
+  "category": "BehaviorTree/Blackboard",
+  "description": "Reads a Vector3 value from a bound BehaviorTreeRunner Blackboard.",
+  "executor": "BehaviorTree.GetBlackboardVector3",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "key",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true
+    },
+    {
+      "id": "key",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "behavior tree",
+    "blackboard",
+    "vector"
+  ]
+}

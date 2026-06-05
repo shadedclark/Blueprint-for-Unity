@@ -13,14 +13,14 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<Transform>",
+      "type": "Binding<Transform>",
       "required": true,
       "source": "property"
     },
     {
       "id": "lookTarget",
       "kind": "value",
-      "type": "UIBinding<Transform>",
+      "type": "Binding<Transform>",
       "source": "propertyOrConnection"
     },
     {
@@ -46,12 +46,12 @@
     {
       "id": "target",
       "required": true,
-      "type": "UIBinding<Transform>"
+      "type": "Binding<Transform>"
     },
     {
       "id": "lookTarget",
       "required": false,
-      "type": "UIBinding<Transform>"
+      "type": "Binding<Transform>"
     },
     {
       "id": "targetPosition",

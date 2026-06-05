@@ -1,0 +1,282 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: SelectorBranchVisualizer.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: SelectorBranchVisualizer
+  sourceGuid: 72cf28ac39de940388268f59af947f93
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/Blueprint/Behavior/SelectorBranchVisualizer.blueprint.json
+  sourceHash: 9d87394370f973d6f711853d0f09e4b2a3825e5743992893f92e772d6d327e68
+  manifestHash: 5092537503f769abdb6f6171527e2641c36ed0e7ce97c19d80d3b43ce150e6f3
+  variables:
+  - Id: var_5a2a177b09584a71a9984b214ac5ed8a
+    Name: selected_branch
+    Type: string
+    DefaultValueJson: '"None"'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Latest selector branch reported by the behavior tree.
+  bindings:
+  - Name: patrol_renderer
+    Type: Renderer
+    Required: 1
+  - Name: patrol_marker
+    Type: Transform
+    Required: 1
+  - Name: engage_renderer
+    Type: Renderer
+    Required: 1
+  - Name: engage_marker
+    Type: Transform
+    Required: 1
+  - Name: status_label
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_patrol_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"PatrolFallbackSelected"'
+  - Id: set_branch_patrol
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"selected_branch"'
+    - Id: value
+      JsonValue: '"PatrolFallback"'
+  - Id: event_engage_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"EngageSelected"'
+  - Id: set_branch_engage
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"selected_branch"'
+    - Id: value
+      JsonValue: '"Engage"'
+  - Id: event_tick
+    TypeId: Game.Event.OnTick
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: phase
+      JsonValue: '"Update"'
+  - Id: get_branch
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"selected_branch"'
+  - Id: sequence_tick
+    TypeId: Flow.Sequence
+    ExecutorId: Flow.Sequence
+    Properties: []
+  - Id: compare_patrol
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"PatrolFallback"'
+  - Id: branch_patrol
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_patrol_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"patrol_renderer"'
+    - Id: value
+      JsonValue: '[0.25,0.65,1,1]'
+  - Id: set_patrol_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"patrol_marker"'
+    - Id: value
+      JsonValue: '[0.9,0.18,0.9]'
+  - Id: set_patrol_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"patrol_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_patrol_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"patrol_marker"'
+    - Id: value
+      JsonValue: '[0.65,0.12,0.65]'
+  - Id: compare_engage
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"Engage"'
+  - Id: branch_engage
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_engage_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"engage_renderer"'
+    - Id: value
+      JsonValue: '[1,0.26,0.2,1]'
+  - Id: set_engage_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"engage_marker"'
+    - Id: value
+      JsonValue: '[0.65,0.65,0.65]'
+  - Id: set_engage_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"engage_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_engage_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"engage_marker"'
+    - Id: value
+      JsonValue: '[0.42,0.42,0.42]'
+  - Id: set_status_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"status_label"'
+  execEdges:
+  - FromNodeId: branch_engage
+    FromPortId: false
+    ToNodeId: set_engage_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_engage
+    FromPortId: true
+    ToNodeId: set_engage_active_color
+    ToPortId: execIn
+  - FromNodeId: branch_patrol
+    FromPortId: false
+    ToNodeId: set_patrol_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_patrol
+    FromPortId: true
+    ToNodeId: set_patrol_active_color
+    ToPortId: execIn
+  - FromNodeId: event_engage_selected
+    FromPortId: execOut
+    ToNodeId: set_branch_engage
+    ToPortId: execIn
+  - FromNodeId: event_patrol_selected
+    FromPortId: execOut
+    ToNodeId: set_branch_patrol
+    ToPortId: execIn
+  - FromNodeId: event_tick
+    FromPortId: execOut
+    ToNodeId: sequence_tick
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then0
+    ToNodeId: branch_patrol
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then1
+    ToNodeId: branch_engage
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then2
+    ToNodeId: set_status_label
+    ToPortId: execIn
+  - FromNodeId: set_engage_active_color
+    FromPortId: execOut
+    ToNodeId: set_engage_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_engage_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_engage_inactive_scale
+    ToPortId: execIn
+  - FromNodeId: set_patrol_active_color
+    FromPortId: execOut
+    ToNodeId: set_patrol_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_patrol_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_patrol_inactive_scale
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: compare_engage
+    FromPortId: result
+    ToNodeId: branch_engage
+    ToPortId: condition
+  - FromNodeId: compare_patrol
+    FromPortId: result
+    ToNodeId: branch_patrol
+    ToPortId: condition
+  - FromNodeId: get_branch
+    FromPortId: value
+    ToNodeId: compare_engage
+    ToPortId: left
+  - FromNodeId: get_branch
+    FromPortId: value
+    ToNodeId: compare_patrol
+    ToPortId: left
+  - FromNodeId: get_branch
+    FromPortId: value
+    ToNodeId: set_status_label
+    ToPortId: value
+  eventEntries:
+  - EventName: EngageSelected
+    NodeId: event_engage_selected
+  - EventName: OnTick
+    NodeId: event_tick
+  - EventName: PatrolFallbackSelected
+    NodeId: event_patrol_selected

@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "BehaviorTree.SetBlackboardInt",
+  "title": "Set Blackboard Int",
+  "category": "BehaviorTree/Blackboard",
+  "description": "Writes an int value to a bound BehaviorTreeRunner Blackboard.",
+  "executor": "BehaviorTree.SetBlackboardInt",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "key",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true
+    },
+    {
+      "id": "key",
+      "type": "string",
+      "required": false
+    },
+    {
+      "id": "value",
+      "type": "int",
+      "required": false,
+      "defaultValue": 0
+    }
+  ],
+  "tags": [
+    "behavior tree",
+    "blackboard",
+    "int"
+  ]
+}

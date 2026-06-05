@@ -293,11 +293,11 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity("Game.IsColliding", "Is Colliding", "Game/Physics", "Returns true when two bound GameObjects have overlapping colliders.");
-            AddValueInput("target", "UIBinding<GameObject>", true, "propertyOrConnection");
-            AddValueInput("other", "UIBinding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("target", "Binding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("other", "Binding<GameObject>", true, "propertyOrConnection");
             AddValueOutput("result", "bool");
-            AddProperty("target", "UIBinding<GameObject>", false);
-            AddProperty("other", "UIBinding<GameObject>", false);
+            AddProperty("target", "Binding<GameObject>", false);
+            AddProperty("other", "Binding<GameObject>", false);
         }
     }
 
@@ -310,10 +310,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetTransformPosition", "Set Transform Position", "Game/Transform", "Sets world position on a bound Transform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput("value", "Vector3", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
         }
     }
@@ -327,10 +327,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetTransformEulerAngles", "Set Transform Euler Angles", "Game/Transform", "Sets world eulerAngles on a bound Transform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput("value", "Vector3", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
         }
     }
@@ -344,10 +344,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetTransformLocalScale", "Set Transform Local Scale", "Game/Transform", "Sets localScale on a bound Transform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput("value", "Vector3", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f });
         }
     }
@@ -361,10 +361,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetRigidbodyLinearVelocity", "Set Rigidbody Linear Velocity", "Game/Physics", "Sets linearVelocity on a bound 3D Rigidbody.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Rigidbody>", true, "property");
+            AddValueInput("target", "Binding<Rigidbody>", true, "property");
             AddValueInput("value", "Vector3", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Rigidbody>", true);
+            AddProperty("target", "Binding<Rigidbody>", true);
             AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
         }
     }
@@ -378,11 +378,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.AddRigidbodyForce", "Add Rigidbody Force", "Game/Physics", "Adds force to a bound 3D Rigidbody.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Rigidbody>", true, "property");
+            AddValueInput("target", "Binding<Rigidbody>", true, "property");
             AddValueInput("force", "Vector3", true, "propertyOrConnection");
             AddValueInput("mode", "ForceMode", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Rigidbody>", true);
+            AddProperty("target", "Binding<Rigidbody>", true);
             AddProperty("force", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
             AddProperty("mode", "ForceMode", false, "Force");
         }
@@ -397,10 +397,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetColliderEnabled", "Set Collider Enabled", "Game/Physics", "Sets enabled on a bound 3D Collider.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Collider>", true, "property");
+            AddValueInput("target", "Binding<Collider>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Collider>", true);
+            AddProperty("target", "Binding<Collider>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -414,10 +414,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetColliderIsTrigger", "Set Collider Is Trigger", "Game/Physics", "Sets isTrigger on a bound 3D Collider.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Collider>", true, "property");
+            AddValueInput("target", "Binding<Collider>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Collider>", true);
+            AddProperty("target", "Binding<Collider>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -431,10 +431,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetRigidbody2DLinearVelocity", "Set Rigidbody2D Linear Velocity", "Game/Physics2D", "Sets linearVelocity on a bound Rigidbody2D.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Rigidbody2D>", true, "property");
+            AddValueInput("target", "Binding<Rigidbody2D>", true, "property");
             AddValueInput("value", "Vector2", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Rigidbody2D>", true);
+            AddProperty("target", "Binding<Rigidbody2D>", true);
             AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
         }
     }
@@ -448,11 +448,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.AddRigidbody2DForce", "Add Rigidbody2D Force", "Game/Physics2D", "Adds force to a bound Rigidbody2D.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Rigidbody2D>", true, "property");
+            AddValueInput("target", "Binding<Rigidbody2D>", true, "property");
             AddValueInput("force", "Vector2", true, "propertyOrConnection");
             AddValueInput("mode", "ForceMode2D", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Rigidbody2D>", true);
+            AddProperty("target", "Binding<Rigidbody2D>", true);
             AddProperty("force", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
             AddProperty("mode", "ForceMode2D", false, "Force");
         }
@@ -467,10 +467,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetCollider2DEnabled", "Set Collider2D Enabled", "Game/Physics2D", "Sets enabled on a bound Collider2D.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Collider2D>", true, "property");
+            AddValueInput("target", "Binding<Collider2D>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Collider2D>", true);
+            AddProperty("target", "Binding<Collider2D>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -484,10 +484,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetCollider2DIsTrigger", "Set Collider2D Is Trigger", "Game/Physics2D", "Sets isTrigger on a bound Collider2D.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Collider2D>", true, "property");
+            AddValueInput("target", "Binding<Collider2D>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Collider2D>", true);
+            AddProperty("target", "Binding<Collider2D>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -501,12 +501,12 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetRendererMaterial", "Set Renderer Material", "Game/Rendering", "Sets an instance material slot on a bound Renderer.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Renderer>", true, "property");
-            AddValueInput("value", "UIBinding<Material>", true, "propertyOrConnection");
+            AddValueInput("target", "Binding<Renderer>", true, "property");
+            AddValueInput("value", "Binding<Material>", true, "propertyOrConnection");
             AddValueInput("materialIndex", "int", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Renderer>", true);
-            AddProperty("value", "UIBinding<Material>", false);
+            AddProperty("target", "Binding<Renderer>", true);
+            AddProperty("value", "Binding<Material>", false);
             AddProperty("materialIndex", "int", false, 0);
         }
     }
@@ -520,11 +520,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetRendererMaterialColor", "Set Renderer Material Color", "Game/Rendering", "Sets a color property on a bound Renderer's instance material.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Renderer>", true, "property");
+            AddValueInput("target", "Binding<Renderer>", true, "property");
             AddValueInput("value", "Color", true, "propertyOrConnection");
             AddValueInput("propertyName", "string", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Renderer>", true);
+            AddProperty("target", "Binding<Renderer>", true);
             AddProperty("value", "Color", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f, 1f });
             AddProperty("propertyName", "string", false, "_Color");
         }
@@ -539,12 +539,12 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetRendererTexture", "Set Renderer Texture", "Game/Rendering", "Sets a texture property on a bound Renderer's instance material.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Renderer>", true, "property");
-            AddValueInput("value", "UIBinding<Texture>", true, "propertyOrConnection");
+            AddValueInput("target", "Binding<Renderer>", true, "property");
+            AddValueInput("value", "Binding<Texture>", true, "propertyOrConnection");
             AddValueInput("propertyName", "string", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Renderer>", true);
-            AddProperty("value", "UIBinding<Texture>", false);
+            AddProperty("target", "Binding<Renderer>", true);
+            AddProperty("value", "Binding<Texture>", false);
             AddProperty("propertyName", "string", false, "_MainTex");
         }
     }
@@ -641,10 +641,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.BindButtonClick", "Bind Button Click", "UI", "Binds a Unity Button click to the clicked execution output.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Button>", true, "property");
+            AddValueInput("target", "Binding<Button>", true, "property");
             AddExecOutput("bound");
             AddExecOutput("clicked");
-            AddProperty("target", "UIBinding<Button>", true);
+            AddProperty("target", "Binding<Button>", true);
         }
     }
 
@@ -657,12 +657,12 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.BindText", "Bind Text", "UI", "Binds TMP_Text.text to a blueprint value and refreshes it reactively.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<TMP_Text>", true, "property");
+            AddValueInput("target", "Binding<TMP_Text>", true, "property");
             AddValueInput("variableName", "string", false, "propertyOrConnection", "Variable");
             AddValueInput("variableTarget", BlueprintVariableTypeRegistry.BlueprintAssetTypeId, false, "propertyOrConnection", "Variable Target");
             AddValueInput("value", "string", false, "propertyOrConnection", "Fallback Value");
             AddExecOutput("bound");
-            AddProperty("target", "UIBinding<TMP_Text>", true);
+            AddProperty("target", "Binding<TMP_Text>", true);
             AddProperty("variableName", "string", false, null, "Variable");
             AddProperty("variableTarget", BlueprintVariableTypeRegistry.BlueprintAssetTypeId, false, null, null, true);
             AddProperty("value", "string", false, null, "Fallback Value");
@@ -683,14 +683,14 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.BindButtonEvents", "Bind Button Events", "UI", "Binds click, double-click, and long-press events from a Unity Button.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Button>", true, "property");
+            AddValueInput("target", "Binding<Button>", true, "property");
             AddValueInput("longPressSeconds", "float", false, "propertyOrConnection");
             AddValueInput("doubleClickSeconds", "float", false, "propertyOrConnection");
             AddExecOutput("bound");
             AddExecOutput("clicked");
             AddExecOutput("doubleClicked");
             AddExecOutput("longPressed");
-            AddProperty("target", "UIBinding<Button>", true);
+            AddProperty("target", "Binding<Button>", true);
             AddProperty("longPressSeconds", "float", false, 0.5f);
             AddProperty("doubleClickSeconds", "float", false, 0.3f);
         }
@@ -705,13 +705,13 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.BindToggleChanged", "Bind Toggle Changed", "UI", "Binds value-changed events from a Unity Toggle.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Toggle>", true, "property");
+            AddValueInput("target", "Binding<Toggle>", true, "property");
             AddExecOutput("bound");
             AddExecOutput("changed");
             AddExecOutput("turnedOn");
             AddExecOutput("turnedOff");
             AddValueOutput("value", "bool");
-            AddProperty("target", "UIBinding<Toggle>", true);
+            AddProperty("target", "Binding<Toggle>", true);
         }
     }
 
@@ -724,11 +724,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.RefreshLoopScrollView", "Refresh Loop Scroll View", "UI", "Refreshes a BlueprintLoopScrollView from an array value or variable.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<BlueprintLoopScrollView>", true, "property");
+            AddValueInput("target", "Binding<BlueprintLoopScrollView>", true, "property");
             AddValueInput("items", null, false, "connection");
             AddValueInput("itemsVariable", "string", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<BlueprintLoopScrollView>", true);
+            AddProperty("target", "Binding<BlueprintLoopScrollView>", true);
             AddProperty("itemsVariable", "string", false);
         }
     }
@@ -771,10 +771,10 @@ namespace BlueprintSystem.Editor
                 "Sets text on a bound TMP_Text element.");
 
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<TMP_Text>", true, "property");
+            AddValueInput("target", "Binding<TMP_Text>", true, "property");
             AddValueInput("value", "string", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<TMP_Text>", true);
+            AddProperty("target", "Binding<TMP_Text>", true);
             AddProperty("value", "string", false);
         }
     }
@@ -787,8 +787,8 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity("UI.SpriteBinding", "Sprite Binding", "UI", "Outputs a bound Sprite name for UI image nodes.");
-            AddValueOutput("value", "UIBinding<Sprite>");
-            AddProperty("sprite", "UIBinding<Sprite>", true);
+            AddValueOutput("value", "Binding<Sprite>");
+            AddProperty("sprite", "Binding<Sprite>", true);
         }
     }
 
@@ -801,11 +801,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetImageSprite", "Set Image Sprite", "UI", "Sets sprite on a bound Unity UI Image.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Image>", true, "property");
-            AddValueInput("value", "UIBinding<Sprite>", true, "propertyOrConnection");
+            AddValueInput("target", "Binding<Image>", true, "property");
+            AddValueInput("value", "Binding<Sprite>", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Image>", true);
-            AddProperty("value", "UIBinding<Sprite>", false);
+            AddProperty("target", "Binding<Image>", true);
+            AddProperty("value", "Binding<Sprite>", false);
         }
     }
 
@@ -818,10 +818,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetInteractable", "Set Interactable", "UI", "Sets interactable state on a bound Selectable.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Selectable>", true, "property");
+            AddValueInput("target", "Binding<Selectable>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Selectable>", true);
+            AddProperty("target", "Binding<Selectable>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -835,10 +835,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetVisible", "Set Visible", "UI", "Sets active state on a bound GameObject or Component.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<GameObject>", true, "property");
+            AddValueInput("target", "Binding<GameObject>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<GameObject>", true);
+            AddProperty("target", "Binding<GameObject>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -852,10 +852,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetGraphicColor", "Set Graphic Color", "UI", "Sets color on a bound Unity UI Graphic.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Graphic>", true, "property");
+            AddValueInput("target", "Binding<Graphic>", true, "property");
             AddValueInput("value", "Color", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Graphic>", true);
+            AddProperty("target", "Binding<Graphic>", true);
             AddProperty("value", "Color", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f, 1f });
         }
     }
@@ -869,10 +869,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetGraphicEnabled", "Set Graphic Enabled", "UI", "Sets enabled state on a bound Unity UI Graphic.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Graphic>", true, "property");
+            AddValueInput("target", "Binding<Graphic>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Graphic>", true);
+            AddProperty("target", "Binding<Graphic>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -886,10 +886,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetGraphicRaycastTarget", "Set Graphic Raycast Target", "UI", "Sets raycast target state on a bound Unity UI Graphic.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Graphic>", true, "property");
+            AddValueInput("target", "Binding<Graphic>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Graphic>", true);
+            AddProperty("target", "Binding<Graphic>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -903,10 +903,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetImageFillAmount", "Set Image Fill Amount", "UI", "Sets fillAmount on a bound Unity UI Image.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Image>", true, "property");
+            AddValueInput("target", "Binding<Image>", true, "property");
             AddValueInput("value", "float", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Image>", true);
+            AddProperty("target", "Binding<Image>", true);
             AddProperty("value", "float", false, 1f);
         }
     }
@@ -920,10 +920,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetCanvasGroupAlpha", "Set Canvas Group Alpha", "UI", "Sets alpha on a bound CanvasGroup.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<CanvasGroup>", true, "property");
+            AddValueInput("target", "Binding<CanvasGroup>", true, "property");
             AddValueInput("value", "float", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<CanvasGroup>", true);
+            AddProperty("target", "Binding<CanvasGroup>", true);
             AddProperty("value", "float", false, 1f);
         }
     }
@@ -937,10 +937,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetCanvasGroupInteractable", "Set Canvas Group Interactable", "UI", "Sets interactable state on a bound CanvasGroup.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<CanvasGroup>", true, "property");
+            AddValueInput("target", "Binding<CanvasGroup>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<CanvasGroup>", true);
+            AddProperty("target", "Binding<CanvasGroup>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -954,10 +954,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetCanvasGroupBlocksRaycasts", "Set Canvas Group Blocks Raycasts", "UI", "Sets blocksRaycasts state on a bound CanvasGroup.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<CanvasGroup>", true, "property");
+            AddValueInput("target", "Binding<CanvasGroup>", true, "property");
             AddValueInput("value", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<CanvasGroup>", true);
+            AddProperty("target", "Binding<CanvasGroup>", true);
             AddProperty("value", "bool", false, true);
         }
     }
@@ -971,10 +971,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetRectAnchoredPosition", "Set Rect Anchored Position", "UI", "Sets anchoredPosition on a bound RectTransform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<RectTransform>", true, "property");
+            AddValueInput("target", "Binding<RectTransform>", true, "property");
             AddValueInput("value", "Vector2", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<RectTransform>", true);
+            AddProperty("target", "Binding<RectTransform>", true);
             AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
         }
     }
@@ -988,10 +988,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetRectSizeDelta", "Set Rect Size Delta", "UI", "Sets sizeDelta on a bound RectTransform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<RectTransform>", true, "property");
+            AddValueInput("target", "Binding<RectTransform>", true, "property");
             AddValueInput("value", "Vector2", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<RectTransform>", true);
+            AddProperty("target", "Binding<RectTransform>", true);
             AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
         }
     }
@@ -1005,10 +1005,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("UI.SetRectLocalScale", "Set Rect Local Scale", "UI", "Sets localScale on a bound RectTransform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<RectTransform>", true, "property");
+            AddValueInput("target", "Binding<RectTransform>", true, "property");
             AddValueInput("value", "Vector3", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<RectTransform>", true);
+            AddProperty("target", "Binding<RectTransform>", true);
             AddProperty("value", "Vector3", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f });
         }
     }

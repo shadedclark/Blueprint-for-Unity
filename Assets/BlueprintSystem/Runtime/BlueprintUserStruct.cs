@@ -696,7 +696,7 @@ namespace BlueprintSystem
         {
             if (string.IsNullOrEmpty(type) ||
                 type == BlueprintVariableTypeRegistry.BlueprintRefTypeId ||
-                type.StartsWith("UIBinding<", StringComparison.Ordinal))
+                type.StartsWith("Binding<", StringComparison.Ordinal))
             {
                 return false;
             }

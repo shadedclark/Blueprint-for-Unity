@@ -13,14 +13,14 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<Renderer>",
+      "type": "Binding<Renderer>",
       "required": true,
       "source": "property"
     },
     {
       "id": "value",
       "kind": "value",
-      "type": "UIBinding<Material>",
+      "type": "Binding<Material>",
       "required": true,
       "source": "propertyOrConnection"
     },
@@ -41,12 +41,12 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<Renderer>",
+      "type": "Binding<Renderer>",
       "required": true
     },
     {
       "id": "value",
-      "type": "UIBinding<Material>",
+      "type": "Binding<Material>",
       "required": false
     },
     {

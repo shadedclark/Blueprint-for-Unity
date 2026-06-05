@@ -11,6 +11,8 @@ Turn a feature request into two coordinated implementation tracks:
 1. UI screens, reusable UI objects, visual hierarchy, and UI asset placement are implemented first through the UI agent.
 2. Functional logic, component-owned interaction blueprints, and bindings are implemented afterward through the BlueprintSystem agent, based on the actual UI prefab/scene hierarchy produced by the UI agent.
 
+If the feature includes NPC, enemy, creature, companion, bot, or other AI behavior, route that decision logic through the AI Behavior Tree Agent as an additional implementation track.
+
 The entry agent owns decomposition, sequencing, handoff contracts, integration checks, and the final status report.
 
 ## Sequential UI-First Model
@@ -28,7 +30,7 @@ The entry agent owns the final integration pass after the UI and Blueprint passe
 
 For repeated UI components or option groups such as inventory slots, list rows, item cards, reward cells, category tabs, filter buttons/toggles, segmented options, option chips, or shop entries, integrate one reusable interaction blueprint asset across all concrete instances. Each concrete UI component still owns its own `BlueprintRunner`/`UIBlueprintBinder`, but the assigned compiled blueprint should be the shared repeated/option-group interaction blueprint, with per-instance context supplied through runner variable overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, `category_id`, or row-bind variables. Do not create or wire index- or option-specific blueprint assets such as `InventorySlot00SelectInteraction` through `InventorySlot39SelectInteraction`, or `InventoryFilterAllClickInteraction` through `InventoryFilterEquipmentClickInteraction`.
 
-Keep root component declarations and scene `UIBlueprintBinder` attachments mutually exclusive for the same UI presenter/interaction blueprint. A blueprint listed in a screen/dialog/panel `components` array becomes an in-memory runtime component and uses that parent runner's binding resolver. A blueprint assigned to a concrete child GameObject's `UIBlueprintBinder.compiledBlueprint` uses that child binder's local `bindings` list. If a presenter or interaction is attached to a child GameObject binder, do not also list the same blueprint in the root screen `components`; doing both runs the blueprint twice and the root-owned copy cannot resolve child-local bindings such as `self_button` or `regular_enter_button`. Only declare UI presenter/interaction blueprints as root components when they are intentionally executed by the root resolver and every required UI binding is present on that root binder.
+Keep root component declarations and scene `UIBlueprintBinder` attachments mutually exclusive for the same UI presenter/interaction blueprint. A blueprint listed in a screen/dialog/panel `components` array becomes an in-memory runtime component and uses that parent runner's binding resolver. A blueprint assigned to a concrete child GameObject's `UIBlueprintBinder.compiledBlueprint` uses that child runner's local `bindings` list. If a presenter or interaction is attached to a child GameObject runner, do not also list the same blueprint in the root screen `components`; doing both runs the blueprint twice and the root-owned copy cannot resolve child-local bindings such as `self_button` or `regular_enter_button`. Only declare UI presenter/interaction blueprints as root components when they are intentionally executed by the root resolver and every required binding is present on that root runner.
 
 ## Existing Prefab + Annotation Route
 
@@ -39,6 +41,18 @@ Assets/BlueprintSystem/Agents/PrefabAnnotationBlueprintAgent.md
 ```
 
 This route skips the UI-first pass because the prefab is already the visual source of truth. The Prefab Annotation Blueprint Agent may generate or update BlueprintSystem `.blueprint.json` files, compile them, and attach `BlueprintRunner` / `UIBlueprintBinder` references and binding entries back to the prefab through Unity MCP. It must not rebuild or visually modify the prefab, and it must not create or modify any `.cs` file.
+
+## AI Behavior Tree Route
+
+When a feature contains AI behavior, route the AI decision work through:
+
+```text
+Assets/BlueprintSystem/Agents/AIBehaviorTreeAgent.md
+```
+
+AI behavior includes patrol, guard, idle, roam, investigate, flee, follow, escort, chase, attack, retreat, defend, search, alert, target acquisition, perception, line-of-sight, cooldown-gated attacks, aggro state, or any behavior that should be periodically re-evaluated by an NPC, enemy, companion, creature, or bot.
+
+The AI Behavior Tree Agent must read `Assets/BlueprintSystem/BehaviorTree/GUIDE.md` first, then implement the requested decision logic as `.btree.json` behavior tree assets using existing `BT.*` nodes. It must not create or modify any `.cs` file. If the requested AI behavior requires unsupported Behavior Tree runtime capability, pause with an unsupported-capability report instead of adding C# or silently replacing the behavior.
 
 ## Unity MCP Rule
 
@@ -105,6 +119,23 @@ Responsibilities:
 - Do not attach BlueprintSystem components or final `UIBlueprintBinder` entries during the first UI subagent pass.
 - Keep presentation concerns in UI assets and do not implement domain behavior in C#.
 
+### AI Behavior Tree Agent
+
+Use when the feature includes AI behavior:
+
+```text
+Assets/BlueprintSystem/Agents/AIBehaviorTreeAgent.md
+```
+
+Responsibilities:
+
+- Read `Assets/BlueprintSystem/BehaviorTree/GUIDE.md` before any behavior tree design or edit.
+- Implement AI decision flow as `.btree.json` Behavior Tree source assets.
+- Use existing `BT.*` nodes, Decorators, Services, Blackboard keys, and Blueprint bridge tasks.
+- Define `BehaviorTreeRunner` integration requirements for NPC/enemy/companion owners.
+- Validate and compile changed behavior trees when tooling is available.
+- Do not create or modify any `.cs` file.
+
 ## Mandatory Context Pass
 
 Before routing work, read:
@@ -113,7 +144,8 @@ Before routing work, read:
 2. `Assets/BlueprintSystem/GUIDE.md`
 3. `Assets/BlueprintSystem/Agents/BlueprintFeatureAgent.md`
 4. `Assets/BlueprintSystem/Agents/UIImplementationAgent.md`
-5. Relevant existing examples under `Assets/Game/**` and `Assets/BlueprintSystem/Sources/**`
+5. `Assets/BlueprintSystem/Agents/AIBehaviorTreeAgent.md` when the request includes AI behavior
+6. Relevant existing examples under `Assets/Game/**` and `Assets/BlueprintSystem/Sources/**`
 
 Existing examples are reference material only. New feature-owned assets must use the output root below.
 
@@ -230,9 +262,34 @@ BlueprintSystem agent output must include:
 - UI display blueprint ownership rows.
 - UI interaction blueprint ownership rows.
 - Exposed variables and custom events.
-- Required UI binding names and types mapped to actual prefab/scene anchors.
+- Required binding names and types mapped to actual prefab/scene anchors.
 - Unsupported BlueprintSystem capabilities, if any.
 - Validation and compile results.
+
+### Route To AI Behavior Tree Agent
+
+Send these items to the AI Behavior Tree Agent when the feature includes AI behavior:
+
+- Feature name and output root.
+- AI owner prefab or scene object, if known.
+- Requested AI states, priorities, and transitions.
+- Target acquisition, perception, range, cooldown, patrol, chase, attack, flee, idle, or follow rules.
+- Blackboard keys, exposed runner overrides, and runtime state that must cross between tree, Blueprint, and Unity components.
+- Existing or planned Blueprint behavior assets that the tree can call through bridge tasks or services.
+- Required Unity components such as `BehaviorTreeRunner`, `NavMeshAgent`, colliders, or Blueprint runner collaborators.
+- Unsupported or ambiguous AI behavior that needs confirmation.
+
+AI Behavior Tree Agent output must include:
+
+- Changed `.btree.json` files.
+- Generated or updated compiled behavior tree assets, if compilation was run.
+- Blackboard key contract.
+- Tree branch, Decorator, Service, and Task summary.
+- Blueprint bridge event/task contract.
+- `BehaviorTreeRunner` attachment and override requirements.
+- Unsupported Behavior Tree capabilities, if any.
+- Validation and compile results.
+- Confirmation that no `.cs` files were created or modified.
 
 ### Route To UI Agent
 
@@ -328,8 +385,11 @@ Interaction blueprint ownership:
 Data blueprints:
 Behavior blueprints:
 Blueprint events:
+AI behavior trees:
+AI Blackboard keys:
+AI runner attachments:
 Exposed variables:
-Required UI bindings:
+Required bindings:
 UI prototype anchors:
 Interactive component anchors:
 Actual UI prefab/scene hierarchy:
@@ -364,23 +424,26 @@ For each target asset path, create or reuse a `Blueprint` variable with that pat
 
 1. Restate the requested feature as concrete user-facing behavior.
 2. Pick `<FeatureName>` and output root.
-3. Read required context and both agent instructions.
-4. Decompose into data, behaviors, UI screens, reusable UI objects, UI display units, and one interaction blueprint per interactive UI component intent.
+3. Read required context and the relevant agent instructions.
+4. Decompose into data, behaviors, AI behavior trees when present, UI screens, reusable UI objects, UI display units, and one interaction blueprint per interactive UI component intent.
 5. Build an initial handoff contract with display-unit rows, interaction ownership rows, expected interaction names, and UI anchor naming guidance.
 6. Run the UI subagent first. It builds the UI prototype/prefab using `unity_mcp`, reports stable anchors, and does not attach BlueprintSystem components.
 7. Inspect the produced prefab/scene hierarchy with editor-time tools and update the handoff contract with actual anchor names, component types, repeated item roots, and display-unit roots.
 8. Run the Blueprint subagent second. It implements logic and interaction blueprints against the inspected UI prefab/scene structure, then returns the binding contract and validation/compile results.
-9. Reconcile the handoff contract: every blueprint binding must map to an actual UI prefab/scene anchor, and every UI event must map to a component-owned interaction blueprint, blueprint event, or supported node.
-10. Perform the final integration pass with `unity_mcp`: add BlueprintSystem runtime components, `UIBlueprintBinder` entries, blueprint references, and final component bindings to the relevant Unity objects or prefabs. For UI interactions, attach or reference each interaction blueprint from its owning Button, Toggle, ScrollView/list, tab, confirm/cancel, or repeated-item component when supported.
-11. Before saving final integration, audit every UI presenter/interaction ownership mode: if the blueprint is assigned to a child GameObject `UIBlueprintBinder`, remove or avoid the duplicate root screen component declaration; if it remains in root `components`, ensure the root binder owns every binding it uses.
-12. For repeated UI components and option groups, attach the same reusable interaction blueprint to every concrete instance and set a variable override for the instance context. Do not generate, compile, or attach index-specific repeated-item blueprint files or option-specific filter/tab/toggle blueprint files.
-13. Re-run required BlueprintSystem validation/valid and compile if final integration changed blueprint-facing assets.
-14. Do not run Unity Play Mode tests unless the user explicitly asks. Editor-time validation, compile, scene/prefab inspection, and console checks are allowed when needed.
-15. Final response must list BlueprintSystem outputs, UI outputs, final component attachment results, validation/compile results, skipped unsupported behavior, and any unresolved binding or integration issue.
+9. If AI behavior is present, run the AI Behavior Tree Agent. It reads `Assets/BlueprintSystem/BehaviorTree/GUIDE.md` first, creates or updates `.btree.json`, validates/compiles when available, and returns the runner integration contract without creating C#.
+10. Reconcile the handoff contract: every blueprint binding must map to an actual UI prefab/scene anchor, every UI event must map to a component-owned interaction blueprint, blueprint event, or supported node, and every AI tree bridge event/task must map to an existing or generated Blueprint asset.
+11. Perform the final integration pass with `unity_mcp`: add BlueprintSystem runtime components, `UIBlueprintBinder` entries, blueprint references, Behavior Tree runners, compiled tree references, and final component bindings to the relevant Unity objects or prefabs. For UI interactions, attach or reference each interaction blueprint from its owning Button, Toggle, ScrollView/list, tab, confirm/cancel, or repeated-item component when supported.
+12. Before saving final integration, audit every UI presenter/interaction ownership mode: if the blueprint is assigned to a child GameObject `UIBlueprintBinder`, remove or avoid the duplicate root screen component declaration; if it remains in root `components`, ensure the root runner owns every binding it uses.
+13. For repeated UI components and option groups, attach the same reusable interaction blueprint to every concrete instance and set a variable override for the instance context. Do not generate, compile, or attach index-specific repeated-item blueprint files or option-specific filter/tab/toggle blueprint files.
+14. Re-run required BlueprintSystem validation/valid and compile if final integration changed blueprint-facing assets, and re-run Behavior Tree validation/compile if final integration changed behavior tree-facing assets.
+15. Do not run Unity Play Mode tests unless the user explicitly asks. Editor-time validation, compile, scene/prefab inspection, and console checks are allowed when needed.
+16. Final response must list BlueprintSystem outputs, UI outputs, AI Behavior Tree outputs when present, final component attachment results, validation/compile results, skipped unsupported behavior, and any unresolved binding or integration issue.
 
 ## Unsupported Capability Gate
 
 If BlueprintSystem cannot express a required logic/interaction capability with existing nodes, pause and ask whether to create a new Blueprint node or temporarily ignore that behavior. Do not add the node during the same step that discovers the gap. If the user explicitly confirms new-node work in the current conversation, use the `create-blueprint-node` skill.
+
+If the Behavior Tree runtime cannot express a required AI decision, task, decorator, or service with existing `BT.*` nodes and existing Blueprint bridge patterns, pause and report the unsupported Behavior Tree capability. Do not add C# from this route.
 
 If the UI agent cannot build a required visual asset, binding, prefab, or screen using existing UI tooling, pause and ask whether to create the missing UI support or temporarily ignore that UI part.
 
@@ -398,9 +461,11 @@ Before handing back:
 - UI interaction blueprints are split one interactive UI component intent per blueprint, with no catch-all input adapter.
 - Repeated item/slot/card/row and filter/toggle/tab/option-group interactions reuse one blueprint asset per repeated control type and intent, with per-instance context overrides.
 - Behavior blueprints are split one behavior per blueprint.
+- AI behavior tree work was routed through the AI Behavior Tree Agent when the feature included AI behavior.
+- AI behavior tree work read `Assets/BlueprintSystem/BehaviorTree/GUIDE.md` first and did not create or modify `.cs` files.
 - All new feature/system assets are outside `Assets/BlueprintSystem/**`.
 - Final `UIBlueprintBinder` entries and BlueprintSystem components were added only after both the UI-first pass and the BlueprintSystem pass completed.
-- UI binding names and types match the BlueprintSystem binding contract after the final integration pass.
+- binding names and types match the BlueprintSystem binding contract after the final integration pass.
 - BlueprintSystem validation/valid and compile completed, or the blocker is reported.
 - No Play Mode test was run unless explicitly requested by the user.
 - Unsupported or skipped capabilities are explicitly listed.

@@ -13,7 +13,7 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<Toggle>",
+      "type": "Binding<Toggle>",
       "required": true,
       "source": "property"
     }
@@ -44,7 +44,7 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<Toggle>",
+      "type": "Binding<Toggle>",
       "required": true
     }
   ]

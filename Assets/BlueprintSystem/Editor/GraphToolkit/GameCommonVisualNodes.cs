@@ -186,9 +186,9 @@ namespace BlueprintSystem.Editor
         protected void ConfigureGetter(string typeId, string title, string description)
         {
             SetIdentity(typeId, title, "Game/Transform", description);
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueOutput("value", "Vector3");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
         }
     }
 
@@ -286,10 +286,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity(typeId, title, "Game/Transform", description);
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput(valueId, "Vector3", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty(valueId, "Vector3", false, defaultValue);
         }
     }
@@ -325,11 +325,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.TranslateTransform", "Translate Transform", "Game/Transform", "Moves a Transform by a translation in self or world space.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput("translation", "Vector3", true, "propertyOrConnection");
             AddValueInput("relativeToSelf", "bool", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty("translation", "Vector3", false, new List<object> { 0f, 0f, 0f });
             AddProperty("relativeToSelf", "bool", false, true);
         }
@@ -344,11 +344,11 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.RotateTransform", "Rotate Transform", "Game/Transform", "Rotates a Transform by Euler angles in self or world space.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput("eulerAngles", "Vector3", true, "propertyOrConnection");
             AddValueInput("relativeToSelf", "bool", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty("eulerAngles", "Vector3", false, new List<object> { 0f, 0f, 0f });
             AddProperty("relativeToSelf", "bool", false, true);
         }
@@ -363,13 +363,13 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.LookAtTransform", "Look At Transform", "Game/Transform", "Rotates a Transform to look at another Transform binding or a world position.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
-            AddValueInput("lookTarget", "UIBinding<Transform>", false, "propertyOrConnection");
+            AddValueInput("target", "Binding<Transform>", true, "property");
+            AddValueInput("lookTarget", "Binding<Transform>", false, "propertyOrConnection");
             AddValueInput("targetPosition", "Vector3", false, "propertyOrConnection");
             AddValueInput("worldUp", "Vector3", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
-            AddProperty("lookTarget", "UIBinding<Transform>", false);
+            AddProperty("target", "Binding<Transform>", true);
+            AddProperty("lookTarget", "Binding<Transform>", false);
             AddProperty("targetPosition", "Vector3", false, new List<object> { 0f, 0f, 0f });
             AddProperty("worldUp", "Vector3", false, new List<object> { 0f, 1f, 0f });
         }
@@ -384,12 +384,12 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.SetTransformParent", "Set Transform Parent", "Game/Transform", "Parents a Transform to another bound Transform.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
-            AddValueInput("parent", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
+            AddValueInput("parent", "Binding<Transform>", true, "property");
             AddValueInput("worldPositionStays", "bool", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
-            AddProperty("parent", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
+            AddProperty("parent", "Binding<Transform>", true);
             AddProperty("worldPositionStays", "bool", false, true);
         }
     }
@@ -403,10 +403,10 @@ namespace BlueprintSystem.Editor
         {
             SetIdentity("Game.DetachTransform", "Detach Transform", "Game/Transform", "Clears a Transform parent.");
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<Transform>", true, "property");
+            AddValueInput("target", "Binding<Transform>", true, "property");
             AddValueInput("worldPositionStays", "bool", false, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<Transform>", true);
+            AddProperty("target", "Binding<Transform>", true);
             AddProperty("worldPositionStays", "bool", false, true);
         }
     }

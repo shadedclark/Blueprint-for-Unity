@@ -1,6 +1,6 @@
 {
   "name": "blueprint-system-codex",
-  "version": "0.1.0",
+  "version": "0.1.0+codex.20260605081837",
   "description": "Codex entrypoints for the Unity BlueprintSystem package agents and MCP bridge.",
   "author": {
     "name": "ShadedClark"
@@ -9,6 +9,8 @@
   "keywords": [
     "unity",
     "blueprint",
+    "behavior-tree",
+    "ai",
     "codex",
     "mcp",
     "game-development"
@@ -17,7 +19,7 @@
   "interface": {
     "displayName": "BlueprintSystem",
     "shortDescription": "Call BlueprintSystem agents directly in Codex.",
-    "longDescription": "BlueprintSystem exposes direct Codex skills for feature implementation, prefab annotation binding, and public node creation while reusing the Unity package's live agent documents and MCP bridge tools.",
+    "longDescription": "BlueprintSystem exposes direct Codex skills for feature implementation, prefab annotation binding, AI Behavior Tree work, and public node creation while reusing the Unity package's live agent documents and MCP bridge tools.",
     "developerName": "ShadedClark",
     "category": "Engineering",
     "capabilities": [
@@ -27,6 +29,7 @@
     ],
     "defaultPrompt": [
       "Use $blueprint-feature to implement this Unity UI feature.",
+      "Use $blueprint-ai-behavior-tree to implement this enemy AI behavior.",
       "Use $blueprint-prefab-annotation to wire this prefab from annotations.",
       "Use $blueprint-node to add the missing BlueprintSystem node."
     ],

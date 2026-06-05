@@ -1,6 +1,6 @@
 ---
 name: blueprint-prefab-annotation
-description: Wire an existing Unity prefab to BlueprintSystem behavior from an annotation Markdown document. Use when Codex is given a prefab path and annotation notes, should follow PrefabAnnotationBlueprintAgent, generate or update .blueprint.json files, compile blueprints, and attach BlueprintRunner or UIBlueprintBinder bindings without rebuilding the UI or changing visual layout.
+description: Wire an existing Unity prefab to BlueprintSystem behavior from an annotation Markdown document. Use when Codex is given a prefab path and annotation notes, should follow PrefabAnnotationBlueprintAgent, generate or update .blueprint.json files, compile blueprints, and attach BlueprintRunner or UIBlueprintBinder references and bindings without rebuilding the UI or changing visual layout.
 ---
 
 # Blueprint Prefab Annotation
@@ -39,10 +39,10 @@ Then follow `PrefabAnnotationBlueprintAgent.md` as the source of truth.
 
 ## Workflow
 
-- Inspect the prefab through Unity MCP or `blueprint_inspect_prefab_ui`.
+- Inspect the prefab through Unity MCP or `blueprint_inspect_prefab_bindings`.
 - Use the annotation Markdown as the behavior contract.
 - Create or update `.blueprint.json` files only where needed.
 - Compile changed blueprints with `blueprint_compile_blueprints`.
-- Apply runner and binder references with `blueprint_apply_ui_bindings`.
+- Apply runner references with `blueprint_apply_bindings`.
 
 Do not rebuild the UI, change the visual layout, create C# code, or edit prefab YAML by hand.

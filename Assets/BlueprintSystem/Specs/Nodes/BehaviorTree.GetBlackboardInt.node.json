@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "BehaviorTree.GetBlackboardInt",
+  "title": "Get Blackboard Int",
+  "category": "BehaviorTree/Blackboard",
+  "description": "Reads an int value from a bound BehaviorTreeRunner Blackboard.",
+  "executor": "BehaviorTree.GetBlackboardInt",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "key",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true
+    },
+    {
+      "id": "key",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "behavior tree",
+    "blackboard",
+    "int"
+  ]
+}

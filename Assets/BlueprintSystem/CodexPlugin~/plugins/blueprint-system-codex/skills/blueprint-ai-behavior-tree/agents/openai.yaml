@@ -1,0 +1,6 @@
+interface:
+  display_name: "Blueprint AI Behavior Tree"
+  short_description: "Implement AI behavior as Behavior Tree assets"
+  default_prompt: "Use $blueprint-ai-behavior-tree to implement this enemy AI behavior."
+policy:
+  allow_implicit_invocation: true

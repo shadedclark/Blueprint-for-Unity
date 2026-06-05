@@ -211,14 +211,14 @@ namespace BlueprintSystem
                     diagnostics.Add(BlueprintDiagnostic.Error("BP012", "Property '" + property.Id + "' must be type '" + property.Type + "'.", node.Id, property.Id));
                 }
 
-                if (hasValue && property.Type != null && property.Type.StartsWith("UIBinding<", System.StringComparison.Ordinal))
+                if (hasValue && property.Type != null && property.Type.StartsWith("Binding<", System.StringComparison.Ordinal))
                 {
                     string bindingName = value as string;
                     if (string.IsNullOrEmpty(bindingName))
                     {
                         if (property.Required)
                         {
-                            diagnostics.Add(BlueprintDiagnostic.Error("BP005", "Unknown UI binding '" + bindingName + "'.", node.Id, property.Id));
+                            diagnostics.Add(BlueprintDiagnostic.Error("BP005", "Unknown binding '" + bindingName + "'.", node.Id, property.Id));
                         }
 
                         continue;
@@ -226,7 +226,7 @@ namespace BlueprintSystem
 
                     if (!bindingsByName.ContainsKey(bindingName))
                     {
-                        diagnostics.Add(BlueprintDiagnostic.Error("BP005", "Unknown UI binding '" + bindingName + "'.", node.Id, property.Id));
+                        diagnostics.Add(BlueprintDiagnostic.Error("BP005", "Unknown binding '" + bindingName + "'.", node.Id, property.Id));
                     }
                 }
             }

@@ -1,0 +1,245 @@
+{
+  "schemaVersion": "0.1",
+  "name": "EnemyPatrolChaseAttack",
+  "category": "AI",
+  "description": "Sample enemy behavior tree: patrol, perceive target, chase, and attack.",
+  "blackboard": [
+    {
+      "name": "Target",
+      "type": "GameObject",
+      "defaultValue": null,
+      "exposed": true,
+      "description": "Current perceived target."
+    },
+    {
+      "name": "DistanceToTarget",
+      "type": "float",
+      "defaultValue": 9999,
+      "exposed": true,
+      "description": "Distance from this NPC to Target."
+    },
+    {
+      "name": "AttackRange",
+      "type": "float",
+      "defaultValue": 2,
+      "exposed": true,
+      "description": "Distance threshold for attack."
+    },
+    {
+      "name": "PatrolPoint",
+      "type": "Vector3",
+      "defaultValue": [
+        0,
+        0,
+        5
+      ],
+      "exposed": true,
+      "description": "Simple patrol destination."
+    }
+  ],
+  "root": "root",
+  "nodes": [
+    {
+      "id": "root",
+      "typeId": "BT.Root",
+      "position": [
+        0,
+        0
+      ],
+      "children": [
+        "main_selector"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "main_selector",
+      "typeId": "BT.Selector",
+      "position": [
+        0,
+        160
+      ],
+      "children": [
+        "attack_sequence",
+        "chase_sequence",
+        "patrol_sequence"
+      ],
+      "decorators": [],
+      "services": [
+        "perceive_target",
+        "update_distance"
+      ],
+      "properties": {}
+    },
+    {
+      "id": "attack_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        -300,
+        320
+      ],
+      "children": [
+        "attack_event"
+      ],
+      "decorators": [
+        "has_target",
+        "in_attack_range",
+        "attack_cooldown"
+      ],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "attack_event",
+      "typeId": "BT.TriggerBlueprintEvent",
+      "position": [
+        -300,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "eventName": "Attack",
+        "successOnMissing": true
+      }
+    },
+    {
+      "id": "chase_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        0,
+        320
+      ],
+      "children": [
+        "move_to_target"
+      ],
+      "decorators": [
+        "has_target"
+      ],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "move_to_target",
+      "typeId": "BT.MoveTo",
+      "position": [
+        0,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "Target"
+      },
+      "properties": {
+        "acceptableRadius": 1.25,
+        "speed": 3.5
+      }
+    },
+    {
+      "id": "patrol_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        300,
+        320
+      ],
+      "children": [
+        "move_to_patrol",
+        "wait_at_patrol"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "move_to_patrol",
+      "typeId": "BT.MoveTo",
+      "position": [
+        260,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "inputs": {
+        "target": "PatrolPoint"
+      },
+      "properties": {
+        "acceptableRadius": 0.25,
+        "speed": 2
+      }
+    },
+    {
+      "id": "wait_at_patrol",
+      "typeId": "BT.Wait",
+      "position": [
+        420,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "duration": 1.5
+      }
+    }
+  ],
+  "decorators": [
+    {
+      "id": "has_target",
+      "typeId": "BT.BlackboardCondition",
+      "inputs": {
+        "value": "Target"
+      },
+      "properties": {
+        "operator": "IsSet",
+        "abortMode": "Self"
+      }
+    },
+    {
+      "id": "in_attack_range",
+      "typeId": "BT.DistanceLessThan",
+      "inputs": {
+        "distance": "DistanceToTarget"
+      },
+      "properties": {
+        "maxDistance": 2,
+        "abortMode": "Self"
+      }
+    },
+    {
+      "id": "attack_cooldown",
+      "typeId": "BT.Cooldown",
+      "properties": {
+        "duration": 0.8,
+        "abortMode": "Self"
+      }
+    }
+  ],
+  "services": [
+    {
+      "id": "perceive_target",
+      "typeId": "BT.PerceptionSphere",
+      "interval": 0.2,
+      "randomDeviation": 0.05,
+      "properties": {
+        "radius": 10,
+        "targetKey": "Target",
+        "clearOnMiss": false
+      }
+    },
+    {
+      "id": "update_distance",
+      "typeId": "BT.UpdateDistance",
+      "interval": 0.1,
+      "randomDeviation": 0.02,
+      "properties": {
+        "targetKey": "Target",
+        "distanceKey": "DistanceToTarget"
+      }
+    }
+  ]
+}

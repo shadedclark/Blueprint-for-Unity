@@ -13,7 +13,7 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<RectTransform>",
+      "type": "Binding<RectTransform>",
       "required": true,
       "source": "property"
     },
@@ -34,7 +34,7 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<RectTransform>",
+      "type": "Binding<RectTransform>",
       "required": true
     },
     {

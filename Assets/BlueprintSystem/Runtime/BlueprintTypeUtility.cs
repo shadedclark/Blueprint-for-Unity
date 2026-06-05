@@ -46,7 +46,7 @@ namespace BlueprintSystem
                 return true;
             }
 
-            if (fromType.StartsWith("UIBinding<", StringComparison.Ordinal) && toType == fromType)
+            if (fromType.StartsWith("Binding<", StringComparison.Ordinal) && toType == fromType)
             {
                 return true;
             }
@@ -85,7 +85,7 @@ namespace BlueprintSystem
                 case "Color":
                     return value is Color || IsListLength(value, 3) || IsListLength(value, 4);
                 default:
-                    if (type.StartsWith("UIBinding<", StringComparison.Ordinal))
+                    if (type.StartsWith("Binding<", StringComparison.Ordinal))
                     {
                         return value is string;
                     }

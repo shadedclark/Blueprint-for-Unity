@@ -1,0 +1,205 @@
+{
+  "schemaVersion": "0.1",
+  "name": "RandomSelectorChoiceExample",
+  "category": "AI/Examples",
+  "description": "Composite node example: RandomSelector shuffles branches, skips failed conditions, and succeeds on the first available choice.",
+  "blackboard": [
+    {
+      "name": "AllowRareBranch",
+      "type": "bool",
+      "defaultValue": false,
+      "exposed": true,
+      "persistent": false,
+      "description": "Set true to allow the rare random branch."
+    },
+    {
+      "name": "RandomChoice",
+      "type": "string",
+      "defaultValue": "None",
+      "exposed": true,
+      "persistent": false,
+      "description": "Records which random branch succeeded."
+    }
+  ],
+  "root": "root",
+  "nodes": [
+    {
+      "id": "root",
+      "typeId": "BT.Root",
+      "position": [
+        0,
+        0
+      ],
+      "children": [
+        "random_selector_choose_action"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "random_selector_choose_action",
+      "typeId": "BT.RandomSelector",
+      "position": [
+        0,
+        160
+      ],
+      "children": [
+        "rare_sequence",
+        "scout_sequence",
+        "flank_sequence"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "rare_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        -320,
+        320
+      ],
+      "children": [
+        "set_choice_rare",
+        "log_rare_choice"
+      ],
+      "decorators": [
+        "condition_allow_rare_branch"
+      ],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_choice_rare",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -400,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "RandomChoice",
+        "value": "Rare"
+      }
+    },
+    {
+      "id": "log_rare_choice",
+      "typeId": "BT.Log",
+      "position": [
+        -240,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "RandomSelector picked the rare branch."
+      }
+    },
+    {
+      "id": "scout_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        0,
+        320
+      ],
+      "children": [
+        "set_choice_scout",
+        "log_scout_choice"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_choice_scout",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        -80,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "RandomChoice",
+        "value": "Scout"
+      }
+    },
+    {
+      "id": "log_scout_choice",
+      "typeId": "BT.Log",
+      "position": [
+        80,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "RandomSelector picked the scout branch."
+      }
+    },
+    {
+      "id": "flank_sequence",
+      "typeId": "BT.Sequence",
+      "position": [
+        320,
+        320
+      ],
+      "children": [
+        "set_choice_flank",
+        "log_flank_choice"
+      ],
+      "decorators": [],
+      "services": [],
+      "properties": {}
+    },
+    {
+      "id": "set_choice_flank",
+      "typeId": "BT.SetBlackboard",
+      "position": [
+        240,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "key": "RandomChoice",
+        "value": "Flank"
+      }
+    },
+    {
+      "id": "log_flank_choice",
+      "typeId": "BT.Log",
+      "position": [
+        400,
+        480
+      ],
+      "children": [],
+      "decorators": [],
+      "services": [],
+      "properties": {
+        "message": "RandomSelector picked the flank branch."
+      }
+    }
+  ],
+  "decorators": [
+    {
+      "id": "condition_allow_rare_branch",
+      "typeId": "BT.CompareBool",
+      "inputs": {
+        "value": "AllowRareBranch"
+      },
+      "properties": {
+        "operator": "Equals",
+        "expected": true
+      }
+    }
+  ],
+  "services": []
+}

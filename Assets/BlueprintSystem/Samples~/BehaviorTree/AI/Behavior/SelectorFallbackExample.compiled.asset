@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7032c2202864a4ad697f8020c888f449, type: 3}
+  m_Name: SelectorFallbackExample.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BehaviorTreeCompiledAsset
+  schemaVersion: 0.1
+  behaviorTreeName: SelectorFallbackExample
+  sourceGuid: 4a684cb4739c84e82ac1f8d46789cf90
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/AI/Behavior/SelectorFallbackExample.btree.json
+  sourceHash: 5a046c0029ab0d3adedb27200935f9cd547a69bfbc6f818d1b2d73f0e6109593
+  rootNodeId: root
+  blackboard:
+  - Name: EnemyVisible
+    Type: bool
+    DefaultValueJson: false
+    Exposed: 1
+    Persistent: 0
+    Description: Set true to let the selector choose the engage branch.
+  - Name: SelectedBranch
+    Type: string
+    DefaultValueJson: '"None"'
+    Exposed: 1
+    Persistent: 0
+    Description: Records which selector branch succeeded.
+  nodes:
+  - Id: root
+    TypeId: BT.Root
+    Children:
+    - selector_choose_behavior
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: selector_choose_behavior
+    TypeId: BT.Selector
+    Children:
+    - engage_sequence
+    - patrol_fallback_sequence
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: engage_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_branch_engage
+    - trigger_branch_engage
+    - log_engage
+    Decorators:
+    - condition_enemy_visible
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_branch_engage
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"SelectedBranch"'
+    - Id: value
+      JsonValue: '"Engage"'
+  - Id: log_engage
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"Selector chose the guarded engage branch."'
+  - Id: patrol_fallback_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_branch_patrol
+    - trigger_branch_patrol
+    - log_patrol
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_branch_patrol
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"SelectedBranch"'
+    - Id: value
+      JsonValue: '"PatrolFallback"'
+  - Id: log_patrol
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"Selector fell back to patrol because EnemyVisible is false."'
+  - Id: trigger_branch_engage
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"EngageSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  - Id: trigger_branch_patrol
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"PatrolFallbackSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  decorators:
+  - Id: condition_enemy_visible
+    TypeId: BT.CompareBool
+    Inputs:
+    - InputId: value
+      BlackboardKey: EnemyVisible
+    Properties:
+    - Id: expected
+      JsonValue: true
+    - Id: operator
+      JsonValue: '"Equals"'
+  services: []

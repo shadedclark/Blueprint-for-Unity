@@ -32,7 +32,7 @@
 
 ```text
 execIn: exec
-target: UIBinding<TMP_Text>
+target: Binding<TMP_Text>
 variableName: string
 variableTarget: Blueprint
 value: string

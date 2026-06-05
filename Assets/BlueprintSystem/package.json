@@ -1,6 +1,6 @@
 {
   "name": "com.shadedclark.blueprint-system",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "displayName": "Blueprint System",
   "description": "A JSON-first Unity blueprint runtime and editor toolset.",
   "unity": "6000.0",
@@ -26,6 +26,11 @@
       "displayName": "Inventory",
       "description": "Inventory blueprint sample.",
       "path": "Samples~/Inventory"
+    },
+    {
+      "displayName": "Behavior Tree",
+      "description": "Behavior tree patrol and composite node prefab examples.",
+      "path": "Samples~/BehaviorTree"
     }
   ]
 }

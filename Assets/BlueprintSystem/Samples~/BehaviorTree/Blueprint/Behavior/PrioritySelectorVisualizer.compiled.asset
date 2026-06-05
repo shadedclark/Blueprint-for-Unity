@@ -1,0 +1,318 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: PrioritySelectorVisualizer.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: PrioritySelectorVisualizer
+  sourceGuid: 08216fb91c6bb4f229b538de60704933
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/Blueprint/Behavior/PrioritySelectorVisualizer.blueprint.json
+  sourceHash: 008fbde8ef11287236756edfe5fdb1fe91ccc566997137fcec318163890aac3b
+  manifestHash: 199ad73c105cf617517e670f4495d4e173359bf2775cc2ded0acf42cd0f89c2d
+  variables:
+  - Id: var_a5741060e608476596c485aec0298b66
+    Name: selected_priority
+    Type: string
+    DefaultValueJson: '"None"'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Latest priority branch reported by the behavior tree.
+  - Id: var_b6109be73869404d994ae29a2aa6dc9b
+    Name: alert_requested
+    Type: bool
+    DefaultValueJson: false
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Set true after two seconds; the behavior tree copies this to AlertMode.
+  bindings:
+  - Name: idle_renderer
+    Type: Renderer
+    Required: 1
+  - Name: idle_marker
+    Type: Transform
+    Required: 1
+  - Name: alert_renderer
+    Type: Renderer
+    Required: 1
+  - Name: alert_marker
+    Type: Transform
+    Required: 1
+  - Name: status_label
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_start
+    TypeId: Game.Event.OnStart
+    ExecutorId: Flow.Event
+    Properties: []
+  - Id: delay_alert_request
+    TypeId: Flow.Delay
+    ExecutorId: Flow.Delay
+    Properties:
+    - Id: seconds
+      JsonValue: 2
+  - Id: set_alert_requested
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"alert_requested"'
+    - Id: value
+      JsonValue: true
+  - Id: event_idle_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"IdleSelected"'
+  - Id: set_priority_idle
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"selected_priority"'
+    - Id: value
+      JsonValue: '"Idle"'
+  - Id: event_alert_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"AlertSelected"'
+  - Id: set_priority_alert
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"selected_priority"'
+    - Id: value
+      JsonValue: '"Alert"'
+  - Id: event_tick
+    TypeId: Game.Event.OnTick
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: phase
+      JsonValue: '"Update"'
+  - Id: get_priority
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"selected_priority"'
+  - Id: sequence_tick
+    TypeId: Flow.Sequence
+    ExecutorId: Flow.Sequence
+    Properties: []
+  - Id: compare_idle
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"Idle"'
+  - Id: branch_idle
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_idle_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"idle_renderer"'
+    - Id: value
+      JsonValue: '[0.25,0.65,1,1]'
+  - Id: set_idle_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"idle_marker"'
+    - Id: value
+      JsonValue: '[0.95,0.85,0.95]'
+  - Id: set_idle_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"idle_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_idle_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"idle_marker"'
+    - Id: value
+      JsonValue: '[0.75,0.7,0.75]'
+  - Id: compare_alert
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"Alert"'
+  - Id: branch_alert
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_alert_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"alert_renderer"'
+    - Id: value
+      JsonValue: '[1,0.45,0.15,1]'
+  - Id: set_alert_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"alert_marker"'
+    - Id: value
+      JsonValue: '[0.8,0.8,0.8]'
+  - Id: set_alert_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"alert_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_alert_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"alert_marker"'
+    - Id: value
+      JsonValue: '[0.55,0.55,0.55]'
+  - Id: set_status_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"status_label"'
+  execEdges:
+  - FromNodeId: branch_alert
+    FromPortId: false
+    ToNodeId: set_alert_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_alert
+    FromPortId: true
+    ToNodeId: set_alert_active_color
+    ToPortId: execIn
+  - FromNodeId: branch_idle
+    FromPortId: false
+    ToNodeId: set_idle_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_idle
+    FromPortId: true
+    ToNodeId: set_idle_active_color
+    ToPortId: execIn
+  - FromNodeId: delay_alert_request
+    FromPortId: execOut
+    ToNodeId: set_alert_requested
+    ToPortId: execIn
+  - FromNodeId: event_alert_selected
+    FromPortId: execOut
+    ToNodeId: set_priority_alert
+    ToPortId: execIn
+  - FromNodeId: event_idle_selected
+    FromPortId: execOut
+    ToNodeId: set_priority_idle
+    ToPortId: execIn
+  - FromNodeId: event_start
+    FromPortId: execOut
+    ToNodeId: delay_alert_request
+    ToPortId: execIn
+  - FromNodeId: event_tick
+    FromPortId: execOut
+    ToNodeId: sequence_tick
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then0
+    ToNodeId: branch_idle
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then1
+    ToNodeId: branch_alert
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then2
+    ToNodeId: set_status_label
+    ToPortId: execIn
+  - FromNodeId: set_alert_active_color
+    FromPortId: execOut
+    ToNodeId: set_alert_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_alert_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_alert_inactive_scale
+    ToPortId: execIn
+  - FromNodeId: set_idle_active_color
+    FromPortId: execOut
+    ToNodeId: set_idle_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_idle_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_idle_inactive_scale
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: compare_alert
+    FromPortId: result
+    ToNodeId: branch_alert
+    ToPortId: condition
+  - FromNodeId: compare_idle
+    FromPortId: result
+    ToNodeId: branch_idle
+    ToPortId: condition
+  - FromNodeId: get_priority
+    FromPortId: value
+    ToNodeId: compare_alert
+    ToPortId: left
+  - FromNodeId: get_priority
+    FromPortId: value
+    ToNodeId: compare_idle
+    ToPortId: left
+  - FromNodeId: get_priority
+    FromPortId: value
+    ToNodeId: set_status_label
+    ToPortId: value
+  eventEntries:
+  - EventName: AlertSelected
+    NodeId: event_alert_selected
+  - EventName: IdleSelected
+    NodeId: event_idle_selected
+  - EventName: OnStart
+    NodeId: event_start
+  - EventName: OnTick
+    NodeId: event_tick

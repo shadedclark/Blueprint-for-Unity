@@ -77,6 +77,9 @@ def build_payload(project_root: Path) -> dict[str, Any]:
             "blueprintAgent": "Agents/BlueprintFeatureAgent.md",
             "uiAgent": "Agents/UIImplementationAgent.md",
             "prefabAnnotationAgent": "Agents/PrefabAnnotationBlueprintAgent.md",
+            "aiBehaviorTreeAgent": "Agents/AIBehaviorTreeAgent.md",
+            "behaviorTreeGuide": "BehaviorTree/GUIDE.md",
+            "behaviorTreeDesign": "BehaviorTree/BehaviorTreeDesign.md",
         }.items():
             path = package_root / relative
             if path.is_file():

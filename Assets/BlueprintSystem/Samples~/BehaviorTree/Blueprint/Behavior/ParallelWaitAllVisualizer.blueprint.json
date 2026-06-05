@@ -1,0 +1,673 @@
+{
+  "schemaVersion": "0.1",
+  "name": "ParallelWaitAllVisualizer",
+  "category": "BehaviorTree/Demo",
+  "description": "Visualizes the parallel wait-all composite demo from Behavior Tree-triggered Blueprint events.",
+  "variables": [
+    {
+      "id": "var_b01632b8bc874e81ae96ead890797e8c",
+      "name": "left_done",
+      "type": "bool",
+      "defaultValue": false,
+      "scope": "runtime",
+      "exposed": true,
+      "description": "True after the left branch reports completion."
+    },
+    {
+      "id": "var_a66c221847344cc68c8952aac5636707",
+      "name": "right_done",
+      "type": "bool",
+      "defaultValue": false,
+      "scope": "runtime",
+      "exposed": true,
+      "description": "True after the right branch reports completion."
+    }
+  ],
+  "bindings": [
+    {
+      "name": "left_renderer",
+      "type": "Renderer",
+      "required": true
+    },
+    {
+      "name": "left_lift",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "right_renderer",
+      "type": "Renderer",
+      "required": true
+    },
+    {
+      "name": "right_lift",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "gate",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "status_label",
+      "type": "TMP_Text",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_left_done",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        -360
+      ],
+      "properties": {
+        "eventName": "LeftDone"
+      }
+    },
+    {
+      "id": "set_left_done",
+      "typeId": "Variable.Set",
+      "position": [
+        240,
+        -360
+      ],
+      "properties": {
+        "name": "left_done",
+        "value": true
+      }
+    },
+    {
+      "id": "event_right_done",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        -220
+      ],
+      "properties": {
+        "eventName": "RightDone"
+      }
+    },
+    {
+      "id": "set_right_done",
+      "typeId": "Variable.Set",
+      "position": [
+        240,
+        -220
+      ],
+      "properties": {
+        "name": "right_done",
+        "value": true
+      }
+    },
+    {
+      "id": "event_tick",
+      "typeId": "Game.Event.OnTick",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "sequence_tick",
+      "typeId": "Flow.Sequence",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_delta_time",
+      "typeId": "Game.GetDeltaTime",
+      "position": [
+        220,
+        -120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "lift_lerp_t",
+      "typeId": "Math.Multiply",
+      "position": [
+        440,
+        -120
+      ],
+      "properties": {
+        "b": 8
+      }
+    },
+    {
+      "id": "gate_lerp_t",
+      "typeId": "Math.Multiply",
+      "position": [
+        440,
+        20
+      ],
+      "properties": {
+        "b": 6
+      }
+    },
+    {
+      "id": "get_left_done",
+      "typeId": "Variable.Get",
+      "position": [
+        220,
+        220
+      ],
+      "properties": {
+        "name": "left_done"
+      }
+    },
+    {
+      "id": "branch_left",
+      "typeId": "Flow.Branch",
+      "position": [
+        440,
+        220
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_left_position",
+      "typeId": "Game.GetTransformLocalPosition",
+      "position": [
+        660,
+        80
+      ],
+      "properties": {
+        "target": "left_lift"
+      }
+    },
+    {
+      "id": "left_position_active",
+      "typeId": "Vector.Lerp",
+      "position": [
+        900,
+        80
+      ],
+      "properties": {
+        "b": [
+          -0.8,
+          0.95,
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "left_position_inactive",
+      "typeId": "Vector.Lerp",
+      "position": [
+        900,
+        220
+      ],
+      "properties": {
+        "b": [
+          -0.8,
+          0.15,
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "set_left_active_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        660,
+        320
+      ],
+      "properties": {
+        "target": "left_renderer",
+        "value": [
+          0.2,
+          0.85,
+          0.45,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_left_active_position",
+      "typeId": "Game.SetTransformLocalPosition",
+      "position": [
+        900,
+        320
+      ],
+      "properties": {
+        "target": "left_lift"
+      }
+    },
+    {
+      "id": "set_left_inactive_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        660,
+        460
+      ],
+      "properties": {
+        "target": "left_renderer",
+        "value": [
+          0.28,
+          0.3,
+          0.34,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_left_inactive_position",
+      "typeId": "Game.SetTransformLocalPosition",
+      "position": [
+        900,
+        460
+      ],
+      "properties": {
+        "target": "left_lift"
+      }
+    },
+    {
+      "id": "get_right_done",
+      "typeId": "Variable.Get",
+      "position": [
+        220,
+        680
+      ],
+      "properties": {
+        "name": "right_done"
+      }
+    },
+    {
+      "id": "branch_right",
+      "typeId": "Flow.Branch",
+      "position": [
+        440,
+        680
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_right_position",
+      "typeId": "Game.GetTransformLocalPosition",
+      "position": [
+        660,
+        540
+      ],
+      "properties": {
+        "target": "right_lift"
+      }
+    },
+    {
+      "id": "right_position_active",
+      "typeId": "Vector.Lerp",
+      "position": [
+        900,
+        540
+      ],
+      "properties": {
+        "b": [
+          0.8,
+          0.95,
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "right_position_inactive",
+      "typeId": "Vector.Lerp",
+      "position": [
+        900,
+        680
+      ],
+      "properties": {
+        "b": [
+          0.8,
+          0.15,
+          0.25
+        ]
+      }
+    },
+    {
+      "id": "set_right_active_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        660,
+        780
+      ],
+      "properties": {
+        "target": "right_renderer",
+        "value": [
+          0.2,
+          0.85,
+          0.45,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_right_active_position",
+      "typeId": "Game.SetTransformLocalPosition",
+      "position": [
+        900,
+        780
+      ],
+      "properties": {
+        "target": "right_lift"
+      }
+    },
+    {
+      "id": "set_right_inactive_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        660,
+        920
+      ],
+      "properties": {
+        "target": "right_renderer",
+        "value": [
+          0.28,
+          0.3,
+          0.34,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_right_inactive_position",
+      "typeId": "Game.SetTransformLocalPosition",
+      "position": [
+        900,
+        920
+      ],
+      "properties": {
+        "target": "right_lift"
+      }
+    },
+    {
+      "id": "both_done",
+      "typeId": "Logic.And",
+      "position": [
+        440,
+        1120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "branch_gate",
+      "typeId": "Flow.Branch",
+      "position": [
+        660,
+        1120
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_gate_position",
+      "typeId": "Game.GetTransformLocalPosition",
+      "position": [
+        660,
+        980
+      ],
+      "properties": {
+        "target": "gate"
+      }
+    },
+    {
+      "id": "gate_open_position",
+      "typeId": "Vector.Lerp",
+      "position": [
+        900,
+        980
+      ],
+      "properties": {
+        "b": [
+          0,
+          2.25,
+          1.3
+        ]
+      }
+    },
+    {
+      "id": "gate_closed_position",
+      "typeId": "Vector.Lerp",
+      "position": [
+        900,
+        1120
+      ],
+      "properties": {
+        "b": [
+          0,
+          0.65,
+          1.3
+        ]
+      }
+    },
+    {
+      "id": "set_gate_open_position",
+      "typeId": "Game.SetTransformLocalPosition",
+      "position": [
+        1140,
+        1040
+      ],
+      "properties": {
+        "target": "gate"
+      }
+    },
+    {
+      "id": "set_status_complete",
+      "typeId": "UI.SetText",
+      "position": [
+        1380,
+        1040
+      ],
+      "properties": {
+        "target": "status_label",
+        "value": "All Complete"
+      }
+    },
+    {
+      "id": "set_gate_closed_position",
+      "typeId": "Game.SetTransformLocalPosition",
+      "position": [
+        1140,
+        1200
+      ],
+      "properties": {
+        "target": "gate"
+      }
+    },
+    {
+      "id": "set_status_running",
+      "typeId": "UI.SetText",
+      "position": [
+        1380,
+        1200
+      ],
+      "properties": {
+        "target": "status_label",
+        "value": "Running"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_left_done.execOut",
+      "to": "set_left_done.execIn"
+    },
+    {
+      "from": "event_right_done.execOut",
+      "to": "set_right_done.execIn"
+    },
+    {
+      "from": "event_tick.execOut",
+      "to": "sequence_tick.execIn"
+    },
+    {
+      "from": "sequence_tick.then0",
+      "to": "branch_left.execIn"
+    },
+    {
+      "from": "sequence_tick.then1",
+      "to": "branch_right.execIn"
+    },
+    {
+      "from": "sequence_tick.then2",
+      "to": "branch_gate.execIn"
+    },
+    {
+      "from": "get_delta_time.value",
+      "to": "lift_lerp_t.a"
+    },
+    {
+      "from": "get_delta_time.value",
+      "to": "gate_lerp_t.a"
+    },
+    {
+      "from": "get_left_done.value",
+      "to": "branch_left.condition"
+    },
+    {
+      "from": "branch_left.true",
+      "to": "set_left_active_color.execIn"
+    },
+    {
+      "from": "set_left_active_color.execOut",
+      "to": "set_left_active_position.execIn"
+    },
+    {
+      "from": "branch_left.false",
+      "to": "set_left_inactive_color.execIn"
+    },
+    {
+      "from": "set_left_inactive_color.execOut",
+      "to": "set_left_inactive_position.execIn"
+    },
+    {
+      "from": "get_left_position.value",
+      "to": "left_position_active.a"
+    },
+    {
+      "from": "get_left_position.value",
+      "to": "left_position_inactive.a"
+    },
+    {
+      "from": "lift_lerp_t.result",
+      "to": "left_position_active.t"
+    },
+    {
+      "from": "lift_lerp_t.result",
+      "to": "left_position_inactive.t"
+    },
+    {
+      "from": "left_position_active.result",
+      "to": "set_left_active_position.value"
+    },
+    {
+      "from": "left_position_inactive.result",
+      "to": "set_left_inactive_position.value"
+    },
+    {
+      "from": "get_right_done.value",
+      "to": "branch_right.condition"
+    },
+    {
+      "from": "branch_right.true",
+      "to": "set_right_active_color.execIn"
+    },
+    {
+      "from": "set_right_active_color.execOut",
+      "to": "set_right_active_position.execIn"
+    },
+    {
+      "from": "branch_right.false",
+      "to": "set_right_inactive_color.execIn"
+    },
+    {
+      "from": "set_right_inactive_color.execOut",
+      "to": "set_right_inactive_position.execIn"
+    },
+    {
+      "from": "get_right_position.value",
+      "to": "right_position_active.a"
+    },
+    {
+      "from": "get_right_position.value",
+      "to": "right_position_inactive.a"
+    },
+    {
+      "from": "lift_lerp_t.result",
+      "to": "right_position_active.t"
+    },
+    {
+      "from": "lift_lerp_t.result",
+      "to": "right_position_inactive.t"
+    },
+    {
+      "from": "right_position_active.result",
+      "to": "set_right_active_position.value"
+    },
+    {
+      "from": "right_position_inactive.result",
+      "to": "set_right_inactive_position.value"
+    },
+    {
+      "from": "get_left_done.value",
+      "to": "both_done.left"
+    },
+    {
+      "from": "get_right_done.value",
+      "to": "both_done.right"
+    },
+    {
+      "from": "both_done.result",
+      "to": "branch_gate.condition"
+    },
+    {
+      "from": "branch_gate.true",
+      "to": "set_gate_open_position.execIn"
+    },
+    {
+      "from": "set_gate_open_position.execOut",
+      "to": "set_status_complete.execIn"
+    },
+    {
+      "from": "branch_gate.false",
+      "to": "set_gate_closed_position.execIn"
+    },
+    {
+      "from": "set_gate_closed_position.execOut",
+      "to": "set_status_running.execIn"
+    },
+    {
+      "from": "get_gate_position.value",
+      "to": "gate_open_position.a"
+    },
+    {
+      "from": "get_gate_position.value",
+      "to": "gate_closed_position.a"
+    },
+    {
+      "from": "gate_lerp_t.result",
+      "to": "gate_open_position.t"
+    },
+    {
+      "from": "gate_lerp_t.result",
+      "to": "gate_closed_position.t"
+    },
+    {
+      "from": "gate_open_position.result",
+      "to": "set_gate_open_position.value"
+    },
+    {
+      "from": "gate_closed_position.result",
+      "to": "set_gate_closed_position.value"
+    }
+  ]
+}

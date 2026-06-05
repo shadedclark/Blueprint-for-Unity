@@ -1,0 +1,188 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7032c2202864a4ad697f8020c888f449, type: 3}
+  m_Name: RandomSelectorChoiceExample.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BehaviorTreeCompiledAsset
+  schemaVersion: 0.1
+  behaviorTreeName: RandomSelectorChoiceExample
+  sourceGuid: 2d59df36dcf554f4dba3f3c464c29510
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/AI/Behavior/RandomSelectorChoiceExample.btree.json
+  sourceHash: e3883cb7f02ed52eb120a4f05958fdc734b16eb190328e2c983493f941ae2cae
+  rootNodeId: root
+  blackboard:
+  - Name: AllowRareBranch
+    Type: bool
+    DefaultValueJson: false
+    Exposed: 1
+    Persistent: 0
+    Description: Set true to allow the rare random branch.
+  - Name: RandomChoice
+    Type: string
+    DefaultValueJson: '"None"'
+    Exposed: 1
+    Persistent: 0
+    Description: Records which random branch succeeded.
+  nodes:
+  - Id: root
+    TypeId: BT.Root
+    Children:
+    - random_selector_choose_action
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: random_selector_choose_action
+    TypeId: BT.RandomSelector
+    Children:
+    - rare_sequence
+    - scout_sequence
+    - flank_sequence
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: rare_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_choice_rare
+    - trigger_choice_rare
+    - log_rare_choice
+    Decorators:
+    - condition_allow_rare_branch
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_choice_rare
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"RandomChoice"'
+    - Id: value
+      JsonValue: '"Rare"'
+  - Id: log_rare_choice
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"RandomSelector picked the rare branch."'
+  - Id: scout_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_choice_scout
+    - trigger_choice_scout
+    - log_scout_choice
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_choice_scout
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"RandomChoice"'
+    - Id: value
+      JsonValue: '"Scout"'
+  - Id: log_scout_choice
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"RandomSelector picked the scout branch."'
+  - Id: flank_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_choice_flank
+    - trigger_choice_flank
+    - log_flank_choice
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_choice_flank
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"RandomChoice"'
+    - Id: value
+      JsonValue: '"Flank"'
+  - Id: log_flank_choice
+    TypeId: BT.Log
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: message
+      JsonValue: '"RandomSelector picked the flank branch."'
+  - Id: trigger_choice_rare
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"RareSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  - Id: trigger_choice_scout
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"ScoutSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  - Id: trigger_choice_flank
+    TypeId: BT.TriggerBlueprintEvent
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: eventName
+      JsonValue: '"FlankSelected"'
+    - Id: successOnMissing
+      JsonValue: true
+  decorators:
+  - Id: condition_allow_rare_branch
+    TypeId: BT.CompareBool
+    Inputs:
+    - InputId: value
+      BlackboardKey: AllowRareBranch
+    Properties:
+    - Id: expected
+      JsonValue: true
+    - Id: operator
+      JsonValue: '"Equals"'
+  services: []

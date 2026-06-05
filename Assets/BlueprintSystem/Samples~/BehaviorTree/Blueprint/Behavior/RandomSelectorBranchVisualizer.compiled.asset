@@ -1,0 +1,386 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b80d7da70a6b44c6b84a2b4b8b45bb31, type: 3}
+  m_Name: RandomSelectorBranchVisualizer.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BlueprintCompiledAsset
+  schemaVersion: 0.1
+  blueprintName: RandomSelectorBranchVisualizer
+  sourceGuid: 2c552b47022624a858c66c9de31fff16
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/Blueprint/Behavior/RandomSelectorBranchVisualizer.blueprint.json
+  sourceHash: dba35422c00b65e5365d4688404e3c94c6b124010f5732ebd6d41fdb036bdf45
+  manifestHash: 5092537503f769abdb6f6171527e2641c36ed0e7ce97c19d80d3b43ce150e6f3
+  variables:
+  - Id: var_96cddf20e3244af086848dc6a25db626
+    Name: random_choice
+    Type: string
+    DefaultValueJson: '"None"'
+    Scope: runtime
+    Exposed: 1
+    Persistent: 0
+    Description: Latest random selector branch reported by the behavior tree.
+  bindings:
+  - Name: scout_renderer
+    Type: Renderer
+    Required: 1
+  - Name: scout_marker
+    Type: Transform
+    Required: 1
+  - Name: flank_renderer
+    Type: Renderer
+    Required: 1
+  - Name: flank_marker
+    Type: Transform
+    Required: 1
+  - Name: rare_renderer
+    Type: Renderer
+    Required: 1
+  - Name: rare_marker
+    Type: Transform
+    Required: 1
+  - Name: status_label
+    Type: TMP_Text
+    Required: 1
+  components: []
+  nodes:
+  - Id: event_scout_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"ScoutSelected"'
+  - Id: set_choice_scout
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"random_choice"'
+    - Id: value
+      JsonValue: '"Scout"'
+  - Id: event_flank_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"FlankSelected"'
+  - Id: set_choice_flank
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"random_choice"'
+    - Id: value
+      JsonValue: '"Flank"'
+  - Id: event_rare_selected
+    TypeId: Game.Event.Custom
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: eventName
+      JsonValue: '"RareSelected"'
+  - Id: set_choice_rare
+    TypeId: Variable.Set
+    ExecutorId: Variable.Set
+    Properties:
+    - Id: name
+      JsonValue: '"random_choice"'
+    - Id: value
+      JsonValue: '"Rare"'
+  - Id: event_tick
+    TypeId: Game.Event.OnTick
+    ExecutorId: Flow.Event
+    Properties:
+    - Id: phase
+      JsonValue: '"Update"'
+  - Id: get_choice
+    TypeId: Variable.Get
+    ExecutorId: Variable.Get
+    Properties:
+    - Id: name
+      JsonValue: '"random_choice"'
+  - Id: sequence_tick
+    TypeId: Flow.Sequence
+    ExecutorId: Flow.Sequence
+    Properties: []
+  - Id: compare_scout
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"Scout"'
+  - Id: branch_scout
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_scout_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"scout_renderer"'
+    - Id: value
+      JsonValue: '[0.2,0.85,0.45,1]'
+  - Id: set_scout_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"scout_marker"'
+    - Id: value
+      JsonValue: '[0.95,0.18,1.55]'
+  - Id: set_scout_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"scout_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_scout_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"scout_marker"'
+    - Id: value
+      JsonValue: '[0.75,0.12,1.3]'
+  - Id: compare_flank
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"Flank"'
+  - Id: branch_flank
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_flank_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"flank_renderer"'
+    - Id: value
+      JsonValue: '[0.25,0.65,1,1]'
+  - Id: set_flank_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"flank_marker"'
+    - Id: value
+      JsonValue: '[0.95,0.18,1.95]'
+  - Id: set_flank_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"flank_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_flank_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"flank_marker"'
+    - Id: value
+      JsonValue: '[0.75,0.12,1.7]'
+  - Id: compare_rare
+    TypeId: Variable.Compare
+    ExecutorId: Variable.Compare
+    Properties:
+    - Id: comparison
+      JsonValue: '"Equals"'
+    - Id: right
+      JsonValue: '"Rare"'
+  - Id: branch_rare
+    TypeId: Flow.Branch
+    ExecutorId: Flow.Branch
+    Properties:
+    - Id: condition
+      JsonValue: false
+  - Id: set_rare_active_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"rare_renderer"'
+    - Id: value
+      JsonValue: '[0.95,0.52,1,1]'
+  - Id: set_rare_active_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"rare_marker"'
+    - Id: value
+      JsonValue: '[0.95,0.18,1.55]'
+  - Id: set_rare_inactive_color
+    TypeId: Game.SetRendererMaterialColor
+    ExecutorId: Game.SetRendererMaterialColor
+    Properties:
+    - Id: propertyName
+      JsonValue: '"_BaseColor"'
+    - Id: target
+      JsonValue: '"rare_renderer"'
+    - Id: value
+      JsonValue: '[0.28,0.3,0.34,1]'
+  - Id: set_rare_inactive_scale
+    TypeId: Game.SetTransformLocalScale
+    ExecutorId: Game.SetTransformLocalScale
+    Properties:
+    - Id: target
+      JsonValue: '"rare_marker"'
+    - Id: value
+      JsonValue: '[0.75,0.12,1.3]'
+  - Id: set_status_label
+    TypeId: UI.SetText
+    ExecutorId: UI.SetText
+    Properties:
+    - Id: target
+      JsonValue: '"status_label"'
+  execEdges:
+  - FromNodeId: branch_flank
+    FromPortId: false
+    ToNodeId: set_flank_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_flank
+    FromPortId: true
+    ToNodeId: set_flank_active_color
+    ToPortId: execIn
+  - FromNodeId: branch_rare
+    FromPortId: false
+    ToNodeId: set_rare_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_rare
+    FromPortId: true
+    ToNodeId: set_rare_active_color
+    ToPortId: execIn
+  - FromNodeId: branch_scout
+    FromPortId: false
+    ToNodeId: set_scout_inactive_color
+    ToPortId: execIn
+  - FromNodeId: branch_scout
+    FromPortId: true
+    ToNodeId: set_scout_active_color
+    ToPortId: execIn
+  - FromNodeId: event_flank_selected
+    FromPortId: execOut
+    ToNodeId: set_choice_flank
+    ToPortId: execIn
+  - FromNodeId: event_rare_selected
+    FromPortId: execOut
+    ToNodeId: set_choice_rare
+    ToPortId: execIn
+  - FromNodeId: event_scout_selected
+    FromPortId: execOut
+    ToNodeId: set_choice_scout
+    ToPortId: execIn
+  - FromNodeId: event_tick
+    FromPortId: execOut
+    ToNodeId: sequence_tick
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then0
+    ToNodeId: branch_scout
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then1
+    ToNodeId: branch_flank
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then2
+    ToNodeId: branch_rare
+    ToPortId: execIn
+  - FromNodeId: sequence_tick
+    FromPortId: then3
+    ToNodeId: set_status_label
+    ToPortId: execIn
+  - FromNodeId: set_flank_active_color
+    FromPortId: execOut
+    ToNodeId: set_flank_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_flank_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_flank_inactive_scale
+    ToPortId: execIn
+  - FromNodeId: set_rare_active_color
+    FromPortId: execOut
+    ToNodeId: set_rare_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_rare_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_rare_inactive_scale
+    ToPortId: execIn
+  - FromNodeId: set_scout_active_color
+    FromPortId: execOut
+    ToNodeId: set_scout_active_scale
+    ToPortId: execIn
+  - FromNodeId: set_scout_inactive_color
+    FromPortId: execOut
+    ToNodeId: set_scout_inactive_scale
+    ToPortId: execIn
+  valueEdges:
+  - FromNodeId: compare_flank
+    FromPortId: result
+    ToNodeId: branch_flank
+    ToPortId: condition
+  - FromNodeId: compare_rare
+    FromPortId: result
+    ToNodeId: branch_rare
+    ToPortId: condition
+  - FromNodeId: compare_scout
+    FromPortId: result
+    ToNodeId: branch_scout
+    ToPortId: condition
+  - FromNodeId: get_choice
+    FromPortId: value
+    ToNodeId: compare_flank
+    ToPortId: left
+  - FromNodeId: get_choice
+    FromPortId: value
+    ToNodeId: compare_rare
+    ToPortId: left
+  - FromNodeId: get_choice
+    FromPortId: value
+    ToNodeId: compare_scout
+    ToPortId: left
+  - FromNodeId: get_choice
+    FromPortId: value
+    ToNodeId: set_status_label
+    ToPortId: value
+  eventEntries:
+  - EventName: FlankSelected
+    NodeId: event_flank_selected
+  - EventName: OnTick
+    NodeId: event_tick
+  - EventName: RareSelected
+    NodeId: event_rare_selected
+  - EventName: ScoutSelected
+    NodeId: event_scout_selected

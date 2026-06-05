@@ -13,7 +13,7 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<Button>",
+      "type": "Binding<Button>",
       "required": true,
       "source": "property"
     },
@@ -53,7 +53,7 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<Button>",
+      "type": "Binding<Button>",
       "required": true
     },
     {

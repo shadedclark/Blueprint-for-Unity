@@ -13,7 +13,7 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<CanvasGroup>",
+      "type": "Binding<CanvasGroup>",
       "required": true,
       "source": "property"
     },
@@ -34,7 +34,7 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<CanvasGroup>",
+      "type": "Binding<CanvasGroup>",
       "required": true
     },
     {

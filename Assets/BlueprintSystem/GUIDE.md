@@ -31,7 +31,7 @@ Value input resolution order:
 connected value edge -> compiled node property -> null
 ```
 
-`UIBinding<T>` values are stored in JSON as string binding names. At runtime, `UIBlueprintBinder` resolves the binding name to a Unity object and can also call `GetComponent<T>()` when the binding target is a `GameObject` or `Component`.
+`Binding<T>` values are stored in JSON as string binding names. At runtime, `BlueprintRunner` resolves the binding name to a Unity object and can also call `GetComponent<T>()` when the binding target is a `GameObject` or `Component`. `UIBlueprintBinder` inherits this resolver and only adds UI open/close lifecycle behavior.
 
 ## Current Node Summary
 
@@ -54,6 +54,17 @@ connected value edge -> compiled node property -> null
 | `Blueprint.TriggerEvent` | Trigger Blueprint Event | Blueprint | `Blueprint.TriggerEvent` | `BlueprintTriggerEventExecutor` | Calls `TriggerEvent` on a Blueprint instance resolved by asset path or `BlueprintRef`. |
 | `Blueprint.GetVariable` | Get Blueprint Variable | Blueprint | `Blueprint.GetVariable` | `BlueprintGetVariableExecutor` | Reads an exposed variable from a Blueprint instance resolved by asset path or `BlueprintRef`. |
 | `Blueprint.SetVariable` | Set Blueprint Variable | Blueprint | `Blueprint.SetVariable` | `BlueprintSetVariableExecutor` | Writes an exposed variable on a Blueprint instance resolved by asset path or `BlueprintRef`. |
+| `BehaviorTree.GetBlackboardBool` | Get Blackboard Bool | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardBool` | `BehaviorTreeGetBlackboardBoolExecutor` | Reads a bool value from a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.GetBlackboardInt` | Get Blackboard Int | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardInt` | `BehaviorTreeGetBlackboardIntExecutor` | Reads an int value from a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.GetBlackboardFloat` | Get Blackboard Float | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardFloat` | `BehaviorTreeGetBlackboardFloatExecutor` | Reads a float value from a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.GetBlackboardString` | Get Blackboard String | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardString` | `BehaviorTreeGetBlackboardStringExecutor` | Reads a string value from a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.GetBlackboardVector3` | Get Blackboard Vector3 | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardVector3` | `BehaviorTreeGetBlackboardVector3Executor` | Reads a `Vector3` value from a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.SetBlackboardBool` | Set Blackboard Bool | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardBool` | `BehaviorTreeSetBlackboardBoolExecutor` | Writes a bool value to a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.SetBlackboardInt` | Set Blackboard Int | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardInt` | `BehaviorTreeSetBlackboardIntExecutor` | Writes an int value to a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.SetBlackboardFloat` | Set Blackboard Float | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardFloat` | `BehaviorTreeSetBlackboardFloatExecutor` | Writes a float value to a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.SetBlackboardString` | Set Blackboard String | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardString` | `BehaviorTreeSetBlackboardStringExecutor` | Writes a string value to a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.SetBlackboardVector3` | Set Blackboard Vector3 | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardVector3` | `BehaviorTreeSetBlackboardVector3Executor` | Writes a `Vector3` value to a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.ClearBlackboard` | Clear Blackboard | BehaviorTree/Blackboard | `BehaviorTree.ClearBlackboard` | `BehaviorTreeClearRunnerBlackboardExecutor` | Clears one key on a bound `BehaviorTreeRunner` Blackboard. |
 | `Game.IsColliding` | Is Colliding | Game/Physics | `Game.IsColliding` | `GameIsCollidingExecutor` | Returns true when two bound GameObjects have overlapping colliders. |
 | `Game.SetTransformPosition` | Set Transform Position | Game/Transform | `Game.SetTransformPosition` | `GameSetTransformPositionExecutor` | Sets world `Transform.position`. |
 | `Game.SetTransformEulerAngles` | Set Transform Euler Angles | Game/Transform | `Game.SetTransformEulerAngles` | `GameSetTransformEulerAnglesExecutor` | Sets world `Transform.eulerAngles`. |
@@ -117,7 +128,7 @@ connected value edge -> compiled node property -> null
 
 These nodes mirror the common Unreal Blueprint access pattern: the parent declares components as separate blueprint assets, the runner creates runtime component instances, and graphs pass runtime references when they need to talk across that instance tree.
 
-`Blueprint` target values store `.blueprint.json` asset paths as strings. At runtime, `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable` resolve that path only inside the current `BlueprintRunner` instance tree. The resolver starts from `context.Instance`, walks up to the root owner runner, then recursively checks the root compiled asset source path and each declared component's blueprint path. It does not search tags, UI bindings, prefabs, or other scene runners.
+`Blueprint` target values store `.blueprint.json` asset paths as strings. At runtime, `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable` resolve that path only inside the current `BlueprintRunner` instance tree. The resolver starts from `context.Instance`, walks up to the root owner runner, then recursively checks the root compiled asset source path and each declared component's blueprint path. It does not search tags, bindings, prefabs, or other scene runners.
 
 `BlueprintRef` is a runtime-only handle around `IBlueprintInstance`. `Blueprint.GetOwner` returns the owner of the current component, supplied `BlueprintRef`, or a scene `BlueprintRunner` assigned in the runner's `ownerRunner` field. `Blueprint.GetComponent` takes a component name and searches from the current instance or supplied `BlueprintRef`, then walks owner instances outward so sibling components can be found through their shared owner. This lets interactable UI GameObjects run their own `UIBlueprintBinder` while sending intent to a shared panel runner. `BlueprintRef` values can connect into `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable`; they are not valid `.blueprint.json` variable defaults or blackboard variable types.
 
@@ -145,9 +156,37 @@ Avoid duplicates:
 
 ```text
 Use Blueprint component declarations, `BlueprintRef` nodes, and `Blueprint` asset variables for owner-owned behavior modules before adding one-off direct-object access nodes.
-Use UI bindings only for Unity object/component access nodes, not for cross-blueprint target resolution.
+Use bindings only for Unity object/component access nodes, not for cross-blueprint target resolution.
 Use `Blueprint.TriggerEvent` before adding specialized cross-blueprint event nodes.
 Use exposed variables for small public state only; prefer custom events when another blueprint should own the mutation.
+```
+
+## Behavior Tree Blackboard Nodes
+
+These nodes let a normal Blueprint graph read or mutate the Blackboard owned by a scene `BehaviorTreeRunner`. They are ordinary BlueprintSystem nodes, not Behavior Tree nodes, so they live under `Assets/BlueprintSystem/Specs/Nodes` and run through the normal `BlueprintVM`.
+
+Targets use `Binding<BehaviorTreeRunner>` and store a binding name in JSON. `BlueprintRunner.Resolve<T>()` can resolve the binding directly or get `BehaviorTreeRunner` from a bound `GameObject` or `Component`, so `.blueprint.json` files still do not serialize Unity object references.
+
+| Type ID | Purpose | Ports and notes |
+| --- | --- | --- |
+| `BehaviorTree.GetBlackboardBool` | Reads a bool Blackboard key. | Inputs `target: Binding<BehaviorTreeRunner>`, `key: string`; outputs `value: bool`, `success: bool`. Missing targets, empty keys, missing values, and cleared values return `success: false`; `value` returns `false`. |
+| `BehaviorTree.GetBlackboardInt` | Reads an int Blackboard key. | Same inputs; outputs `value: int`, `success: bool`; default value is `0`. |
+| `BehaviorTree.GetBlackboardFloat` | Reads a float Blackboard key. | Same inputs; outputs `value: float`, `success: bool`; default value is `0`. |
+| `BehaviorTree.GetBlackboardString` | Reads a string Blackboard key. | Same inputs; outputs `value: string`, `success: bool`; default value is an empty string. |
+| `BehaviorTree.GetBlackboardVector3` | Reads a `Vector3` Blackboard key. | Same inputs; outputs `value: Vector3`, `success: bool`; default value is `[0,0,0]`. |
+| `BehaviorTree.SetBlackboardBool` | Writes a bool Blackboard key. | Exec input `execIn`; inputs `target`, `key`, `value: bool`; output `execOut`. Missing target or empty key returns an execution error. |
+| `BehaviorTree.SetBlackboardInt` | Writes an int Blackboard key. | Same shape with `value: int`. |
+| `BehaviorTree.SetBlackboardFloat` | Writes a float Blackboard key. | Same shape with `value: float`. |
+| `BehaviorTree.SetBlackboardString` | Writes a string Blackboard key. | Same shape with `value: string`. |
+| `BehaviorTree.SetBlackboardVector3` | Writes a `Vector3` Blackboard key. | Same shape with `value: Vector3`. |
+| `BehaviorTree.ClearBlackboard` | Clears one Blackboard key by setting its runtime value to null. | Exec input `execIn`; inputs `target`, `key`; output `execOut`. Missing target or empty key returns an execution error. |
+
+Avoid duplicates:
+
+```text
+Use Behavior Tree-native `BT.SetBlackboard`, decorators, and services when the logic belongs inside the tree.
+Use these Blueprint nodes when scene UI, demo visualization, or a normal Blueprint needs to observe or poke a running tree.
+Keep GameObject and Transform Blackboard writes in C# or Behavior Tree nodes until a binding-based object write node is explicitly needed.
 ```
 
 ## Blueprint Asset Variables
@@ -171,7 +210,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | Array construction | `Array.Make`, `Array.Append`, `Array.Clear`, `Array.Resize`, `Array.Shuffle` | Create or transform array values. These nodes return a new array value instead of mutating a variable directly. |
 | Array mutation-style values | `Array.Add`, `Array.AddUnique`, `Array.Insert`, `Array.RemoveIndex`, `Array.RemoveItem`, `Array.SetElement`, `Array.RandomItem`, `Array.LastIndex` | Return changed array copies plus useful metadata such as index, removed, added, success, or validity flags. Connect the returned `array` output into `Variable.Set.value` when persistent variable changes are needed. |
 | Tick and time | `Game.Event.OnTick`, `Game.GetDeltaTime`, `Game.GetFixedDeltaTime`, `Game.GetTimeSeconds`, `Game.GetUnscaledTime`, `Game.GetTimeScale`, `Game.SetTimeScale` | Frame tick entry and common Unity time values/actions. `Game.Event.OnTick.phase` chooses `Update`, `FixedUpdate`, or `LateUpdate`; Runner only fires tick events that exist, so blueprints without Tick do not log every frame. |
-| Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `UIBinding<Transform>` strings resolved at runtime. |
+| Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `Binding<Transform>` strings resolved at runtime. |
 | Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
 
 Avoid duplicates:
@@ -211,24 +250,24 @@ Getter nodes:
 
 | Type IDs | Output |
 | --- | --- |
-| `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp` | Input `target: UIBinding<Transform>`; output `value: Vector3`. Missing bindings log an error and return a safe default. |
+| `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp` | Input `target: Binding<Transform>`; output `value: Vector3`. Missing bindings log an error and return a safe default. |
 
 Action nodes:
 
 | Type ID | Purpose | Ports and notes |
 | --- | --- | --- |
-| `Game.SetTransformLocalPosition` | Sets `Transform.localPosition`. | `target: UIBinding<Transform>`, `value: Vector3`, `execOut`. |
-| `Game.SetTransformLocalEulerAngles` | Sets `Transform.localEulerAngles`. | `target: UIBinding<Transform>`, `value: Vector3`, `execOut`. |
+| `Game.SetTransformLocalPosition` | Sets `Transform.localPosition`. | `target: Binding<Transform>`, `value: Vector3`, `execOut`. |
+| `Game.SetTransformLocalEulerAngles` | Sets `Transform.localEulerAngles`. | `target: Binding<Transform>`, `value: Vector3`, `execOut`. |
 | `Game.TranslateTransform` | Calls `Transform.Translate`. | `translation: Vector3`, `relativeToSelf: bool`; true uses `Space.Self`, false uses `Space.World`. |
 | `Game.RotateTransform` | Calls `Transform.Rotate`. | `eulerAngles: Vector3`, `relativeToSelf: bool`; true uses `Space.Self`, false uses `Space.World`. |
-| `Game.LookAtTransform` | Calls `Transform.LookAt`. | Uses optional `lookTarget: UIBinding<Transform>` when present, otherwise `targetPosition: Vector3`; `worldUp` defaults to `[0,1,0]`. |
-| `Game.SetTransformParent` | Calls `Transform.SetParent(parent, worldPositionStays)`. | `parent: UIBinding<Transform>` is required. |
+| `Game.LookAtTransform` | Calls `Transform.LookAt`. | Uses optional `lookTarget: Binding<Transform>` when present, otherwise `targetPosition: Vector3`; `worldUp` defaults to `[0,1,0]`. |
+| `Game.SetTransformParent` | Calls `Transform.SetParent(parent, worldPositionStays)`. | `parent: Binding<Transform>` is required. |
 | `Game.DetachTransform` | Clears the parent via `SetParent(null, worldPositionStays)`. | Keeps world position by default. |
 
 Avoid duplicates:
 
 ```text
-Use `UIBinding<Transform>` strings for targets and parents.
+Use `Binding<Transform>` strings for targets and parents.
 Do not store direct Transform, GameObject, or Component references in `.blueprint.json`.
 ```
 
@@ -725,9 +764,9 @@ Ports and parameters:
 
 | Node | Target | Value | Default |
 | --- | --- | --- | --- |
-| `Game.SetTransformPosition` | `target: UIBinding<Transform>` | `value: Vector3` | `[0, 0, 0]` |
-| `Game.SetTransformEulerAngles` | `target: UIBinding<Transform>` | `value: Vector3` | `[0, 0, 0]` |
-| `Game.SetTransformLocalScale` | `target: UIBinding<Transform>` | `value: Vector3` | `[1, 1, 1]` |
+| `Game.SetTransformPosition` | `target: Binding<Transform>` | `value: Vector3` | `[0, 0, 0]` |
+| `Game.SetTransformEulerAngles` | `target: Binding<Transform>` | `value: Vector3` | `[0, 0, 0]` |
+| `Game.SetTransformLocalScale` | `target: Binding<Transform>` | `value: Vector3` | `[1, 1, 1]` |
 
 All three nodes have `execIn` and `execOut`. `target` is property-only; `value` is property-or-connection.
 
@@ -762,10 +801,10 @@ Ports and parameters:
 
 | Node | Target | Value/Force | Extra | Default |
 | --- | --- | --- | --- | --- |
-| `Game.SetRigidbodyLinearVelocity` | `UIBinding<Rigidbody>` | `value: Vector3` | none | `[0, 0, 0]` |
-| `Game.AddRigidbodyForce` | `UIBinding<Rigidbody>` | `force: Vector3` | `mode: ForceMode` | force `[0, 0, 0]`, mode `Force` |
-| `Game.SetColliderEnabled` | `UIBinding<Collider>` | `value: bool` | none | `true` |
-| `Game.SetColliderIsTrigger` | `UIBinding<Collider>` | `value: bool` | none | `true` |
+| `Game.SetRigidbodyLinearVelocity` | `Binding<Rigidbody>` | `value: Vector3` | none | `[0, 0, 0]` |
+| `Game.AddRigidbodyForce` | `Binding<Rigidbody>` | `force: Vector3` | `mode: ForceMode` | force `[0, 0, 0]`, mode `Force` |
+| `Game.SetColliderEnabled` | `Binding<Collider>` | `value: bool` | none | `true` |
+| `Game.SetColliderIsTrigger` | `Binding<Collider>` | `value: bool` | none | `true` |
 
 `Game.AddRigidbodyForce.mode` is a Graph Toolkit enum field and exports as one of `Force`, `Acceleration`, `Impulse`, or `VelocityChange`.
 
@@ -800,10 +839,10 @@ Ports and parameters:
 
 | Node | Target | Value/Force | Extra | Default |
 | --- | --- | --- | --- | --- |
-| `Game.SetRigidbody2DLinearVelocity` | `UIBinding<Rigidbody2D>` | `value: Vector2` | none | `[0, 0]` |
-| `Game.AddRigidbody2DForce` | `UIBinding<Rigidbody2D>` | `force: Vector2` | `mode: ForceMode2D` | force `[0, 0]`, mode `Force` |
-| `Game.SetCollider2DEnabled` | `UIBinding<Collider2D>` | `value: bool` | none | `true` |
-| `Game.SetCollider2DIsTrigger` | `UIBinding<Collider2D>` | `value: bool` | none | `true` |
+| `Game.SetRigidbody2DLinearVelocity` | `Binding<Rigidbody2D>` | `value: Vector2` | none | `[0, 0]` |
+| `Game.AddRigidbody2DForce` | `Binding<Rigidbody2D>` | `force: Vector2` | `mode: ForceMode2D` | force `[0, 0]`, mode `Force` |
+| `Game.SetCollider2DEnabled` | `Binding<Collider2D>` | `value: bool` | none | `true` |
+| `Game.SetCollider2DIsTrigger` | `Binding<Collider2D>` | `value: bool` | none | `true` |
 
 `Game.AddRigidbody2DForce.mode` is a Graph Toolkit enum field and exports as `Force` or `Impulse`.
 
@@ -837,9 +876,9 @@ Ports and parameters:
 
 | Node | Target | Value | Extra | Default |
 | --- | --- | --- | --- | --- |
-| `Game.SetRendererMaterial` | `UIBinding<Renderer>` | `value: UIBinding<Material>` | `materialIndex: int` | `0` |
-| `Game.SetRendererMaterialColor` | `UIBinding<Renderer>` | `value: Color` | `propertyName: string` | `_Color` |
-| `Game.SetRendererTexture` | `UIBinding<Renderer>` | `value: UIBinding<Texture>` | `propertyName: string` | `_MainTex` |
+| `Game.SetRendererMaterial` | `Binding<Renderer>` | `value: Binding<Material>` | `materialIndex: int` | `0` |
+| `Game.SetRendererMaterialColor` | `Binding<Renderer>` | `value: Color` | `propertyName: string` | `_Color` |
+| `Game.SetRendererTexture` | `Binding<Renderer>` | `value: Binding<Texture>` | `propertyName: string` | `_MainTex` |
 
 All three nodes have `execIn` and `execOut`. `target` is property-only; value-like fields are property-or-connection where the manifest exposes them as inputs.
 
@@ -1074,9 +1113,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | Starts set text action. |
-| `target` | input value | UIBinding<TMP_Text> | property | yes | Binding name string. Must resolve to TMP_Text or owner with TMP_Text. |
+| `target` | input value | Binding<TMP_Text> | property | yes | Binding name string. Must resolve to TMP_Text or owner with TMP_Text. |
 | `value` | input value | string | propertyOrConnection | yes | New text. |
-| `target` | property | UIBinding<TMP_Text> | property | yes | Stored as binding name string in JSON. |
+| `target` | property | Binding<TMP_Text> | property | yes | Stored as binding name string in JSON. |
 | `value` | property | string | property | no | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | Continuation. |
 
@@ -1121,11 +1160,11 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | Registers or updates the text binding. |
-| `target` | input value | UIBinding<TMP_Text> | property | yes | Binding name string. Must resolve to TMP_Text or owner with TMP_Text. |
+| `target` | input value | Binding<TMP_Text> | property | yes | Binding name string. Must resolve to TMP_Text or owner with TMP_Text. |
 | `variableName` | input value | string | propertyOrConnection | no | Variable to read. Empty means use `value` instead. |
 | `variableTarget` | input value | Blueprint | propertyOrConnection | no | Optional target Blueprint asset path or connected BlueprintRef. Empty means the current blueprint context. |
 | `value` | input value | string | propertyOrConnection | no | Fallback expression reevaluated when no `variableName` is set. |
-| `target` | property | UIBinding<TMP_Text> | property | yes | Stored as binding name string in JSON. |
+| `target` | property | Binding<TMP_Text> | property | yes | Stored as binding name string in JSON. |
 | `variableName` | property | string | property | no | Stored variable name. |
 | `variableTarget` | property | Blueprint | property | no | Stored target `.blueprint.json` asset path; Graph Toolkit shows long paths in the Inspector. |
 | `value` | property | string | property | no | Fallback used when no value edge is connected and no `variableName` is set. |
@@ -1135,7 +1174,7 @@ Reactive refresh behavior:
 
 ```text
 `Variable.Set` refreshes reactive bindings for the current context or current Blueprint instance.
-`Blueprint.SetVariable` refreshes reactive bindings that depend on the target Blueprint instance, including UI bindings registered on another runner through `variableTarget`.
+`Blueprint.SetVariable` refreshes reactive bindings that depend on the target Blueprint instance, including bindings registered on another runner through `variableTarget`.
 `BlueprintRunner.ReloadBlueprint` and `BlueprintRuntimeComponent.ReloadBlueprint` capture active reactive binding nodes before invalidating the old runtime state, restore those bindings on the new runtime state, and refresh them when `BlueprintReloadOptions.RefreshReactiveBindings` is true.
 `UIBlueprintBinder.OnDisable` fires `OnClose` and then clears reactive bindings for the panel runner and its runtime components.
 ```
@@ -1154,7 +1193,7 @@ Avoid duplicates:
 Use `UI.BindText` for live TMP text display that must survive variable changes and hot reload.
 Use `UI.SetText` for one-shot text assignment.
 Use `variableName`/`variableTarget` before wiring a separate `Blueprint.GetVariable` into `value` when cross-blueprint variable changes should refresh this binding automatically.
-Do not store TMP_Text object references in blueprint JSON; store UIBinding<TMP_Text> binding names.
+Do not store TMP_Text object references in blueprint JSON; store Binding<TMP_Text> binding names.
 ```
 
 ### `UI.SpriteBinding`
@@ -1177,7 +1216,7 @@ Function:
 
 ```text
 Value node.
-Reads `sprite` as a UIBinding<Sprite> string.
+Reads `sprite` as a Binding<Sprite> string.
 Outputs the binding name through `value` so it can connect to `UI.SetImageSprite.value`.
 ```
 
@@ -1185,8 +1224,8 @@ Ports and parameters:
 
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
-| `sprite` | property | UIBinding<Sprite> | property | yes | Stored as binding name string in JSON. |
-| `value` | output value | UIBinding<Sprite> | none | no | Binding name for a Sprite asset. |
+| `sprite` | property | Binding<Sprite> | property | yes | Stored as binding name string in JSON. |
+| `value` | output value | Binding<Sprite> | none | no | Binding name for a Sprite asset. |
 
 Avoid duplicates:
 
@@ -1226,10 +1265,10 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | Starts set image sprite action. |
-| `target` | input value | UIBinding<Image> | property | yes | Binding name string. Must resolve to Image or owner with Image. |
-| `value` | input value | UIBinding<Sprite> | propertyOrConnection | yes | Binding name string for the Sprite asset. |
-| `target` | property | UIBinding<Image> | property | yes | Stored as binding name string in JSON. |
-| `value` | property | UIBinding<Sprite> | property | no | Used when no value edge is connected. |
+| `target` | input value | Binding<Image> | property | yes | Binding name string. Must resolve to Image or owner with Image. |
+| `value` | input value | Binding<Sprite> | propertyOrConnection | yes | Binding name string for the Sprite asset. |
+| `target` | property | Binding<Image> | property | yes | Stored as binding name string in JSON. |
+| `value` | property | Binding<Sprite> | property | no | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | Continuation. |
 
 Avoid duplicates:
@@ -1270,9 +1309,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts visibility action. |
-| `target` | input value | UIBinding<GameObject> | property | yes | Binding name string. Can bind GameObject or Component. |
+| `target` | input value | Binding<GameObject> | property | yes | Binding name string. Can bind GameObject or Component. |
 | `value` | input value | bool | propertyOrConnection | yes | `true` | Active state. |
-| `target` | property | UIBinding<GameObject> | property | yes | Stored as binding name string in JSON. |
+| `target` | property | Binding<GameObject> | property | yes | Stored as binding name string in JSON. |
 | `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1313,9 +1352,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts graphic color action. |
-| `target` | input value | UIBinding<Graphic> | property | yes | none | Binding name string. Image and TMP text are valid Graphics. |
+| `target` | input value | Binding<Graphic> | property | yes | none | Binding name string. Image and TMP text are valid Graphics. |
 | `value` | input value | Color | propertyOrConnection | yes | `[1,1,1,1]` | New color. |
-| `target` | property | UIBinding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | Color | property | no | `[1,1,1,1]` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1349,9 +1388,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts graphic enabled action. |
-| `target` | input value | UIBinding<Graphic> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<Graphic> | property | yes | none | Binding name string. |
 | `value` | input value | bool | propertyOrConnection | yes | `true` | Enabled state. |
-| `target` | property | UIBinding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1385,9 +1424,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts graphic raycast target action. |
-| `target` | input value | UIBinding<Graphic> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<Graphic> | property | yes | none | Binding name string. |
 | `value` | input value | bool | propertyOrConnection | yes | `true` | Raycast target state. |
-| `target` | property | UIBinding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<Graphic> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1421,9 +1460,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts image fill amount action. |
-| `target` | input value | UIBinding<Image> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<Image> | property | yes | none | Binding name string. |
 | `value` | input value | float | propertyOrConnection | yes | `1` | Fill amount, clamped to 0..1. |
-| `target` | property | UIBinding<Image> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<Image> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | float | property | no | `1` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1457,9 +1496,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts canvas group alpha action. |
-| `target` | input value | UIBinding<CanvasGroup> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<CanvasGroup> | property | yes | none | Binding name string. |
 | `value` | input value | float | propertyOrConnection | yes | `1` | Alpha, clamped to 0..1. |
-| `target` | property | UIBinding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | float | property | no | `1` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1493,9 +1532,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts canvas group interactable action. |
-| `target` | input value | UIBinding<CanvasGroup> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<CanvasGroup> | property | yes | none | Binding name string. |
 | `value` | input value | bool | propertyOrConnection | yes | `true` | Interactable state. |
-| `target` | property | UIBinding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1529,9 +1568,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts canvas group blocks raycasts action. |
-| `target` | input value | UIBinding<CanvasGroup> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<CanvasGroup> | property | yes | none | Binding name string. |
 | `value` | input value | bool | propertyOrConnection | yes | `true` | Blocks raycasts state. |
-| `target` | property | UIBinding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<CanvasGroup> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1565,9 +1604,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts rect anchored position action. |
-| `target` | input value | UIBinding<RectTransform> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<RectTransform> | property | yes | none | Binding name string. |
 | `value` | input value | Vector2 | propertyOrConnection | yes | `[0,0]` | New anchored position. |
-| `target` | property | UIBinding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | Vector2 | property | no | `[0,0]` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1601,9 +1640,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts rect size delta action. |
-| `target` | input value | UIBinding<RectTransform> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<RectTransform> | property | yes | none | Binding name string. |
 | `value` | input value | Vector2 | propertyOrConnection | yes | `[0,0]` | New size delta. |
-| `target` | property | UIBinding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | Vector2 | property | no | `[0,0]` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1637,9 +1676,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts rect local scale action. |
-| `target` | input value | UIBinding<RectTransform> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<RectTransform> | property | yes | none | Binding name string. |
 | `value` | input value | Vector3 | propertyOrConnection | yes | `[1,1,1]` | New local scale. |
-| `target` | property | UIBinding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
+| `target` | property | Binding<RectTransform> | property | yes | none | Stored as binding name string in JSON. |
 | `value` | property | Vector3 | property | no | `[1,1,1]` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1673,9 +1712,9 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Starts interactable action. |
-| `target` | input value | UIBinding<Selectable> | property | yes | Binding name string. Button is valid because Button derives from Selectable. |
+| `target` | input value | Binding<Selectable> | property | yes | Binding name string. Button is valid because Button derives from Selectable. |
 | `value` | input value | bool | propertyOrConnection | yes | `true` | Interactable state. |
-| `target` | property | UIBinding<Selectable> | property | yes | Stored as binding name string in JSON. |
+| `target` | property | Binding<Selectable> | property | yes | Stored as binding name string in JSON. |
 | `value` | property | bool | property | no | `true` | Used when no value edge is connected. |
 | `execOut` | output exec | none | none | no | none | Continuation. |
 
@@ -1717,8 +1756,8 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | Run this once before clicks should be handled. |
-| `target` | input value | UIBinding<Button> | property | yes | Binding name string. |
-| `target` | property | UIBinding<Button> | property | yes | Stored as binding name string in JSON. |
+| `target` | input value | Binding<Button> | property | yes | Binding name string. |
+| `target` | property | Binding<Button> | property | yes | Stored as binding name string in JSON. |
 | `bound` | output exec | none | none | no | Continuation after binding is installed. |
 | `clicked` | output exec | none | none | no | Executed each time the Button is clicked. |
 
@@ -1768,10 +1807,10 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Default | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | none | Run once before gestures should be handled. |
-| `target` | input value | UIBinding<Button> | property | yes | none | Binding name string. |
+| `target` | input value | Binding<Button> | property | yes | none | Binding name string. |
 | `longPressSeconds` | input value | float | propertyOrConnection | no | `0.5` | Long-press threshold. |
 | `doubleClickSeconds` | input value | float | propertyOrConnection | no | `0.3` | Double-click window. |
-| `target` | property | UIBinding<Button> | property | yes | none | Stored as binding name string. |
+| `target` | property | Binding<Button> | property | yes | none | Stored as binding name string. |
 | `bound` | output exec | none | none | no | none | Continuation after binding is installed. |
 | `clicked` | output exec | none | none | no | none | Single click after the double-click window expires. |
 | `doubleClicked` | output exec | none | none | no | none | Second click inside the double-click window. |
@@ -1808,8 +1847,8 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | Run once before changes should be handled. |
-| `target` | input value | UIBinding<Toggle> | property | yes | Binding name string. |
-| `target` | property | UIBinding<Toggle> | property | yes | Stored as binding name string. |
+| `target` | input value | Binding<Toggle> | property | yes | Binding name string. |
+| `target` | property | Binding<Toggle> | property | yes | Stored as binding name string. |
 | `bound` | output exec | none | none | no | Continuation after binding is installed. |
 | `changed` | output exec | none | none | no | Executed on every Toggle value change. |
 | `turnedOn` | output exec | none | none | no | Executed when `isOn` becomes true. |
@@ -1847,10 +1886,10 @@ Ports and parameters:
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
 | `execIn` | input exec | none | none | no | Starts refresh. |
-| `target` | input value | UIBinding<BlueprintLoopScrollView> | property | yes | Binding name string. |
+| `target` | input value | Binding<BlueprintLoopScrollView> | property | yes | Binding name string. |
 | `items` | input value | untyped array | connection | no | Preferred data source when connected. |
 | `itemsVariable` | input value | string | propertyOrConnection | no | Fallback variable name. |
-| `target` | property | UIBinding<BlueprintLoopScrollView> | property | yes | Stored as binding name string. |
+| `target` | property | Binding<BlueprintLoopScrollView> | property | yes | Stored as binding name string. |
 | `execOut` | output exec | none | none | no | Continuation after refresh. |
 
 ## Variable Nodes
@@ -2154,7 +2193,7 @@ Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryIte
 
 The editor refreshes `.bpgraph` Break Struct display caches when `BlueprintUserStructAsset` or generated `.bpstruct.json` definitions are imported, moved, or deleted. `.blueprint.json` remains the behavior source of truth; the refresh updates visual ports and suppresses graph auto-export so a display-only struct refresh does not rewrite blueprint behavior.
 
-ScriptableObject-authored user struct fields support the enum choices `String`, `Bool`, `Int`, `Float`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Rect`, `ForceMode`, `ForceMode2D`, `LoadSceneMode`, `Key`, `ComparisonMode`, `TickPhase`, and `Blueprint`. `BlueprintRef` and `UIBinding<T>` are intentionally not supported as user struct fields because they are runtime/editor binding handles, not portable data.
+ScriptableObject-authored user struct fields support the enum choices `String`, `Bool`, `Int`, `Float`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Rect`, `ForceMode`, `ForceMode2D`, `LoadSceneMode`, `Key`, `ComparisonMode`, `TickPhase`, and `Blueprint`. `BlueprintRef` and `Binding<T>` are intentionally not supported as user struct fields because they are runtime/editor binding handles, not portable data.
 
 ## Blueprint Data Tables
 
@@ -2293,7 +2332,7 @@ Ports and parameters:
 
 ## Array Nodes
 
-Blueprint variables support `Array<T>` where `T` is a supported built-in type, enum, user struct, or `[BlueprintVariableType]` structured type. Nested arrays and `UIBinding<T>` elements are not supported.
+Blueprint variables support `Array<T>` where `T` is a supported built-in type, enum, user struct, or `[BlueprintVariableType]` structured type. Nested arrays and `Binding<T>` elements are not supported.
 In Graph Toolkit, `Array<T>` appears as one Blackboard type named `Array`. The array field contains an element type dropdown plus a JSON text field for defaults such as `["A","B"]`; `Variable.Get`, `Variable.Set`, validation, and export preserve the selected `Array<T>` blueprint type.
 
 ### `Array.Count`
@@ -2413,5 +2452,5 @@ manifest.typeId == blueprint JSON node typeId
 manifest.executor == executor.ExecutorId
 manifest input/property IDs == executor GetInputValue IDs
 manifest output IDs == BlueprintExecResult.Continue IDs
-UIBinding<T> property stores a binding name string in JSON
+Binding<T> property stores a binding name string in JSON
 ```

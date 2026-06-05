@@ -9,14 +9,14 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<GameObject>",
+      "type": "Binding<GameObject>",
       "required": true,
       "source": "propertyOrConnection"
     },
     {
       "id": "other",
       "kind": "value",
-      "type": "UIBinding<GameObject>",
+      "type": "Binding<GameObject>",
       "required": true,
       "source": "propertyOrConnection"
     }
@@ -31,12 +31,12 @@
   "properties": [
     {
       "id": "target",
-      "type": "UIBinding<GameObject>",
+      "type": "Binding<GameObject>",
       "required": false
     },
     {
       "id": "other",
-      "type": "UIBinding<GameObject>",
+      "type": "Binding<GameObject>",
       "required": false
     }
   ],

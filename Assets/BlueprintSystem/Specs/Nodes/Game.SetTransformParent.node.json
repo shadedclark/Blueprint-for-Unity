@@ -13,14 +13,14 @@
     {
       "id": "target",
       "kind": "value",
-      "type": "UIBinding<Transform>",
+      "type": "Binding<Transform>",
       "required": true,
       "source": "property"
     },
     {
       "id": "parent",
       "kind": "value",
-      "type": "UIBinding<Transform>",
+      "type": "Binding<Transform>",
       "required": true,
       "source": "property"
     },
@@ -41,12 +41,12 @@
     {
       "id": "target",
       "required": true,
-      "type": "UIBinding<Transform>"
+      "type": "Binding<Transform>"
     },
     {
       "id": "parent",
       "required": true,
-      "type": "UIBinding<Transform>"
+      "type": "Binding<Transform>"
     },
     {
       "id": "worldPositionStays",

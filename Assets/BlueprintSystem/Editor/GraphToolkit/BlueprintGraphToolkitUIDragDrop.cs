@@ -346,7 +346,7 @@ namespace BlueprintSystem.Editor
             AddDataTableAssetDropChoices(choices);
             AddUserStructAssetDropChoices(choices);
             AddSpriteBindingDropChoices(choices);
-            AddUIBindingDropChoices(graph, choices);
+            AddBindingDropChoices(graph, choices);
             choices.Sort(CompareChoices);
             return choices;
         }
@@ -551,7 +551,7 @@ namespace BlueprintSystem.Editor
             });
         }
 
-        private static void AddUIBindingDropChoices(BlueprintVisualGraph graph, List<DropNodeChoice> choices)
+        private static void AddBindingDropChoices(BlueprintVisualGraph graph, List<DropNodeChoice> choices)
         {
             Object[] draggedObjects = DragAndDrop.objectReferences;
             if (draggedObjects == null || draggedObjects.Length == 0)
@@ -567,7 +567,7 @@ namespace BlueprintSystem.Editor
                 {
                     BlueprintPropertySpec property = manifest.Properties[propertyIndex];
                     string bindingType;
-                    if (!TryGetUIBindingType(property.Type, out bindingType))
+                    if (!TryGetBindingType(property.Type, out bindingType))
                     {
                         continue;
                     }
@@ -718,19 +718,19 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
-            CreateUIBindingNodeFromChoice(graph, choice, graphPosition);
+            CreateBindingNodeFromChoice(graph, choice, graphPosition);
         }
 
-        private static void CreateUIBindingNodeFromChoice(BlueprintVisualGraph graph, DropNodeChoice choice, Vector2 graphPosition)
+        private static void CreateBindingNodeFromChoice(BlueprintVisualGraph graph, DropNodeChoice choice, Vector2 graphPosition)
         {
-            UIBlueprintBinder binder = FindBindingOwner(graph, choice.BindingTarget);
-            string existingBindingName = FindExistingBindingName(binder, choice.BindingTarget);
+            BlueprintRunner runner = FindBindingOwnerRunner(graph, choice.BindingTarget);
+            string existingBindingName = FindExistingBindingName(runner, choice.BindingTarget);
             string bindingName = string.IsNullOrEmpty(existingBindingName)
-                ? CreateUniqueBindingName(choice.SuggestedBindingName, graph, binder)
+                ? CreateUniqueBindingName(choice.SuggestedBindingName, graph, runner)
                 : existingBindingName;
 
             EnsureGraphBinding(graph, bindingName, choice.BindingType, true);
-            bool binderUpdated = EnsureBinderBinding(binder, bindingName, choice.BindingTarget);
+            bool runnerUpdated = EnsureRunnerBinding(runner, bindingName, choice.BindingTarget);
 
             BlueprintNodeSource source = new BlueprintNodeSource
             {
@@ -741,7 +741,7 @@ namespace BlueprintSystem.Editor
             };
 
             source.Properties[choice.BindingPropertyId] = bindingName;
-            ApplyContextDefaults(graph, binder, source, choice, bindingName);
+            ApplyContextDefaults(graph, runner, source, choice, bindingName);
 
             BlueprintVisualNode visualNode = BlueprintGraphToolkitBridge.CreateVisualNode(source, choice.Manifest);
             BlueprintGraphToolkitReflection.CreateNodeWithUndo(graph, visualNode, graphPosition, "Create Blueprint Node");
@@ -749,9 +749,9 @@ namespace BlueprintSystem.Editor
             GraphDatabase.SaveGraphIfDirty(graph);
             AssetDatabase.SaveAssets();
 
-            if (!binderUpdated)
+            if (!runnerUpdated)
             {
-                Debug.LogWarning(CreateMissingBinderMessage(choice, bindingName));
+                Debug.LogWarning(CreateMissingRunnerMessage(choice, bindingName));
             }
             else
             {
@@ -759,19 +759,19 @@ namespace BlueprintSystem.Editor
             }
         }
 
-        private static string CreateMissingBinderMessage(DropNodeChoice choice, string bindingName)
+        private static string CreateMissingRunnerMessage(DropNodeChoice choice, string bindingName)
         {
             string targetName = choice.BindingTarget == null ? bindingName : choice.BindingTarget.name;
             if (choice.BindingTarget is Sprite)
             {
                 return "[Blueprint] Added '" + choice.Manifest.TypeId + "' with Sprite binding '" + bindingName +
-                    "', but no unique UIBlueprintBinder was found for the current graph. Add '" + targetName +
-                    "' to a UIBlueprintBinder before running the blueprint.";
+                    "', but no unique BlueprintRunner was found for the current graph. Add '" + targetName +
+                    "' to a BlueprintRunner before running the blueprint.";
             }
 
             return "[Blueprint] Added '" + choice.Manifest.TypeId + "' with binding '" + bindingName +
-                "', but no parent UIBlueprintBinder was found for '" + targetName +
-                "'. Add that binding to a UIBlueprintBinder before running the blueprint.";
+                "', but no parent BlueprintRunner was found for '" + targetName +
+                "'. Add that binding to a BlueprintRunner before running the blueprint.";
         }
 
         private static void CreateVariableNodeFromChoice(BlueprintVisualGraph graph, DropNodeChoice choice, Vector2 graphPosition)
@@ -1087,7 +1087,7 @@ namespace BlueprintSystem.Editor
             return BlueprintGraphToolkitBlackboardSync.ExtractSourceVariables(graph);
         }
 
-        private static void ApplyContextDefaults(BlueprintVisualGraph graph, UIBlueprintBinder binder, BlueprintNodeSource source, DropNodeChoice choice, string bindingName)
+        private static void ApplyContextDefaults(BlueprintVisualGraph graph, BlueprintRunner runner, BlueprintNodeSource source, DropNodeChoice choice, string bindingName)
         {
             if (choice.Manifest.TypeId == "UI.SetText")
             {
@@ -1110,21 +1110,21 @@ namespace BlueprintSystem.Editor
                 UIImage image = choice.BindingTarget as UIImage;
                 if (image != null && image.sprite != null)
                 {
-                    string existingSpriteBindingName = FindExistingBindingName(binder, image.sprite);
+                    string existingSpriteBindingName = FindExistingBindingName(runner, image.sprite);
                     string spriteBindingName = string.IsNullOrEmpty(existingSpriteBindingName)
-                        ? CreateUniqueBindingName(image.sprite.name, graph, binder)
+                        ? CreateUniqueBindingName(image.sprite.name, graph, runner)
                         : existingSpriteBindingName;
 
                     EnsureGraphBinding(graph, spriteBindingName, "Sprite", true);
-                    EnsureBinderBinding(binder, spriteBindingName, image.sprite);
+                    EnsureRunnerBinding(runner, spriteBindingName, image.sprite);
                     source.Properties["value"] = spriteBindingName;
                 }
             }
         }
 
-        private static bool TryGetUIBindingType(string propertyType, out string bindingType)
+        private static bool TryGetBindingType(string propertyType, out string bindingType)
         {
-            const string prefix = "UIBinding<";
+            const string prefix = "Binding<";
             bindingType = null;
             if (string.IsNullOrEmpty(propertyType) || !propertyType.StartsWith(prefix, StringComparison.Ordinal) || !propertyType.EndsWith(">", StringComparison.Ordinal))
             {
@@ -1378,7 +1378,7 @@ namespace BlueprintSystem.Editor
             return null;
         }
 
-        private static UIBlueprintBinder FindNearestBinder(Object target)
+        private static BlueprintRunner FindNearestRunner(Object target)
         {
             GameObject gameObject = target as GameObject;
             Component component = target as Component;
@@ -1390,10 +1390,10 @@ namespace BlueprintSystem.Editor
             Transform transform = gameObject == null ? null : gameObject.transform;
             while (transform != null)
             {
-                UIBlueprintBinder binder = transform.GetComponent<UIBlueprintBinder>();
-                if (binder != null)
+                BlueprintRunner runner = transform.GetComponent<BlueprintRunner>();
+                if (runner != null)
                 {
-                    return binder;
+                    return runner;
                 }
 
                 transform = transform.parent;
@@ -1402,18 +1402,18 @@ namespace BlueprintSystem.Editor
             return null;
         }
 
-        private static UIBlueprintBinder FindBindingOwner(BlueprintVisualGraph graph, Object target)
+        private static BlueprintRunner FindBindingOwnerRunner(BlueprintVisualGraph graph, Object target)
         {
-            UIBlueprintBinder binder = FindNearestBinder(target);
-            if (binder != null)
+            BlueprintRunner runner = FindNearestRunner(target);
+            if (runner != null)
             {
-                return binder;
+                return runner;
             }
 
-            return target is Sprite ? FindUniqueBinderForGraph(graph) : null;
+            return target is Sprite ? FindUniqueRunnerForGraph(graph) : null;
         }
 
-        private static UIBlueprintBinder FindUniqueBinderForGraph(BlueprintVisualGraph graph)
+        private static BlueprintRunner FindUniqueRunnerForGraph(BlueprintVisualGraph graph)
         {
             string blueprintPath = GetGraphBlueprintPath(graph);
             if (string.IsNullOrEmpty(blueprintPath))
@@ -1421,17 +1421,17 @@ namespace BlueprintSystem.Editor
                 return null;
             }
 
-            UIBlueprintBinder result = null;
-            UIBlueprintBinder[] binders = Resources.FindObjectsOfTypeAll<UIBlueprintBinder>();
-            for (int i = 0; i < binders.Length; i++)
+            BlueprintRunner result = null;
+            BlueprintRunner[] runners = Resources.FindObjectsOfTypeAll<BlueprintRunner>();
+            for (int i = 0; i < runners.Length; i++)
             {
-                UIBlueprintBinder binder = binders[i];
-                if (binder == null || EditorUtility.IsPersistent(binder))
+                BlueprintRunner runner = runners[i];
+                if (runner == null || EditorUtility.IsPersistent(runner))
                 {
                     continue;
                 }
 
-                if (!BinderUsesBlueprint(binder, blueprintPath))
+                if (!RunnerUsesBlueprint(runner, blueprintPath))
                 {
                     continue;
                 }
@@ -1441,7 +1441,7 @@ namespace BlueprintSystem.Editor
                     return null;
                 }
 
-                result = binder;
+                result = runner;
             }
 
             return result;
@@ -1457,9 +1457,9 @@ namespace BlueprintSystem.Editor
             return string.IsNullOrEmpty(graph.SourceBlueprintAssetPath) ? null : NormalizeAssetPath(graph.SourceBlueprintAssetPath);
         }
 
-        private static bool BinderUsesBlueprint(UIBlueprintBinder binder, string blueprintPath)
+        private static bool RunnerUsesBlueprint(BlueprintRunner runner, string blueprintPath)
         {
-            BlueprintCompiledAsset compiledAsset = binder == null ? null : binder.CompiledBlueprint;
+            BlueprintCompiledAsset compiledAsset = runner == null ? null : runner.CompiledBlueprint;
             if (compiledAsset == null)
             {
                 return false;
@@ -1473,14 +1473,14 @@ namespace BlueprintSystem.Editor
             return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
         }
 
-        private static string FindExistingBindingName(UIBlueprintBinder binder, Object target)
+        private static string FindExistingBindingName(BlueprintRunner runner, Object target)
         {
-            if (binder == null || target == null)
+            if (runner == null || target == null)
             {
                 return null;
             }
 
-            SerializedObject serializedObject = new SerializedObject(binder);
+            SerializedObject serializedObject = new SerializedObject(runner);
             SerializedProperty bindings = serializedObject.FindProperty("bindings");
             if (bindings == null || !bindings.isArray)
             {
@@ -1503,7 +1503,7 @@ namespace BlueprintSystem.Editor
             return null;
         }
 
-        private static string CreateUniqueBindingName(string suggestedName, BlueprintVisualGraph graph, UIBlueprintBinder binder)
+        private static string CreateUniqueBindingName(string suggestedName, BlueprintVisualGraph graph, BlueprintRunner runner)
         {
             string baseName = SanitizeIdentifier(suggestedName);
             if (string.IsNullOrEmpty(baseName))
@@ -1523,7 +1523,7 @@ namespace BlueprintSystem.Editor
                 }
             }
 
-            CollectBinderNames(binder, usedNames);
+            CollectRunnerBindingNames(runner, usedNames);
             if (!usedNames.Contains(baseName))
             {
                 return baseName;
@@ -1639,14 +1639,14 @@ namespace BlueprintSystem.Editor
             });
         }
 
-        private static void CollectBinderNames(UIBlueprintBinder binder, HashSet<string> usedNames)
+        private static void CollectRunnerBindingNames(BlueprintRunner runner, HashSet<string> usedNames)
         {
-            if (binder == null)
+            if (runner == null)
             {
                 return;
             }
 
-            SerializedObject serializedObject = new SerializedObject(binder);
+            SerializedObject serializedObject = new SerializedObject(runner);
             SerializedProperty bindings = serializedObject.FindProperty("bindings");
             if (bindings == null || !bindings.isArray)
             {
@@ -1694,14 +1694,14 @@ namespace BlueprintSystem.Editor
             });
         }
 
-        private static bool EnsureBinderBinding(UIBlueprintBinder binder, string bindingName, Object target)
+        private static bool EnsureRunnerBinding(BlueprintRunner runner, string bindingName, Object target)
         {
-            if (binder == null || target == null)
+            if (runner == null || target == null)
             {
                 return false;
             }
 
-            SerializedObject serializedObject = new SerializedObject(binder);
+            SerializedObject serializedObject = new SerializedObject(runner);
             SerializedProperty bindings = serializedObject.FindProperty("bindings");
             if (bindings == null || !bindings.isArray)
             {
@@ -1718,8 +1718,8 @@ namespace BlueprintSystem.Editor
                 {
                     targetProperty.objectReferenceValue = target;
                     serializedObject.ApplyModifiedProperties();
-                    EditorUtility.SetDirty(binder);
-                    binder.RebuildBindingCache();
+                    EditorUtility.SetDirty(runner);
+                    runner.RebuildBindingCache();
                     return true;
                 }
             }
@@ -1740,8 +1740,8 @@ namespace BlueprintSystem.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
-            EditorUtility.SetDirty(binder);
-            binder.RebuildBindingCache();
+            EditorUtility.SetDirty(runner);
+            runner.RebuildBindingCache();
             return true;
         }
 

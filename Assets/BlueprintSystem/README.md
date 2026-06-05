@@ -82,10 +82,10 @@ Assets/BlueprintSystem/
     BlueprintCompiler.cs            source -> RuntimeBlueprint
     BlueprintValidator.cs           structural/type validation
     BlueprintVM.cs                  runtime execution loop
-    BlueprintRunner.cs              MonoBehaviour runner
+    BlueprintRunner.cs              MonoBehaviour runner + binding resolver
     BlueprintRuntimeComponent.cs    pure runtime component instance
     BlueprintRef.cs                 runtime-only blueprint instance handle
-    UIBlueprintBinder.cs            UI binding resolver + panel events
+    UIBlueprintBinder.cs            UI panel open/close events
     BlueprintExecutor.cs            executor interface + default registry
 
   Executors/
@@ -197,7 +197,7 @@ Component shape:
 }
 ```
 
-Use components for owner-owned logic modules. Cross-blueprint access nodes accept either `Blueprint` asset path variables or runtime `BlueprintRef` handles as `target`, and asset paths resolve only inside the current runner/component tree. Use `Blueprint.GetOwner` and `Blueprint.GetComponent` to obtain runtime refs without creating child GameObjects. Keep `UIBinding<T>` for real Unity object or scene/UI component references; `Blueprint.GetByBinding` and `Blueprint.FindByTag` are not cross-blueprint resolvers.
+Use components for owner-owned logic modules. Cross-blueprint access nodes accept either `Blueprint` asset path variables or runtime `BlueprintRef` handles as `target`, and asset paths resolve only inside the current runner/component tree. Use `Blueprint.GetOwner` and `Blueprint.GetComponent` to obtain runtime refs without creating child GameObjects. Keep `Binding<T>` for real Unity object or scene/UI component references; `Blueprint.GetByBinding` and `Blueprint.FindByTag` are not cross-blueprint resolvers.
 
 Variable shape:
 
@@ -271,14 +271,14 @@ Vector2
 Vector3
 Color
 Blueprint
-UIBinding<T>
+Binding<T>
 ```
 
 `Blueprint` values store `.blueprint.json` asset paths as strings. They are configuration references, not runtime `BlueprintRef` instances or serialized Unity object references.
 
 `BlueprintRef` is a runtime-only handle produced by nodes such as `Blueprint.GetOwner` and `Blueprint.GetComponent`. It can flow through node connections into `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable`, but it is not a supported blackboard/default variable type and must not be persisted in `.blueprint.json`.
 
-`UIBinding<T>` values are stored in JSON as strings and resolved at runtime by `IBlueprintBindingResolver`.
+`Binding<T>` values are stored in JSON as strings and resolved at runtime by `IBlueprintBindingResolver`.
 
 ## 6. Runtime Executor Contract
 
@@ -379,10 +379,10 @@ namespace BlueprintSystem.Editor
                 "Sets text on a bound TMP_Text element.");
 
             AddExecInput("execIn");
-            AddValueInput("target", "UIBinding<TMP_Text>", true, "property");
+            AddValueInput("target", "Binding<TMP_Text>", true, "property");
             AddValueInput("value", "string", true, "propertyOrConnection");
             AddExecOutput("execOut");
-            AddProperty("target", "UIBinding<TMP_Text>", true);
+            AddProperty("target", "Binding<TMP_Text>", true);
             AddProperty("value", "string", false);
         }
     }
@@ -434,7 +434,7 @@ Use a manifest property type like:
 ```json
 {
   "id": "target",
-  "type": "UIBinding<Button>",
+  "type": "Binding<Button>",
   "required": true
 }
 ```
@@ -446,7 +446,7 @@ string target = context.GetInputValue(node, "target", string.Empty);
 Button button = context.BindingResolver.Resolve<Button>(target);
 ```
 
-`UIBlueprintBinder.Resolve<T>()` supports direct object resolution and `GetComponent<T>()` from `GameObject` or `Component`.
+`BlueprintRunner.Resolve<T>()` supports direct object resolution and `GetComponent<T>()` from `GameObject` or `Component`. `UIBlueprintBinder` inherits the same binding resolver and adds UI panel events.
 
 ## 8. Graph Toolkit Workflow
 
@@ -527,13 +527,13 @@ Behavior:
 
 ```text
 Drag GameObject/Component onto graph
-  -> scan node manifests for properties typed UIBinding<T>
+  -> scan node manifests for properties typed Binding<T>
   -> match T against the dragged object or one of its components
   -> show an Add Node menu
   -> create the selected visual node at the drop position
   -> set the node binding property, usually target
   -> add/update graph.Bindings
-  -> add/update the nearest parent UIBlueprintBinder serialized binding entry
+  -> add/update the nearest parent BlueprintRunner serialized binding entry
 ```
 
 Current built-in examples:
@@ -550,14 +550,14 @@ To make a new node appear in the drag menu, add a manifest property such as:
 ```json
 {
   "id": "target",
-  "type": "UIBinding<MyWidget>",
+  "type": "Binding<MyWidget>",
   "required": true
 }
 ```
 
 Then ensure `MyWidget` is a `UnityEngine.Object` type resolvable by name. The drag handler matches a dragged component directly or calls `GameObject.GetComponent(MyWidget)`.
 
-If the object has no parent `UIBlueprintBinder`, the graph node and graph binding are still created, but the scene binding must be added manually before runtime.
+If the object has no parent `BlueprintRunner`, the graph node and graph binding are still created, but the scene binding must be added manually before runtime.
 
 ## 9. Compiled Blueprint Assets
 
@@ -614,7 +614,7 @@ Current test coverage:
 
 ```text
 Validator accepts InventoryPanel
-Validator reports unknown UI binding
+Validator reports unknown binding
 Compiler builds runtime indexes
 Runtime sets TMP text and executes button clicked output
 Graph Toolkit bridge round-trips InventoryPanel
@@ -631,7 +631,7 @@ BP001  unknown node type
 BP002  missing required property or value input
 BP003  port type mismatch
 BP004  bad edge, unknown port/node, duplicate value input
-BP005  unknown UI binding
+BP005  unknown binding
 BP006  duplicate node id
 BP008  value dependency cycle
 BP009  missing executor

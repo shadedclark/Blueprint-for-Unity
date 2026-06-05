@@ -138,7 +138,7 @@ The sample is also a reminder to keep UI display and UI interaction separate. Pr
 3. Do not add `.node.json` manifests, executors, registry entries, or Graph Toolkit visual node classes for normal feature work.
 4. If an existing node cannot express a required behavior, stop before implementing that behavior and ask the user whether to create a new node or temporarily ignore that part.
 5. If the user explicitly confirms new-node work in the current conversation, invoke the `create-blueprint-node` skill and follow its workflow, including updating `Assets/BlueprintSystem/GUIDE.md`. Do not treat inferred permission, previous-task permission, or a broad implementation request as approval to add a node.
-6. Do not store Unity object references in blueprint JSON. Store binding names for `UIBinding<T>` values and asset paths for `Blueprint` values.
+6. Do not store Unity object references in blueprint JSON. Store binding names for `Binding<T>` values and asset paths for `Blueprint` values.
 7. For cross-blueprint nodes (`Blueprint.GetVariable`, `Blueprint.SetVariable`, `Blueprint.TriggerEvent`, `Blueprint.IsValid`), declare a `Blueprint` variable for the target asset path and connect `Variable.Get.value` into the node's `target` input. Do not rely on a raw string path in the node properties as the only target source.
 8. Use the actual UI prefab/scene anchors provided by the entry agent. Do not invent detached binding names that do not exist in the current prefab/scene hierarchy.
 9. Input decisions must be Tick-visible. Use `Game.Event.OnTick` plus explicit input polling/query nodes such as Tick-wired `Input.ListenAction` / `Input.ListenKey`.
@@ -150,7 +150,7 @@ The sample is also a reminder to keep UI display and UI interaction separate. Pr
 15. Split UI interactions into one blueprint per interactive UI component and intent. A button click, button long press, toggle changed, scroll/list refresh, tab selected, confirm, or cancel interaction each gets its own blueprint bound to the owning UI component. Do not create catch-all adapters that bind multiple controls or multiple unrelated intents.
 16. Split behavior into one blueprint per behavior. Do not create a catch-all feature behavior blueprint.
 17. Repeated item, row, card, slot, tab, reward, grid-cell, filter button, filter toggle, segmented option, category tab, or option-chip interactions must reuse one interaction blueprint per repeated/option-group control type and intent. Do not create index- or option-specific blueprint files such as `InventorySlot00SelectInteraction`, `InventorySlot01SelectInteraction`, `InventoryFilterAllClickInteraction`, or `InventoryFilterMaterialsClickInteraction`. Pass per-instance context through exposed variables/runner overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, or `category_id`, then attach that same compiled blueprint to each owning UI component instance.
-18. In the final integration contract, choose exactly one ownership mode for each UI presenter/interaction blueprint: root `components` runtime component or concrete GameObject `UIBlueprintBinder`. If a blueprint is meant to be assigned to a child GameObject's `UIBlueprintBinder.compiledBlueprint`, do not also add it to the screen/dialog/panel `components` array. Root component instances use the root runner's binding resolver and cannot see child-local binder entries such as `self_button` or `regular_enter_button`.
+18. In the final integration contract, choose exactly one ownership mode for each UI presenter/interaction blueprint: root `components` runtime component or concrete GameObject `UIBlueprintBinder`. If a blueprint is meant to be assigned to a child GameObject's `UIBlueprintBinder.compiledBlueprint`, do not also add it to the screen/dialog/panel `components` array. Root component instances use the root runner's binding resolver and cannot see child-local binding entries such as `self_button` or `regular_enter_button`.
 
 ## Output Root
 
@@ -192,7 +192,7 @@ Every non-trivial feature should be decomposed into four blueprint roles:
 
 ### UI Blueprints
 
-Own presentation and Unity UI bindings. UI must be split by interface boundary: one screen, dialog, panel, list item, slot, tab, or reusable object per blueprint.
+Own presentation and Unity bindings. UI must be split by interface boundary: one screen, dialog, panel, list item, slot, tab, or reusable object per blueprint.
 
 UI blueprints must bind to actual prefab/scene anchors from the UI-first pass. If a needed binding target does not exist or has the wrong component type, report the mismatch instead of creating a blueprint-only binding name.
 
@@ -300,7 +300,7 @@ Responsibilities:
 
 - Declare item/config/state variables with clear `description`, `scope`, `exposed`, and `persistent` metadata.
 - Expose only the variables other blueprints need.
-- Avoid Unity UI bindings and direct presentation behavior.
+- Avoid Unity bindings and direct presentation behavior.
 - Prefer arrays and structured values where the existing type system supports them.
 
 Typical location:
@@ -319,7 +319,7 @@ Responsibilities:
 - Read and write data blueprint state through `Blueprint.GetVariable` and `Blueprint.SetVariable`.
 - Own one cohesive behavior such as add item, remove item, select item, refresh list, sort/filter, unlock reward, apply upgrade, start cooldown, or resolve purchase.
 - Publish result state back through exposed variables or custom events.
-- Avoid UI bindings unless the behavior is explicitly a UI behavior component.
+- Avoid bindings unless the behavior is explicitly a UI behavior component.
 - Do not combine unrelated operations, orchestration, validation, mutation, and presentation bridging into a single behavior blueprint.
 - If a feature needs multiple behaviors, create multiple behavior blueprints and declare them as separate components.
 
@@ -356,7 +356,7 @@ The parent/root blueprint should declare components for the owned data and behav
 
 Use `Blueprint` variables connected into cross-blueprint `target` inputs to access those components. A raw `.blueprint.json` path may remain in node properties as fallback metadata, but the graph must include `Variable.Get.value -> target`. Only access variables marked `"exposed": true`.
 
-Do not declare a UI presenter or interaction blueprint as a parent/root component when the final integration attaches that same blueprint to a child GameObject `UIBlueprintBinder`. Parent/root `components` create in-memory runtime components that share the parent binding resolver; child `UIBlueprintBinder` attachments are scene runners with their own serialized `bindings`. Mixing both ownership modes for the same blueprint causes duplicate lifecycle execution and binding misses. If a presenter/interaction needs child-local UI bindings, attach it to the smallest owning GameObject binder and keep only shared data/behavior modules in the root component tree unless a root-owned UI binding contract is explicitly required.
+Do not declare a UI presenter or interaction blueprint as a parent/root component when the final integration attaches that same blueprint to a child GameObject `UIBlueprintBinder`. Parent/root `components` create in-memory runtime components that share the parent binding resolver; child `UIBlueprintBinder` attachments are scene runners with their own serialized `bindings`. Mixing both ownership modes for the same blueprint causes duplicate lifecycle execution and binding misses. If a presenter/interaction needs child-local bindings, attach it to the smallest owning GameObject runner and keep only shared data/behavior modules in the root component tree unless a root-owned binding contract is explicitly required.
 
 ## Unsupported Capability Gate
 
@@ -429,13 +429,13 @@ Before handing back:
 - No `.node.json` files were added unless the user approved new-node work.
 - All new feature/system assets are outside `Assets/BlueprintSystem/**` and under `Assets/Game/Blueprint/<FeatureName>/`.
 - All used `typeId` values exist in `Assets/BlueprintSystem/Specs/Nodes`.
-- UI bindings correspond to actual anchors/components in the current UI prefab/scene hierarchy from the UI-first pass.
+- bindings correspond to actual anchors/components in the current UI prefab/scene hierarchy from the UI-first pass.
 - Input decisions are implemented through Tick-visible polling/query flow, or the missing input polling capability is reported.
 - Cross-blueprint access uses `Blueprint` asset paths and exposed variables/events.
 - Cross-blueprint target inputs are backed by `Blueprint` variables connected via `Variable.Get.value`, not only raw string properties.
 - UI object access uses binding names, not serialized Unity object references.
-- UI presenter/interaction ownership is not duplicated: child `UIBlueprintBinder` blueprints are not also listed in root screen/dialog/panel `components`, unless all their bindings intentionally live on the root binder.
-- BlueprintSystem runtime components, per-component interaction blueprint references, and final UI binder entries are left for the entry agent's final integration pass.
+- UI presenter/interaction ownership is not duplicated: child `UIBlueprintBinder` blueprints are not also listed in root screen/dialog/panel `components`, unless all their bindings intentionally live on the root runner.
+- BlueprintSystem runtime components, per-component interaction blueprint references, and final UI runner binding entries are left for the entry agent's final integration pass.
 - JSON parses successfully.
 - BlueprintSystem validation/valid check was run for changed blueprints.
 - Changed blueprints were compiled successfully.

@@ -1479,7 +1479,7 @@ namespace BlueprintSystem.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnFixedTick"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("triggerOnLateTick"));
 
-            DrawUIBlueprintBinderFields();
+            DrawBindingFields();
 
             EditorGUILayout.Space();
             DrawExposedVariableOverrides(compiledProperty == null ? null : compiledProperty.objectReferenceValue as BlueprintCompiledAsset);
@@ -1500,7 +1500,7 @@ namespace BlueprintSystem.Editor
             }
         }
 
-        private void DrawUIBlueprintBinderFields()
+        private void DrawBindingFields()
         {
             SerializedProperty bindingsProperty = serializedObject.FindProperty("bindings");
             if (bindingsProperty == null)
@@ -1509,13 +1509,24 @@ namespace BlueprintSystem.Editor
             }
 
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("UI Bindings", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Bindings", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(bindingsProperty, true);
 
             SerializedProperty triggerOnEnableProperty = serializedObject.FindProperty("triggerOnEnable");
             SerializedProperty enableEventNameProperty = serializedObject.FindProperty("enableEventName");
             SerializedProperty triggerOnDisableProperty = serializedObject.FindProperty("triggerOnDisable");
             SerializedProperty disableEventNameProperty = serializedObject.FindProperty("disableEventName");
+
+            if (triggerOnEnableProperty == null &&
+                enableEventNameProperty == null &&
+                triggerOnDisableProperty == null &&
+                disableEventNameProperty == null)
+            {
+                return;
+            }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("UI Lifecycle", EditorStyles.boldLabel);
 
             if (triggerOnEnableProperty != null)
             {

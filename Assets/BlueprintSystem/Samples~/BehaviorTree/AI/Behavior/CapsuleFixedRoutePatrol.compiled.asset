@@ -1,0 +1,261 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7032c2202864a4ad697f8020c888f449, type: 3}
+  m_Name: CapsuleFixedRoutePatrol.compiled
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BehaviorTreeCompiledAsset
+  schemaVersion: 0.1
+  behaviorTreeName: CapsuleFixedRoutePatrol
+  sourceGuid: 91298ebf99818485abac83d3c077ab71
+  sourcePath: Assets/Samples/BlueprintSystem/BehaviorTree/AI/Behavior/CapsuleFixedRoutePatrol.btree.json
+  sourceHash: 747aa025c93b5360775b39153a2bbc0391f34f035e0a3ea0c9365fb4fa9d69e0
+  rootNodeId: root
+  blackboard:
+  - Name: PatrolPoint
+    Type: Vector3
+    DefaultValueJson: '[-3,0.5,-4]'
+    Exposed: 1
+    Persistent: 0
+    Description: Current route destination for the patrol capsule.
+  nodes:
+  - Id: root
+    TypeId: BT.Root
+    Children:
+    - patrol_sequence
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: patrol_sequence
+    TypeId: BT.Sequence
+    Children:
+    - set_point_01
+    - turn_to_point_01
+    - move_to_point_01
+    - wait_at_point_01
+    - set_point_02
+    - turn_to_point_02
+    - move_to_point_02
+    - wait_at_point_02
+    - set_point_03
+    - turn_to_point_03
+    - move_to_point_03
+    - wait_at_point_03
+    - set_point_04
+    - turn_to_point_04
+    - move_to_point_04
+    - wait_at_point_04
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties: []
+  - Id: set_point_01
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"PatrolPoint"'
+    - Id: value
+      JsonValue: '[-3,0.5,-4]'
+  - Id: turn_to_point_01
+    TypeId: BT.RotateTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: angleTolerance
+      JsonValue: 3
+    - Id: ignoreY
+      JsonValue: true
+    - Id: rotationSpeed
+      JsonValue: 420
+  - Id: move_to_point_01
+    TypeId: BT.MoveTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: acceptableRadius
+      JsonValue: 0.15
+    - Id: allowTransformFallback
+      JsonValue: true
+    - Id: speed
+      JsonValue: 2.1
+  - Id: wait_at_point_01
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 0.45
+  - Id: set_point_02
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"PatrolPoint"'
+    - Id: value
+      JsonValue: '[3,0.5,-4]'
+  - Id: turn_to_point_02
+    TypeId: BT.RotateTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: angleTolerance
+      JsonValue: 3
+    - Id: ignoreY
+      JsonValue: true
+    - Id: rotationSpeed
+      JsonValue: 420
+  - Id: move_to_point_02
+    TypeId: BT.MoveTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: acceptableRadius
+      JsonValue: 0.15
+    - Id: allowTransformFallback
+      JsonValue: true
+    - Id: speed
+      JsonValue: 2.1
+  - Id: wait_at_point_02
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 0.45
+  - Id: set_point_03
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"PatrolPoint"'
+    - Id: value
+      JsonValue: '[3,0.5,2]'
+  - Id: turn_to_point_03
+    TypeId: BT.RotateTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: angleTolerance
+      JsonValue: 3
+    - Id: ignoreY
+      JsonValue: true
+    - Id: rotationSpeed
+      JsonValue: 420
+  - Id: move_to_point_03
+    TypeId: BT.MoveTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: acceptableRadius
+      JsonValue: 0.15
+    - Id: allowTransformFallback
+      JsonValue: true
+    - Id: speed
+      JsonValue: 2.1
+  - Id: wait_at_point_03
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 0.45
+  - Id: set_point_04
+    TypeId: BT.SetBlackboard
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: key
+      JsonValue: '"PatrolPoint"'
+    - Id: value
+      JsonValue: '[-3,0.5,2]'
+  - Id: turn_to_point_04
+    TypeId: BT.RotateTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: angleTolerance
+      JsonValue: 3
+    - Id: ignoreY
+      JsonValue: true
+    - Id: rotationSpeed
+      JsonValue: 420
+  - Id: move_to_point_04
+    TypeId: BT.MoveTo
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs:
+    - InputId: target
+      BlackboardKey: PatrolPoint
+    Properties:
+    - Id: acceptableRadius
+      JsonValue: 0.15
+    - Id: allowTransformFallback
+      JsonValue: true
+    - Id: speed
+      JsonValue: 2.1
+  - Id: wait_at_point_04
+    TypeId: BT.Wait
+    Children: []
+    Decorators: []
+    Services: []
+    Inputs: []
+    Properties:
+    - Id: duration
+      JsonValue: 0.45
+  decorators: []
+  services: []

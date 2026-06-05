@@ -44,7 +44,7 @@ Normalize the chosen feature name to PascalCase for folders and asset names.
 7. Treat `.blueprint.json` files as behavior source of truth. Treat `.bpgraph` files as editor visualization/cache only.
 8. Store Unity object access as binding names in JSON. Do not serialize Unity object references into `.blueprint.json`.
 9. New feature-owned assets must live under `Assets/Game/Blueprint/<FeatureName>/`, not under `Assets/BlueprintSystem/**`.
-10. Do not attach the same UI presenter/interaction blueprint in two ownership modes. If a blueprint is assigned to a concrete prefab child `UIBlueprintBinder.compiledBlueprint`, do not also declare it in the root screen/dialog/panel blueprint `components` array. A root component uses the root binder's resolver and cannot resolve child-local bindings owned by the child binder.
+10. Do not attach the same UI presenter/interaction blueprint in two ownership modes. If a blueprint is assigned to a concrete prefab child `UIBlueprintBinder.compiledBlueprint`, do not also declare it in the root screen/dialog/panel blueprint `components` array. A root component uses the root runner's resolver and cannot resolve child-local bindings owned by the child runner.
 
 ## Required Context Pass
 
@@ -170,7 +170,7 @@ Follow `BlueprintFeatureAgent.md` for JSON graph design, with these prefab-first
 - Use one reusable interaction blueprint for repeated controls or option groups, with per-instance variable overrides such as `index`, `slot_index`, `item_id`, `filter_key`, `filter_index`, or `category_id`.
 - Do not create index-specific or option-specific interaction blueprint files when one reusable blueprint can serve all instances.
 - Every cross-blueprint node must use a declared `Blueprint` variable and a connected `Variable.Get.value` target input. A raw target path property may remain only as fallback metadata.
-- Choose one runtime owner for each UI presenter/interaction blueprint. Root `components` are for in-memory modules that intentionally use the root resolver; child `UIBlueprintBinder` attachments are for local UI binders on a display unit or interactive control. If the prefab integration attaches a presenter/interaction to a child binder, leave that blueprint out of root `components` and route shared data/behavior access through `ownerRunner`, `Blueprint.GetOwner`, `Blueprint.GetComponent`, or declared `Blueprint` variables.
+- Choose one runtime owner for each UI presenter/interaction blueprint. Root `components` are for in-memory modules that intentionally use the root resolver; child `UIBlueprintBinder` attachments are for local UI runners on a display unit or interactive control. If the prefab integration attaches a presenter/interaction to a child runner, leave that blueprint out of root `components` and route shared data/behavior access through `ownerRunner`, `Blueprint.GetOwner`, `Blueprint.GetComponent`, or declared `Blueprint` variables.
 
 Use these row shapes while designing:
 
@@ -245,7 +245,7 @@ Before handing back:
 - JSON parses successfully.
 - BlueprintSystem validation and compile completed, or the blocker is reported.
 - Each binding maps to an actual prefab object/component.
-- No child-binder-owned presenter/interaction blueprint is duplicated as a root screen/dialog/panel component.
+- No child-runner-owned presenter/interaction blueprint is duplicated as a root screen/dialog/panel component.
 - Repeated controls use shared interaction blueprints with per-instance overrides.
 - Unity Console has no new relevant errors.
 - No Play Mode test was run unless explicitly requested.

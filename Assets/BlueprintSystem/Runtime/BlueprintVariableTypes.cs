@@ -357,7 +357,7 @@ namespace BlueprintSystem
         public static bool IsSupportedElementType(string elementType)
         {
             if (string.IsNullOrEmpty(elementType) || IsArrayType(elementType) ||
-                elementType.StartsWith("UIBinding<", StringComparison.Ordinal))
+                elementType.StartsWith("Binding<", StringComparison.Ordinal))
             {
                 return false;
             }

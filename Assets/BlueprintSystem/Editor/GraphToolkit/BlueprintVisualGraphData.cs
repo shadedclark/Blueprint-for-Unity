@@ -113,7 +113,7 @@ namespace BlueprintSystem.Editor
                 case "string":
                     return typeof(string);
                 default:
-                    if (blueprintType.StartsWith("UIBinding<", StringComparison.Ordinal))
+                    if (blueprintType.StartsWith("Binding<", StringComparison.Ordinal))
                     {
                         return typeof(string);
                     }

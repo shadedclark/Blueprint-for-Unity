@@ -1,0 +1,389 @@
+{
+  "schemaVersion": "0.1",
+  "name": "SelectorBranchVisualizer",
+  "category": "BehaviorTree/Demo",
+  "description": "Visualizes the selector composite demo from Behavior Tree-triggered Blueprint events.",
+  "variables": [
+    {
+      "id": "var_5a2a177b09584a71a9984b214ac5ed8a",
+      "name": "selected_branch",
+      "type": "string",
+      "defaultValue": "None",
+      "scope": "runtime",
+      "exposed": true,
+      "description": "Latest selector branch reported by the behavior tree."
+    }
+  ],
+  "bindings": [
+    {
+      "name": "patrol_renderer",
+      "type": "Renderer",
+      "required": true
+    },
+    {
+      "name": "patrol_marker",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "engage_renderer",
+      "type": "Renderer",
+      "required": true
+    },
+    {
+      "name": "engage_marker",
+      "type": "Transform",
+      "required": true
+    },
+    {
+      "name": "status_label",
+      "type": "TMP_Text",
+      "required": true
+    }
+  ],
+  "components": [],
+  "nodes": [
+    {
+      "id": "event_patrol_selected",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        -360
+      ],
+      "properties": {
+        "eventName": "PatrolFallbackSelected"
+      }
+    },
+    {
+      "id": "set_branch_patrol",
+      "typeId": "Variable.Set",
+      "position": [
+        240,
+        -360
+      ],
+      "properties": {
+        "name": "selected_branch",
+        "value": "PatrolFallback"
+      }
+    },
+    {
+      "id": "event_engage_selected",
+      "typeId": "Game.Event.Custom",
+      "position": [
+        0,
+        -220
+      ],
+      "properties": {
+        "eventName": "EngageSelected"
+      }
+    },
+    {
+      "id": "set_branch_engage",
+      "typeId": "Variable.Set",
+      "position": [
+        240,
+        -220
+      ],
+      "properties": {
+        "name": "selected_branch",
+        "value": "Engage"
+      }
+    },
+    {
+      "id": "event_tick",
+      "typeId": "Game.Event.OnTick",
+      "position": [
+        0,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "get_branch",
+      "typeId": "Variable.Get",
+      "position": [
+        220,
+        -120
+      ],
+      "properties": {
+        "name": "selected_branch"
+      }
+    },
+    {
+      "id": "sequence_tick",
+      "typeId": "Flow.Sequence",
+      "position": [
+        220,
+        0
+      ],
+      "properties": {}
+    },
+    {
+      "id": "compare_patrol",
+      "typeId": "Variable.Compare",
+      "position": [
+        440,
+        -120
+      ],
+      "properties": {
+        "right": "PatrolFallback",
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "branch_patrol",
+      "typeId": "Flow.Branch",
+      "position": [
+        440,
+        40
+      ],
+      "properties": {}
+    },
+    {
+      "id": "set_patrol_active_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        680,
+        -40
+      ],
+      "properties": {
+        "target": "patrol_renderer",
+        "value": [
+          0.25,
+          0.65,
+          1,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_patrol_active_scale",
+      "typeId": "Game.SetTransformLocalScale",
+      "position": [
+        920,
+        -40
+      ],
+      "properties": {
+        "target": "patrol_marker",
+        "value": [
+          0.9,
+          0.18,
+          0.9
+        ]
+      }
+    },
+    {
+      "id": "set_patrol_inactive_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        680,
+        120
+      ],
+      "properties": {
+        "target": "patrol_renderer",
+        "value": [
+          0.28,
+          0.3,
+          0.34,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_patrol_inactive_scale",
+      "typeId": "Game.SetTransformLocalScale",
+      "position": [
+        920,
+        120
+      ],
+      "properties": {
+        "target": "patrol_marker",
+        "value": [
+          0.65,
+          0.12,
+          0.65
+        ]
+      }
+    },
+    {
+      "id": "compare_engage",
+      "typeId": "Variable.Compare",
+      "position": [
+        440,
+        300
+      ],
+      "properties": {
+        "right": "Engage",
+        "comparison": "Equals"
+      }
+    },
+    {
+      "id": "branch_engage",
+      "typeId": "Flow.Branch",
+      "position": [
+        440,
+        460
+      ],
+      "properties": {}
+    },
+    {
+      "id": "set_engage_active_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        680,
+        380
+      ],
+      "properties": {
+        "target": "engage_renderer",
+        "value": [
+          1,
+          0.26,
+          0.2,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_engage_active_scale",
+      "typeId": "Game.SetTransformLocalScale",
+      "position": [
+        920,
+        380
+      ],
+      "properties": {
+        "target": "engage_marker",
+        "value": [
+          0.65,
+          0.65,
+          0.65
+        ]
+      }
+    },
+    {
+      "id": "set_engage_inactive_color",
+      "typeId": "Game.SetRendererMaterialColor",
+      "position": [
+        680,
+        540
+      ],
+      "properties": {
+        "target": "engage_renderer",
+        "value": [
+          0.28,
+          0.3,
+          0.34,
+          1
+        ],
+        "propertyName": "_BaseColor"
+      }
+    },
+    {
+      "id": "set_engage_inactive_scale",
+      "typeId": "Game.SetTransformLocalScale",
+      "position": [
+        920,
+        540
+      ],
+      "properties": {
+        "target": "engage_marker",
+        "value": [
+          0.42,
+          0.42,
+          0.42
+        ]
+      }
+    },
+    {
+      "id": "set_status_label",
+      "typeId": "UI.SetText",
+      "position": [
+        440,
+        760
+      ],
+      "properties": {
+        "target": "status_label"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "event_patrol_selected.execOut",
+      "to": "set_branch_patrol.execIn"
+    },
+    {
+      "from": "event_engage_selected.execOut",
+      "to": "set_branch_engage.execIn"
+    },
+    {
+      "from": "event_tick.execOut",
+      "to": "sequence_tick.execIn"
+    },
+    {
+      "from": "sequence_tick.then0",
+      "to": "branch_patrol.execIn"
+    },
+    {
+      "from": "sequence_tick.then1",
+      "to": "branch_engage.execIn"
+    },
+    {
+      "from": "sequence_tick.then2",
+      "to": "set_status_label.execIn"
+    },
+    {
+      "from": "get_branch.value",
+      "to": "compare_patrol.left"
+    },
+    {
+      "from": "compare_patrol.result",
+      "to": "branch_patrol.condition"
+    },
+    {
+      "from": "branch_patrol.true",
+      "to": "set_patrol_active_color.execIn"
+    },
+    {
+      "from": "set_patrol_active_color.execOut",
+      "to": "set_patrol_active_scale.execIn"
+    },
+    {
+      "from": "branch_patrol.false",
+      "to": "set_patrol_inactive_color.execIn"
+    },
+    {
+      "from": "set_patrol_inactive_color.execOut",
+      "to": "set_patrol_inactive_scale.execIn"
+    },
+    {
+      "from": "get_branch.value",
+      "to": "compare_engage.left"
+    },
+    {
+      "from": "compare_engage.result",
+      "to": "branch_engage.condition"
+    },
+    {
+      "from": "branch_engage.true",
+      "to": "set_engage_active_color.execIn"
+    },
+    {
+      "from": "set_engage_active_color.execOut",
+      "to": "set_engage_active_scale.execIn"
+    },
+    {
+      "from": "branch_engage.false",
+      "to": "set_engage_inactive_color.execIn"
+    },
+    {
+      "from": "set_engage_inactive_color.execOut",
+      "to": "set_engage_inactive_scale.execIn"
+    },
+    {
+      "from": "get_branch.value",
+      "to": "set_status_label.value"
+    }
+  ]
+}

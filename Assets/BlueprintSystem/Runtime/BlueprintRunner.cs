@@ -4,6 +4,13 @@ using UnityEngine;
 
 namespace BlueprintSystem
 {
+    [Serializable]
+    public sealed class BlueprintBindingEntry
+    {
+        public string Name;
+        public UnityEngine.Object Target;
+    }
+
     public sealed class BlueprintReloadOptions
     {
         public bool PreserveVariables = true;
@@ -202,7 +209,7 @@ namespace BlueprintSystem
         }
     }
 
-    public class BlueprintRunner : MonoBehaviour, IBlueprintInstance
+    public class BlueprintRunner : MonoBehaviour, IBlueprintInstance, IBlueprintBindingResolver
     {
         private const string ReloadEventName = "OnReload";
 
@@ -217,11 +224,13 @@ namespace BlueprintSystem
         [SerializeField, HideInInspector] private string lateTickEventName = "OnLateTick";
         [SerializeField] private BlueprintRunner ownerRunner;
         [SerializeField] private List<BlueprintVariableOverride> variableOverrides = new List<BlueprintVariableOverride>();
+        [SerializeField] private List<BlueprintBindingEntry> bindings = new List<BlueprintBindingEntry>();
 
         private RuntimeBlueprint _blueprint;
         private BlueprintExecutionContext _context;
         private BlueprintVM _vm;
         private readonly Dictionary<string, IBlueprintInstance> _componentsByName = new Dictionary<string, IBlueprintInstance>();
+        private readonly Dictionary<string, UnityEngine.Object> _bindingsByName = new Dictionary<string, UnityEngine.Object>();
 
         public string InstanceName
         {
@@ -295,11 +304,12 @@ namespace BlueprintSystem
 
         protected virtual IBlueprintBindingResolver BindingResolver
         {
-            get { return new NullBlueprintBindingResolver(); }
+            get { return this; }
         }
 
         protected virtual void Awake()
         {
+            RebuildBindingCache();
             Compile();
         }
 
@@ -528,6 +538,59 @@ namespace BlueprintSystem
             return _blueprint != null &&
                    !string.IsNullOrEmpty(eventName) &&
                    _blueprint.EventEntries.ContainsKey(eventName);
+        }
+
+        public void RebuildBindingCache()
+        {
+            _bindingsByName.Clear();
+            for (int i = 0; i < bindings.Count; i++)
+            {
+                BlueprintBindingEntry entry = bindings[i];
+                if (entry != null && !string.IsNullOrEmpty(entry.Name) && entry.Target != null)
+                {
+                    _bindingsByName[entry.Name] = entry.Target;
+                }
+            }
+        }
+
+        public T Resolve<T>(string bindingName) where T : UnityEngine.Object
+        {
+            UnityEngine.Object resolved = Resolve(bindingName);
+            if (resolved == null)
+            {
+                return null;
+            }
+
+            T direct = resolved as T;
+            if (direct != null)
+            {
+                return direct;
+            }
+
+            GameObject gameObject = resolved as GameObject;
+            if (gameObject != null)
+            {
+                return gameObject.GetComponent<T>();
+            }
+
+            Component component = resolved as Component;
+            if (component != null)
+            {
+                return component.GetComponent<T>();
+            }
+
+            return null;
+        }
+
+        public UnityEngine.Object Resolve(string bindingName)
+        {
+            UnityEngine.Object target;
+            return _bindingsByName.TryGetValue(bindingName, out target) ? target : null;
+        }
+
+        public bool HasBinding(string bindingName)
+        {
+            return _bindingsByName.ContainsKey(bindingName);
         }
 
         public bool TryGetBlueprintComponent(string componentName, out IBlueprintInstance component)

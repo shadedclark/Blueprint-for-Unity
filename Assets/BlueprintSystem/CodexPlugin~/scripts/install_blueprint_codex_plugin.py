@@ -224,7 +224,7 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
     if not source_marketplace.is_file():
         raise FileNotFoundError(f"Missing source marketplace file: {source_marketplace}")
 
-    target_plugin = project_root / "plugins" / PLUGIN_NAME
+    target_plugin = marketplace_root / "plugins" / PLUGIN_NAME
     target_marketplace = marketplace_root / "marketplace.json"
 
     if not dry_run:
@@ -242,7 +242,7 @@ def install(project_root: Path, marketplace_root: Path, dry_run: bool) -> dict[s
         "packageRoot": str(package_root),
         "sourcePlugin": str(source_plugin),
         "targetPlugin": str(target_plugin),
-        "marketplaceRoot": str(project_root),
+        "marketplaceRoot": str(marketplace_root),
         "marketplacePath": str(target_marketplace),
         "marketplaceAddCommand": f"codex plugin marketplace add {project_root}",
         "viewUrl": build_deeplink(target_marketplace, share=False),
@@ -268,7 +268,7 @@ def parse_args() -> argparse.Namespace:
         default="",
         help=(
             "Marketplace manifest directory. Defaults to <project_root>/.agents/plugins. "
-            "Plugin folders are installed under <project_root>/plugins."
+            "Plugin folders are installed under <marketplace-root>/plugins."
         ),
     )
     parser.add_argument(

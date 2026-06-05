@@ -187,7 +187,7 @@ Rules:
 
 - Prefer stable anchor names that the BlueprintSystem pass can use directly.
 - Group anchors by display unit and report the display unit for each anchor.
-- Object/component types must be compatible with BlueprintSystem-supported `UIBinding<T>` types when the expected behavior is known.
+- Object/component types must be compatible with BlueprintSystem-supported `Binding<T>` types when the expected behavior is known.
 - Do not create final `UIBlueprintBinder` entries in the first UI subagent pass.
 - Do not attach BlueprintSystem components to UI objects in the first UI subagent pass.
 - Report any anchor that cannot satisfy the expected BlueprintSystem binding type so the entry agent can reconcile it before the BlueprintSystem pass.
@@ -226,25 +226,25 @@ Use this table when choosing UI objects and binding targets for BlueprintSystem-
 
 | UI need | Binding type | Supported Blueprint node(s) | UI agent prototype setup |
 | --- | --- | --- | --- |
-| Text display | `UIBinding<TMP_Text>` | `UI.SetText` | Create a TextMeshPro `TMP_Text` component or a GameObject that has `TMP_Text`; report its anchor. |
-| Image sprite | `UIBinding<Image>` and `UIBinding<Sprite>` | `UI.SetImageSprite`, `UI.SpriteBinding` | Create the target Unity UI `Image`; report sprite asset placeholders separately when needed. |
-| Image fill/progress | `UIBinding<Image>` | `UI.SetImageFillAmount` | Use a Unity UI `Image` configured for fill when progress/radial bars are needed. |
-| Visibility | `UIBinding<GameObject>` | `UI.SetVisible` | Create the root GameObject or component owner that should be activated/deactivated; report its anchor. |
-| Interactable state | `UIBinding<Selectable>` | `UI.SetInteractable` | Create `Button`, `Toggle`, `Slider`, `Dropdown`, `InputField`, or another `Selectable`-derived component. |
-| Graphic color | `UIBinding<Graphic>` | `UI.SetGraphicColor` | Create a compatible `Graphic`, including `Image` and TMP text graphics when color changes are needed. |
-| Graphic enabled state | `UIBinding<Graphic>` | `UI.SetGraphicEnabled` | Create a `Graphic` whose rendering can be enabled/disabled without hiding the whole GameObject. |
-| Raycast target state | `UIBinding<Graphic>` | `UI.SetGraphicRaycastTarget` | Create a `Graphic` whose `raycastTarget` can be controlled. |
-| Fade/block/interactable group | `UIBinding<CanvasGroup>` | `UI.SetCanvasGroupAlpha`, `UI.SetCanvasGroupInteractable`, `UI.SetCanvasGroupBlocksRaycasts` | Add a `CanvasGroup` on screen, dialog, modal, or panel roots. |
-| Rect position/size/scale | `UIBinding<RectTransform>` | `UI.SetRectAnchoredPosition`, `UI.SetRectSizeDelta`, `UI.SetRectLocalScale` | Create the `RectTransform` that BlueprintSystem may move, resize, or scale. |
-| Button click | `UIBinding<Button>` | `UI.BindButtonClick` | Create a Unity UI `Button`; report the intended click event anchor. |
-| Button gestures | `UIBinding<Button>` | `UI.BindButtonEvents` | Create a `Button`; report whether clicked, double-clicked, or long-pressed behavior is expected. |
-| Toggle changed | `UIBinding<Toggle>` | `UI.BindToggleChanged` | Create a Unity UI `Toggle`; report changed, turned-on, or turned-off intent. |
-| Loop/list refresh | `UIBinding<BlueprintLoopScrollView>` | `UI.RefreshLoopScrollView` | Create the visual list/scroll prototype and report where `BlueprintLoopScrollView` should be attached later if needed. |
+| Text display | `Binding<TMP_Text>` | `UI.SetText` | Create a TextMeshPro `TMP_Text` component or a GameObject that has `TMP_Text`; report its anchor. |
+| Image sprite | `Binding<Image>` and `Binding<Sprite>` | `UI.SetImageSprite`, `UI.SpriteBinding` | Create the target Unity UI `Image`; report sprite asset placeholders separately when needed. |
+| Image fill/progress | `Binding<Image>` | `UI.SetImageFillAmount` | Use a Unity UI `Image` configured for fill when progress/radial bars are needed. |
+| Visibility | `Binding<GameObject>` | `UI.SetVisible` | Create the root GameObject or component owner that should be activated/deactivated; report its anchor. |
+| Interactable state | `Binding<Selectable>` | `UI.SetInteractable` | Create `Button`, `Toggle`, `Slider`, `Dropdown`, `InputField`, or another `Selectable`-derived component. |
+| Graphic color | `Binding<Graphic>` | `UI.SetGraphicColor` | Create a compatible `Graphic`, including `Image` and TMP text graphics when color changes are needed. |
+| Graphic enabled state | `Binding<Graphic>` | `UI.SetGraphicEnabled` | Create a `Graphic` whose rendering can be enabled/disabled without hiding the whole GameObject. |
+| Raycast target state | `Binding<Graphic>` | `UI.SetGraphicRaycastTarget` | Create a `Graphic` whose `raycastTarget` can be controlled. |
+| Fade/block/interactable group | `Binding<CanvasGroup>` | `UI.SetCanvasGroupAlpha`, `UI.SetCanvasGroupInteractable`, `UI.SetCanvasGroupBlocksRaycasts` | Add a `CanvasGroup` on screen, dialog, modal, or panel roots. |
+| Rect position/size/scale | `Binding<RectTransform>` | `UI.SetRectAnchoredPosition`, `UI.SetRectSizeDelta`, `UI.SetRectLocalScale` | Create the `RectTransform` that BlueprintSystem may move, resize, or scale. |
+| Button click | `Binding<Button>` | `UI.BindButtonClick` | Create a Unity UI `Button`; report the intended click event anchor. |
+| Button gestures | `Binding<Button>` | `UI.BindButtonEvents` | Create a `Button`; report whether clicked, double-clicked, or long-pressed behavior is expected. |
+| Toggle changed | `Binding<Toggle>` | `UI.BindToggleChanged` | Create a Unity UI `Toggle`; report changed, turned-on, or turned-off intent. |
+| Loop/list refresh | `Binding<BlueprintLoopScrollView>` | `UI.RefreshLoopScrollView` | Create the visual list/scroll prototype and report where `BlueprintLoopScrollView` should be attached later if needed. |
 | Screen open/close lifecycle | no binding target | `UI.Event.OnOpen`, `UI.Event.OnClose` | Create a stable screen root that can receive lifecycle setup in the final integration pass. |
 
 Resolution notes:
 
-- A final binding can point directly at the expected component or at a GameObject/component owner where `UIBlueprintBinder.Resolve<T>()` can find `T` with `GetComponent<T>()`.
+- A final binding can point directly at the expected component or at a GameObject/component owner where `BlueprintRunner.Resolve<T>()` can find `T` with `GetComponent<T>()`.
 - Prefer prototype anchors on the most specific component expected by the blueprint, for example `Button` for button events and `CanvasGroup` for modal fade/block behavior.
 - If a requested UI behavior needs a component or event not listed here, report it as unsupported instead of inventing a hidden C# workaround.
 
@@ -252,7 +252,7 @@ Quick lookup commands:
 
 ```sh
 find Assets/BlueprintSystem/Specs/Nodes -maxdepth 1 -type f -name 'UI.*.node.json' -print | sort
-rg -n 'UIBinding<|UI\\.Set|UI\\.Bind|UI\\.Refresh|UI\\.Event' Assets/BlueprintSystem/Specs/Nodes/UI.*.node.json Assets/BlueprintSystem/GUIDE.md
+rg -n 'Binding<|UI\\.Set|UI\\.Bind|UI\\.Refresh|UI\\.Event' Assets/BlueprintSystem/Specs/Nodes/UI.*.node.json Assets/BlueprintSystem/GUIDE.md
 ```
 
 ## Work Scope

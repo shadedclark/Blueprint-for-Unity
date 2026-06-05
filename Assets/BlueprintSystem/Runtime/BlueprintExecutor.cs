@@ -222,6 +222,17 @@ namespace BlueprintSystem
             registry.Register(new BlueprintTriggerEventExecutor());
             registry.Register(new BlueprintGetVariableExecutor());
             registry.Register(new BlueprintSetVariableExecutor());
+            registry.Register(new BehaviorTreeGetBlackboardBoolExecutor());
+            registry.Register(new BehaviorTreeGetBlackboardIntExecutor());
+            registry.Register(new BehaviorTreeGetBlackboardFloatExecutor());
+            registry.Register(new BehaviorTreeGetBlackboardStringExecutor());
+            registry.Register(new BehaviorTreeGetBlackboardVector3Executor());
+            registry.Register(new BehaviorTreeSetBlackboardBoolExecutor());
+            registry.Register(new BehaviorTreeSetBlackboardIntExecutor());
+            registry.Register(new BehaviorTreeSetBlackboardFloatExecutor());
+            registry.Register(new BehaviorTreeSetBlackboardStringExecutor());
+            registry.Register(new BehaviorTreeSetBlackboardVector3Executor());
+            registry.Register(new BehaviorTreeClearRunnerBlackboardExecutor());
             registry.Register(new GameLogExecutor());
             registry.Register(new GameSendEventExecutor());
             registry.Register(new GameLoadSceneExecutor());
