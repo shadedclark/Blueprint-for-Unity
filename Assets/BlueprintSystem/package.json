@@ -1,6 +1,6 @@
 {
   "name": "com.shadedclark.blueprint-system",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "displayName": "Blueprint System",
   "description": "A JSON-first Unity blueprint runtime and editor toolset.",
   "unity": "6000.0",
