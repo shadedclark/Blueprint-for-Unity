@@ -401,11 +401,52 @@ namespace BlueprintSystem.Tests
             BehaviorTreeDebugSnapshot runningSnapshot = runtime.CreateDebugSnapshot();
             Assert.Contains("wait_short", runningSnapshot.ActivePath);
             Assert.AreEqual("Running", runningSnapshot.NodeStatuses["wait_short"]);
+            Assert.AreEqual(1, runningSnapshot.TickIndex);
+            Assert.AreEqual(BehaviorTreeStatus.Running, runningSnapshot.LastStatus);
+            Assert.Contains("wait_short", runningSnapshot.RunningTaskNodeIds);
+            Assert.AreEqual("wait_short", runningSnapshot.RunningTaskNodeId);
 
             Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.15f));
             BehaviorTreeDebugSnapshot successSnapshot = runtime.CreateDebugSnapshot();
             Assert.AreEqual("Success", successSnapshot.NodeStatuses["root"]);
+            Assert.AreEqual(2, successSnapshot.TickIndex);
+            Assert.AreEqual(BehaviorTreeStatus.Success, successSnapshot.LastStatus);
             Assert.True(successSnapshot.DecoratorResults["flag_is_set"]);
+        }
+
+        [Test]
+        public void BehaviorTreeRuntimeDebugSnapshotReportsServiceState()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "ServiceDebugSnapshotTest";
+            source.Root = "root";
+            source.Blackboard.Add(CreateBlackboardKey("TargetPosition", "Vector3", new List<object> { 1f, 0f, 0f }));
+            source.Blackboard.Add(CreateBlackboardKey("Distance", "float", 0f));
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("wait_with_service");
+
+            BehaviorTreeNodeSource wait = AddBehaviorTreeNode(source, "wait_with_service", "BT.Wait");
+            wait.Properties["duration"] = 1f;
+            wait.Services.Add("update_distance");
+
+            BehaviorTreeServiceSource service = new BehaviorTreeServiceSource();
+            service.Id = "update_distance";
+            service.TypeId = "BT.UpdateDistance";
+            service.Interval = 0.2f;
+            service.Properties["targetKey"] = "TargetPosition";
+            service.Properties["distanceKey"] = "Distance";
+            source.Services.Add(service);
+
+            BehaviorTreeRuntime runtime = CompileBehaviorTreeRuntime(source);
+
+            Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            BehaviorTreeDebugSnapshot snapshot = runtime.CreateDebugSnapshot();
+            Assert.True(snapshot.ServiceStates.ContainsKey("update_distance"));
+            Assert.True(snapshot.ServiceStates["update_distance"].Active);
+            Assert.AreEqual(0f, snapshot.ServiceStates["update_distance"].LastTickTime);
+            Assert.AreEqual(0.2f, snapshot.ServiceStates["update_distance"].NextTickTime);
         }
 
         [Test]
@@ -474,6 +515,13 @@ namespace BlueprintSystem.Tests
                 Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
                 Assert.AreEqual(false, runtime.Blackboard.GetValue("flag"));
                 Assert.AreEqual("merged", runtime.Blackboard.GetValue("ChildOnly"));
+                BehaviorTreeDebugSnapshot snapshot = runtime.CreateDebugSnapshot();
+                Assert.AreEqual(parentPath, snapshot.SourcePath);
+                Assert.Contains("run_subtree", snapshot.RunningTaskNodeIds);
+                Assert.True(snapshot.SubtreeSnapshots.ContainsKey("run_subtree"));
+                Assert.AreEqual(childPath, snapshot.SubtreeSnapshots["run_subtree"].SourcePath);
+                Assert.Contains("wait", snapshot.SubtreeSnapshots["run_subtree"].ActivePath);
+                Assert.Contains("wait", snapshot.SubtreeSnapshots["run_subtree"].RunningTaskNodeIds);
 
                 Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.15f));
                 Assert.AreEqual(true, runtime.Blackboard.GetValue("flag"));
@@ -1030,8 +1078,46 @@ namespace BlueprintSystem.Tests
             BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, null, null);
 
             Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+            BehaviorTreeDebugSnapshot firstSnapshot = runtime.CreateDebugSnapshot();
+            Assert.Contains("wait_short", firstSnapshot.RunningTaskNodeIds);
+            Assert.Contains("wait_long", firstSnapshot.RunningTaskNodeIds);
+
             Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0.15f));
+            BehaviorTreeDebugSnapshot secondSnapshot = runtime.CreateDebugSnapshot();
+            Assert.False(secondSnapshot.RunningTaskNodeIds.Contains("wait_short"));
+            Assert.Contains("wait_long", secondSnapshot.RunningTaskNodeIds);
+
             Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+        }
+
+        [Test]
+        public void BehaviorTreeDebugVisualStylePrefersRunningAndFadesOldStatus()
+        {
+            BehaviorTreeDebugSnapshot snapshot = new BehaviorTreeDebugSnapshot();
+            snapshot.TimeSeconds = 2f;
+            snapshot.ActivePath.Add("active");
+            snapshot.RunningTaskNodeIds.Add("running");
+            snapshot.NodeStatuses["old_success"] = BehaviorTreeStatus.Success.ToString();
+            snapshot.NodeTickTimes["old_success"] = 0f;
+            snapshot.DecoratorResults["condition"] = false;
+
+            BehaviorTreeDebugVisualStyle runningStyle =
+                BehaviorTreeRuntimeDebugEditorUtility.GetNodeVisualStyle(snapshot, "running", 1f);
+            Assert.AreEqual(BehaviorTreeDebugVisualState.Running, runningStyle.State);
+
+            BehaviorTreeDebugVisualStyle activeStyle =
+                BehaviorTreeRuntimeDebugEditorUtility.GetNodeVisualStyle(snapshot, "active", 1f);
+            Assert.AreEqual(BehaviorTreeDebugVisualState.Active, activeStyle.State);
+
+            BehaviorTreeDebugVisualStyle staleStyle =
+                BehaviorTreeRuntimeDebugEditorUtility.GetNodeVisualStyle(snapshot, "old_success", 1f);
+            Assert.AreEqual(BehaviorTreeDebugVisualState.StaleStatus, staleStyle.State);
+            Assert.Less(staleStyle.Opacity, 1f);
+
+            BehaviorTreeDebugVisualStyle decoratorStyle =
+                BehaviorTreeRuntimeDebugEditorUtility.GetDecoratorVisualStyle(snapshot, "condition");
+            Assert.AreEqual(BehaviorTreeDebugVisualState.Failure, decoratorStyle.State);
+            Assert.AreEqual("FALSE", decoratorStyle.Label);
         }
 
         [Test]

@@ -13,6 +13,17 @@ namespace BlueprintSystem.Editor
         private const float TypeWidth = 95f;
         private const float ModeWidth = 80f;
         private const float ResetWidth = 52f;
+        private double _nextRuntimeDebugRepaintTime;
+
+        private void OnEnable()
+        {
+            EditorApplication.update += RepaintRuntimeDebug;
+        }
+
+        private void OnDisable()
+        {
+            EditorApplication.update -= RepaintRuntimeDebug;
+        }
 
         public override void OnInspectorGUI()
         {
@@ -27,6 +38,34 @@ namespace BlueprintSystem.Editor
             SerializedProperty compiledProperty = serializedObject.FindProperty("compiledBehaviorTree");
             DrawBlackboardOverrides(compiledProperty == null ? null : compiledProperty.objectReferenceValue as BehaviorTreeCompiledAsset);
             serializedObject.ApplyModifiedProperties();
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Runtime Debug", EditorStyles.boldLabel);
+            if (targets.Length != 1)
+            {
+                EditorGUILayout.HelpBox("Select one BehaviorTreeRunner to inspect runtime debug state.", MessageType.Info);
+            }
+            else
+            {
+                BehaviorTreeRuntimeDebugEditorUtility.DrawRunnerDebugPanel(target as BehaviorTreeRunner);
+            }
+        }
+
+        private void RepaintRuntimeDebug()
+        {
+            if (!Application.isPlaying || target == null || EditorApplication.timeSinceStartup < _nextRuntimeDebugRepaintTime)
+            {
+                return;
+            }
+
+            BehaviorTreeRunner runner = target as BehaviorTreeRunner;
+            if (runner == null || !runner.IsRunning)
+            {
+                return;
+            }
+
+            _nextRuntimeDebugRepaintTime = EditorApplication.timeSinceStartup + 0.1d;
+            Repaint();
         }
 
         private void SyncBlackboardOverridesForTargets()

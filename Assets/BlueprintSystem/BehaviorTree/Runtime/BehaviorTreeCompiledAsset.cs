@@ -110,6 +110,8 @@ namespace BlueprintSystem
             registry = registry ?? BehaviorTreeExecutorRegistry.CreateDefault();
             RuntimeBehaviorTree tree = new RuntimeBehaviorTree();
             tree.Name = behaviorTreeName;
+            tree.SourceGuid = sourceGuid;
+            tree.SourcePath = sourcePath;
             tree.RootNodeId = rootNodeId;
             tree.Registry = registry;
 

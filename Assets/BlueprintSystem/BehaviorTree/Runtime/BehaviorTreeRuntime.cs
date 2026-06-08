@@ -30,6 +30,8 @@ namespace BlueprintSystem
     public sealed class RuntimeBehaviorTree
     {
         public string Name;
+        public string SourceGuid;
+        public string SourcePath;
         public string RootNodeId;
         public BehaviorTreeExecutorRegistry Registry;
         public readonly List<BehaviorTreeBlackboardKey> BlackboardSchema = new List<BehaviorTreeBlackboardKey>();
@@ -466,11 +468,28 @@ namespace BlueprintSystem
 
         public BehaviorTreeDebugSnapshot CreateDebugSnapshot()
         {
+            return CreateDebugSnapshot(new HashSet<BehaviorTreeRuntime>());
+        }
+
+        private BehaviorTreeDebugSnapshot CreateDebugSnapshot(HashSet<BehaviorTreeRuntime> visited)
+        {
             BehaviorTreeDebugSnapshot snapshot = new BehaviorTreeDebugSnapshot();
+            snapshot.TreeName = Tree == null ? null : Tree.Name;
+            snapshot.SourceGuid = Tree == null ? null : Tree.SourceGuid;
+            snapshot.SourcePath = Tree == null ? null : Tree.SourcePath;
+            snapshot.TickIndex = _tickIndex;
+            snapshot.TimeSeconds = _elapsedTime;
+            snapshot.LastStatus = LastStatus;
             snapshot.ActivePath.AddRange(_activePath);
             snapshot.BlackboardValues = Blackboard == null ? new Dictionary<string, object>() : Blackboard.ToDictionary();
             snapshot.LastAbortReason = LastAbortReason;
             snapshot.LastFailureReason = LastFailureReason;
+
+            if (!visited.Add(this))
+            {
+                snapshot.LastFailureReason = "Behavior tree debug snapshot recursion was stopped.";
+                return snapshot;
+            }
 
             foreach (KeyValuePair<string, BehaviorTreeNodeRuntimeState> pair in _nodeStates)
             {
@@ -487,8 +506,14 @@ namespace BlueprintSystem
                     Tree.GetNode(pair.Key) != null &&
                     BehaviorTreeNodeTypeUtility.IsTask(Tree.GetNode(pair.Key).TypeId))
                 {
-                    snapshot.RunningTaskNodeId = pair.Key;
+                    snapshot.RunningTaskNodeIds.Add(pair.Key);
+                    if (string.IsNullOrEmpty(snapshot.RunningTaskNodeId))
+                    {
+                        snapshot.RunningTaskNodeId = pair.Key;
+                    }
                 }
+
+                AddSubtreeSnapshots(snapshot, pair.Key, state, visited);
             }
 
             foreach (KeyValuePair<string, BehaviorTreeDecoratorRuntimeState> pair in _decoratorStates)
@@ -499,7 +524,45 @@ namespace BlueprintSystem
                 }
             }
 
+            foreach (KeyValuePair<string, BehaviorTreeServiceRuntimeState> pair in _serviceStates)
+            {
+                BehaviorTreeServiceRuntimeState state = pair.Value;
+                if (state == null)
+                {
+                    continue;
+                }
+
+                snapshot.ServiceStates[pair.Key] = new BehaviorTreeDebugServiceState
+                {
+                    Active = state.Active,
+                    LastTickTime = state.LastTickTime,
+                    NextTickTime = state.NextTickTime
+                };
+            }
+
             return snapshot;
+        }
+
+        private static void AddSubtreeSnapshots(
+            BehaviorTreeDebugSnapshot snapshot,
+            string nodeId,
+            BehaviorTreeNodeRuntimeState state,
+            HashSet<BehaviorTreeRuntime> visited)
+        {
+            if (snapshot == null || state == null || state.Data == null || string.IsNullOrEmpty(nodeId))
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, object> pair in state.Data)
+            {
+                BehaviorTreeRuntime subtreeRuntime = pair.Value as BehaviorTreeRuntime;
+                if (subtreeRuntime != null)
+                {
+                    snapshot.SubtreeSnapshots[nodeId] = subtreeRuntime.CreateDebugSnapshot(visited);
+                    return;
+                }
+            }
         }
     }
 
@@ -587,13 +650,29 @@ namespace BlueprintSystem
     public sealed class BehaviorTreeDebugSnapshot
     {
         public readonly List<string> ActivePath = new List<string>();
+        public readonly List<string> RunningTaskNodeIds = new List<string>();
         public readonly Dictionary<string, string> NodeStatuses = new Dictionary<string, string>(StringComparer.Ordinal);
         public readonly Dictionary<string, float> NodeTickTimes = new Dictionary<string, float>(StringComparer.Ordinal);
         public readonly Dictionary<string, bool> DecoratorResults = new Dictionary<string, bool>(StringComparer.Ordinal);
+        public readonly Dictionary<string, BehaviorTreeDebugServiceState> ServiceStates = new Dictionary<string, BehaviorTreeDebugServiceState>(StringComparer.Ordinal);
+        public readonly Dictionary<string, BehaviorTreeDebugSnapshot> SubtreeSnapshots = new Dictionary<string, BehaviorTreeDebugSnapshot>(StringComparer.Ordinal);
         public Dictionary<string, object> BlackboardValues = new Dictionary<string, object>(StringComparer.Ordinal);
+        public string TreeName;
+        public string SourceGuid;
+        public string SourcePath;
+        public int TickIndex;
+        public float TimeSeconds;
+        public BehaviorTreeStatus LastStatus;
         public string RunningTaskNodeId;
         public string LastAbortReason;
         public string LastFailureReason;
+    }
+
+    public sealed class BehaviorTreeDebugServiceState
+    {
+        public bool Active;
+        public float LastTickTime;
+        public float NextTickTime;
     }
 
     public sealed class BehaviorTreeBlackboard
