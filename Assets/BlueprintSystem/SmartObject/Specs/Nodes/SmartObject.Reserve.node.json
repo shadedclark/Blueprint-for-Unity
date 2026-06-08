@@ -1,0 +1,130 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "SmartObject.Reserve",
+  "title": "SmartObject Reserve",
+  "category": "SmartObject",
+  "description": "Reserves a specific SmartObject slot and returns a reservation token.",
+  "executor": "SmartObject.Reserve",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "requesterId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "objectId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "slotId",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "activity",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "holdSeconds",
+      "kind": "value",
+      "type": "float",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "accessGroup",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "reservationToken",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "targetPosition",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "facingPosition",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "useDuration",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "failReason",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "requesterId",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "objectId",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "slotId",
+      "required": false,
+      "type": "int",
+      "defaultValue": -1
+    },
+    {
+      "id": "activity",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "holdSeconds",
+      "required": false,
+      "type": "float",
+      "defaultValue": 30
+    },
+    {
+      "id": "accessGroup",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

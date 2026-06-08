@@ -189,6 +189,12 @@ Use these Blueprint nodes when scene UI, demo visualization, or a normal Bluepri
 Keep GameObject and Transform Blackboard writes in C# or Behavior Tree nodes until a binding-based object write node is explicitly needed.
 ```
 
+## SmartObject Module
+
+SmartObject is a core module kept under `Assets/BlueprintSystem/SmartObject` rather than the generic node folders. It is default-on with BlueprintSystem, but its runtime, executors, manifests, Graph Toolkit nodes, tests, and detailed guide stay inside that module directory.
+
+The module exposes `SmartObject.FindBest`, `SmartObject.Reserve`, `SmartObject.BeginUse`, `SmartObject.Release`, `SmartObject.GetReservationInfo`, and `SmartObject.ReleaseByRequester`. Detailed authoring rules, port lists, fail reasons, and duplicate-node guidance live in `Assets/BlueprintSystem/SmartObject/GUIDE.md`.
+
 ## Blueprint Asset Variables
 
 Graph Toolkit supports a `Blueprint` blackboard variable type for `.blueprint.json` asset references. This is an editor-friendly path value: the JSON default value is the blueprint asset path string, not a `BlueprintRef`, `BlueprintRunner`, `TextAsset`, or other Unity object reference. Dragging a `.blueprint.json` asset into a visual graph can create a `Blueprint` variable and then a normal `Variable.Get` or `Variable.Set` node for that variable. Cross-blueprint access nodes accept this same `Blueprint` type on their `target` input, and the same target input can also receive runtime `BlueprintRef` output from `Blueprint.GetOwner` or `Blueprint.GetComponent`.
@@ -2418,7 +2424,7 @@ Async asset loading
 Before creating a new node:
 
 1. Search this guide for the intended behavior.
-2. Search `Assets/BlueprintSystem/Specs/Nodes` for a similar `typeId`.
+2. Search `Assets/BlueprintSystem/Specs/Nodes` and `Assets/BlueprintSystem/*/Specs/Nodes` for a similar `typeId`.
 3. Search `BlueprintExecutorRegistry.CreateDefault()` for an existing executor.
 4. Prefer extending an existing node only when the semantics remain the same.
 5. Prefer a new node when the runtime side effect, lifecycle, or target Unity API differs.
@@ -2433,6 +2439,8 @@ Required files for a new public node:
 5. Tests in Assets/BlueprintSystem/Tests/Editor/BlueprintSystemTests.cs
 6. Update this GUIDE.md
 ```
+
+Feature modules may keep the same surfaces under `Assets/BlueprintSystem/<Module>/Specs/Nodes`, `Executors`, `Editor/GraphToolkit`, and `Tests/Editor`. Use a small module registrar when a node family would otherwise add several lines to `BlueprintExecutorRegistry.CreateDefault()`.
 
 Naming conventions:
 

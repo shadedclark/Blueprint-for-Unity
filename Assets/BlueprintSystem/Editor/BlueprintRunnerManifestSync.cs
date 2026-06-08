@@ -743,6 +743,7 @@ namespace BlueprintSystem.Editor
     {
         private const string PackageManifestRoot = "Packages/com.shadedclark.blueprint-system/Specs/Nodes";
         private const string ProjectManifestRoot = "Assets/BlueprintSystem/Specs/Nodes";
+        private const string ProjectModuleRoot = "Assets/BlueprintSystem";
 
         internal static BlueprintNodeManifestCollection LoadManifests()
         {
@@ -791,7 +792,9 @@ namespace BlueprintSystem.Editor
                 return false;
             }
 
-            return IsPathInRoot(path, PackageManifestRoot) || IsPathInRoot(path, ProjectManifestRoot);
+            return IsPathInRoot(path, PackageManifestRoot) ||
+                   IsPathInRoot(path, ProjectManifestRoot) ||
+                   IsProjectModuleManifestPath(path);
         }
 
         private static List<string> FindManifestAssetPaths()
@@ -813,7 +816,22 @@ namespace BlueprintSystem.Editor
             List<string> roots = new List<string>();
             AddManifestRootIfValid(roots, PackageManifestRoot);
             AddManifestRootIfValid(roots, ProjectManifestRoot);
+            AddProjectModuleManifestRoots(roots);
             return roots;
+        }
+
+        private static void AddProjectModuleManifestRoots(List<string> roots)
+        {
+            if (!AssetDatabase.IsValidFolder(ProjectModuleRoot))
+            {
+                return;
+            }
+
+            string[] moduleFolders = AssetDatabase.GetSubFolders(ProjectModuleRoot);
+            for (int i = 0; i < moduleFolders.Length; i++)
+            {
+                AddManifestRootIfValid(roots, NormalizeAssetPath(moduleFolders[i]) + "/Specs/Nodes");
+            }
         }
 
         private static void AddManifestRootIfValid(List<string> roots, string root)
@@ -850,6 +868,18 @@ namespace BlueprintSystem.Editor
             return !string.IsNullOrEmpty(path) &&
                    !string.IsNullOrEmpty(root) &&
                    path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsProjectModuleManifestPath(string path)
+        {
+            path = NormalizeAssetPath(path);
+            if (string.IsNullOrEmpty(path) ||
+                !path.StartsWith(ProjectModuleRoot + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return path.IndexOf("/Specs/Nodes/", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static string NormalizeAssetPath(string path)

@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "SmartObject.Release",
+  "title": "SmartObject Release",
+  "category": "SmartObject",
+  "description": "Releases a reservation or occupied slot owned by a reservation token.",
+  "executor": "SmartObject.Release",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "requesterId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "reservationToken",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "reason",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "objectId",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "slotId",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "previousState",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "failReason",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "requesterId",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "reservationToken",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "reason",
+      "required": false,
+      "type": "string",
+      "defaultValue": "Completed"
+    }
+  ]
+}

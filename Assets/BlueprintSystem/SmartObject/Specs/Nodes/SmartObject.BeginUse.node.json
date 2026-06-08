@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "SmartObject.BeginUse",
+  "title": "SmartObject Begin Use",
+  "category": "SmartObject",
+  "description": "Converts a valid reservation token into occupied slot state.",
+  "executor": "SmartObject.BeginUse",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "requesterId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "reservationToken",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "objectId",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "slotId",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "useDuration",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "failReason",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "requesterId",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "reservationToken",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

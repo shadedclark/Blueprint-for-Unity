@@ -1,0 +1,382 @@
+using System;
+using System.Collections.Generic;
+using BlueprintSystem.Editor;
+using NUnit.Framework;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+namespace BlueprintSystem.Tests
+{
+    public sealed class SmartObjectBlueprintSystemTests
+    {
+        [Test]
+        public void SmartObjectManifestsExecutorsAndVisualNodesAreAvailable()
+        {
+            string[] typeIds =
+            {
+                "SmartObject.FindBest",
+                "SmartObject.Reserve",
+                "SmartObject.BeginUse",
+                "SmartObject.Release",
+                "SmartObject.GetReservationInfo",
+                "SmartObject.ReleaseByRequester"
+            };
+
+            BlueprintNodeManifestCollection manifests = LoadManifests();
+            BlueprintExecutorRegistry registry = BlueprintExecutorRegistry.CreateDefault();
+            for (int i = 0; i < typeIds.Length; i++)
+            {
+                BlueprintNodeManifest manifest;
+                Assert.True(manifests.TryGet(typeIds[i], out manifest), typeIds[i]);
+                IBlueprintNodeExecutor executor;
+                Assert.True(registry.TryGet(manifest.Executor, out executor), manifest.Executor);
+
+                BlueprintNodeSource sourceNode = new BlueprintNodeSource
+                {
+                    Id = "smart_object_" + i,
+                    TypeId = typeIds[i]
+                };
+                BlueprintVisualNode visualNode = BlueprintGraphToolkitBridge.CreateVisualNode(sourceNode, manifest);
+                Assert.NotNull(visualNode, typeIds[i]);
+                Assert.AreEqual(typeIds[i], visualNode.ReadTypeId());
+            }
+        }
+
+        [Test]
+        public void SmartObjectFindBestFiltersAndScoresCandidates()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                objects.Add(CreateSmartObject("desk_low", "Work", new Vector3(1f, 0f, 0f), 0f, 0f, "Office", "Staff").gameObject);
+                objects.Add(CreateSmartObject("desk_best", "Work", new Vector3(3f, 0f, 0f), 30f, 0f, "Office", "Staff").gameObject);
+                SmartObjectComponent blocked = CreateSmartObject("desk_blocked", "Work", Vector3.zero, 100f, 0f, "Office", "Staff");
+                blocked.Slots[0].Blocked = true;
+                objects.Add(blocked.gameObject);
+
+                RuntimeNode find = CreateRuntimeNode("find_best", "SmartObject.FindBest");
+                find.Properties["requesterId"] = "npc-a";
+                find.Properties["activity"] = "Work";
+                find.Properties["center"] = Vector3.zero;
+                find.Properties["radius"] = 10f;
+                find.Properties["requiredTags"] = "Office";
+                find.Properties["forbiddenTags"] = string.Empty;
+                find.Properties["accessGroup"] = "Staff";
+                find.Properties["needScore"] = 0f;
+                find.Properties["maxDistancePenalty"] = 0f;
+
+                SmartObjectFindBestExecutor executor = new SmartObjectFindBestExecutor();
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+
+                Assert.True((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual("desk_best", executor.Evaluate(context, find, "objectId"));
+                Assert.AreEqual(0, executor.Evaluate(context, find, "slotId"));
+
+                find.Properties["activity"] = "Sleep";
+                Assert.False((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual("NoCandidate", executor.Evaluate(context, find, "failReason"));
+
+                find.Properties["activity"] = "Work";
+                find.Properties["radius"] = 0.5f;
+                Assert.False((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual("OutOfRange", executor.Evaluate(context, find, "failReason"));
+
+                find.Properties["radius"] = 10f;
+                find.Properties["accessGroup"] = "Guest";
+                Assert.False((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual("AccessDenied", executor.Evaluate(context, find, "failReason"));
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
+        public void SmartObjectReserveBeginUseReleaseLifecycle()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                SmartObjectComponent smartObject = CreateSmartObject("bench_1", "Relax", Vector3.zero, 0f, 0f, "Park", string.Empty);
+                objects.Add(smartObject.gameObject);
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+
+                RuntimeNode reserve = CreateRuntimeNode("reserve", "SmartObject.Reserve");
+                reserve.Properties["requesterId"] = "npc-a";
+                reserve.Properties["objectId"] = "bench_1";
+                reserve.Properties["slotId"] = 0;
+                reserve.Properties["activity"] = "Relax";
+                reserve.Properties["holdSeconds"] = 30f;
+                SmartObjectReserveExecutor reserveExecutor = new SmartObjectReserveExecutor();
+
+                Assert.AreEqual("execOut", reserveExecutor.Execute(context, reserve).NextExecPortId);
+                Assert.True((bool)reserveExecutor.Evaluate(context, reserve, "success"));
+                string token = (string)reserveExecutor.Evaluate(context, reserve, "reservationToken");
+                Assert.False(string.IsNullOrEmpty(token));
+
+                Assert.AreEqual("execOut", reserveExecutor.Execute(context, reserve).NextExecPortId);
+                Assert.True((bool)reserveExecutor.Evaluate(context, reserve, "success"));
+                Assert.AreEqual(token, reserveExecutor.Evaluate(context, reserve, "reservationToken"));
+
+                RuntimeNode competingReserve = CreateRuntimeNode("competing_reserve", "SmartObject.Reserve");
+                competingReserve.Properties["requesterId"] = "npc-b";
+                competingReserve.Properties["objectId"] = "bench_1";
+                competingReserve.Properties["slotId"] = 0;
+                competingReserve.Properties["activity"] = "Relax";
+                SmartObjectReserveExecutor competingReserveExecutor = new SmartObjectReserveExecutor();
+                competingReserveExecutor.Execute(context, competingReserve);
+                Assert.False((bool)competingReserveExecutor.Evaluate(context, competingReserve, "success"));
+                Assert.AreEqual("AlreadyReserved", competingReserveExecutor.Evaluate(context, competingReserve, "failReason"));
+
+                RuntimeNode beginUse = CreateRuntimeNode("begin_use", "SmartObject.BeginUse");
+                beginUse.Properties["requesterId"] = "npc-a";
+                beginUse.Properties["reservationToken"] = token;
+                SmartObjectBeginUseExecutor beginUseExecutor = new SmartObjectBeginUseExecutor();
+                beginUseExecutor.Execute(context, beginUse);
+                Assert.True((bool)beginUseExecutor.Evaluate(context, beginUse, "success"));
+                Assert.AreEqual("bench_1", beginUseExecutor.Evaluate(context, beginUse, "objectId"));
+
+                RuntimeNode info = CreateRuntimeNode("reservation_info", "SmartObject.GetReservationInfo");
+                info.Properties["reservationToken"] = token;
+                SmartObjectGetReservationInfoExecutor infoExecutor = new SmartObjectGetReservationInfoExecutor();
+                Assert.True((bool)infoExecutor.Evaluate(context, info, "valid"));
+                Assert.AreEqual("Occupied", infoExecutor.Evaluate(context, info, "state"));
+
+                RuntimeNode wrongRelease = CreateRuntimeNode("wrong_release", "SmartObject.Release");
+                wrongRelease.Properties["requesterId"] = "npc-b";
+                wrongRelease.Properties["reservationToken"] = token;
+                SmartObjectReleaseExecutor wrongReleaseExecutor = new SmartObjectReleaseExecutor();
+                wrongReleaseExecutor.Execute(context, wrongRelease);
+                Assert.False((bool)wrongReleaseExecutor.Evaluate(context, wrongRelease, "success"));
+                Assert.AreEqual("TokenOwnerMismatch", wrongReleaseExecutor.Evaluate(context, wrongRelease, "failReason"));
+
+                RuntimeNode release = CreateRuntimeNode("release", "SmartObject.Release");
+                release.Properties["requesterId"] = "npc-a";
+                release.Properties["reservationToken"] = token;
+                release.Properties["reason"] = SmartObjectReleaseReason.Completed;
+                SmartObjectReleaseExecutor releaseExecutor = new SmartObjectReleaseExecutor();
+                releaseExecutor.Execute(context, release);
+                Assert.True((bool)releaseExecutor.Evaluate(context, release, "success"));
+                Assert.AreEqual("Occupied", releaseExecutor.Evaluate(context, release, "previousState"));
+
+                RuntimeNode repeatRelease = CreateRuntimeNode("repeat_release", "SmartObject.Release");
+                repeatRelease.Properties["requesterId"] = "npc-a";
+                repeatRelease.Properties["reservationToken"] = token;
+                SmartObjectReleaseExecutor repeatReleaseExecutor = new SmartObjectReleaseExecutor();
+                repeatReleaseExecutor.Execute(context, repeatRelease);
+                Assert.False((bool)repeatReleaseExecutor.Evaluate(context, repeatRelease, "success"));
+                Assert.AreEqual("TokenInvalid", repeatReleaseExecutor.Evaluate(context, repeatRelease, "failReason"));
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
+        public void SmartObjectAccessClosedTimeoutAndRequesterCleanupReturnStableResults()
+        {
+            SmartObjectRegistry.ResetForTests();
+            SmartObjectRegistry.SetTimeProviderForTests(() => 10f);
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                SmartObjectComponent protectedObject = CreateSmartObject("protected_desk", "Work", Vector3.zero, 0f, 0f, "Office", "Staff");
+                objects.Add(protectedObject.gameObject);
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+
+                RuntimeNode deniedReserve = CreateRuntimeNode("denied_reserve", "SmartObject.Reserve");
+                deniedReserve.Properties["requesterId"] = "npc-a";
+                deniedReserve.Properties["objectId"] = "protected_desk";
+                deniedReserve.Properties["slotId"] = 0;
+                deniedReserve.Properties["activity"] = "Work";
+                deniedReserve.Properties["accessGroup"] = "Guest";
+                SmartObjectReserveExecutor deniedReserveExecutor = new SmartObjectReserveExecutor();
+                deniedReserveExecutor.Execute(context, deniedReserve);
+                Assert.False((bool)deniedReserveExecutor.Evaluate(context, deniedReserve, "success"));
+                Assert.AreEqual("AccessDenied", deniedReserveExecutor.Evaluate(context, deniedReserve, "failReason"));
+
+                SmartObjectComponent closedObject = CreateSmartObject("closed_desk", "Work", Vector3.zero, 0f, 0f, "Office", string.Empty);
+                closedObject.Slots[0].Closed = true;
+                objects.Add(closedObject.gameObject);
+                RuntimeNode closedReserve = CreateRuntimeNode("closed_reserve", "SmartObject.Reserve");
+                closedReserve.Properties["requesterId"] = "npc-a";
+                closedReserve.Properties["objectId"] = "closed_desk";
+                closedReserve.Properties["slotId"] = 0;
+                closedReserve.Properties["activity"] = "Work";
+                SmartObjectReserveExecutor closedReserveExecutor = new SmartObjectReserveExecutor();
+                closedReserveExecutor.Execute(context, closedReserve);
+                Assert.False((bool)closedReserveExecutor.Evaluate(context, closedReserve, "success"));
+                Assert.AreEqual("Closed", closedReserveExecutor.Evaluate(context, closedReserve, "failReason"));
+
+                RuntimeNode expiringReserve = CreateRuntimeNode("expiring_reserve", "SmartObject.Reserve");
+                expiringReserve.Properties["requesterId"] = "npc-a";
+                expiringReserve.Properties["objectId"] = "protected_desk";
+                expiringReserve.Properties["slotId"] = 0;
+                expiringReserve.Properties["activity"] = "Work";
+                expiringReserve.Properties["accessGroup"] = "Staff";
+                expiringReserve.Properties["holdSeconds"] = 0f;
+                SmartObjectReserveExecutor expiringReserveExecutor = new SmartObjectReserveExecutor();
+                expiringReserveExecutor.Execute(context, expiringReserve);
+                string expiredToken = (string)expiringReserveExecutor.Evaluate(context, expiringReserve, "reservationToken");
+
+                RuntimeNode expiredBeginUse = CreateRuntimeNode("expired_begin_use", "SmartObject.BeginUse");
+                expiredBeginUse.Properties["requesterId"] = "npc-a";
+                expiredBeginUse.Properties["reservationToken"] = expiredToken;
+                SmartObjectBeginUseExecutor expiredBeginUseExecutor = new SmartObjectBeginUseExecutor();
+                expiredBeginUseExecutor.Execute(context, expiredBeginUse);
+                Assert.False((bool)expiredBeginUseExecutor.Evaluate(context, expiredBeginUse, "success"));
+                Assert.AreEqual("TokenExpired", expiredBeginUseExecutor.Evaluate(context, expiredBeginUse, "failReason"));
+
+                SmartObjectComponent cleanupObject = CreateSmartObject("cleanup_object", "Work", Vector3.zero, 0f, 0f, "Office", string.Empty);
+                cleanupObject.Slots.Add(CreateSmartObjectSlot(1, "Work", new Vector3(1f, 0f, 0f)));
+                objects.Add(cleanupObject.gameObject);
+
+                string reservedToken = ReserveForTest(context, "npc-clean", "cleanup_object", 0);
+                string occupiedToken = ReserveForTest(context, "npc-clean", "cleanup_object", 1);
+                RuntimeNode beginUse = CreateRuntimeNode("cleanup_begin_use", "SmartObject.BeginUse");
+                beginUse.Properties["requesterId"] = "npc-clean";
+                beginUse.Properties["reservationToken"] = occupiedToken;
+                new SmartObjectBeginUseExecutor().Execute(context, beginUse);
+
+                RuntimeNode releaseByRequester = CreateRuntimeNode("release_by_requester", "SmartObject.ReleaseByRequester");
+                releaseByRequester.Properties["requesterId"] = "npc-clean";
+                releaseByRequester.Properties["reason"] = SmartObjectReleaseReason.ForceRelease;
+                SmartObjectReleaseByRequesterExecutor releaseByRequesterExecutor = new SmartObjectReleaseByRequesterExecutor();
+                releaseByRequesterExecutor.Execute(context, releaseByRequester);
+                Assert.AreEqual(2, releaseByRequesterExecutor.Evaluate(context, releaseByRequester, "releasedCount"));
+                Assert.AreEqual("None", releaseByRequesterExecutor.Evaluate(context, releaseByRequester, "failReason"));
+
+                RuntimeNode reservedInfo = CreateRuntimeNode("reserved_info", "SmartObject.GetReservationInfo");
+                reservedInfo.Properties["reservationToken"] = reservedToken;
+                Assert.False((bool)new SmartObjectGetReservationInfoExecutor().Evaluate(context, reservedInfo, "valid"));
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        private static SmartObjectComponent CreateSmartObject(
+            string objectId,
+            string activities,
+            Vector3 localTargetPosition,
+            float objectBaseScore,
+            float slotBaseScore,
+            string tags,
+            string accessGroup)
+        {
+            GameObject gameObject = new GameObject(objectId);
+            SmartObjectComponent smartObject = gameObject.AddComponent<SmartObjectComponent>();
+            smartObject.ObjectId = objectId;
+            smartObject.ObjectBaseScore = objectBaseScore;
+            smartObject.Tags = tags;
+            smartObject.AccessGroup = accessGroup;
+            smartObject.Slots.Add(CreateSmartObjectSlot(0, activities, localTargetPosition, slotBaseScore));
+            return smartObject;
+        }
+
+        private static SmartObjectSlot CreateSmartObjectSlot(int slotId, string activities, Vector3 localTargetPosition, float slotBaseScore = 0f)
+        {
+            SmartObjectSlot slot = new SmartObjectSlot();
+            slot.SlotId = slotId;
+            slot.Activities = activities;
+            slot.LocalTargetPosition = localTargetPosition;
+            slot.LocalFacingPosition = localTargetPosition + Vector3.forward;
+            slot.SlotBaseScore = slotBaseScore;
+            slot.UseDuration = 3f;
+            return slot;
+        }
+
+        private static string ReserveForTest(BlueprintExecutionContext context, string requesterId, string objectId, int slotId)
+        {
+            RuntimeNode reserve = CreateRuntimeNode("reserve_" + objectId + "_" + slotId, "SmartObject.Reserve");
+            reserve.Properties["requesterId"] = requesterId;
+            reserve.Properties["objectId"] = objectId;
+            reserve.Properties["slotId"] = slotId;
+            reserve.Properties["activity"] = "Work";
+            reserve.Properties["holdSeconds"] = 30f;
+            SmartObjectReserveExecutor executor = new SmartObjectReserveExecutor();
+            executor.Execute(context, reserve);
+            Assert.True((bool)executor.Evaluate(context, reserve, "success"), (string)executor.Evaluate(context, reserve, "failReason"));
+            string token = (string)executor.Evaluate(context, reserve, "reservationToken");
+            Assert.False(string.IsNullOrEmpty(token));
+            return token;
+        }
+
+        private static void DestroyObjects(List<GameObject> objects)
+        {
+            if (objects == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < objects.Count; i++)
+            {
+                if (objects[i] != null)
+                {
+                    Object.DestroyImmediate(objects[i]);
+                }
+            }
+        }
+
+        private static RuntimeNode CreateRuntimeNode(string id, string typeId)
+        {
+            return new RuntimeNode
+            {
+                Id = id,
+                TypeId = typeId
+            };
+        }
+
+        private static BlueprintExecutionContext CreateTestContext(
+            RuntimeBlueprint blueprint,
+            IBlueprintBindingResolver resolver,
+            IBlueprintLogger logger,
+            Action<RuntimeNode, string> executeFromOutput)
+        {
+            return new BlueprintExecutionContext(
+                blueprint,
+                null,
+                null,
+                resolver,
+                new DictionaryBlueprintVariableStore(blueprint),
+                new ActionBlueprintEventBus(eventName => { }),
+                logger,
+                executeFromOutput);
+        }
+
+        private static BlueprintNodeManifestCollection LoadManifests()
+        {
+            return BlueprintNodeManifestAssetUtility.LoadManifests();
+        }
+
+        private sealed class TestBindingResolver : IBlueprintBindingResolver
+        {
+            private readonly Dictionary<string, Object> _bindings = new Dictionary<string, Object>();
+
+            public T Resolve<T>(string bindingName) where T : Object
+            {
+                Object value = Resolve(bindingName);
+                return value as T;
+            }
+
+            public Object Resolve(string bindingName)
+            {
+                Object value;
+                return _bindings.TryGetValue(bindingName, out value) ? value : null;
+            }
+
+            public bool HasBinding(string bindingName)
+            {
+                return _bindings.ContainsKey(bindingName);
+            }
+        }
+    }
+}

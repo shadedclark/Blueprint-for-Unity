@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "SmartObject.GetReservationInfo",
+  "title": "SmartObject Get Reservation Info",
+  "category": "SmartObject",
+  "description": "Reads current information for a reservation token without changing state.",
+  "executor": "SmartObject.GetReservationInfo",
+  "inputs": [
+    {
+      "id": "reservationToken",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "valid",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "objectId",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "slotId",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "requesterId",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "state",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "targetPosition",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "facingPosition",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "remainingSeconds",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "failReason",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "reservationToken",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    }
+  ]
+}

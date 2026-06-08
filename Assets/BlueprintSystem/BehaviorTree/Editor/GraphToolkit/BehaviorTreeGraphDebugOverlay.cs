@@ -141,6 +141,14 @@ namespace BlueprintSystem.Editor
             Dictionary<string, BehaviorTreeDebugSnapshot> snapshotsBySourcePath)
         {
             object graphNode = TryGetGraphNode(nodeElement);
+            BehaviorTreeVisualNode behaviorNode = graphNode as BehaviorTreeVisualNode;
+            BehaviorTreeVisualDecoratorNode decoratorNode = graphNode as BehaviorTreeVisualDecoratorNode;
+            if (behaviorNode == null && decoratorNode == null)
+            {
+                ClearDebugStyle(nodeElement);
+                return;
+            }
+
             BehaviorTreeVisualGraph graph = TryGetOwnerGraph(graphNode);
             BehaviorTreeDebugSnapshot snapshot = ResolveSnapshotForGraph(graph, snapshotsBySourcePath);
             if (snapshot == null)
@@ -149,7 +157,6 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
-            BehaviorTreeVisualNode behaviorNode = graphNode as BehaviorTreeVisualNode;
             if (behaviorNode != null)
             {
                 string nodeId = behaviorNode.ReadNodeId();
@@ -159,17 +166,10 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
-            BehaviorTreeVisualDecoratorNode decoratorNode = graphNode as BehaviorTreeVisualDecoratorNode;
-            if (decoratorNode != null)
-            {
-                string decoratorId = decoratorNode.ReadDecoratorId();
-                BehaviorTreeDebugVisualStyle style =
-                    BehaviorTreeRuntimeDebugEditorUtility.GetDecoratorVisualStyle(snapshot, decoratorId);
-                ApplyDebugStyle(nodeElement, style);
-                return;
-            }
-
-            ClearDebugStyle(nodeElement);
+            string decoratorId = decoratorNode.ReadDecoratorId();
+            BehaviorTreeDebugVisualStyle decoratorStyle =
+                BehaviorTreeRuntimeDebugEditorUtility.GetDecoratorVisualStyle(snapshot, decoratorId);
+            ApplyDebugStyle(nodeElement, decoratorStyle);
         }
 
         private static BehaviorTreeDebugSnapshot ResolveSnapshotForGraph(
@@ -205,8 +205,13 @@ namespace BlueprintSystem.Editor
                 return null;
             }
 
-            object nodeModel = GetFieldValue(typeof(Node), node, "m_Implementation");
-            object graphModel = GetPropertyValue(nodeModel, "GraphModel");
+            object graphModel = GetPropertyValue(node, "GraphModel");
+            if (graphModel == null)
+            {
+                object nodeModel = GetFieldValue(typeof(Node), node, "m_Implementation");
+                graphModel = GetPropertyValue(nodeModel, "GraphModel");
+            }
+
             return GetPropertyValue(graphModel, "Graph") as BehaviorTreeVisualGraph;
         }
 
@@ -308,19 +313,71 @@ namespace BlueprintSystem.Editor
                 return null;
             }
 
-            PropertyInfo property = target.GetType().GetProperty(name, ReflectionFlags);
-            return property == null ? null : property.GetValue(target, null);
-        }
-
-        private static object GetFieldValue(Type ownerType, object target, string name)
-        {
-            if (target == null)
+            PropertyInfo property = FindProperty(target.GetType(), name);
+            if (property == null)
             {
                 return null;
             }
 
-            FieldInfo field = ownerType.GetField(name, ReflectionFlags);
-            return field == null ? null : field.GetValue(target);
+            try
+            {
+                return property.GetValue(target, null);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private static object GetFieldValue(Type ownerType, object target, string name)
+        {
+            if (ownerType == null || target == null || !ownerType.IsInstanceOfType(target))
+            {
+                return null;
+            }
+
+            FieldInfo field = FindField(ownerType, name);
+            if (field == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return field.GetValue(target);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private static PropertyInfo FindProperty(Type type, string name)
+        {
+            for (Type current = type; current != null; current = current.BaseType)
+            {
+                PropertyInfo property = current.GetProperty(name, ReflectionFlags | BindingFlags.DeclaredOnly);
+                if (property != null)
+                {
+                    return property;
+                }
+            }
+
+            return null;
+        }
+
+        private static FieldInfo FindField(Type type, string name)
+        {
+            for (Type current = type; current != null; current = current.BaseType)
+            {
+                FieldInfo field = current.GetField(name, ReflectionFlags | BindingFlags.DeclaredOnly);
+                if (field != null)
+                {
+                    return field;
+                }
+            }
+
+            return null;
         }
     }
 }
