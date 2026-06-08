@@ -38,6 +38,22 @@ needed.
 Use `--no-register` to skip `codex plugin marketplace add <ProjectRoot>`, and `--no-open` to skip
 opening the plugin link after installation.
 
+When updating companion skills or plugin metadata, use the same install script as the safe refresh
+path. Do not only copy one plugin folder by hand. The expected refresh flow is:
+
+1. Update the package source under `Assets/BlueprintSystem/CodexPlugin~/plugins/blueprint-system-codex`.
+2. Keep plugin-level `interface.defaultPrompt` to at most three starter prompts; individual skill
+   entrypoints still live under `skills/*/SKILL.md`.
+3. Run `python3 Assets/BlueprintSystem/CodexPlugin~/scripts/install_blueprint_codex_plugin.py`.
+4. Confirm the JSON output lists both compatibility plugin roots, refreshes the same
+   `+codex.<timestamp>` cachebuster in each installed `.codex-plugin/plugin.json`, and reports the
+   expected skill names.
+5. Confirm the opened `codex://` URL uses
+   `<ProjectRoot>/.agents/plugins/marketplace.json` as `marketplacePath`; passing the project root
+   directory here causes Codex to fail reading plugin details.
+6. Start a new Codex thread to verify newly added skills, because existing threads do not hot-load
+   updated skill lists.
+
 After the marketplace is available in Codex, use these direct skill entrypoints instead of manually
 pasting agent Markdown:
 

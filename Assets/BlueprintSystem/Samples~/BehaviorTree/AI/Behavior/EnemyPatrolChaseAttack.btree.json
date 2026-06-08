@@ -195,8 +195,7 @@
         "value": "Target"
       },
       "properties": {
-        "operator": "IsSet",
-        "abortMode": "Self"
+        "operator": "IsSet"
       }
     },
     {
@@ -206,16 +205,14 @@
         "distance": "DistanceToTarget"
       },
       "properties": {
-        "maxDistance": 2,
-        "abortMode": "Self"
+        "maxDistance": 2
       }
     },
     {
       "id": "attack_cooldown",
       "typeId": "BT.Cooldown",
       "properties": {
-        "duration": 0.8,
-        "abortMode": "Self"
+        "duration": 0.8
       }
     }
   ],

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.GraphToolkit.Editor;
 
 namespace BlueprintSystem.Editor
@@ -18,6 +19,11 @@ namespace BlueprintSystem.Editor
         public const string ObjectIsSet = "BT.ObjectIsSet";
         public const string DistanceLessThan = "BT.DistanceLessThan";
         public const string Cooldown = "BT.Cooldown";
+        public const string SetRunnerBlackboard = "BT.SetRunnerBlackboard";
+        public const string GetRunnerBlackboard = "BT.GetRunnerBlackboard";
+        public const string ClearRunnerBlackboard = "BT.ClearRunnerBlackboard";
+        public const string CopyRunnerBlackboard = "BT.CopyRunnerBlackboard";
+        public const string RunSubtree = "BT.RunSubtree";
 
         public static BehaviorTreeVisualNode Create(string typeId)
         {
@@ -43,6 +49,16 @@ namespace BlueprintSystem.Editor
                     return new BTTaskSetBlackboardNode();
                 case "BT.ClearBlackboard":
                     return new BTTaskClearBlackboardNode();
+                case SetRunnerBlackboard:
+                    return new BTTaskSetRunnerBlackboardNode();
+                case GetRunnerBlackboard:
+                    return new BTTaskGetRunnerBlackboardNode();
+                case ClearRunnerBlackboard:
+                    return new BTTaskClearRunnerBlackboardNode();
+                case CopyRunnerBlackboard:
+                    return new BTTaskCopyRunnerBlackboardNode();
+                case RunSubtree:
+                    return new BTTaskRunSubtreeNode();
                 case "BT.MoveTo":
                     return new BTTaskMoveToNode();
                 case "BT.RotateTo":
@@ -113,6 +129,16 @@ namespace BlueprintSystem.Editor
                     return "Task: Set Blackboard";
                 case "BT.ClearBlackboard":
                     return "Task: Clear Blackboard";
+                case SetRunnerBlackboard:
+                    return "Task: Set Runner Blackboard";
+                case GetRunnerBlackboard:
+                    return "Task: Get Runner Blackboard";
+                case ClearRunnerBlackboard:
+                    return "Task: Clear Runner Blackboard";
+                case CopyRunnerBlackboard:
+                    return "Task: Copy Runner Blackboard";
+                case RunSubtree:
+                    return "Task: Run Subtree";
                 case "BT.MoveTo":
                     return "Task: Move To";
                 case "BT.RotateTo":
@@ -515,6 +541,188 @@ namespace BlueprintSystem.Editor
         protected override void ApplyDefaultMetadata()
         {
             AddBlackboardInput("key", null, "Key", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskSetRunnerBlackboardNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.SetRunnerBlackboard, "Task: Set Runner Blackboard", 0);
+            PropertiesJson = "{\"sourceKey\":\"\",\"targetKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("target", null, "Target Runner", false);
+            AddBlackboardInput("value", null, "Value", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskGetRunnerBlackboardNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.GetRunnerBlackboard, "Task: Get Runner Blackboard", 0);
+            PropertiesJson = "{\"sourceKey\":\"\",\"targetKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("target", null, "Target Runner", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskClearRunnerBlackboardNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.ClearRunnerBlackboard, "Task: Clear Runner Blackboard", 0);
+            PropertiesJson = "{\"targetKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("target", null, "Target Runner", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskCopyRunnerBlackboardNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.CopyRunnerBlackboard, "Task: Copy Runner Blackboard", 0);
+            PropertiesJson = "{\"sourceKey\":\"\",\"targetKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("sourceTarget", null, "Source Runner", false);
+            AddBlackboardInput("target", null, "Target Runner", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskRunSubtreeNode : BehaviorTreeVisualNode
+    {
+        private const string BehaviorTreeOptionName = "behaviorTree";
+
+        public override string ReadPropertiesJson()
+        {
+            Dictionary<string, object> properties = ReadProperties(base.ReadPropertiesJson());
+            string behaviorTreePath;
+            if (!TryReadBehaviorTreeOptionPath(out behaviorTreePath))
+            {
+                behaviorTreePath = ReadBehaviorTreePath(properties);
+            }
+
+            if (!string.IsNullOrEmpty(behaviorTreePath) || properties.ContainsKey(BehaviorTreeOptionName))
+            {
+                properties[BehaviorTreeOptionName] = behaviorTreePath ?? string.Empty;
+            }
+
+            return BlueprintJson.Serialize(properties, false);
+        }
+
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.RunSubtree, "Task: Run Subtree", 0);
+            PropertiesJson = "{\"behaviorTree\":\"\",\"blackboardMode\":\"Shared\",\"inputMappings\":[],\"outputMappings\":[]}";
+        }
+
+        protected override void OnDefineOptions(IOptionDefinitionContext context)
+        {
+            string behaviorTreePath = ReadBehaviorTreePathForDisplay();
+            Title = CreateTitle(behaviorTreePath);
+            base.OnDefineOptions(context);
+
+            context.AddOption<BehaviorTreeAsset>(BehaviorTreeOptionName)
+                .WithDisplayName("Subtree")
+                .WithDefaultValue(BehaviorTreeGraphToolkitBehaviorTreeTypes.CreateGraphValue(behaviorTreePath))
+                .Delayed();
+        }
+
+        private string ReadBehaviorTreePathForDisplay()
+        {
+            string behaviorTreePath;
+            if (TryReadBehaviorTreeOptionPath(out behaviorTreePath))
+            {
+                return behaviorTreePath;
+            }
+
+            return ReadBehaviorTreePath(ReadProperties(PropertiesJson));
+        }
+
+        private bool TryReadBehaviorTreeOptionPath(out string behaviorTreePath)
+        {
+            behaviorTreePath = null;
+            INodeOption option = null;
+            try
+            {
+                option = GetNodeOptionByName(BehaviorTreeOptionName);
+            }
+            catch
+            {
+            }
+
+            if (option != null)
+            {
+                BehaviorTreeAsset asset;
+                if (option.TryGetValue(out asset))
+                {
+                    behaviorTreePath = BehaviorTreeGraphToolkitBehaviorTreeTypes.NormalizePath(asset.Path);
+                    return true;
+                }
+
+                string text;
+                if (option.TryGetValue(out text))
+                {
+                    behaviorTreePath = BehaviorTreeGraphToolkitBehaviorTreeTypes.NormalizePath(text);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string ReadBehaviorTreePath(Dictionary<string, object> properties)
+        {
+            object value;
+            return properties != null && properties.TryGetValue(BehaviorTreeOptionName, out value) && value != null
+                ? BehaviorTreeGraphToolkitBehaviorTreeTypes.NormalizePath(Convert.ToString(value))
+                : string.Empty;
+        }
+
+        private static string CreateTitle(string behaviorTreePath)
+        {
+            string displayName = BehaviorTreeGraphToolkitBehaviorTreeTypes.GetDisplayName(behaviorTreePath);
+            return string.IsNullOrEmpty(displayName) ? "Task: Run Subtree" : "Task: Run Subtree: " + displayName;
+        }
+
+        private static Dictionary<string, object> ReadProperties(string json)
+        {
+            if (string.IsNullOrEmpty(json))
+            {
+                return new Dictionary<string, object>(StringComparer.Ordinal);
+            }
+
+            try
+            {
+                return BlueprintJson.DeserializeObject(json);
+            }
+            catch (BlueprintJsonException)
+            {
+                return new Dictionary<string, object>(StringComparer.Ordinal);
+            }
         }
     }
 

@@ -153,6 +153,7 @@ Graph Toolkit 可视化/缓存资产。
 - children index array
 - decorator index array
 - service index array
+- child behavior tree component references
 - blackboard schema
 - executor id
 - node properties
@@ -221,8 +222,7 @@ Decorator：
     "value": "Target"
   },
   "properties": {
-    "operator": "IsSet",
-    "abortMode": "Self"
+    "operator": "IsSet"
   }
 }
 ```
@@ -303,7 +303,7 @@ Decorator 使用规则：
 
 - 分支前置条件用 Decorator，不要建成普通 Task child。
 - 多个 Decorator 表示该节点进入前都必须满足。
-- `abortMode: Self` 表示当前 running 分支条件变 false 时中断自身。
+- 运行时每 tick 重新评估已挂载 Decorator；条件变 false 时，当前节点会按 Decorator 失败处理。
 - 复杂条件优先拆成可读的 Blackboard key，由 Service 或 Blueprint 写入。
 
 Service 使用规则：

@@ -14,6 +14,7 @@ namespace BlueprintSystem
         [SerializeField] private string sourceHash;
         [SerializeField] private string rootNodeId;
         [SerializeField] private List<BehaviorTreeCompiledBlackboardKey> blackboard = new List<BehaviorTreeCompiledBlackboardKey>();
+        [SerializeField] private List<BehaviorTreeCompiledComponent> components = new List<BehaviorTreeCompiledComponent>();
         [SerializeField] private List<BehaviorTreeCompiledNode> nodes = new List<BehaviorTreeCompiledNode>();
         [SerializeField] private List<BehaviorTreeCompiledDecorator> decorators = new List<BehaviorTreeCompiledDecorator>();
         [SerializeField] private List<BehaviorTreeCompiledService> services = new List<BehaviorTreeCompiledService>();
@@ -58,6 +59,11 @@ namespace BlueprintSystem
             get { return nodes; }
         }
 
+        public IReadOnlyList<BehaviorTreeCompiledComponent> Components
+        {
+            get { return components; }
+        }
+
         public IReadOnlyList<BehaviorTreeCompiledDecorator> Decorators
         {
             get { return decorators; }
@@ -76,6 +82,7 @@ namespace BlueprintSystem
             string newSourceHash,
             string newRootNodeId,
             IEnumerable<BehaviorTreeCompiledBlackboardKey> newBlackboard,
+            IEnumerable<BehaviorTreeCompiledComponent> newComponents,
             IEnumerable<BehaviorTreeCompiledNode> newNodes,
             IEnumerable<BehaviorTreeCompiledDecorator> newDecorators,
             IEnumerable<BehaviorTreeCompiledService> newServices)
@@ -87,6 +94,7 @@ namespace BlueprintSystem
             sourceHash = newSourceHash;
             rootNodeId = newRootNodeId;
             ReplaceList(blackboard, newBlackboard);
+            ReplaceList(components, newComponents);
             ReplaceList(nodes, newNodes);
             ReplaceList(decorators, newDecorators);
             ReplaceList(services, newServices);
@@ -114,6 +122,17 @@ namespace BlueprintSystem
                 }
 
                 tree.BlackboardSchema.Add(compiled.ToKey());
+            }
+
+            for (int i = 0; i < components.Count; i++)
+            {
+                BehaviorTreeCompiledComponent compiled = components[i];
+                if (compiled == null || string.IsNullOrEmpty(compiled.Name))
+                {
+                    continue;
+                }
+
+                tree.ComponentsByName[compiled.Name] = compiled.ToRuntimeComponent();
             }
 
             for (int i = 0; i < decorators.Count; i++)
@@ -286,6 +305,27 @@ namespace BlueprintSystem
         public List<string> Services = new List<string>();
         public List<BehaviorTreeCompiledInputBinding> Inputs = new List<BehaviorTreeCompiledInputBinding>();
         public List<BehaviorTreeCompiledProperty> Properties = new List<BehaviorTreeCompiledProperty>();
+    }
+
+    [Serializable]
+    public sealed class BehaviorTreeCompiledComponent
+    {
+        public string Name;
+        public string BehaviorTreePath;
+        public string BehaviorTreeGuid;
+        public bool Required;
+        public BehaviorTreeCompiledAsset CompiledBehaviorTree;
+
+        public RuntimeBehaviorTreeComponent ToRuntimeComponent()
+        {
+            RuntimeBehaviorTreeComponent component = new RuntimeBehaviorTreeComponent();
+            component.Name = Name;
+            component.BehaviorTreePath = BehaviorTreePath;
+            component.BehaviorTreeGuid = BehaviorTreeGuid;
+            component.Required = Required;
+            component.CompiledBehaviorTree = CompiledBehaviorTree;
+            return component;
+        }
     }
 
     [Serializable]

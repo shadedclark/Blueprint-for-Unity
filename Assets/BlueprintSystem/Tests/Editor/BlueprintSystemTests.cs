@@ -445,6 +445,444 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BehaviorTreeRunSubtreeSharesBlackboardAndKeepsRunningState()
+        {
+            string childPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeSharedChild.btree.json";
+            string parentPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeSharedParent.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(childPath);
+            DeleteTemporaryBehaviorTreeArtifacts(parentPath);
+
+            try
+            {
+                BehaviorTreeSource child = CreateRunSubtreeSharedChildSource();
+                WriteTemporaryBehaviorTreeAsset(childPath, child);
+
+                BehaviorTreeSource parent = CreateRunSubtreeParentSource("RunSubtreeSharedParent", childPath);
+                parent.Blackboard.Add(CreateBlackboardKey("flag", "bool", false));
+                TextAsset parentAsset = WriteTemporaryBehaviorTreeAsset(parentPath, parent);
+
+                BehaviorTreeCompiledAsset parentCompiled;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(parentAsset, false, out parentCompiled));
+                BehaviorTreeCompiledComponent runSubtreeComponent = parentCompiled.Components.First(component => component.Name == "run_subtree");
+                Assert.NotNull(runSubtreeComponent.CompiledBehaviorTree);
+                Assert.AreEqual(childPath, runSubtreeComponent.BehaviorTreePath);
+                Assert.AreEqual(AssetDatabase.AssetPathToGUID(childPath), runSubtreeComponent.BehaviorTreeGuid);
+                Assert.True(runSubtreeComponent.Required);
+
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(parentCompiled.CreateRuntimeTree(), null, null);
+
+                Assert.AreEqual(BehaviorTreeStatus.Running, runtime.Tick(0f));
+                Assert.AreEqual(false, runtime.Blackboard.GetValue("flag"));
+                Assert.AreEqual("merged", runtime.Blackboard.GetValue("ChildOnly"));
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.15f));
+                Assert.AreEqual(true, runtime.Blackboard.GetValue("flag"));
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(childPath);
+                DeleteTemporaryBehaviorTreeArtifacts(parentPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunSubtreeCompiledAssetReferenceStoresComponentSourcePath()
+        {
+            string childPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeCompiledAssetChild.btree.json";
+            string parentPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeCompiledAssetParent.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(childPath);
+            DeleteTemporaryBehaviorTreeArtifacts(parentPath);
+
+            try
+            {
+                WriteTemporaryBehaviorTreeAsset(childPath, CreateRunSubtreeSharedChildSource());
+                BehaviorTreeCompiledAsset childCompiled;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTreeAtPath(childPath, false, out childCompiled));
+
+                string compiledChildPath = BehaviorTreeCompiledAssetCompiler.GetCompiledAssetPath(childPath);
+                BehaviorTreeSource parent = CreateRunSubtreeParentSource("RunSubtreeCompiledAssetParent", compiledChildPath);
+                parent.Blackboard.Add(CreateBlackboardKey("flag", "bool", false));
+                TextAsset parentAsset = WriteTemporaryBehaviorTreeAsset(parentPath, parent);
+
+                BehaviorTreeCompiledAsset parentCompiled;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(parentAsset, false, out parentCompiled));
+
+                BehaviorTreeCompiledComponent runSubtreeComponent = parentCompiled.Components.First(component => component.Name == "run_subtree");
+                Assert.NotNull(runSubtreeComponent.CompiledBehaviorTree);
+                Assert.AreEqual(childPath, runSubtreeComponent.BehaviorTreePath);
+                Assert.AreEqual(AssetDatabase.AssetPathToGUID(childPath), runSubtreeComponent.BehaviorTreeGuid);
+                Assert.AreEqual(childCompiled.SourceHash, runSubtreeComponent.CompiledBehaviorTree.SourceHash);
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(childPath);
+                DeleteTemporaryBehaviorTreeArtifacts(parentPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunSubtreeIsolatedModeCopiesOnlyMappedBlackboardKeys()
+        {
+            string childPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeIsolatedChild.btree.json";
+            string parentPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeIsolatedParent.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(childPath);
+            DeleteTemporaryBehaviorTreeArtifacts(parentPath);
+
+            try
+            {
+                WriteTemporaryBehaviorTreeAsset(childPath, CreateRunSubtreeIsolatedChildSource());
+
+                BehaviorTreeSource parent = CreateRunSubtreeParentSource("RunSubtreeIsolatedParent", childPath);
+                parent.Blackboard.Add(CreateBlackboardKey("ParentInput", "string", "go"));
+                parent.Blackboard.Add(CreateBlackboardKey("ParentOutput", "string", string.Empty));
+                parent.Blackboard.Add(CreateBlackboardKey("Leak", "string", "parent"));
+                BehaviorTreeNodeSource runSubtree = parent.Nodes.Find(node => node.Id == "run_subtree");
+                runSubtree.Properties["blackboardMode"] = "Isolated";
+                runSubtree.Properties["inputMappings"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "sourceKey", "ParentInput" },
+                        { "targetKey", "ChildInput" }
+                    }
+                };
+                runSubtree.Properties["outputMappings"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "sourceKey", "ChildOutput" },
+                        { "targetKey", "ParentOutput" }
+                    }
+                };
+
+                TextAsset parentAsset = WriteTemporaryBehaviorTreeAsset(parentPath, parent);
+                BehaviorTreeCompiledAsset parentCompiled;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(parentAsset, false, out parentCompiled));
+
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(parentCompiled.CreateRuntimeTree(), null, null);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+                Assert.AreEqual("go", runtime.Blackboard.GetValue("ParentOutput"));
+                Assert.AreEqual("parent", runtime.Blackboard.GetValue("Leak"));
+                Assert.False(runtime.Blackboard.ContainsKey("ChildInput"));
+                Assert.False(runtime.Blackboard.ContainsKey("ChildOnly"));
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(childPath);
+                DeleteTemporaryBehaviorTreeArtifacts(parentPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunSubtreeCompilerRejectsInvalidSubtreeReferences()
+        {
+            string conflictChildPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeConflictChild.btree.json";
+            string conflictParentPath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeConflictParent.btree.json";
+            string cyclePath = "Assets/BlueprintSystem/Tests/Editor/RunSubtreeCycle.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(conflictChildPath);
+            DeleteTemporaryBehaviorTreeArtifacts(conflictParentPath);
+            DeleteTemporaryBehaviorTreeArtifacts(cyclePath);
+
+            try
+            {
+                BehaviorTreeSource missingReference = CreateRunSubtreeParentSource("RunSubtreeMissingReference", string.Empty);
+                BlueprintDiagnosticList diagnostics = new BehaviorTreeValidator().Validate(missingReference, BehaviorTreeExecutorRegistry.CreateDefault());
+                Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BT097"), diagnostics.ToDisplayString());
+
+                WriteTemporaryBehaviorTreeAsset(conflictChildPath, CreateRunSubtreeSharedChildSource());
+                BehaviorTreeSource conflictParent = CreateRunSubtreeParentSource("RunSubtreeConflictParent", conflictChildPath);
+                conflictParent.Blackboard.Add(CreateBlackboardKey("flag", "string", "wrong-type"));
+                TextAsset conflictParentAsset = WriteTemporaryBehaviorTreeAsset(conflictParentPath, conflictParent);
+                BehaviorTreeCompiledAsset compiled;
+                Assert.False(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(conflictParentAsset, false, out compiled));
+
+                BehaviorTreeSource cycle = CreateRunSubtreeParentSource("RunSubtreeCycle", cyclePath);
+                cycle.Blackboard.Add(CreateBlackboardKey("flag", "bool", false));
+                TextAsset cycleAsset = WriteTemporaryBehaviorTreeAsset(cyclePath, cycle);
+                Assert.False(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(cycleAsset, false, out compiled));
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(conflictChildPath);
+                DeleteTemporaryBehaviorTreeArtifacts(conflictParentPath);
+                DeleteTemporaryBehaviorTreeArtifacts(cyclePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunSubtreeGraphToolkitRoundTripsProperties()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripRunSubtree.btree.json";
+            string graphPath = BehaviorTreeGraphToolkitBridge.GetDefaultGraphPath(behaviorTreePath);
+            string exportedPath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripRunSubtreeExport.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            DeleteTemporaryBehaviorTreeArtifacts(exportedPath);
+            AssetDatabase.DeleteAsset(graphPath);
+
+            try
+            {
+                BehaviorTreeSource source = CreateRunSubtreeParentSource("GraphRoundTripRunSubtree", "ChildBehavior.btree.json");
+                source.Blackboard.Add(CreateBlackboardKey("ParentInput", "string", "go"));
+                BehaviorTreeNodeSource runSubtree = source.Nodes.Find(node => node.Id == "run_subtree");
+                runSubtree.Properties["blackboardMode"] = "Isolated";
+                runSubtree.Properties["inputMappings"] = new List<object>
+                {
+                    new Dictionary<string, object>
+                    {
+                        { "sourceKey", "ParentInput" },
+                        { "targetKey", "ChildInput" }
+                    }
+                };
+                WriteTemporaryBehaviorTreeAsset(behaviorTreePath, source);
+
+                string createdGraphPath = BehaviorTreeGraphToolkitBridge.ImportBehaviorTreeAtPath(behaviorTreePath, graphPath, false);
+                Assert.AreEqual(graphPath, createdGraphPath);
+
+                BehaviorTreeVisualGraph graph = GraphDatabase.LoadGraph<BehaviorTreeVisualGraph>(graphPath);
+                Assert.NotNull(graph);
+                Assert.True(graph.GetNodes().OfType<BTTaskRunSubtreeNode>().Any(node => node.ReadNodeId() == "run_subtree"));
+
+                string outputPath = BehaviorTreeGraphToolkitBridge.ExportGraphAtPath(graphPath, exportedPath);
+                Assert.AreEqual(exportedPath, outputPath);
+
+                BehaviorTreeSource exported = BehaviorTreeSource.FromJson(File.ReadAllText(exportedPath));
+                BehaviorTreeNodeSource exportedRunSubtree = exported.Nodes.Find(node => node.Id == "run_subtree");
+                Assert.NotNull(exportedRunSubtree);
+                Assert.AreEqual("BT.RunSubtree", exportedRunSubtree.TypeId);
+                Assert.AreEqual("ChildBehavior.btree.json", exportedRunSubtree.Properties["behaviorTree"]);
+                Assert.AreEqual("Isolated", exportedRunSubtree.Properties["blackboardMode"]);
+                Assert.AreEqual(1, ((IEnumerable)exportedRunSubtree.Properties["inputMappings"]).Cast<object>().Count());
+            }
+            finally
+            {
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+                DeleteTemporaryBehaviorTreeArtifacts(exportedPath);
+                AssetDatabase.DeleteAsset(graphPath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeSetRunnerBlackboardMapsDifferentTargetKey()
+        {
+            GameObject targetObject = null;
+            try
+            {
+                targetObject = new GameObject("TargetRunnerBlackboardSetTest");
+                BehaviorTreeRunner targetRunner = CreateBehaviorTreeRunnerWithBlackboard(
+                    targetObject,
+                    CreateBlackboardKey("Target", "string", "old"));
+
+                BehaviorTreeNodeSource task;
+                BehaviorTreeSource source = CreateSingleBehaviorTreeTaskSource(
+                    "SetRunnerBlackboardMappingTest",
+                    "BT.SetRunnerBlackboard",
+                    out task);
+                source.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                source.Blackboard.Add(CreateBlackboardKey("EnemyTarget", "string", "player"));
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["sourceKey"] = "EnemyTarget";
+                task.Properties["targetKey"] = "Target";
+
+                BehaviorTreeRuntime runtime = CompileBehaviorTreeRuntime(source);
+                runtime.Blackboard.SetValue("FriendRunner", targetObject);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+                Assert.AreEqual("player", targetRunner.GetBlackboardValue("Target"));
+            }
+            finally
+            {
+                if (targetObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(targetObject);
+                }
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeGetRunnerBlackboardMapsDifferentSourceKey()
+        {
+            GameObject targetObject = null;
+            try
+            {
+                targetObject = new GameObject("TargetRunnerBlackboardGetTest");
+                BehaviorTreeRunner targetRunner = CreateBehaviorTreeRunnerWithBlackboard(
+                    targetObject,
+                    CreateBlackboardKey("AlertLevel", "int", 7));
+
+                BehaviorTreeNodeSource task;
+                BehaviorTreeSource source = CreateSingleBehaviorTreeTaskSource(
+                    "GetRunnerBlackboardMappingTest",
+                    "BT.GetRunnerBlackboard",
+                    out task);
+                source.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                source.Blackboard.Add(CreateBlackboardKey("ObservedAlertLevel", "int", 0));
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["sourceKey"] = "AlertLevel";
+                task.Properties["targetKey"] = "ObservedAlertLevel";
+
+                BehaviorTreeRuntime runtime = CompileBehaviorTreeRuntime(source);
+                runtime.Blackboard.SetValue("FriendRunner", targetObject);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+                Assert.AreEqual(7, runtime.Blackboard.GetValue("ObservedAlertLevel"));
+                Assert.AreEqual(7, targetRunner.GetBlackboardValue("AlertLevel"));
+            }
+            finally
+            {
+                if (targetObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(targetObject);
+                }
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeClearRunnerBlackboardClearsRemoteTargetKey()
+        {
+            GameObject targetObject = null;
+            try
+            {
+                targetObject = new GameObject("TargetRunnerBlackboardClearTest");
+                BehaviorTreeRunner targetRunner = CreateBehaviorTreeRunnerWithBlackboard(
+                    targetObject,
+                    CreateBlackboardKey("Target", "string", "player"));
+
+                BehaviorTreeNodeSource task;
+                BehaviorTreeSource source = CreateSingleBehaviorTreeTaskSource(
+                    "ClearRunnerBlackboardMappingTest",
+                    "BT.ClearRunnerBlackboard",
+                    out task);
+                source.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["targetKey"] = "Target";
+
+                BehaviorTreeRuntime runtime = CompileBehaviorTreeRuntime(source);
+                runtime.Blackboard.SetValue("FriendRunner", targetObject);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+                Assert.Null(targetRunner.GetBlackboardValue("Target"));
+            }
+            finally
+            {
+                if (targetObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(targetObject);
+                }
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeCopyRunnerBlackboardMapsBetweenDifferentRunnerKeys()
+        {
+            GameObject sourceObject = null;
+            GameObject targetObject = null;
+            try
+            {
+                sourceObject = new GameObject("SourceRunnerBlackboardCopyTest");
+                CreateBehaviorTreeRunnerWithBlackboard(
+                    sourceObject,
+                    CreateBlackboardKey("SharedGoal", "string", "capture"));
+                targetObject = new GameObject("TargetRunnerBlackboardCopyTest");
+                BehaviorTreeRunner targetRunner = CreateBehaviorTreeRunnerWithBlackboard(
+                    targetObject,
+                    CreateBlackboardKey("AssignedGoal", "string", string.Empty));
+
+                BehaviorTreeNodeSource task;
+                BehaviorTreeSource source = CreateSingleBehaviorTreeTaskSource(
+                    "CopyRunnerBlackboardMappingTest",
+                    "BT.CopyRunnerBlackboard",
+                    out task);
+                source.Blackboard.Add(CreateBlackboardKey("SourceRunner", "GameObject", null));
+                source.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                task.Inputs["sourceTarget"] = "SourceRunner";
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["sourceKey"] = "SharedGoal";
+                task.Properties["targetKey"] = "AssignedGoal";
+
+                BehaviorTreeRuntime runtime = CompileBehaviorTreeRuntime(source);
+                runtime.Blackboard.SetValue("SourceRunner", sourceObject);
+                runtime.Blackboard.SetValue("FriendRunner", targetObject);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0f));
+                Assert.AreEqual("capture", targetRunner.GetBlackboardValue("AssignedGoal"));
+            }
+            finally
+            {
+                if (sourceObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(sourceObject);
+                }
+
+                if (targetObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(targetObject);
+                }
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerBlackboardNodesValidateMappedKeysAndFailInvalidTargets()
+        {
+            GameObject uninitializedRunnerObject = null;
+            try
+            {
+                BehaviorTreeNodeSource task;
+                BehaviorTreeSource source = CreateSingleBehaviorTreeTaskSource(
+                    "SetRunnerBlackboardInvalidTargetTest",
+                    "BT.SetRunnerBlackboard",
+                    out task);
+                source.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                source.Blackboard.Add(CreateBlackboardKey("EnemyTarget", "string", "player"));
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["sourceKey"] = "EnemyTarget";
+                task.Properties["targetKey"] = "RemoteTarget";
+
+                BehaviorTreeRuntime runtime = CompileBehaviorTreeRuntime(source);
+                Assert.AreEqual(BehaviorTreeStatus.Failure, runtime.Tick(0f));
+
+                uninitializedRunnerObject = new GameObject("UninitializedRunnerBlackboardTest");
+                uninitializedRunnerObject.AddComponent<BehaviorTreeRunner>();
+                runtime = CompileBehaviorTreeRuntime(source);
+                runtime.Blackboard.SetValue("FriendRunner", uninitializedRunnerObject);
+                Assert.AreEqual(BehaviorTreeStatus.Failure, runtime.Tick(0f));
+
+                BehaviorTreeSource missingSourceKey = CreateSingleBehaviorTreeTaskSource(
+                    "SetRunnerBlackboardMissingSourceKeyTest",
+                    "BT.SetRunnerBlackboard",
+                    out task);
+                missingSourceKey.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["sourceKey"] = "MissingSource";
+                task.Properties["targetKey"] = "RemoteTarget";
+                BlueprintDiagnosticList diagnostics = new BehaviorTreeValidator().Validate(
+                    missingSourceKey,
+                    BehaviorTreeExecutorRegistry.CreateDefault());
+                Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BT100"), diagnostics.ToDisplayString());
+
+                BehaviorTreeSource missingWritebackKey = CreateSingleBehaviorTreeTaskSource(
+                    "GetRunnerBlackboardMissingWritebackKeyTest",
+                    "BT.GetRunnerBlackboard",
+                    out task);
+                missingWritebackKey.Blackboard.Add(CreateBlackboardKey("FriendRunner", "GameObject", null));
+                task.Inputs["target"] = "FriendRunner";
+                task.Properties["sourceKey"] = "RemoteAlertLevel";
+                task.Properties["targetKey"] = "MissingLocalAlertLevel";
+                diagnostics = new BehaviorTreeValidator().Validate(
+                    missingWritebackKey,
+                    BehaviorTreeExecutorRegistry.CreateDefault());
+                Assert.True(diagnostics.Exists(diagnostic => diagnostic.Code == "BT100"), diagnostics.ToDisplayString());
+            }
+            finally
+            {
+                if (uninitializedRunnerObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(uninitializedRunnerObject);
+                }
+            }
+        }
+
+        [Test]
         public void BehaviorTreeRuntimeFalseConditionDecoratorBlocksBranch()
         {
             BehaviorTreeSource source = new BehaviorTreeSource();
@@ -6278,6 +6716,109 @@ namespace BlueprintSystem.Tests
                 Type = type,
                 DefaultValue = defaultValue
             };
+        }
+
+        private static BehaviorTreeSource CreateSingleBehaviorTreeTaskSource(
+            string name,
+            string taskTypeId,
+            out BehaviorTreeNodeSource task)
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = name;
+            source.Root = "root";
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("task");
+            task = AddBehaviorTreeNode(source, "task", taskTypeId);
+            return source;
+        }
+
+        private static BehaviorTreeSource CreateRunSubtreeParentSource(string name, string behaviorTreePath)
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = name;
+            source.Root = "root";
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("run_subtree");
+
+            BehaviorTreeNodeSource runSubtree = AddBehaviorTreeNode(source, "run_subtree", "BT.RunSubtree");
+            runSubtree.Properties["behaviorTree"] = behaviorTreePath;
+            runSubtree.Properties["blackboardMode"] = "Shared";
+            runSubtree.Properties["inputMappings"] = new List<object>();
+            runSubtree.Properties["outputMappings"] = new List<object>();
+            return source;
+        }
+
+        private static BehaviorTreeSource CreateRunSubtreeSharedChildSource()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "RunSubtreeSharedChild";
+            source.Root = "root";
+            source.Blackboard.Add(CreateBlackboardKey("flag", "bool", false));
+            source.Blackboard.Add(CreateBlackboardKey("ChildOnly", "string", "merged"));
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("sequence");
+
+            BehaviorTreeNodeSource sequence = AddBehaviorTreeNode(source, "sequence", "BT.Sequence");
+            sequence.Children.Add("wait");
+            sequence.Children.Add("set_flag");
+
+            BehaviorTreeNodeSource wait = AddBehaviorTreeNode(source, "wait", "BT.Wait");
+            wait.Properties["duration"] = 0.1f;
+
+            BehaviorTreeNodeSource setFlag = AddBehaviorTreeNode(source, "set_flag", "BT.SetBlackboard");
+            setFlag.Properties["key"] = "flag";
+            setFlag.Properties["value"] = true;
+            return source;
+        }
+
+        private static BehaviorTreeSource CreateRunSubtreeIsolatedChildSource()
+        {
+            BehaviorTreeSource source = new BehaviorTreeSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "RunSubtreeIsolatedChild";
+            source.Root = "root";
+            source.Blackboard.Add(CreateBlackboardKey("ChildInput", "string", string.Empty));
+            source.Blackboard.Add(CreateBlackboardKey("ChildOutput", "string", string.Empty));
+            source.Blackboard.Add(CreateBlackboardKey("ChildOnly", "string", "child"));
+
+            BehaviorTreeNodeSource root = AddBehaviorTreeNode(source, "root", "BT.Root");
+            root.Children.Add("set_output");
+
+            BehaviorTreeNodeSource setOutput = AddBehaviorTreeNode(source, "set_output", "BT.SetBlackboard");
+            setOutput.Properties["key"] = "ChildOutput";
+            setOutput.Properties["valueKey"] = "ChildInput";
+            return source;
+        }
+
+        private static BehaviorTreeRuntime CompileBehaviorTreeRuntime(BehaviorTreeSource source)
+        {
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(
+                source,
+                BehaviorTreeExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+            return new BehaviorTreeRuntime(compileResult.Tree, null, null);
+        }
+
+        private static BehaviorTreeRunner CreateBehaviorTreeRunnerWithBlackboard(
+            GameObject gameObject,
+            params BehaviorTreeBlackboardKey[] blackboard)
+        {
+            BehaviorTreeRunner runner = gameObject.AddComponent<BehaviorTreeRunner>();
+            RuntimeBehaviorTree tree = new RuntimeBehaviorTree();
+            tree.BlackboardSchema.AddRange(blackboard);
+            BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(
+                tree,
+                gameObject,
+                runner,
+                new BehaviorTreeBlackboard(tree.BlackboardSchema));
+            SetPrivateField(runner, "_runtime", runtime);
+            return runner;
         }
 
         private static BehaviorTreeNodeSource AddBehaviorTreeNode(BehaviorTreeSource source, string id, string typeId)

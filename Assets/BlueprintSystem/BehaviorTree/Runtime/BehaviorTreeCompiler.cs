@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace BlueprintSystem
@@ -516,7 +517,8 @@ namespace BlueprintSystem
                 }
 
                 ValidateRequiredProperties(node, diagnostics);
-                ValidateBlackboardReferences(node.Properties, blackboard, diagnostics, node.Id);
+                ValidateNodeBlackboardReferences(node, blackboard, diagnostics);
+                ValidateRunSubtreeLocalMappings(node, blackboard, diagnostics);
                 ValidateInputBindings(node.Inputs, blackboard, diagnostics, node.Id);
             }
         }
@@ -587,6 +589,235 @@ namespace BlueprintSystem
             {
                 diagnostics.Add(BlueprintDiagnostic.Error("BT092", node.TypeId + " requires eventName or startEventName.", node.Id));
             }
+
+            if (node.TypeId == "BT.RunSubtree")
+            {
+                if (!HasNonEmpty(node.Properties, "behaviorTree"))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT097", "BT.RunSubtree requires behaviorTree.", node.Id));
+                }
+
+                string mode = GetPropertyString(node.Properties, "blackboardMode", "Shared");
+                if (!IsRunSubtreeBlackboardMode(mode))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT098", "BT.RunSubtree blackboardMode must be Shared or Isolated.", node.Id));
+                }
+            }
+
+            if (IsRunnerBlackboardNode(node.TypeId))
+            {
+                if (!HasInputBinding(node, "target"))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT093", node.TypeId + " requires target input.", node.Id));
+                }
+
+                if ((node.TypeId == "BT.SetRunnerBlackboard" || node.TypeId == "BT.ClearRunnerBlackboard") &&
+                    !HasNonEmpty(node.Properties, "targetKey"))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT094", node.TypeId + " requires targetKey.", node.Id));
+                }
+
+                if (node.TypeId == "BT.SetRunnerBlackboard" &&
+                    !HasInputBinding(node, "value") &&
+                    !HasNonEmpty(node.Properties, "sourceKey"))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT095", node.TypeId + " requires value input or sourceKey.", node.Id));
+                }
+
+                if ((node.TypeId == "BT.GetRunnerBlackboard" || node.TypeId == "BT.CopyRunnerBlackboard") &&
+                    (!HasNonEmpty(node.Properties, "sourceKey") || !HasNonEmpty(node.Properties, "targetKey")))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT096", node.TypeId + " requires sourceKey and targetKey.", node.Id));
+                }
+            }
+        }
+
+        private static void ValidateNodeBlackboardReferences(
+            BehaviorTreeNodeSource node,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            foreach (KeyValuePair<string, object> pair in node.Properties)
+            {
+                if (!ShouldValidateNodeBlackboardProperty(node, pair.Key))
+                {
+                    continue;
+                }
+
+                string key = pair.Value as string;
+                if (string.IsNullOrEmpty(key))
+                {
+                    continue;
+                }
+
+                if (!blackboard.ContainsKey(key))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT100", "Blackboard key '" + key + "' is not declared.", node.Id));
+                }
+            }
+        }
+
+        private static bool ShouldValidateNodeBlackboardProperty(BehaviorTreeNodeSource node, string propertyName)
+        {
+            if (!BlackboardPropertyNames.Contains(propertyName))
+            {
+                return false;
+            }
+
+            if (node.TypeId == "BT.SetRunnerBlackboard")
+            {
+                if (propertyName == "targetKey")
+                {
+                    return false;
+                }
+
+                if (propertyName == "sourceKey")
+                {
+                    return !HasInputBinding(node, "value");
+                }
+            }
+            else if (node.TypeId == "BT.GetRunnerBlackboard")
+            {
+                if (propertyName == "sourceKey")
+                {
+                    return false;
+                }
+
+                if (propertyName == "targetKey")
+                {
+                    return true;
+                }
+            }
+            else if (node.TypeId == "BT.ClearRunnerBlackboard")
+            {
+                if (propertyName == "targetKey")
+                {
+                    return false;
+                }
+            }
+            else if (node.TypeId == "BT.CopyRunnerBlackboard")
+            {
+                if (propertyName == "targetKey")
+                {
+                    return false;
+                }
+
+                if (propertyName == "sourceKey")
+                {
+                    return !HasInputBinding(node, "sourceTarget");
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsRunnerBlackboardNode(string typeId)
+        {
+            return typeId == "BT.SetRunnerBlackboard" ||
+                   typeId == "BT.GetRunnerBlackboard" ||
+                   typeId == "BT.ClearRunnerBlackboard" ||
+                   typeId == "BT.CopyRunnerBlackboard";
+        }
+
+        private static void ValidateRunSubtreeLocalMappings(
+            BehaviorTreeNodeSource node,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics)
+        {
+            if (node == null || node.TypeId != "BT.RunSubtree")
+            {
+                return;
+            }
+
+            string mode = GetPropertyString(node.Properties, "blackboardMode", "Shared");
+            if (!string.Equals(mode, "Isolated", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            ValidateRunSubtreeMappingParentKey(node, "inputMappings", "sourceKey", blackboard, diagnostics);
+            ValidateRunSubtreeMappingParentKey(node, "outputMappings", "targetKey", blackboard, diagnostics);
+        }
+
+        private static void ValidateRunSubtreeMappingParentKey(
+            BehaviorTreeNodeSource node,
+            string propertyName,
+            string parentKeyName,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics)
+        {
+            List<Dictionary<string, object>> mappings = GetObjectArrayProperty(node.Properties, propertyName);
+            for (int i = 0; i < mappings.Count; i++)
+            {
+                string sourceKey = GetPropertyString(mappings[i], "sourceKey", null);
+                string targetKey = GetPropertyString(mappings[i], "targetKey", null);
+                if (string.IsNullOrEmpty(sourceKey) || string.IsNullOrEmpty(targetKey))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT099", "BT.RunSubtree " + propertyName + " entries require sourceKey and targetKey.", node.Id));
+                    continue;
+                }
+
+                string parentKey = GetPropertyString(mappings[i], parentKeyName, null);
+                if (!string.IsNullOrEmpty(parentKey) && !blackboard.ContainsKey(parentKey))
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT100", "Blackboard key '" + parentKey + "' is not declared.", node.Id));
+                }
+            }
+        }
+
+        private static List<Dictionary<string, object>> GetObjectArrayProperty(Dictionary<string, object> properties, string key)
+        {
+            List<Dictionary<string, object>> result = new List<Dictionary<string, object>>();
+            if (properties == null)
+            {
+                return result;
+            }
+
+            object value;
+            if (!properties.TryGetValue(key, out value) || value == null || value is string)
+            {
+                return result;
+            }
+
+            IEnumerable enumerable = value as IEnumerable;
+            if (enumerable == null)
+            {
+                return result;
+            }
+
+            foreach (object item in enumerable)
+            {
+                Dictionary<string, object> dictionary = item as Dictionary<string, object>;
+                if (dictionary != null)
+                {
+                    result.Add(dictionary);
+                }
+            }
+
+            return result;
+        }
+
+        private static string GetPropertyString(Dictionary<string, object> properties, string key, string defaultValue)
+        {
+            object value;
+            if (properties == null || !properties.TryGetValue(key, out value) || value == null)
+            {
+                return defaultValue;
+            }
+
+            return Convert.ToString(value);
+        }
+
+        private static bool IsRunSubtreeBlackboardMode(string mode)
+        {
+            return string.IsNullOrEmpty(mode) ||
+                   string.Equals(mode, "Shared", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(mode, "Isolated", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void ValidateBlackboardReferences(

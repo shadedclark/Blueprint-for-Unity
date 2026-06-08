@@ -139,7 +139,7 @@ namespace BlueprintSystem.Editor
             return TypeId;
         }
 
-        public string ReadPropertiesJson()
+        public virtual string ReadPropertiesJson()
         {
             EnsureConfigured();
             string value;

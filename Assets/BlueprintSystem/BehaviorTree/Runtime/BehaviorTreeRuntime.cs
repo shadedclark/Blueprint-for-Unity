@@ -13,14 +13,6 @@ namespace BlueprintSystem
         Running
     }
 
-    public enum BehaviorTreeAbortMode
-    {
-        None,
-        Self,
-        LowerPriority,
-        Both
-    }
-
     public enum BehaviorTreeComparisonOperator
     {
         IsSet,
@@ -41,6 +33,7 @@ namespace BlueprintSystem
         public string RootNodeId;
         public BehaviorTreeExecutorRegistry Registry;
         public readonly List<BehaviorTreeBlackboardKey> BlackboardSchema = new List<BehaviorTreeBlackboardKey>();
+        public readonly Dictionary<string, RuntimeBehaviorTreeComponent> ComponentsByName = new Dictionary<string, RuntimeBehaviorTreeComponent>(StringComparer.Ordinal);
         public readonly Dictionary<string, RuntimeBehaviorTreeNode> NodesById = new Dictionary<string, RuntimeBehaviorTreeNode>(StringComparer.Ordinal);
         public readonly Dictionary<string, RuntimeBehaviorTreeDecorator> DecoratorsById = new Dictionary<string, RuntimeBehaviorTreeDecorator>(StringComparer.Ordinal);
         public readonly Dictionary<string, RuntimeBehaviorTreeService> ServicesById = new Dictionary<string, RuntimeBehaviorTreeService>(StringComparer.Ordinal);
@@ -50,6 +43,23 @@ namespace BlueprintSystem
             RuntimeBehaviorTreeNode node;
             return !string.IsNullOrEmpty(nodeId) && NodesById.TryGetValue(nodeId, out node) ? node : null;
         }
+
+        public RuntimeBehaviorTreeComponent GetComponent(string componentName)
+        {
+            RuntimeBehaviorTreeComponent component;
+            return !string.IsNullOrEmpty(componentName) && ComponentsByName.TryGetValue(componentName, out component)
+                ? component
+                : null;
+        }
+    }
+
+    public sealed class RuntimeBehaviorTreeComponent
+    {
+        public string Name;
+        public string BehaviorTreePath;
+        public string BehaviorTreeGuid;
+        public bool Required;
+        public BehaviorTreeCompiledAsset CompiledBehaviorTree;
     }
 
     public sealed class RuntimeBehaviorTreeNode
@@ -225,11 +235,6 @@ namespace BlueprintSystem
             }
 
             return state;
-        }
-
-        internal void MarkAbort(string reason)
-        {
-            LastAbortReason = reason;
         }
 
         internal void MarkFailure(string reason)
@@ -659,6 +664,44 @@ namespace BlueprintSystem
             }
 
             _values[key] = value;
+        }
+
+        public bool MergeSchema(IEnumerable<BehaviorTreeBlackboardKey> schema)
+        {
+            if (schema == null)
+            {
+                return true;
+            }
+
+            bool merged = true;
+            foreach (BehaviorTreeBlackboardKey key in schema)
+            {
+                if (key == null || string.IsNullOrEmpty(key.Name))
+                {
+                    continue;
+                }
+
+                BehaviorTreeBlackboardKey existing;
+                if (_schemaByName.TryGetValue(key.Name, out existing))
+                {
+                    if (!string.Equals(existing == null ? null : existing.Type, key.Type, StringComparison.Ordinal))
+                    {
+                        merged = false;
+                    }
+
+                    continue;
+                }
+
+                _schemaByName[key.Name] = key;
+                object defaultValue = BehaviorTreeValueUtility.CoerceValue(key.DefaultValue, key.Type);
+                _defaults[key.Name] = defaultValue;
+                if (!_values.ContainsKey(key.Name))
+                {
+                    _values[key.Name] = defaultValue;
+                }
+            }
+
+            return merged;
         }
 
         public void ClearValue(string key)

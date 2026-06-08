@@ -293,6 +293,8 @@ def install(
         raise FileNotFoundError(f"Missing source marketplace file: {source_marketplace}")
 
     target_plugin = plugin_install_root / PLUGIN_NAME
+    # Keep both roots fresh because CLI registration and plugin detail deeplinks resolve
+    # the same marketplace entry from different filesystem anchors.
     compatibility_plugins = unique_paths(
         [
             target_plugin,

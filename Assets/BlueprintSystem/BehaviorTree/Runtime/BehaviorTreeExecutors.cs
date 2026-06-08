@@ -132,6 +132,11 @@ namespace BlueprintSystem
             registry.Register(new BehaviorTreeWaitExecutor());
             registry.Register(new BehaviorTreeSetBlackboardExecutor());
             registry.Register(new BehaviorTreeClearBlackboardExecutor());
+            registry.Register(new BehaviorTreeSetRunnerBlackboardExecutor());
+            registry.Register(new BehaviorTreeGetRunnerBlackboardExecutor());
+            registry.Register(new BehaviorTreeClearRunnerBlackboardTaskExecutor());
+            registry.Register(new BehaviorTreeCopyRunnerBlackboardExecutor());
+            registry.Register(new BehaviorTreeRunSubtreeExecutor());
             registry.Register(new BehaviorTreeMoveToExecutor());
             registry.Register(new BehaviorTreeRotateToExecutor());
             registry.Register(new BehaviorTreeTriggerBlueprintEventExecutor());
@@ -839,6 +844,417 @@ namespace BlueprintSystem
 
             context.Blackboard.ClearValue(key);
             return BehaviorTreeStatus.Success;
+        }
+    }
+
+    internal sealed class BehaviorTreeSetRunnerBlackboardExecutor : BehaviorTreeNodeExecutor
+    {
+        public override string TypeId
+        {
+            get { return "BT.SetRunnerBlackboard"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            BehaviorTreeBlackboard targetBlackboard;
+            if (!BehaviorTreeRunnerBlackboardUtility.TryResolveRunnerBlackboard(context, node, "target", TypeId, out targetBlackboard))
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            string targetKey = BehaviorTreePropertyUtility.GetString(node.Properties, "targetKey", null);
+            if (string.IsNullOrEmpty(targetKey))
+            {
+                context.Runtime.MarkFailure(TypeId + " requires targetKey.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            object value;
+            if (!BehaviorTreePropertyUtility.TryGetInputValue(context, node, "value", out value))
+            {
+                string sourceKey = BehaviorTreePropertyUtility.GetString(node.Properties, "sourceKey", null);
+                if (string.IsNullOrEmpty(sourceKey))
+                {
+                    context.Runtime.MarkFailure(TypeId + " requires value input or sourceKey.");
+                    return BehaviorTreeStatus.Failure;
+                }
+
+                if (!context.Blackboard.TryGetValue(sourceKey, out value))
+                {
+                    context.Runtime.MarkFailure(TypeId + " sourceKey '" + sourceKey + "' is not set.");
+                    return BehaviorTreeStatus.Failure;
+                }
+            }
+
+            targetBlackboard.SetValue(targetKey, value);
+            return BehaviorTreeStatus.Success;
+        }
+    }
+
+    internal sealed class BehaviorTreeGetRunnerBlackboardExecutor : BehaviorTreeNodeExecutor
+    {
+        public override string TypeId
+        {
+            get { return "BT.GetRunnerBlackboard"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            BehaviorTreeBlackboard sourceBlackboard;
+            if (!BehaviorTreeRunnerBlackboardUtility.TryResolveRunnerBlackboard(context, node, "target", TypeId, out sourceBlackboard))
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            string sourceKey = BehaviorTreePropertyUtility.GetString(node.Properties, "sourceKey", null);
+            string targetKey = BehaviorTreePropertyUtility.GetString(node.Properties, "targetKey", null);
+            if (string.IsNullOrEmpty(sourceKey) || string.IsNullOrEmpty(targetKey))
+            {
+                context.Runtime.MarkFailure(TypeId + " requires sourceKey and targetKey.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            if (!context.Blackboard.ContainsKey(targetKey))
+            {
+                context.Runtime.MarkFailure(TypeId + " targetKey '" + targetKey + "' is not declared.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            object value;
+            if (!sourceBlackboard.TryGetValue(sourceKey, out value))
+            {
+                context.Runtime.MarkFailure(TypeId + " sourceKey '" + sourceKey + "' is not set on target runner.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            context.Blackboard.SetValue(targetKey, value);
+            return BehaviorTreeStatus.Success;
+        }
+    }
+
+    internal sealed class BehaviorTreeClearRunnerBlackboardTaskExecutor : BehaviorTreeNodeExecutor
+    {
+        public override string TypeId
+        {
+            get { return "BT.ClearRunnerBlackboard"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            BehaviorTreeBlackboard targetBlackboard;
+            if (!BehaviorTreeRunnerBlackboardUtility.TryResolveRunnerBlackboard(context, node, "target", TypeId, out targetBlackboard))
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            string targetKey = BehaviorTreePropertyUtility.GetString(node.Properties, "targetKey", null);
+            if (string.IsNullOrEmpty(targetKey))
+            {
+                context.Runtime.MarkFailure(TypeId + " requires targetKey.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            targetBlackboard.ClearValue(targetKey);
+            return BehaviorTreeStatus.Success;
+        }
+    }
+
+    internal sealed class BehaviorTreeCopyRunnerBlackboardExecutor : BehaviorTreeNodeExecutor
+    {
+        public override string TypeId
+        {
+            get { return "BT.CopyRunnerBlackboard"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            BehaviorTreeBlackboard targetBlackboard;
+            if (!BehaviorTreeRunnerBlackboardUtility.TryResolveRunnerBlackboard(context, node, "target", TypeId, out targetBlackboard))
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            string sourceKey = BehaviorTreePropertyUtility.GetString(node.Properties, "sourceKey", null);
+            string targetKey = BehaviorTreePropertyUtility.GetString(node.Properties, "targetKey", null);
+            if (string.IsNullOrEmpty(sourceKey) || string.IsNullOrEmpty(targetKey))
+            {
+                context.Runtime.MarkFailure(TypeId + " requires sourceKey and targetKey.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            BehaviorTreeBlackboard sourceBlackboard;
+            string sourceTargetBinding;
+            if (BehaviorTreePropertyUtility.TryGetInputBinding(node, "sourceTarget", out sourceTargetBinding))
+            {
+                if (!BehaviorTreeRunnerBlackboardUtility.TryResolveRunnerBlackboard(context, node, "sourceTarget", TypeId, out sourceBlackboard))
+                {
+                    return BehaviorTreeStatus.Failure;
+                }
+            }
+            else
+            {
+                sourceBlackboard = context.Blackboard;
+            }
+
+            object value;
+            if (sourceBlackboard == null || !sourceBlackboard.TryGetValue(sourceKey, out value))
+            {
+                context.Runtime.MarkFailure(TypeId + " sourceKey '" + sourceKey + "' is not set.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            targetBlackboard.SetValue(targetKey, value);
+            return BehaviorTreeStatus.Success;
+        }
+    }
+
+    internal sealed class BehaviorTreeRunSubtreeExecutor : BehaviorTreeNodeExecutor
+    {
+        private const string RuntimeStateKey = "subtreeRuntime";
+        private const string BlackboardModeStateKey = "subtreeBlackboardMode";
+        private const string SharedMode = "Shared";
+        private const string IsolatedMode = "Isolated";
+
+        public override string TypeId
+        {
+            get { return "BT.RunSubtree"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            RuntimeBehaviorTreeComponent subtreeComponent = ResolveSubtreeComponent(context, node);
+            if (subtreeComponent == null)
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            string blackboardMode = ResolveBlackboardMode(context, node);
+            if (string.IsNullOrEmpty(blackboardMode))
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            BehaviorTreeNodeRuntimeState state = context.GetNodeState(node);
+            BehaviorTreeRuntime subtreeRuntime = GetOrCreateRuntime(context, node, state, blackboardMode, subtreeComponent);
+            if (subtreeRuntime == null)
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
+            if (blackboardMode == IsolatedMode &&
+                !CopyMappings(context, node, "inputMappings", context.Blackboard, subtreeRuntime.Blackboard, "input"))
+            {
+                ClearSubtreeState(state, true);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            BehaviorTreeStatus status = subtreeRuntime.Tick(context.DeltaTime);
+
+            if (blackboardMode == IsolatedMode &&
+                !CopyMappings(context, node, "outputMappings", subtreeRuntime.Blackboard, context.Blackboard, "output"))
+            {
+                ClearSubtreeState(state, true);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            if (status == BehaviorTreeStatus.Failure && !string.IsNullOrEmpty(subtreeRuntime.LastFailureReason))
+            {
+                context.Runtime.MarkFailure(TypeId + " subtree '" + node.Id + "' failed: " + subtreeRuntime.LastFailureReason);
+            }
+
+            if (status != BehaviorTreeStatus.Running)
+            {
+                state.Data.Clear();
+            }
+
+            return status;
+        }
+
+        public override void Abort(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            ClearSubtreeState(context.GetNodeState(node), true);
+        }
+
+        private static RuntimeBehaviorTreeComponent ResolveSubtreeComponent(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node)
+        {
+            RuntimeBehaviorTreeComponent component = context.Tree == null ? null : context.Tree.GetComponent(node.Id);
+            if (component != null && component.CompiledBehaviorTree != null)
+            {
+                return component;
+            }
+
+            string path = component != null && !string.IsNullOrEmpty(component.BehaviorTreePath)
+                ? component.BehaviorTreePath
+                : BehaviorTreePropertyUtility.GetString(node.Properties, "behaviorTree", null);
+            context.Runtime.MarkFailure("BT.RunSubtree requires a compiled subtree asset" + (string.IsNullOrEmpty(path) ? "." : " for '" + path + "'."));
+            return null;
+        }
+
+        private static BehaviorTreeRuntime GetOrCreateRuntime(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            BehaviorTreeNodeRuntimeState state,
+            string blackboardMode,
+            RuntimeBehaviorTreeComponent subtreeComponent)
+        {
+            object runtimeValue;
+            BehaviorTreeRuntime runtime = null;
+            if (state.Data.TryGetValue(RuntimeStateKey, out runtimeValue))
+            {
+                runtime = runtimeValue as BehaviorTreeRuntime;
+            }
+
+            if (runtime != null)
+            {
+                object previousModeValue;
+                string previousMode = state.Data.TryGetValue(BlackboardModeStateKey, out previousModeValue)
+                    ? previousModeValue as string
+                    : null;
+                if (string.Equals(previousMode, blackboardMode, StringComparison.Ordinal))
+                {
+                    return runtime;
+                }
+
+                ClearSubtreeState(state, true);
+            }
+
+            RuntimeBehaviorTree subtree = subtreeComponent.CompiledBehaviorTree.CreateRuntimeTree(context.Tree == null ? null : context.Tree.Registry);
+            BehaviorTreeBlackboard blackboard;
+            if (blackboardMode == SharedMode)
+            {
+                if (context.Blackboard == null || !context.Blackboard.MergeSchema(subtree.BlackboardSchema))
+                {
+                    context.Runtime.MarkFailure("BT.RunSubtree shared Blackboard schema conflicts with subtree '" + node.Id + "'.");
+                    return null;
+                }
+
+                blackboard = context.Blackboard;
+            }
+            else
+            {
+                blackboard = new BehaviorTreeBlackboard(subtree.BlackboardSchema);
+            }
+
+            runtime = new BehaviorTreeRuntime(subtree, context.Owner, context.OwnerComponent, blackboard, context.Logger);
+            state.Data[RuntimeStateKey] = runtime;
+            state.Data[BlackboardModeStateKey] = blackboardMode;
+            return runtime;
+        }
+
+        private static string ResolveBlackboardMode(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            string mode = BehaviorTreePropertyUtility.GetString(node.Properties, "blackboardMode", SharedMode);
+            if (string.IsNullOrEmpty(mode) || string.Equals(mode, SharedMode, StringComparison.OrdinalIgnoreCase))
+            {
+                return SharedMode;
+            }
+
+            if (string.Equals(mode, IsolatedMode, StringComparison.OrdinalIgnoreCase))
+            {
+                return IsolatedMode;
+            }
+
+            context.Runtime.MarkFailure("BT.RunSubtree blackboardMode must be Shared or Isolated.");
+            return null;
+        }
+
+        private static bool CopyMappings(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            string propertyName,
+            BehaviorTreeBlackboard source,
+            BehaviorTreeBlackboard target,
+            string label)
+        {
+            List<SubtreeBlackboardMapping> mappings = ReadMappings(node, propertyName);
+            for (int i = 0; i < mappings.Count; i++)
+            {
+                SubtreeBlackboardMapping mapping = mappings[i];
+                if (string.IsNullOrEmpty(mapping.SourceKey) || string.IsNullOrEmpty(mapping.TargetKey))
+                {
+                    context.Runtime.MarkFailure("BT.RunSubtree " + label + " mapping requires sourceKey and targetKey.");
+                    return false;
+                }
+
+                if (source == null || !source.ContainsKey(mapping.SourceKey))
+                {
+                    context.Runtime.MarkFailure("BT.RunSubtree " + label + " mapping sourceKey '" + mapping.SourceKey + "' is not declared.");
+                    return false;
+                }
+
+                if (target == null || !target.ContainsKey(mapping.TargetKey))
+                {
+                    context.Runtime.MarkFailure("BT.RunSubtree " + label + " mapping targetKey '" + mapping.TargetKey + "' is not declared.");
+                    return false;
+                }
+
+                target.SetValue(mapping.TargetKey, source.GetValue(mapping.SourceKey));
+            }
+
+            return true;
+        }
+
+        private static List<SubtreeBlackboardMapping> ReadMappings(RuntimeBehaviorTreeNode node, string propertyName)
+        {
+            List<SubtreeBlackboardMapping> result = new List<SubtreeBlackboardMapping>();
+            object value;
+            if (node == null || !node.Properties.TryGetValue(propertyName, out value) || value == null || value is string)
+            {
+                return result;
+            }
+
+            IEnumerable enumerable = value as IEnumerable;
+            if (enumerable == null)
+            {
+                return result;
+            }
+
+            foreach (object item in enumerable)
+            {
+                Dictionary<string, object> dictionary = item as Dictionary<string, object>;
+                if (dictionary == null)
+                {
+                    continue;
+                }
+
+                result.Add(new SubtreeBlackboardMapping
+                {
+                    SourceKey = BehaviorTreePropertyUtility.GetString(dictionary, "sourceKey", null),
+                    TargetKey = BehaviorTreePropertyUtility.GetString(dictionary, "targetKey", null)
+                });
+            }
+
+            return result;
+        }
+
+        private static void ClearSubtreeState(BehaviorTreeNodeRuntimeState state, bool stopRuntime)
+        {
+            if (state == null)
+            {
+                return;
+            }
+
+            if (stopRuntime)
+            {
+                object runtimeValue;
+                BehaviorTreeRuntime runtime = state.Data.TryGetValue(RuntimeStateKey, out runtimeValue)
+                    ? runtimeValue as BehaviorTreeRuntime
+                    : null;
+                if (runtime != null)
+                {
+                    runtime.Stop();
+                }
+            }
+
+            state.Data.Clear();
+        }
+
+        private sealed class SubtreeBlackboardMapping
+        {
+            public string SourceKey;
+            public string TargetKey;
         }
     }
 
@@ -1964,6 +2380,53 @@ namespace BlueprintSystem
                    value is float ||
                    value is double ||
                    value is decimal;
+        }
+    }
+
+    internal static class BehaviorTreeRunnerBlackboardUtility
+    {
+        public static bool TryResolveRunnerBlackboard(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            string inputId,
+            string executorId,
+            out BehaviorTreeBlackboard blackboard)
+        {
+            blackboard = null;
+            object targetValue;
+            if (!BehaviorTreePropertyUtility.TryGetInputValue(context, node, inputId, out targetValue))
+            {
+                context.Runtime.MarkFailure(executorId + " requires " + inputId + " input.");
+                return false;
+            }
+
+            BehaviorTreeRunner runner = ResolveRunner(targetValue);
+            if (runner == null)
+            {
+                context.Runtime.MarkFailure(executorId + " could not resolve BehaviorTreeRunner from " + inputId + ".");
+                return false;
+            }
+
+            blackboard = runner.Blackboard;
+            if (blackboard == null)
+            {
+                context.Runtime.MarkFailure(executorId + " target BehaviorTreeRunner has no initialized Blackboard.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private static BehaviorTreeRunner ResolveRunner(object value)
+        {
+            BehaviorTreeRunner runner = value as BehaviorTreeRunner;
+            if (runner != null)
+            {
+                return runner;
+            }
+
+            GameObject gameObject = BehaviorTreeValueUtility.ToGameObject(value);
+            return gameObject == null ? null : gameObject.GetComponent<BehaviorTreeRunner>();
         }
     }
 

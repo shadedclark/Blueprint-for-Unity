@@ -8,7 +8,8 @@ This agent implements AI decision logic as Behavior Tree assets. It does not cre
 
 Turn AI behavior requirements into readable, validated Behavior Tree source assets:
 
-- One `.btree.json` per cohesive AI behavior.
+- One `.btree.json` per single concrete AI behavior.
+- A parent `<AIName>Behavior.btree.json` that coordinates multiple behavior trees through `BT.RunSubtree` when the request contains more than one behavior.
 - Blackboard keys that expose the runtime state needed by the tree.
 - Composite, Task, Decorator, and Service nodes using existing `BT.*` runtime support.
 - Optional links to existing Blueprint behavior through `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.SetBlackboardFromBlueprint`, or `BT.TriggerBlueprintService`.
@@ -46,6 +47,7 @@ Assets/Game/Blueprint/**/Behavior/*.btree.json
 8. Do not store Unity scene object references in JSON. Use Blackboard keys, runtime overrides, binding names, component roles, or Blueprint asset paths.
 9. Do not enter Unity Play Mode unless the user explicitly asks in the current request.
 10. Any Unity Editor operation, including compile, prefab/scene inspection, runner attachment, asset refresh, console checks, and scene saves, must use `unity_mcp` tools.
+11. Do not pack multiple requested behaviors into one large behavior tree. Split them into single-behavior child `.btree.json` files and call them from a parent coordination tree.
 
 ## AI Behavior Detection
 
@@ -87,12 +89,25 @@ Assets/Game/Blueprint/<FeatureName>/Behavior/
 Recommended file names:
 
 ```text
-Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName>Behavior.btree.json
-Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName>PatrolBehavior.btree.json
-Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName>CombatBehavior.btree.json
+Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName>Behavior.btree.json              parent coordination tree
+Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName><BehaviorName>Behavior.btree.json child single-behavior tree
+Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName>PatrolBehavior.btree.json        example child tree
+Assets/Game/Blueprint/<FeatureName>/Behavior/<AIName>CombatBehavior.btree.json        example child tree
 ```
 
 Do not create new feature-owned AI behavior trees under `Assets/BlueprintSystem/**`. The BlueprintSystem directory is framework code, docs, samples, and tooling.
+
+## Behavior Decomposition Rules
+
+When the request contains multiple behaviors, decompose before writing JSON:
+
+- Extract a behavior list from the requirement, such as `Patrol`, `Chase`, `Attack`, `Flee`, `Investigate`, `Alert`, `ReturnHome`, or `Idle`.
+- Create one child `.btree.json` for each behavior. Each child tree implements only that behavior's local decision and action flow.
+- Create or update `<AIName>Behavior.btree.json` as the parent coordination tree. It owns priority, selection, branch guards, shared Services, and `BT.RunSubtree` calls to child behavior trees.
+- Keep concrete action nodes such as `BT.MoveTo`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, or `BT.RunBlueprintTask` inside the child behavior tree that owns that action.
+- The parent tree may use `BT.PrioritySelector`, `BT.Selector`, `BT.Sequence`, Decorators, Services, Blackboard setup/cleanup, and `BT.RunSubtree`, but it must not directly mix the concrete action flow for multiple behaviors.
+- Use `BT.RunSubtree` with `blackboardMode: "Shared"` by default. Use `Isolated` only when a child needs private temporary state, and then define explicit `inputMappings` and `outputMappings`.
+- If the request has exactly one behavior, a single `.btree.json` is valid and no parent coordination tree is required.
 
 ## Tree Design Rules
 
@@ -111,12 +126,13 @@ Design each tree as a clear decision hierarchy:
 Prefer this common AI structure when it fits:
 
 ```text
-root
-  main_priority_selector
-    attack_sequence      guarded by target/range/cooldown decorators
-    chase_sequence       guarded by target decorator
-    investigate_sequence guarded by last-known-position decorator
-    patrol_sequence      fallback idle/patrol behavior
+<AIName>Behavior.btree.json
+  root
+    main_priority_selector
+      attack_branch      guarded by target/range/cooldown decorators -> BT.RunSubtree(<AIName>AttackBehavior.btree.json)
+      chase_branch       guarded by target decorator                -> BT.RunSubtree(<AIName>ChaseBehavior.btree.json)
+      investigate_branch guarded by last-known-position decorator   -> BT.RunSubtree(<AIName>InvestigateBehavior.btree.json)
+      patrol_branch      fallback idle/patrol behavior              -> BT.RunSubtree(<AIName>PatrolBehavior.btree.json)
 ```
 
 ## Blackboard Rules
@@ -165,16 +181,18 @@ Every target Blueprint path must reference an existing or separately created `.b
 
 1. Read `Assets/BlueprintSystem/BehaviorTree/GUIDE.md` first.
 2. Restate the requested AI behavior as concrete runtime decisions, priorities, actions, services, and Blackboard state.
-3. Pick `<FeatureName>`, AI tree name, and output path.
-4. Inspect relevant existing `.btree.json` samples and related feature Blueprint assets.
-5. Check that every needed `BT.*` node exists in the guide or current samples.
-6. If a required capability is unsupported by existing nodes, stop with an unsupported capability report.
-7. Create or update `.btree.json` only for the behavior tree source.
-8. Keep Decorators and Services in graph-level arrays, attached to tree nodes by ID.
-9. Parse changed JSON files.
-10. Validate and compile changed behavior trees through the project's Behavior Tree tooling. Use Unity MCP when the editor is required.
-11. If integration is requested, inspect or update the target prefab/scene with Unity MCP and attach/update `BehaviorTreeRunner` only through editor tools.
-12. Check the Unity Console for errors if Unity Editor operations were used.
+3. Split compound requirements into a behavior list and decide whether a parent coordination tree is required.
+4. Pick `<FeatureName>`, parent AI tree name, child behavior tree names, and output paths.
+5. Inspect relevant existing `.btree.json` samples and related feature Blueprint assets.
+6. Check that every needed `BT.*` node exists in the guide or current samples, including `BT.RunSubtree` for compound behavior.
+7. If a required capability is unsupported by existing nodes, stop with an unsupported capability report.
+8. Create or update `.btree.json` only for the behavior tree source.
+9. Keep parent trees focused on branch coordination and `BT.RunSubtree`; keep each child tree focused on one concrete behavior.
+10. Keep Decorators and Services in graph-level arrays, attached to tree nodes by ID.
+11. Parse changed JSON files.
+12. Validate and compile changed behavior trees through the project's Behavior Tree tooling. Use Unity MCP when the editor is required.
+13. If integration is requested, inspect or update the target prefab/scene with Unity MCP and attach/update `BehaviorTreeRunner` only through editor tools.
+14. Check the Unity Console for errors if Unity Editor operations were used.
 
 ## Handoff Contract
 
@@ -184,6 +202,8 @@ Return this contract to the entry agent or final integration pass:
 FeatureName:
 AI owner prefab/scene object:
 Behavior tree source:
+Parent behavior tree:
+Child behavior trees:
 Compiled behavior tree asset:
 Runner tick mode:
 Blackboard keys:

@@ -188,12 +188,14 @@ Vector resolution accepts `Vector3`, `Vector2`, `Transform`, `GameObject`, `Comp
 
 In the Behavior Tree Graph Toolkit, typed `int`, `float`, `bool`, `Vector2`, and `Vector3` value ports can be edited inline on the visual node when they are not connected to Blackboard variables. Generic/object value ports, destination key ports, and Blackboard key/reference ports remain Blackboard-only.
 
+Runner Blackboard task nodes can read or write another `BehaviorTreeRunner` Blackboard. Their `target` and `sourceTarget` inputs read runtime objects from the current tree Blackboard and resolve `BehaviorTreeRunner`, `GameObject`, `Transform`, or `Component` values to a runner on the same GameObject. They do not use normal Blueprint binding names or scene-path strings. `sourceKey` and `targetKey` are string properties so remote Blackboard keys can use different names from the current tree keys.
+
 ## Current Node Summary
 
 | Family | Type IDs | Purpose |
 | --- | --- | --- |
 | Composites | `BT.Root`, `BT.Selector`, `BT.Sequence`, `BT.Parallel`, `BT.RandomSelector`, `BT.PrioritySelector`, `BT.WeightedSelector` | Root entry, ordered child evaluation, parallel child polling, randomized selection, priority re-evaluation, and weighted selection. |
-| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.MoveTo`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, Blackboard mutation, movement, rotation, Blueprint event bridging, and simple async Blueprint-task polling. |
+| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, local and cross-runner Blackboard mutation, subtree execution, movement, rotation, Blueprint event bridging, and simple async Blueprint-task polling. |
 | Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown` | Branch guards evaluated before ticking the attached node. |
 | Services | `BT.UpdateDistance`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` | Periodic updates while the owning node is active. |
 
@@ -241,6 +243,112 @@ Sets a Blackboard key value to `null` and returns `Success`.
 | Parameter | Source | Type | Default | Notes |
 | --- | --- | --- | --- | --- |
 | `key` | input/property | Blackboard key name | required | Key to clear. An input binding names the key directly. |
+
+### `BT.SetRunnerBlackboard`
+
+Writes a value to another `BehaviorTreeRunner` Blackboard and returns `Success`.
+
+```json
+{
+  "id": "share_target",
+  "typeId": "BT.SetRunnerBlackboard",
+  "inputs": {
+    "target": "FriendRunner"
+  },
+  "properties": {
+    "sourceKey": "EnemyTarget",
+    "targetKey": "Target"
+  }
+}
+```
+
+This example writes `current.Blackboard["EnemyTarget"]` to `friendRunner.Blackboard["Target"]`.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `target` | input | `BehaviorTreeRunner`-compatible value | required | Current Blackboard value that resolves to `BehaviorTreeRunner`, `GameObject`, `Transform`, or `Component`. |
+| `value` | input | any Blackboard value | none | Optional direct value source. When connected, it overrides `sourceKey`. |
+| `sourceKey` | property | current Blackboard key name | none | Used only when `value` is not connected. |
+| `targetKey` | property | target runner Blackboard key name | required | Remote destination key; it does not need to be declared in the current tree. |
+
+Returns `Failure` if `target` cannot resolve, the target runner has no initialized Blackboard, `targetKey` is missing, or no value source resolves.
+
+### `BT.GetRunnerBlackboard`
+
+Reads another `BehaviorTreeRunner` Blackboard value and writes it into the current tree Blackboard.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `target` | input | `BehaviorTreeRunner`-compatible value | required | Current Blackboard value that resolves to the remote runner. |
+| `sourceKey` | property | target runner Blackboard key name | required | Remote source key. |
+| `targetKey` | property | current Blackboard key name | required | Local destination key; it must be declared in the current tree. |
+
+Returns `Failure` if the runner cannot resolve, the remote Blackboard is not initialized, either key is missing, `targetKey` is not declared locally, or the remote `sourceKey` does not exist.
+
+### `BT.ClearRunnerBlackboard`
+
+Sets one key on another `BehaviorTreeRunner` Blackboard to `null`.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `target` | input | `BehaviorTreeRunner`-compatible value | required | Current Blackboard value that resolves to the remote runner. |
+| `targetKey` | property | target runner Blackboard key name | required | Remote key to clear. |
+
+Returns `Failure` if the runner cannot resolve, the remote Blackboard is not initialized, or `targetKey` is missing.
+
+### `BT.CopyRunnerBlackboard`
+
+Copies a Blackboard value from the current tree or a source runner to a target runner.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `sourceTarget` | input | `BehaviorTreeRunner`-compatible value | current tree | Optional source runner. When omitted, `sourceKey` reads from the current tree Blackboard. |
+| `target` | input | `BehaviorTreeRunner`-compatible value | required | Target runner to write. |
+| `sourceKey` | property | source Blackboard key name | required | Source key on `sourceTarget` or the current tree. |
+| `targetKey` | property | target runner Blackboard key name | required | Remote destination key. |
+
+Returns `Failure` if a configured runner cannot resolve, a runner Blackboard is not initialized, either key is missing, or `sourceKey` does not exist on its source Blackboard.
+
+These `BT.*RunnerBlackboard` nodes are Behavior Tree runtime nodes. They are separate from the normal Blueprint `BehaviorTree.GetBlackboard*`, `BehaviorTree.SetBlackboard*`, and `BehaviorTree.ClearBlackboard` bridge nodes under `Assets/BlueprintSystem/Specs/Nodes/`.
+
+### `BT.RunSubtree`
+
+Runs another compiled Behavior Tree asset from the current tree and returns the child tree status.
+
+```json
+{
+  "id": "run_patrol_subtree",
+  "typeId": "BT.RunSubtree",
+  "children": [],
+  "properties": {
+    "behaviorTree": "EnemyPatrolBehavior.btree.json",
+    "blackboardMode": "Shared",
+    "inputMappings": [],
+    "outputMappings": []
+  }
+}
+```
+
+`behaviorTree` may reference an `Assets/...` path, a `Packages/...` path, a path relative to the parent `.btree.json`, or a `.compiled.asset` whose source path resolves back to a `.btree.json` / `.btree` asset. The editor compiler recursively compiles this child tree and stores the `BehaviorTreeCompiledAsset` reference in the parent compiled asset's component list, keyed by the `BT.RunSubtree` node id. Runtime execution resolves that component reference; it does not load source JSON or asset paths.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `behaviorTree` | property | Behavior Tree asset path | required | Source `.btree.json` / `.btree`, relative path, package/project path, or `.compiled.asset`. |
+| `blackboardMode` | property | `Shared` or `Isolated` | `Shared` | Controls whether the child tree uses the parent Blackboard or its own Blackboard. |
+| `inputMappings` | property | array | `[]` | `Isolated` only. Each item maps parent `sourceKey` to child `targetKey` before each child tick. |
+| `outputMappings` | property | array | `[]` | `Isolated` only. Each item maps child `sourceKey` to parent `targetKey` after each child tick. |
+
+In `Shared` mode, the child runtime uses the parent `BehaviorTreeBlackboard`. Missing child Blackboard schema entries are merged into the parent Blackboard with their child defaults. If parent and child declare the same key with different types, editor compilation fails.
+
+In `Isolated` mode, the child runtime owns a separate Blackboard initialized from the child tree schema. `inputMappings` copy parent values into the child before every tick, and `outputMappings` copy child values back into the parent after every tick. Mapping entries use this shape:
+
+```json
+{ "sourceKey": "Target", "targetKey": "Target" }
+```
+
+The child runtime is created on the first tick and reused while it returns `Running`. When the child returns `Success` or `Failure`, `BT.RunSubtree` returns that same status and clears its cached runtime so the next start begins at the child root. Aborting the parent node stops the child runtime.
+
+The editor compiler rejects missing subtree assets, subtree cycles, invalid `blackboardMode`, incompatible shared Blackboard key types, and isolated mappings whose source or target keys do not exist.
 
 ### `BT.MoveTo`
 
@@ -317,7 +425,7 @@ Decorators are evaluated before the attached tree node ticks. If any decorator r
 
 Condition nodes in the visual graph are Decorators, not ordinary tree children. A Decorator that exists in the graph-level `decorators` array but is not referenced by any tree node is serialized but never evaluated at runtime.
 
-Current runtime re-evaluates attached decorators every tick. Do not rely on serialized `abortMode` properties for custom semantics unless the decorator/runtime code explicitly consumes them.
+Current runtime re-evaluates attached decorators every tick. Decorators do not have per-node abort mode settings.
 
 Decorator `operator` properties use the `BehaviorTreeComparisonOperator` enum. JSON stores the enum name, such as `"IsSet"` or `"LessOrEqual"`, for readability and compatibility with older source files.
 
@@ -485,6 +593,11 @@ BTCompositeWeightedSelectorNode
 BTTaskWaitNode
 BTTaskSetBlackboardNode
 BTTaskClearBlackboardNode
+BTTaskSetRunnerBlackboardNode
+BTTaskGetRunnerBlackboardNode
+BTTaskClearRunnerBlackboardNode
+BTTaskCopyRunnerBlackboardNode
+BTTaskRunSubtreeNode
 BTTaskMoveToNode
 BTTaskRotateToNode
 BTTaskTriggerBlueprintEventNode
@@ -508,6 +621,10 @@ BTDecoratorCooldownNode
 
 Built-in task parameters are exposed as Blackboard input ports. Built-in Decorator value parameters are exposed as condition node input ports. Export stores connected Blackboard variable nodes for tree task inputs in `node.inputs` and Decorator inputs in `decorator.inputs`, both as `inputId -> blackboard key`. Inline task and Decorator values are exported to `properties` only for ports that allow inline values and differ from defaults. Decorator operator ports use enum fields and export their enum names to `properties.operator`.
 
+For `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, and `BT.CopyRunnerBlackboard`, visual `target`, `sourceTarget`, and `value` are Blackboard value ports. `sourceKey` and `targetKey` remain string fields in `PropertiesJson`; they are not visual Blackboard input bindings, because remote runner keys may use names that are not declared in the current tree.
+
+For `BT.RunSubtree`, the visual node title and a `Subtree` ObjectField on the visual node show the referenced Behavior Tree asset. The same `Subtree` asset field and `Open` jump button are also editable from the Graph Inspector. Export writes the selected asset path to `properties.behaviorTree`. `blackboardMode`, `inputMappings`, and `outputMappings` remain in node properties. The node is a Task and does not expose child ports.
+
 ## Validation Rules
 
 The validator enforces:
@@ -523,6 +640,8 @@ The validator enforces:
 - The tree cannot contain cycles.
 - `BT.MoveTo` needs `target`, `targetKey`, or `targetPosition`.
 - `BT.SetBlackboard` and `BT.ClearBlackboard` need `key`.
+- `BT.*RunnerBlackboard` task nodes need a `target` input and their required `sourceKey`/`targetKey` properties. Remote key properties are not validated against the current tree, except `BT.GetRunnerBlackboard.targetKey`, which writes back into the current tree.
+- `BT.RunSubtree` needs `behaviorTree`, accepts only `Shared` or `Isolated` `blackboardMode`, and validates parent-side isolated mapping keys in the source validator. The editor compiler also validates subtree paths, child-side mapping keys, shared Blackboard type compatibility, and subtree cycles.
 - `BT.TriggerBlueprintEvent` and `BT.RunBlueprintTask` need `eventName` or `startEventName`.
 
 ## Extending Behavior Trees

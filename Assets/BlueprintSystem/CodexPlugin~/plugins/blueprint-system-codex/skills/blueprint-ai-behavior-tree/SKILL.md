@@ -47,6 +47,7 @@ Use Unity MCP for Editor operations such as behavior tree compile, `BehaviorTree
 - Treat `.btgraph` as editor visualization/cache unless the user explicitly asks for visual graph asset work.
 - Use existing `BT.*` nodes, Decorators, Services, Blackboard keys, and Blueprint bridge tasks.
 - Put feature-owned behavior tree outputs under `Assets/Game/Blueprint/<FeatureName>/Behavior/` unless the live agent docs specify a stronger convention.
+- For composite AI requests, follow `AIBehaviorTreeAgent.md`: split each concrete behavior into its own child `.btree.json`, then call those child trees from a parent coordination tree with `BT.RunSubtree`.
 - Do not create or modify any `.cs` file.
 - Do not create Behavior Tree executors, runtime registry entries, Graph Toolkit visual node classes, or normal Blueprint `.node.json` manifests from this skill.
 - Do not enter Play Mode unless the user explicitly asks in the current task.
