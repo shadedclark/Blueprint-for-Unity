@@ -45,6 +45,16 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void SmartObjectPackageManifestPathIsRecognized()
+        {
+            Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.shadedclark.blueprint-system/SmartObject/Specs/Nodes/SmartObject.Reserve.node.json"));
+            Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.shadedclark.blueprint-system/Specs/Nodes/Game.Log.node.json"));
+            Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath("Assets/BlueprintSystem/SmartObject/Specs/Nodes/SmartObject.Reserve.node.json"));
+            Assert.False(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.example.other/SmartObject/Specs/Nodes/SmartObject.Reserve.node.json"));
+            Assert.False(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.shadedclark.blueprint-system/SmartObject/Specs/Other/SmartObject.Reserve.node.json"));
+        }
+
+        [Test]
         public void SmartObjectFindBestFiltersAndScoresCandidates()
         {
             SmartObjectRegistry.ResetForTests();

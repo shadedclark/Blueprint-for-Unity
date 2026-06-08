@@ -741,9 +741,10 @@ namespace BlueprintSystem.Editor
 
     internal static class BlueprintNodeManifestAssetUtility
     {
-        private const string PackageManifestRoot = "Packages/com.shadedclark.blueprint-system/Specs/Nodes";
-        private const string ProjectManifestRoot = "Assets/BlueprintSystem/Specs/Nodes";
+        private const string PackageModuleRoot = "Packages/com.shadedclark.blueprint-system";
         private const string ProjectModuleRoot = "Assets/BlueprintSystem";
+        private const string PackageManifestRoot = PackageModuleRoot + "/Specs/Nodes";
+        private const string ProjectManifestRoot = ProjectModuleRoot + "/Specs/Nodes";
 
         internal static BlueprintNodeManifestCollection LoadManifests()
         {
@@ -792,9 +793,8 @@ namespace BlueprintSystem.Editor
                 return false;
             }
 
-            return IsPathInRoot(path, PackageManifestRoot) ||
-                   IsPathInRoot(path, ProjectManifestRoot) ||
-                   IsProjectModuleManifestPath(path);
+            return IsModuleManifestPath(path, PackageModuleRoot) ||
+                   IsModuleManifestPath(path, ProjectModuleRoot);
         }
 
         private static List<string> FindManifestAssetPaths()
@@ -816,18 +816,20 @@ namespace BlueprintSystem.Editor
             List<string> roots = new List<string>();
             AddManifestRootIfValid(roots, PackageManifestRoot);
             AddManifestRootIfValid(roots, ProjectManifestRoot);
-            AddProjectModuleManifestRoots(roots);
+            AddModuleManifestRoots(roots, PackageModuleRoot);
+            AddModuleManifestRoots(roots, ProjectModuleRoot);
             return roots;
         }
 
-        private static void AddProjectModuleManifestRoots(List<string> roots)
+        private static void AddModuleManifestRoots(List<string> roots, string moduleRoot)
         {
-            if (!AssetDatabase.IsValidFolder(ProjectModuleRoot))
+            moduleRoot = NormalizeAssetPath(moduleRoot);
+            if (!AssetDatabase.IsValidFolder(moduleRoot))
             {
                 return;
             }
 
-            string[] moduleFolders = AssetDatabase.GetSubFolders(ProjectModuleRoot);
+            string[] moduleFolders = AssetDatabase.GetSubFolders(moduleRoot);
             for (int i = 0; i < moduleFolders.Length; i++)
             {
                 AddManifestRootIfValid(roots, NormalizeAssetPath(moduleFolders[i]) + "/Specs/Nodes");
@@ -870,11 +872,13 @@ namespace BlueprintSystem.Editor
                    path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool IsProjectModuleManifestPath(string path)
+        private static bool IsModuleManifestPath(string path, string moduleRoot)
         {
             path = NormalizeAssetPath(path);
+            moduleRoot = NormalizeAssetPath(moduleRoot);
             if (string.IsNullOrEmpty(path) ||
-                !path.StartsWith(ProjectModuleRoot + "/", StringComparison.OrdinalIgnoreCase))
+                string.IsNullOrEmpty(moduleRoot) ||
+                !path.StartsWith(moduleRoot + "/", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
