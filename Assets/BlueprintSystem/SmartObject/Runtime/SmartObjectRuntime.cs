@@ -35,6 +35,163 @@ namespace BlueprintSystem
         Blocked
     }
 
+    public enum SmartObjectRegistrationState
+    {
+        MissingComponent,
+        MissingObjectId,
+        Registered,
+        NotRegistered,
+        DuplicateObjectId
+    }
+
+    public sealed class SmartObjectSlotDebugSnapshot
+    {
+        internal SmartObjectSlotDebugSnapshot(
+            int index,
+            bool isMissing,
+            int slotId,
+            string activities,
+            string tags,
+            string accessGroup,
+            float slotBaseScore,
+            float useDuration,
+            bool blocked,
+            bool closed,
+            SmartObjectSlotState state,
+            SmartObjectSlotState runtimeState,
+            string requesterId,
+            string reservationToken,
+            float reservedUntil,
+            float occupiedSince,
+            float remainingSeconds,
+            string lastReleaseReason,
+            Vector3 targetPosition,
+            Vector3 facingPosition)
+        {
+            Index = index;
+            IsMissing = isMissing;
+            SlotId = slotId;
+            Activities = activities ?? string.Empty;
+            Tags = tags ?? string.Empty;
+            AccessGroup = accessGroup ?? string.Empty;
+            SlotBaseScore = slotBaseScore;
+            UseDuration = useDuration;
+            Blocked = blocked;
+            Closed = closed;
+            State = state;
+            RuntimeState = runtimeState;
+            RequesterId = requesterId ?? string.Empty;
+            ReservationToken = reservationToken ?? string.Empty;
+            ReservedUntil = reservedUntil;
+            OccupiedSince = occupiedSince;
+            RemainingSeconds = remainingSeconds;
+            LastReleaseReason = lastReleaseReason ?? string.Empty;
+            TargetPosition = targetPosition;
+            FacingPosition = facingPosition;
+        }
+
+        public int Index { get; private set; }
+        public bool IsMissing { get; private set; }
+        public int SlotId { get; private set; }
+        public string Activities { get; private set; }
+        public string Tags { get; private set; }
+        public string AccessGroup { get; private set; }
+        public float SlotBaseScore { get; private set; }
+        public float UseDuration { get; private set; }
+        public bool Blocked { get; private set; }
+        public bool Closed { get; private set; }
+        public SmartObjectSlotState State { get; private set; }
+        public SmartObjectSlotState RuntimeState { get; private set; }
+        public string RequesterId { get; private set; }
+        public string ReservationToken { get; private set; }
+        public float ReservedUntil { get; private set; }
+        public float OccupiedSince { get; private set; }
+        public float RemainingSeconds { get; private set; }
+        public string LastReleaseReason { get; private set; }
+        public Vector3 TargetPosition { get; private set; }
+        public Vector3 FacingPosition { get; private set; }
+    }
+
+    public sealed class SmartObjectDebugSnapshot
+    {
+        internal SmartObjectDebugSnapshot(
+            SmartObjectComponent component,
+            SmartObjectRegistrationState registrationState,
+            string registeredObjectId,
+            SmartObjectSlotDebugSnapshot[] slots)
+        {
+            Component = component;
+            GameObject = component == null ? null : component.gameObject;
+            ObjectId = component == null ? string.Empty : component.ObjectId ?? string.Empty;
+            SmartObjectEnabled = component != null && component.SmartObjectEnabled;
+            ComponentEnabled = component != null && component.enabled;
+            ActiveInHierarchy = component != null && component.gameObject.activeInHierarchy;
+            IsActiveAndEnabled = component != null && component.isActiveAndEnabled;
+            ObjectBaseScore = component == null ? 0f : component.ObjectBaseScore;
+            Tags = component == null ? string.Empty : component.Tags ?? string.Empty;
+            AccessGroup = component == null ? string.Empty : component.AccessGroup ?? string.Empty;
+            RegistrationOrder = component == null ? 0 : component.RegistrationOrder;
+            RegistrationState = registrationState;
+            RegisteredObjectId = registeredObjectId ?? string.Empty;
+            Slots = slots ?? new SmartObjectSlotDebugSnapshot[0];
+
+            for (int i = 0; i < Slots.Length; i++)
+            {
+                SmartObjectSlotDebugSnapshot slot = Slots[i];
+                if (slot == null || slot.IsMissing)
+                {
+                    MissingSlotCount++;
+                    continue;
+                }
+
+                if (slot.Closed)
+                {
+                    ClosedSlotCount++;
+                }
+
+                switch (slot.State)
+                {
+                    case SmartObjectSlotState.Reserved:
+                        ReservedSlotCount++;
+                        break;
+                    case SmartObjectSlotState.Occupied:
+                        OccupiedSlotCount++;
+                        break;
+                    case SmartObjectSlotState.Blocked:
+                        BlockedSlotCount++;
+                        break;
+                    default:
+                        if (!slot.Closed)
+                        {
+                            FreeSlotCount++;
+                        }
+                        break;
+                }
+            }
+        }
+
+        public SmartObjectComponent Component { get; private set; }
+        public GameObject GameObject { get; private set; }
+        public string ObjectId { get; private set; }
+        public bool SmartObjectEnabled { get; private set; }
+        public bool ComponentEnabled { get; private set; }
+        public bool ActiveInHierarchy { get; private set; }
+        public bool IsActiveAndEnabled { get; private set; }
+        public float ObjectBaseScore { get; private set; }
+        public string Tags { get; private set; }
+        public string AccessGroup { get; private set; }
+        public int RegistrationOrder { get; private set; }
+        public SmartObjectRegistrationState RegistrationState { get; private set; }
+        public string RegisteredObjectId { get; private set; }
+        public SmartObjectSlotDebugSnapshot[] Slots { get; private set; }
+        public int FreeSlotCount { get; private set; }
+        public int ReservedSlotCount { get; private set; }
+        public int OccupiedSlotCount { get; private set; }
+        public int BlockedSlotCount { get; private set; }
+        public int ClosedSlotCount { get; private set; }
+        public int MissingSlotCount { get; private set; }
+    }
+
     public static class SmartObjectReleaseReason
     {
         public const string Completed = "Completed";
@@ -209,141 +366,6 @@ namespace BlueprintSystem
         }
     }
 
-    public sealed class SmartObjectComponent : MonoBehaviour
-    {
-        [SerializeField] private string objectId;
-        [SerializeField] private bool smartObjectEnabled = true;
-        [SerializeField] private float objectBaseScore;
-        [SerializeField, Tooltip("Comma-separated tags contributed by this object.")]
-        private string tags;
-        [SerializeField, Tooltip("Optional access group required by default for this object.")]
-        private string accessGroup;
-        [SerializeField] private List<SmartObjectSlot> slots = new List<SmartObjectSlot>();
-
-        public string ObjectId
-        {
-            get { return objectId; }
-            set
-            {
-                if (objectId == value)
-                {
-                    return;
-                }
-
-                objectId = value;
-                RefreshRegistration();
-            }
-        }
-
-        public bool SmartObjectEnabled
-        {
-            get { return smartObjectEnabled; }
-            set
-            {
-                if (smartObjectEnabled == value)
-                {
-                    return;
-                }
-
-                smartObjectEnabled = value;
-                if (!smartObjectEnabled)
-                {
-                    SmartObjectRegistry.ReleaseAllForObject(this, SmartObjectReleaseReason.Disabled);
-                }
-            }
-        }
-
-        public float ObjectBaseScore
-        {
-            get { return objectBaseScore; }
-            set { objectBaseScore = value; }
-        }
-
-        public string Tags
-        {
-            get { return tags; }
-            set { tags = value; }
-        }
-
-        public string AccessGroup
-        {
-            get { return accessGroup; }
-            set { accessGroup = value; }
-        }
-
-        public List<SmartObjectSlot> Slots
-        {
-            get { return slots; }
-        }
-
-        public int RegistrationOrder
-        {
-            get;
-            internal set;
-        }
-
-        public SmartObjectSlot FindSlot(int slotId)
-        {
-            if (slots == null)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < slots.Count; i++)
-            {
-                SmartObjectSlot slot = slots[i];
-                if (slot != null && slot.SlotId == slotId)
-                {
-                    return slot;
-                }
-            }
-
-            return null;
-        }
-
-        private void Reset()
-        {
-            if (string.IsNullOrEmpty(objectId))
-            {
-                objectId = name;
-            }
-        }
-
-        private void OnValidate()
-        {
-            if (string.IsNullOrEmpty(objectId))
-            {
-                objectId = name;
-            }
-        }
-
-        private void OnEnable()
-        {
-            SmartObjectRegistry.Register(this);
-        }
-
-        private void OnDisable()
-        {
-            SmartObjectRegistry.Unregister(this, SmartObjectReleaseReason.Disabled);
-        }
-
-        private void Update()
-        {
-            SmartObjectRegistry.TickTimeouts();
-        }
-
-        private void RefreshRegistration()
-        {
-            if (!isActiveAndEnabled)
-            {
-                return;
-            }
-
-            SmartObjectRegistry.Unregister(this, null);
-            SmartObjectRegistry.Register(this);
-        }
-    }
-
     public struct SmartObjectResult
     {
         public bool Found;
@@ -427,6 +449,12 @@ namespace BlueprintSystem
             }
 
             SmartObjectComponent existing;
+            for (int attempts = 0; attempts < 4 && ObjectsById.TryGetValue(id, out existing) && existing != component; attempts++)
+            {
+                component.RegenerateObjectIdForDuplicate();
+                id = component.ObjectId;
+            }
+
             if (ObjectsById.TryGetValue(id, out existing) && existing != component)
             {
                 Debug.LogWarning("[Blueprint] Duplicate SmartObject objectId '" + id + "' ignored on " + component.name + ".");
@@ -483,6 +511,14 @@ namespace BlueprintSystem
                     ReleaseSlot(component, slot, string.IsNullOrEmpty(releaseReason) ? SmartObjectReleaseReason.Disabled : releaseReason);
                 }
             }
+        }
+
+        public static SmartObjectDebugSnapshot CreateDebugSnapshot(SmartObjectComponent component)
+        {
+            string registeredId;
+            SmartObjectRegistrationState registrationState = ResolveRegistrationState(component, out registeredId);
+            SmartObjectSlotDebugSnapshot[] slots = CreateSlotDebugSnapshots(component);
+            return new SmartObjectDebugSnapshot(component, registrationState, registeredId, slots);
         }
 
         public static SmartObjectResult FindBest(
@@ -865,6 +901,121 @@ namespace BlueprintSystem
         public static void SetTimeProviderForTests(Func<float> timeProvider)
         {
             timeProviderForTests = timeProvider;
+        }
+
+        private static SmartObjectRegistrationState ResolveRegistrationState(
+            SmartObjectComponent component,
+            out string registeredId)
+        {
+            registeredId = string.Empty;
+            if (component == null)
+            {
+                return SmartObjectRegistrationState.MissingComponent;
+            }
+
+            string objectId = component.ObjectId;
+            if (string.IsNullOrWhiteSpace(objectId))
+            {
+                return SmartObjectRegistrationState.MissingObjectId;
+            }
+
+            if (RegisteredIdsByComponent.TryGetValue(component, out registeredId) &&
+                string.Equals(registeredId, objectId, StringComparison.Ordinal))
+            {
+                return SmartObjectRegistrationState.Registered;
+            }
+
+            SmartObjectComponent existing;
+            if (ObjectsById.TryGetValue(objectId, out existing) && existing != null && existing != component)
+            {
+                return SmartObjectRegistrationState.DuplicateObjectId;
+            }
+
+            registeredId = string.Empty;
+            return SmartObjectRegistrationState.NotRegistered;
+        }
+
+        private static SmartObjectSlotDebugSnapshot[] CreateSlotDebugSnapshots(SmartObjectComponent component)
+        {
+            if (component == null || component.Slots == null)
+            {
+                return new SmartObjectSlotDebugSnapshot[0];
+            }
+
+            List<SmartObjectSlotDebugSnapshot> snapshots = new List<SmartObjectSlotDebugSnapshot>();
+            for (int i = 0; i < component.Slots.Count; i++)
+            {
+                snapshots.Add(CreateSlotDebugSnapshot(component, component.Slots[i], i));
+            }
+
+            return snapshots.ToArray();
+        }
+
+        private static SmartObjectSlotDebugSnapshot CreateSlotDebugSnapshot(
+            SmartObjectComponent component,
+            SmartObjectSlot slot,
+            int index)
+        {
+            if (slot == null)
+            {
+                return new SmartObjectSlotDebugSnapshot(
+                    index,
+                    true,
+                    -1,
+                    string.Empty,
+                    string.Empty,
+                    string.Empty,
+                    0f,
+                    0f,
+                    false,
+                    false,
+                    SmartObjectSlotState.Free,
+                    SmartObjectSlotState.Free,
+                    string.Empty,
+                    string.Empty,
+                    0f,
+                    0f,
+                    0f,
+                    string.Empty,
+                    Vector3.zero,
+                    Vector3.zero);
+            }
+
+            float remainingSeconds = slot.RuntimeState == SmartObjectSlotState.Reserved
+                ? Mathf.Max(0f, slot.ReservedUntil - Now())
+                : 0f;
+            string requesterId = string.Empty;
+            if (slot.RuntimeState == SmartObjectSlotState.Reserved)
+            {
+                requesterId = slot.ReservedBy;
+            }
+            else if (slot.RuntimeState == SmartObjectSlotState.Occupied)
+            {
+                requesterId = slot.OccupiedBy;
+            }
+
+            Transform owner = component == null ? null : component.transform;
+            return new SmartObjectSlotDebugSnapshot(
+                index,
+                false,
+                slot.SlotId,
+                slot.Activities,
+                slot.Tags,
+                slot.AccessGroup,
+                slot.SlotBaseScore,
+                slot.UseDuration,
+                slot.Blocked,
+                slot.Closed,
+                slot.CurrentState,
+                slot.RuntimeState,
+                requesterId,
+                slot.ReservationToken,
+                slot.ReservedUntil,
+                slot.OccupiedSince,
+                remainingSeconds,
+                slot.LastReleaseReason,
+                slot.GetTargetPosition(owner),
+                slot.GetFacingPosition(owner));
         }
 
         private static SmartObjectResult ValidateRequesterObjectSlotActivity(

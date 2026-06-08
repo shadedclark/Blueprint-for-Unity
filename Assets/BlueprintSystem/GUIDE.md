@@ -193,7 +193,7 @@ Keep GameObject and Transform Blackboard writes in C# or Behavior Tree nodes unt
 
 SmartObject is a core module kept under `Assets/BlueprintSystem/SmartObject` rather than the generic node folders. It is default-on with BlueprintSystem, but its runtime, executors, manifests, Graph Toolkit nodes, tests, and detailed guide stay inside that module directory.
 
-The module exposes `SmartObject.FindBest`, `SmartObject.Reserve`, `SmartObject.BeginUse`, `SmartObject.Release`, `SmartObject.GetReservationInfo`, and `SmartObject.ReleaseByRequester`. Detailed authoring rules, port lists, fail reasons, and duplicate-node guidance live in `Assets/BlueprintSystem/SmartObject/GUIDE.md`.
+The module exposes `SmartObject.FindBest`, `SmartObject.Reserve`, `SmartObject.BeginUse`, `SmartObject.Release`, `SmartObject.GetReservationInfo`, and `SmartObject.ReleaseByRequester`. `SmartObjectComponent` ids are generated read-only GUID strings; detailed authoring rules, port lists, fail reasons, and duplicate-node guidance live in `Assets/BlueprintSystem/SmartObject/GUIDE.md`.
 
 ## Blueprint Asset Variables
 

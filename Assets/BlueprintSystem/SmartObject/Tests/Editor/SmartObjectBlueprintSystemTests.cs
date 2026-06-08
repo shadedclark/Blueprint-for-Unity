@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using BlueprintSystem.Editor;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -49,8 +51,10 @@ namespace BlueprintSystem.Tests
             List<GameObject> objects = new List<GameObject>();
             try
             {
-                objects.Add(CreateSmartObject("desk_low", "Work", new Vector3(1f, 0f, 0f), 0f, 0f, "Office", "Staff").gameObject);
-                objects.Add(CreateSmartObject("desk_best", "Work", new Vector3(3f, 0f, 0f), 30f, 0f, "Office", "Staff").gameObject);
+                SmartObjectComponent low = CreateSmartObject("desk_low", "Work", new Vector3(1f, 0f, 0f), 0f, 0f, "Office", "Staff");
+                objects.Add(low.gameObject);
+                SmartObjectComponent best = CreateSmartObject("desk_best", "Work", new Vector3(3f, 0f, 0f), 30f, 0f, "Office", "Staff");
+                objects.Add(best.gameObject);
                 SmartObjectComponent blocked = CreateSmartObject("desk_blocked", "Work", Vector3.zero, 100f, 0f, "Office", "Staff");
                 blocked.Slots[0].Blocked = true;
                 objects.Add(blocked.gameObject);
@@ -70,7 +74,7 @@ namespace BlueprintSystem.Tests
                 BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
 
                 Assert.True((bool)executor.Evaluate(context, find, "found"));
-                Assert.AreEqual("desk_best", executor.Evaluate(context, find, "objectId"));
+                Assert.AreEqual(best.ObjectId, executor.Evaluate(context, find, "objectId"));
                 Assert.AreEqual(0, executor.Evaluate(context, find, "slotId"));
 
                 find.Properties["activity"] = "Sleep";
@@ -103,11 +107,12 @@ namespace BlueprintSystem.Tests
             {
                 SmartObjectComponent smartObject = CreateSmartObject("bench_1", "Relax", Vector3.zero, 0f, 0f, "Park", string.Empty);
                 objects.Add(smartObject.gameObject);
+                string smartObjectId = smartObject.ObjectId;
                 BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
 
                 RuntimeNode reserve = CreateRuntimeNode("reserve", "SmartObject.Reserve");
                 reserve.Properties["requesterId"] = "npc-a";
-                reserve.Properties["objectId"] = "bench_1";
+                reserve.Properties["objectId"] = smartObjectId;
                 reserve.Properties["slotId"] = 0;
                 reserve.Properties["activity"] = "Relax";
                 reserve.Properties["holdSeconds"] = 30f;
@@ -124,7 +129,7 @@ namespace BlueprintSystem.Tests
 
                 RuntimeNode competingReserve = CreateRuntimeNode("competing_reserve", "SmartObject.Reserve");
                 competingReserve.Properties["requesterId"] = "npc-b";
-                competingReserve.Properties["objectId"] = "bench_1";
+                competingReserve.Properties["objectId"] = smartObjectId;
                 competingReserve.Properties["slotId"] = 0;
                 competingReserve.Properties["activity"] = "Relax";
                 SmartObjectReserveExecutor competingReserveExecutor = new SmartObjectReserveExecutor();
@@ -138,7 +143,7 @@ namespace BlueprintSystem.Tests
                 SmartObjectBeginUseExecutor beginUseExecutor = new SmartObjectBeginUseExecutor();
                 beginUseExecutor.Execute(context, beginUse);
                 Assert.True((bool)beginUseExecutor.Evaluate(context, beginUse, "success"));
-                Assert.AreEqual("bench_1", beginUseExecutor.Evaluate(context, beginUse, "objectId"));
+                Assert.AreEqual(smartObjectId, beginUseExecutor.Evaluate(context, beginUse, "objectId"));
 
                 RuntimeNode info = CreateRuntimeNode("reservation_info", "SmartObject.GetReservationInfo");
                 info.Properties["reservationToken"] = token;
@@ -188,11 +193,12 @@ namespace BlueprintSystem.Tests
             {
                 SmartObjectComponent protectedObject = CreateSmartObject("protected_desk", "Work", Vector3.zero, 0f, 0f, "Office", "Staff");
                 objects.Add(protectedObject.gameObject);
+                string protectedObjectId = protectedObject.ObjectId;
                 BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
 
                 RuntimeNode deniedReserve = CreateRuntimeNode("denied_reserve", "SmartObject.Reserve");
                 deniedReserve.Properties["requesterId"] = "npc-a";
-                deniedReserve.Properties["objectId"] = "protected_desk";
+                deniedReserve.Properties["objectId"] = protectedObjectId;
                 deniedReserve.Properties["slotId"] = 0;
                 deniedReserve.Properties["activity"] = "Work";
                 deniedReserve.Properties["accessGroup"] = "Guest";
@@ -204,9 +210,10 @@ namespace BlueprintSystem.Tests
                 SmartObjectComponent closedObject = CreateSmartObject("closed_desk", "Work", Vector3.zero, 0f, 0f, "Office", string.Empty);
                 closedObject.Slots[0].Closed = true;
                 objects.Add(closedObject.gameObject);
+                string closedObjectId = closedObject.ObjectId;
                 RuntimeNode closedReserve = CreateRuntimeNode("closed_reserve", "SmartObject.Reserve");
                 closedReserve.Properties["requesterId"] = "npc-a";
-                closedReserve.Properties["objectId"] = "closed_desk";
+                closedReserve.Properties["objectId"] = closedObjectId;
                 closedReserve.Properties["slotId"] = 0;
                 closedReserve.Properties["activity"] = "Work";
                 SmartObjectReserveExecutor closedReserveExecutor = new SmartObjectReserveExecutor();
@@ -216,7 +223,7 @@ namespace BlueprintSystem.Tests
 
                 RuntimeNode expiringReserve = CreateRuntimeNode("expiring_reserve", "SmartObject.Reserve");
                 expiringReserve.Properties["requesterId"] = "npc-a";
-                expiringReserve.Properties["objectId"] = "protected_desk";
+                expiringReserve.Properties["objectId"] = protectedObjectId;
                 expiringReserve.Properties["slotId"] = 0;
                 expiringReserve.Properties["activity"] = "Work";
                 expiringReserve.Properties["accessGroup"] = "Staff";
@@ -237,8 +244,9 @@ namespace BlueprintSystem.Tests
                 cleanupObject.Slots.Add(CreateSmartObjectSlot(1, "Work", new Vector3(1f, 0f, 0f)));
                 objects.Add(cleanupObject.gameObject);
 
-                string reservedToken = ReserveForTest(context, "npc-clean", "cleanup_object", 0);
-                string occupiedToken = ReserveForTest(context, "npc-clean", "cleanup_object", 1);
+                string cleanupObjectId = cleanupObject.ObjectId;
+                string reservedToken = ReserveForTest(context, "npc-clean", cleanupObjectId, 0);
+                string occupiedToken = ReserveForTest(context, "npc-clean", cleanupObjectId, 1);
                 RuntimeNode beginUse = CreateRuntimeNode("cleanup_begin_use", "SmartObject.BeginUse");
                 beginUse.Properties["requesterId"] = "npc-clean";
                 beginUse.Properties["reservationToken"] = occupiedToken;
@@ -263,8 +271,167 @@ namespace BlueprintSystem.Tests
             }
         }
 
+        [Test]
+        public void SmartObjectDebugSnapshotReportsRuntimeSlotState()
+        {
+            SmartObjectRegistry.ResetForTests();
+            SmartObjectRegistry.SetTimeProviderForTests(() => 10f);
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                SmartObjectComponent smartObject = CreateSmartObject("debug_bench", "Work", new Vector3(2f, 0f, 0f), 1f, 2f, "Office", string.Empty);
+                objects.Add(smartObject.gameObject);
+                string smartObjectId = smartObject.ObjectId;
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+
+                string token = ReserveForTest(context, "npc-debug", smartObjectId, 0);
+                SmartObjectDebugSnapshot reservedSnapshot = SmartObjectRegistry.CreateDebugSnapshot(smartObject);
+                Assert.AreEqual(SmartObjectRegistrationState.Registered, reservedSnapshot.RegistrationState);
+                Assert.AreEqual(1, reservedSnapshot.ReservedSlotCount);
+                Assert.AreEqual(1, reservedSnapshot.Slots.Length);
+
+                SmartObjectSlotDebugSnapshot reservedSlot = reservedSnapshot.Slots[0];
+                Assert.AreEqual(SmartObjectSlotState.Reserved, reservedSlot.State);
+                Assert.AreEqual(SmartObjectSlotState.Reserved, reservedSlot.RuntimeState);
+                Assert.AreEqual("npc-debug", reservedSlot.RequesterId);
+                Assert.AreEqual(token, reservedSlot.ReservationToken);
+                Assert.AreEqual(30f, reservedSlot.RemainingSeconds, 0.001f);
+                Assert.AreEqual(new Vector3(2f, 0f, 0f), reservedSlot.TargetPosition);
+                Assert.AreEqual(new Vector3(2f, 0f, 1f), reservedSlot.FacingPosition);
+
+                RuntimeNode beginUse = CreateRuntimeNode("debug_begin_use", "SmartObject.BeginUse");
+                beginUse.Properties["requesterId"] = "npc-debug";
+                beginUse.Properties["reservationToken"] = token;
+                new SmartObjectBeginUseExecutor().Execute(context, beginUse);
+
+                SmartObjectDebugSnapshot occupiedSnapshot = SmartObjectRegistry.CreateDebugSnapshot(smartObject);
+                SmartObjectSlotDebugSnapshot occupiedSlot = occupiedSnapshot.Slots[0];
+                Assert.AreEqual(SmartObjectSlotState.Occupied, occupiedSlot.State);
+                Assert.AreEqual("npc-debug", occupiedSlot.RequesterId);
+                Assert.AreEqual(token, occupiedSlot.ReservationToken);
+                Assert.AreEqual(0f, occupiedSlot.RemainingSeconds, 0.001f);
+
+                RuntimeNode release = CreateRuntimeNode("debug_release", "SmartObject.Release");
+                release.Properties["requesterId"] = "npc-debug";
+                release.Properties["reservationToken"] = token;
+                release.Properties["reason"] = SmartObjectReleaseReason.Completed;
+                new SmartObjectReleaseExecutor().Execute(context, release);
+
+                SmartObjectDebugSnapshot releasedSnapshot = SmartObjectRegistry.CreateDebugSnapshot(smartObject);
+                SmartObjectSlotDebugSnapshot releasedSlot = releasedSnapshot.Slots[0];
+                Assert.AreEqual(SmartObjectSlotState.Free, releasedSlot.State);
+                Assert.AreEqual(SmartObjectSlotState.Free, releasedSlot.RuntimeState);
+                Assert.AreEqual(string.Empty, releasedSlot.RequesterId);
+                Assert.AreEqual(string.Empty, releasedSlot.ReservationToken);
+                Assert.AreEqual(SmartObjectReleaseReason.Completed, releasedSlot.LastReleaseReason);
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
+        public void SmartObjectComponentGeneratesReadOnlyGuidAndRepairsDuplicateIds()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                Assert.IsNull(typeof(SmartObjectComponent).GetProperty("ObjectId").SetMethod);
+
+                SmartObjectComponent first = CreateSmartObject("duplicate_debug", "Work", Vector3.zero, 0f, 0f, string.Empty, string.Empty);
+                objects.Add(first.gameObject);
+                AssertGeneratedObjectId(first.ObjectId);
+
+                GameObject manualObject = new GameObject("manual_debug");
+                objects.Add(manualObject);
+                SmartObjectComponent manual = manualObject.AddComponent<SmartObjectComponent>();
+                SetSerializedObjectIdForTest(manual, "manual_id");
+                AssertGeneratedObjectId(manual.ObjectId);
+                Assert.AreNotEqual("manual_id", manual.ObjectId);
+
+                GameObject duplicateObject = new GameObject("duplicate_debug_clone");
+                duplicateObject.SetActive(false);
+                objects.Add(duplicateObject);
+                SmartObjectComponent duplicate = duplicateObject.AddComponent<SmartObjectComponent>();
+                SetSerializedObjectIdForTest(duplicate, first.ObjectId);
+                AssertGeneratedObjectId(duplicate.ObjectId);
+                Assert.AreNotEqual(first.ObjectId, duplicate.ObjectId);
+                duplicateObject.SetActive(true);
+
+                GameObject runtimeDuplicateObject = new GameObject("runtime_duplicate_debug");
+                objects.Add(runtimeDuplicateObject);
+                SmartObjectComponent runtimeDuplicate = runtimeDuplicateObject.AddComponent<SmartObjectComponent>();
+                SmartObjectRegistry.Unregister(runtimeDuplicate, null);
+                SetObjectIdBackingFieldForTest(runtimeDuplicate, first.ObjectId);
+                SmartObjectRegistry.Register(runtimeDuplicate);
+                AssertGeneratedObjectId(runtimeDuplicate.ObjectId);
+                Assert.AreNotEqual(first.ObjectId, runtimeDuplicate.ObjectId);
+
+                GameObject inactiveObject = new GameObject("inactive_debug");
+                objects.Add(inactiveObject);
+                SmartObjectComponent inactive = inactiveObject.AddComponent<SmartObjectComponent>();
+                inactiveObject.SetActive(false);
+
+                Assert.AreEqual(SmartObjectRegistrationState.Registered, SmartObjectRegistry.CreateDebugSnapshot(first).RegistrationState);
+                Assert.AreEqual(SmartObjectRegistrationState.Registered, SmartObjectRegistry.CreateDebugSnapshot(duplicate).RegistrationState);
+                Assert.AreEqual(SmartObjectRegistrationState.Registered, SmartObjectRegistry.CreateDebugSnapshot(runtimeDuplicate).RegistrationState);
+
+                SmartObjectDebugSnapshot inactiveSnapshot = SmartObjectRegistry.CreateDebugSnapshot(inactive);
+                Assert.AreEqual(SmartObjectRegistrationState.NotRegistered, inactiveSnapshot.RegistrationState);
+                Assert.False(inactiveSnapshot.ActiveInHierarchy);
+                Assert.False(inactiveSnapshot.IsActiveAndEnabled);
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
+        public void SmartObjectDebuggerSceneQueryIncludesInactiveSceneObjectsAndExcludesPersistentAssets()
+        {
+            const string PrefabPath = "Assets/BlueprintSystem/SmartObject/Tests/Editor/SmartObjectDebuggerTemp.prefab";
+
+            SmartObjectRegistry.ResetForTests();
+            AssetDatabase.DeleteAsset(PrefabPath);
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                SmartObjectComponent activeSceneObject = CreateSmartObject("scene_debug_active", "Work", Vector3.zero, 0f, 0f, string.Empty, string.Empty);
+                objects.Add(activeSceneObject.gameObject);
+
+                GameObject inactiveObject = new GameObject("scene_debug_inactive");
+                objects.Add(inactiveObject);
+                SmartObjectComponent inactiveSceneObject = inactiveObject.AddComponent<SmartObjectComponent>();
+                inactiveObject.SetActive(false);
+
+                GameObject prefabSource = new GameObject("scene_debug_prefab_source");
+                prefabSource.AddComponent<SmartObjectComponent>();
+                GameObject prefabAsset = PrefabUtility.SaveAsPrefabAsset(prefabSource, PrefabPath);
+                Object.DestroyImmediate(prefabSource);
+                SmartObjectComponent prefabSmartObject = prefabAsset.GetComponent<SmartObjectComponent>();
+
+                List<SmartObjectComponent> found = SmartObjectDebuggerUtility.FindSceneSmartObjects();
+                Assert.Contains(activeSceneObject, found);
+                Assert.Contains(inactiveSceneObject, found);
+                Assert.False(found.Contains(prefabSmartObject));
+                Assert.True(SmartObjectDebuggerUtility.IsSceneSmartObject(inactiveSceneObject));
+                Assert.False(SmartObjectDebuggerUtility.IsSceneSmartObject(prefabSmartObject));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(PrefabPath);
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
         private static SmartObjectComponent CreateSmartObject(
-            string objectId,
+            string objectName,
             string activities,
             Vector3 localTargetPosition,
             float objectBaseScore,
@@ -272,9 +439,9 @@ namespace BlueprintSystem.Tests
             string tags,
             string accessGroup)
         {
-            GameObject gameObject = new GameObject(objectId);
+            GameObject gameObject = new GameObject(objectName);
             SmartObjectComponent smartObject = gameObject.AddComponent<SmartObjectComponent>();
-            smartObject.ObjectId = objectId;
+            AssertGeneratedObjectId(smartObject.ObjectId);
             smartObject.ObjectBaseScore = objectBaseScore;
             smartObject.Tags = tags;
             smartObject.AccessGroup = accessGroup;
@@ -308,6 +475,36 @@ namespace BlueprintSystem.Tests
             string token = (string)executor.Evaluate(context, reserve, "reservationToken");
             Assert.False(string.IsNullOrEmpty(token));
             return token;
+        }
+
+        private static void AssertGeneratedObjectId(string objectId)
+        {
+            Guid parsed;
+            Assert.True(Guid.TryParseExact(objectId, "N", out parsed), objectId);
+        }
+
+        private static void SetSerializedObjectIdForTest(SmartObjectComponent component, string objectId)
+        {
+            SerializedObject serializedObject = new SerializedObject(component);
+            SerializedProperty property = serializedObject.FindProperty("objectId");
+            Assert.NotNull(property);
+            property.stringValue = objectId;
+            serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            InvokeOnValidate(component);
+        }
+
+        private static void InvokeOnValidate(SmartObjectComponent component)
+        {
+            MethodInfo method = typeof(SmartObjectComponent).GetMethod("OnValidate", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+            method.Invoke(component, null);
+        }
+
+        private static void SetObjectIdBackingFieldForTest(SmartObjectComponent component, string objectId)
+        {
+            FieldInfo field = typeof(SmartObjectComponent).GetField("objectId", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(field);
+            field.SetValue(component, objectId);
         }
 
         private static void DestroyObjects(List<GameObject> objects)
