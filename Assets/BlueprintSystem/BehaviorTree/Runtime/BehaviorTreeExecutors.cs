@@ -1341,6 +1341,13 @@ namespace BlueprintSystem
                 return BehaviorTreeStatus.Running;
             }
 
+            NavMeshPathStatus pathStatus = agent.pathStatus;
+            if (pathStatus != NavMeshPathStatus.PathComplete)
+            {
+                context.Runtime.MarkFailure("MoveTo NavMesh path is " + pathStatus + ".");
+                return BehaviorTreeStatus.Failure;
+            }
+
             float remainingDistance = agent.remainingDistance;
             if (float.IsInfinity(remainingDistance) || float.IsNaN(remainingDistance))
             {

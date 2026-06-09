@@ -352,7 +352,7 @@ The editor compiler rejects missing subtree assets, subtree cycles, invalid `bla
 
 ### `BT.MoveTo`
 
-Moves the owner toward a target and returns `Running` until it reaches the target. Uses `NavMeshAgent` when one is enabled and on the NavMesh; otherwise it can move the owner transform directly.
+Moves the owner toward a target and returns `Running` until it reaches the target. Uses `NavMeshAgent` when one is enabled and on the NavMesh; otherwise it can move the owner transform directly. NavMesh movement succeeds only after the agent reports a complete path and the remaining distance is within radius; partial or invalid NavMesh paths return `Failure`.
 
 | Parameter | Source | Type | Default | Notes |
 | --- | --- | --- | --- | --- |
