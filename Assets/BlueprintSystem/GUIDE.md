@@ -7,7 +7,7 @@ Current source of truth:
 
 ```text
 Blueprint JSON behavior: Assets/BlueprintSystem/Sources/**/*.blueprint.json
-Node manifests: Assets/BlueprintSystem/Specs/Nodes/*.node.json
+Node manifests: BlueprintSystem package **/Specs/Nodes/*.node.json, plus project Assets/**/*.node.json
 Compiled runtime assets: *.compiled.asset generated from blueprint JSON + node manifests
 Runtime executors: Assets/BlueprintSystem/Executors/**/*.cs
 Executor registry: Assets/BlueprintSystem/Runtime/BlueprintExecutor.cs
@@ -2168,16 +2168,18 @@ Preferred authoring uses a ScriptableObject asset:
 Create > Blueprint System > User Struct Definition
 ```
 
-Save these assets under:
+For game/project data, save these assets under the feature that owns them:
 
 ```text
-Assets/BlueprintSystem/Specs/Structs/*.asset
+Assets/Game/Blueprint/<FeatureName>/.../*.asset
 ```
 
-The editor registry scans `BlueprintUserStructAsset` assets directly, so blueprints can use the type immediately after the asset is saved or after clicking `Refresh Registry` in the inspector. The asset inspector includes `Sync JSON`, which writes a generated schema next to the asset for portable/runtime-readable definitions:
+Package-provided structs may live under the BlueprintSystem package root, such as `Packages/com.shadedclark.blueprint-system/Specs/Structs` or the embedded-package fallback `Assets/BlueprintSystem/Specs/Structs`. `Assets/BlueprintSystem/Specs/Structs` remains a legacy/default authoring location, but it is not the only registry root.
+
+The editor registry scans `BlueprintUserStructAsset` assets directly from the BlueprintSystem package roots and project `Assets/**`, so blueprints can use the type immediately after the asset is saved or after clicking `Refresh Registry` in the inspector. The asset inspector includes `Sync JSON`, which writes a generated schema next to the asset for portable/runtime-readable definitions:
 
 ```text
-Assets/BlueprintSystem/Specs/Structs/*.bpstruct.json
+Assets/Game/Blueprint/<FeatureName>/.../*.bpstruct.json
 ```
 
 Generated JSON shape:
@@ -2197,7 +2199,7 @@ In the ScriptableObject inspector, `schemaVersion` and field `id` are hidden int
 
 Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryItem>` as their type. Defaults are stored in blueprint JSON as normal field objects, then coerced into runtime `BlueprintStructValue` instances by the variable store. Runtime values keep field IDs internally; `Variable.GetField` and `Variable.SetField` accept field names or field IDs in paths, while `Variable.BreakStruct` keeps connections stable by using field IDs as output port IDs.
 
-The editor refreshes `.bpgraph` Break Struct display caches when `BlueprintUserStructAsset` or generated `.bpstruct.json` definitions are imported, moved, or deleted. `.blueprint.json` remains the behavior source of truth; the refresh updates visual ports and suppresses graph auto-export so a display-only struct refresh does not rewrite blueprint behavior.
+The editor refreshes the user-struct registry when `BlueprintUserStructAsset` or generated `.bpstruct.json` definitions are imported, moved, or deleted. `.blueprint.json` remains the behavior source of truth; registry refreshes do not rewrite blueprint behavior.
 
 ScriptableObject-authored user struct fields support the enum choices `String`, `Bool`, `Int`, `Float`, `Vector2`, `Vector3`, `Vector4`, `Color`, `Rect`, `ForceMode`, `ForceMode2D`, `LoadSceneMode`, `Key`, `ComparisonMode`, `TickPhase`, and `Blueprint`. `BlueprintRef` and `Binding<T>` are intentionally not supported as user struct fields because they are runtime/editor binding handles, not portable data.
 
@@ -2209,16 +2211,18 @@ Preferred authoring uses a ScriptableObject asset:
 Create > Blueprint System > Data Table
 ```
 
-Save these assets under:
+For game/project data, save these assets under the feature that owns them:
 
 ```text
-Assets/BlueprintSystem/Specs/Tables/*.asset
+Assets/Game/Blueprint/<FeatureName>/.../*.asset
 ```
 
-Each table selects one Blueprint user struct row type. Rows use a unique string `rowName`; row values are JSON objects matching the selected struct. The inspector includes `Sync JSON`, which writes the portable/runtime-readable table next to the asset:
+Package-provided tables may live under the BlueprintSystem package root, such as `Packages/com.shadedclark.blueprint-system/Specs/Tables` or the embedded-package fallback `Assets/BlueprintSystem/Specs/Tables`. `Assets/BlueprintSystem/Specs/Tables` remains a legacy/default authoring location, but it is not the only registry root.
+
+Each table selects one Blueprint user struct row type. Rows use a unique string `rowName`; row values are JSON objects matching the selected struct. The editor registry scans `BlueprintDataTableAsset` and `.bpdatatable.json` definitions from the BlueprintSystem package roots and project `Assets/**`. The inspector includes `Sync JSON`, which writes the portable/runtime-readable table next to the asset:
 
 ```text
-Assets/BlueprintSystem/Specs/Tables/*.bpdatatable.json
+Assets/Game/Blueprint/<FeatureName>/.../*.bpdatatable.json
 ```
 
 Generated JSON shape:
@@ -2424,7 +2428,7 @@ Async asset loading
 Before creating a new node:
 
 1. Search this guide for the intended behavior.
-2. Search `Assets/BlueprintSystem/Specs/Nodes` and `Assets/BlueprintSystem/*/Specs/Nodes` for a similar `typeId`.
+2. Search package node manifests under `Packages/com.shadedclark.blueprint-system/**/Specs/Nodes` or embedded `Assets/BlueprintSystem/**/Specs/Nodes`, plus project manifests under `Assets/**`, for a similar `typeId`.
 3. Search `BlueprintExecutorRegistry.CreateDefault()` for an existing executor.
 4. Prefer extending an existing node only when the semantics remain the same.
 5. Prefer a new node when the runtime side effect, lifecycle, or target Unity API differs.
@@ -2432,7 +2436,7 @@ Before creating a new node:
 Required files for a new public node:
 
 ```text
-1. Assets/BlueprintSystem/Specs/Nodes/<TypeId>.node.json
+1. Package/core nodes: BlueprintSystem package root `**/Specs/Nodes/<TypeId>.node.json`; project-owned nodes: `Assets/**/<TypeId>.node.json`
 2. Executor class under Assets/BlueprintSystem/Executors/
 3. Registration in BlueprintExecutorRegistry.CreateDefault()
 4. Graph Toolkit visual node class under Assets/BlueprintSystem/Editor/GraphToolkit/
@@ -2440,7 +2444,7 @@ Required files for a new public node:
 6. Update this GUIDE.md
 ```
 
-Feature modules may keep the same surfaces under `Assets/BlueprintSystem/<Module>/Specs/Nodes`, `Executors`, `Editor/GraphToolkit`, and `Tests/Editor`. Use a small module registrar when a node family would otherwise add several lines to `BlueprintExecutorRegistry.CreateDefault()`.
+Feature modules in the BlueprintSystem package may keep the same surfaces under `<PackageRoot>/<Module>/Specs/Nodes`, `Executors`, `Editor/GraphToolkit`, and `Tests/Editor`. Project-owned node manifests may live under `Assets/**`, while executor code and tests still need normal Unity assembly placement. Use a small module registrar when a node family would otherwise add several lines to `BlueprintExecutorRegistry.CreateDefault()`.
 
 Naming conventions:
 

@@ -194,9 +194,9 @@ namespace BlueprintSystem.Editor
 
         private static string GetJsonPath(string assetPath, BlueprintUserStructAsset asset)
         {
-            if (!string.IsNullOrEmpty(assetPath) && assetPath.StartsWith("Assets/"))
+            if (BlueprintAssetDiscovery.IsAssetDatabasePath(assetPath))
             {
-                return Path.ChangeExtension(assetPath, ".bpstruct.json");
+                return BlueprintAssetDiscovery.ChangeAssetPathExtension(assetPath, BlueprintUserStructRegistry.StructAssetExtension);
             }
 
             string fileName = string.IsNullOrEmpty(asset.TypeId)

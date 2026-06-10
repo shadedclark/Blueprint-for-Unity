@@ -5243,6 +5243,155 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void RegistryLoadsProjectUserStructJsonOutsideBlueprintSystem()
+        {
+            const string StructPath = "Assets/Game/Blueprint/RegistryDiscovery/Structs/ProjectRegistryStruct.bpstruct.json";
+            AssetDatabase.DeleteAsset(StructPath);
+
+            try
+            {
+                WriteRegistryUserStructDefinition(StructPath, "Struct.ProjectRegistryStruct");
+                BlueprintUserStructRegistry.Refresh();
+
+                BlueprintUserStructDefinition definition;
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.ProjectRegistryStruct", out definition));
+                Assert.AreEqual("Struct.ProjectRegistryStruct", definition.TypeId);
+                Assert.AreEqual(2, definition.Fields.Count);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(StructPath);
+                AssetDatabase.DeleteAsset(StructPath + ".meta");
+                BlueprintUserStructRegistry.Refresh();
+            }
+        }
+
+        [Test]
+        public void RegistryLoadsProjectUserStructAssetsOutsideBlueprintSystem()
+        {
+            string assetPath = "Assets/Game/Blueprint/RegistryDiscovery/Structs/ProjectStructAsset.asset";
+            string renamedAssetPath = "Assets/Game/Blueprint/RegistryDiscovery/Structs/ProjectStructAssetRenamed.asset";
+            AssetDatabase.DeleteAsset(assetPath);
+            AssetDatabase.DeleteAsset(renamedAssetPath);
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                BlueprintUserStructAsset asset = ScriptableObject.CreateInstance<BlueprintUserStructAsset>();
+                asset.Fields.Add(new BlueprintUserStructAssetField
+                {
+                    id = "fld_value",
+                    name = "value",
+                    fieldType = BlueprintUserStructAssetFieldType.Int,
+                    defaultValueJson = "3"
+                });
+                AssetDatabase.CreateAsset(asset, assetPath);
+                AssetDatabase.ImportAsset(assetPath);
+                BlueprintUserStructRegistry.Refresh();
+
+                BlueprintUserStructDefinition definition;
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.ProjectStructAsset", out definition));
+                Assert.AreEqual("Struct.ProjectStructAsset", definition.TypeId);
+
+                string renameError = AssetDatabase.RenameAsset(assetPath, "ProjectStructAssetRenamed");
+                Assert.True(string.IsNullOrEmpty(renameError), renameError);
+                assetPath = renamedAssetPath;
+                AssetDatabase.ImportAsset(assetPath);
+                BlueprintUserStructRegistry.Refresh();
+
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.ProjectStructAssetRenamed", out definition));
+                Assert.AreEqual("Struct.ProjectStructAssetRenamed", definition.TypeId);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(assetPath);
+                AssetDatabase.DeleteAsset(renamedAssetPath);
+                BlueprintUserStructRegistry.Refresh();
+            }
+        }
+
+        [Test]
+        public void DataTableRegistryLoadsProjectJsonAndAssetsOutsideBlueprintSystem()
+        {
+            const string StructPath = "Assets/Game/Blueprint/RegistryDiscovery/Structs/ProjectTableRow.bpstruct.json";
+            const string TableJsonPath = "Assets/Game/Blueprint/RegistryDiscovery/Tables/ProjectItems.bpdatatable.json";
+            const string TableAssetPath = "Assets/Game/Blueprint/RegistryDiscovery/Tables/ProjectLiveItems.asset";
+            AssetDatabase.DeleteAsset(StructPath);
+            AssetDatabase.DeleteAsset(TableJsonPath);
+            AssetDatabase.DeleteAsset(TableAssetPath);
+
+            try
+            {
+                WriteRegistryUserStructDefinition(StructPath, "Struct.ProjectTableRow");
+                WriteRegistryDataTableDefinition(TableJsonPath, "Table.ProjectItems", "Struct.ProjectTableRow");
+                BlueprintUserStructRegistry.Refresh();
+                BlueprintDataTableRegistry.Refresh();
+
+                BlueprintDataTableDefinition jsonDefinition;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(TableJsonPath, out jsonDefinition));
+                Assert.True(BlueprintDataTableRegistry.TryGetByTableId("Table.ProjectItems", out jsonDefinition));
+                Assert.AreEqual("Struct.ProjectTableRow", jsonDefinition.RowStructTypeId);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(TableAssetPath));
+                BlueprintDataTableAsset asset = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                asset.RowStructTypeId = "Struct.ProjectTableRow";
+                asset.Rows.Add(new BlueprintDataTableAssetRow
+                {
+                    rowName = "asset_row",
+                    valueJson = "{\"itemId\":\"asset_row\",\"count\":5}"
+                });
+                AssetDatabase.CreateAsset(asset, TableAssetPath);
+                AssetDatabase.ImportAsset(TableAssetPath);
+                BlueprintDataTableRegistry.Refresh();
+
+                BlueprintDataTableDefinition assetDefinition;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(TableAssetPath, out assetDefinition));
+                Assert.True(BlueprintDataTableRegistry.TryGetByTableId("Table.ProjectLiveItems", out assetDefinition));
+                Assert.AreEqual("asset_row", assetDefinition.Rows[0].RowName);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(StructPath);
+                AssetDatabase.DeleteAsset(StructPath + ".meta");
+                AssetDatabase.DeleteAsset(TableJsonPath);
+                AssetDatabase.DeleteAsset(TableJsonPath + ".meta");
+                AssetDatabase.DeleteAsset(TableAssetPath);
+                BlueprintUserStructRegistry.Refresh();
+                BlueprintDataTableRegistry.Refresh();
+            }
+        }
+
+        [Test]
+        public void NodeManifestRegistryLoadsProjectManifestsOutsideBlueprintSystem()
+        {
+            const string ManifestPath = "Assets/Game/Blueprint/RegistryDiscovery/Specs/Nodes/Test.RegistryDiscovery.node.json";
+            AssetDatabase.DeleteAsset(ManifestPath);
+
+            try
+            {
+                WriteTestNodeManifest(ManifestPath, "Test.RegistryDiscovery", "Registry Discovery");
+
+                BlueprintNodeManifest manifest;
+                Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath(ManifestPath));
+                Assert.True(LoadManifests().TryGet("Test.RegistryDiscovery", out manifest));
+                Assert.AreEqual("Registry Discovery", manifest.Title);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(ManifestPath);
+                AssetDatabase.DeleteAsset(ManifestPath + ".meta");
+            }
+        }
+
+        [Test]
+        public void DataTableJsonPathSupportsPackageAssetPaths()
+        {
+            Assert.AreEqual(
+                "Packages/com.shadedclark.blueprint-system/Specs/Tables/Foo.bpdatatable.json",
+                BlueprintDataTableRegistry.GetJsonPathForAssetPath("Packages/com.shadedclark.blueprint-system/Specs/Tables/Foo.asset"));
+        }
+
+        [Test]
         public void VariableStoreCoercesStructuredDefaultsAndOverrides()
         {
             RuntimeBlueprint blueprint = new RuntimeBlueprint();
@@ -6294,6 +6443,36 @@ namespace BlueprintSystem.Tests
             BlueprintDataTableRegistry.Refresh();
         }
 
+        private static void WriteRegistryUserStructDefinition(string assetPath, string typeId)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.WriteAllText(assetPath, "{\n" +
+                "  \"schemaVersion\": \"0.1\",\n" +
+                "  \"typeId\": \"" + typeId + "\",\n" +
+                "  \"fields\": [\n" +
+                "    { \"id\": \"fld_item_id\", \"name\": \"itemId\", \"type\": \"string\", \"defaultValue\": \"\" },\n" +
+                "    { \"id\": \"fld_count\", \"name\": \"count\", \"type\": \"int\", \"defaultValue\": 1 }\n" +
+                "  ]\n" +
+                "}\n");
+            AssetDatabase.ImportAsset(assetPath);
+            BlueprintUserStructRegistry.Refresh();
+        }
+
+        private static void WriteRegistryDataTableDefinition(string assetPath, string tableId, string rowStructTypeId)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.WriteAllText(assetPath, "{\n" +
+                "  \"schemaVersion\": \"0.1\",\n" +
+                "  \"tableId\": \"" + tableId + "\",\n" +
+                "  \"rowStructTypeId\": \"" + rowStructTypeId + "\",\n" +
+                "  \"rows\": [\n" +
+                "    { \"rowName\": \"project_row\", \"value\": { \"itemId\": \"project_row\", \"count\": 2 } }\n" +
+                "  ]\n" +
+                "}\n");
+            AssetDatabase.ImportAsset(assetPath);
+            BlueprintDataTableRegistry.Refresh();
+        }
+
         private static RuntimeNode CreateDataTableRuntimeNode(string id, string typeId, string tablePath)
         {
             RuntimeNode node = CreateRuntimeNode(id, typeId);
@@ -7040,6 +7219,28 @@ namespace BlueprintSystem.Tests
                 "  \"title\": \"Compiled Manifest Stale\",\n" +
                 "  \"category\": \"Tests\",\n" +
                 "  \"description\": \"" + description + "\",\n" +
+                "  \"executor\": \"Game.Log\",\n" +
+                "  \"inputs\": [],\n" +
+                "  \"outputs\": [],\n" +
+                "  \"properties\": []\n" +
+                "}\n");
+            AssetDatabase.ImportAsset(assetPath);
+        }
+
+        private static void WriteTestNodeManifest(string assetPath, string typeId, string title)
+        {
+            string directory = Path.GetDirectoryName(assetPath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.WriteAllText(assetPath, "{\n" +
+                "  \"schemaVersion\": \"0.1\",\n" +
+                "  \"typeId\": \"" + typeId + "\",\n" +
+                "  \"title\": \"" + title + "\",\n" +
+                "  \"category\": \"Tests\",\n" +
+                "  \"description\": \"Project registry discovery test manifest.\",\n" +
                 "  \"executor\": \"Game.Log\",\n" +
                 "  \"inputs\": [],\n" +
                 "  \"outputs\": [],\n" +

@@ -656,7 +656,7 @@ namespace BlueprintSystem.Editor
 
         private static string GetJsonPath(string assetPath, BlueprintDataTableAsset asset)
         {
-            if (!string.IsNullOrEmpty(assetPath) && assetPath.StartsWith("Assets/"))
+            if (BlueprintAssetDiscovery.IsAssetDatabasePath(assetPath))
             {
                 return BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
             }

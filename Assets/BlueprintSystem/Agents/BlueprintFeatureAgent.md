@@ -18,6 +18,8 @@ Default verification should stop at JSON parsing, schema checks when available, 
 
 Do not call `Unity_ManageEditor` with `Action: "Play"` from this agent by default. If a behavior can only be verified in Play Mode, report it as not play-mode verified instead of running Play Mode.
 
+Do not use reflection during validation, compile, or testing. Invoke BlueprintSystem validation and compilation only through documented tooling, public APIs, editor menu flows, or `unity_mcp` tools; do not reflect into internal/private compiler, validator, runner, or test methods as a shortcut.
+
 ## Input Handling Policy
 
 Implement input decisions in the blueprint Tick flow by default. Use `Game.Event.OnTick` as the visible entry point and route from Tick into input-state query or polling nodes, then into explicit branches and behavior events.
@@ -397,7 +399,8 @@ Input-specific gate: if a feature requires keyboard/gamepad input that cannot be
 9. Validate JSON syntax and schema when possible.
 10. Run the BlueprintSystem validation/valid check for changed blueprint JSON, then compile the changed source blueprints.
 11. Do not run Unity Play Mode tests unless the user explicitly asks. Editor-time validation and compile checks are allowed when needed.
-12. Final response must list changed files, blueprint validation results, compile results, skipped unsupported behavior if any, and any reason validation/compile could not be completed.
+12. Do not use reflection to compile, validate, or test BlueprintSystem behavior; use documented/public tooling or `unity_mcp` editor operations.
+13. Final response must list changed files, blueprint validation results, compile results, skipped unsupported behavior if any, and any reason validation/compile could not be completed.
 
 ## Validation Commands
 
@@ -416,6 +419,8 @@ Assets/BlueprintSystem/Specs/Schemas/blueprint.schema.json
 Then run the BlueprintSystem valid/validation flow and compile each changed `.blueprint.json` source. Use the local BlueprintSystem tooling documented in `Assets/BlueprintSystem/README.md`; if the tooling requires the Unity Editor and it is unavailable, stop and report that validation/compile could not be completed.
 
 When the valid/validation or compile flow requires Unity Editor access, execute it through `unity_mcp`.
+
+Do not create reflection-based editor scripts, test harnesses, or command snippets to call internal/private BlueprintSystem compiler or validator methods. If no documented/public compile or validation path is available, report that limitation instead of bypassing it with reflection.
 
 ## Final Checklist
 
@@ -439,5 +444,6 @@ Before handing back:
 - JSON parses successfully.
 - BlueprintSystem validation/valid check was run for changed blueprints.
 - Changed blueprints were compiled successfully.
+- No reflection-based compiler, validator, runner, or test invocation was used.
 - No Play Mode test was run unless explicitly requested by the user.
 - Any unimplemented unsupported capability is clearly called out.

@@ -105,18 +105,12 @@ namespace BlueprintSystem
 
         internal static string NormalizeAssetPath(string path)
         {
-            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
+            return BlueprintAssetDiscovery.NormalizeAssetPath(path);
         }
 
         public static string GetJsonPathForAssetPath(string assetPath)
         {
-            string normalizedPath = NormalizeAssetPath(assetPath);
-            if (!string.IsNullOrEmpty(normalizedPath) && normalizedPath.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase))
-            {
-                return NormalizeAssetPath(Path.ChangeExtension(normalizedPath, DataTableAssetExtension));
-            }
-
-            return normalizedPath;
+            return BlueprintAssetDiscovery.ChangeAssetPathExtension(assetPath, DataTableAssetExtension);
         }
 
         private static void EnsureLoaded()
@@ -144,6 +138,18 @@ namespace BlueprintSystem
             byPath = new Dictionary<string, BlueprintDataTableDefinition>(StringComparer.OrdinalIgnoreCase);
             byTableId = new Dictionary<string, BlueprintDataTableDefinition>(StringComparer.Ordinal);
 
+#if UNITY_EDITOR
+            LoadEditorJsonDefinitions(byPath, byTableId);
+            LoadEditorAssetDefinitions(byPath, byTableId);
+#else
+            LoadRuntimeJsonDefinitions(byPath, byTableId);
+#endif
+        }
+
+        private static void LoadRuntimeJsonDefinitions(
+            Dictionary<string, BlueprintDataTableDefinition> byPath,
+            Dictionary<string, BlueprintDataTableDefinition> byTableId)
+        {
             string root = GetAbsoluteTableRoot();
             if (!string.IsNullOrEmpty(root) && Directory.Exists(root))
             {
@@ -171,25 +177,43 @@ namespace BlueprintSystem
                     }
                 }
             }
-
-#if UNITY_EDITOR
-            LoadEditorAssetDefinitions(byPath, byTableId);
-#endif
         }
 
 #if UNITY_EDITOR
+        private static void LoadEditorJsonDefinitions(
+            Dictionary<string, BlueprintDataTableDefinition> byPath,
+            Dictionary<string, BlueprintDataTableDefinition> byTableId)
+        {
+            List<string> paths = BlueprintAssetDiscovery.FindTextAssetPaths(DataTableAssetExtension);
+            for (int i = 0; i < paths.Count; i++)
+            {
+                string path = paths[i];
+                TextAsset tableJson = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                if (tableJson == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    BlueprintDataTableDefinition definition = BlueprintDataTableDefinition.FromJson(tableJson.text);
+                    definition.SourcePath = path;
+                    AddDefinition(definition, byPath, byTableId);
+                }
+                catch
+                {
+                }
+            }
+        }
+
         private static void LoadEditorAssetDefinitions(
             Dictionary<string, BlueprintDataTableDefinition> byPath,
             Dictionary<string, BlueprintDataTableDefinition> byTableId)
         {
-            string[] searchFolders = AssetDatabase.IsValidFolder(DefaultAssetRoot)
-                ? new[] { DefaultAssetRoot }
-                : new[] { "Assets" };
-            string[] guids = AssetDatabase.FindAssets("t:BlueprintDataTableAsset", searchFolders);
-            Array.Sort(guids, StringComparer.Ordinal);
-            for (int i = 0; i < guids.Length; i++)
+            List<string> paths = BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintDataTableAsset");
+            for (int i = 0; i < paths.Count; i++)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                string path = paths[i];
                 BlueprintDataTableAsset asset = AssetDatabase.LoadAssetAtPath<BlueprintDataTableAsset>(path);
                 if (asset == null)
                 {

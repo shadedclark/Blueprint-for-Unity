@@ -47,7 +47,8 @@ Assets/Game/Blueprint/**/Behavior/*.btree.json
 8. Do not store Unity scene object references in JSON. Use Blackboard keys, runtime overrides, binding names, component roles, or Blueprint asset paths.
 9. Do not enter Unity Play Mode unless the user explicitly asks in the current request.
 10. Any Unity Editor operation, including compile, prefab/scene inspection, runner attachment, asset refresh, console checks, and scene saves, must use `unity_mcp` tools.
-11. Do not pack multiple requested behaviors into one large behavior tree. Split them into single-behavior child `.btree.json` files and call them from a parent coordination tree.
+11. Do not use reflection during validation, compile, or testing. Invoke Behavior Tree validation and compilation only through documented tooling, public APIs, editor menu flows, or `unity_mcp` tools; do not reflect into internal/private compiler, validator, runner, or test methods as a shortcut.
+12. Do not pack multiple requested behaviors into one large behavior tree. Split them into single-behavior child `.btree.json` files and call them from a parent coordination tree.
 
 ## AI Behavior Detection
 
@@ -191,8 +192,9 @@ Every target Blueprint path must reference an existing or separately created `.b
 10. Keep Decorators and Services in graph-level arrays, attached to tree nodes by ID.
 11. Parse changed JSON files.
 12. Validate and compile changed behavior trees through the project's Behavior Tree tooling. Use Unity MCP when the editor is required.
-13. If integration is requested, inspect or update the target prefab/scene with Unity MCP and attach/update `BehaviorTreeRunner` only through editor tools.
-14. Check the Unity Console for errors if Unity Editor operations were used.
+13. Do not use reflection to compile, validate, run, or test Behavior Tree assets; use documented/public tooling or `unity_mcp` editor operations.
+14. If integration is requested, inspect or update the target prefab/scene with Unity MCP and attach/update `BehaviorTreeRunner` only through editor tools.
+15. Check the Unity Console for errors if Unity Editor operations were used.
 
 ## Handoff Contract
 
@@ -267,4 +269,5 @@ The final response must include:
 - Validation, compile, and console-check results.
 - Unsupported, skipped, or waiting-for-confirmation behavior.
 - Confirmation that no `.cs` files were created or modified.
+- Confirmation that no reflection-based compiler, validator, runner, or test invocation was used.
 - Confirmation that Play Mode was not entered unless explicitly requested.

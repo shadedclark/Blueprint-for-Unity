@@ -15,7 +15,7 @@ Assets/BlueprintSystem/SmartObject/Specs/Nodes
 Assets/BlueprintSystem/SmartObject/Tests/Editor
 ```
 
-Core loads the public node manifests from `Assets/BlueprintSystem/*/Specs/Nodes`, and `BlueprintExecutorRegistry.CreateDefault()` delegates SmartObject registration through `SmartObjectExecutorRegistrar.Register(registry)`.
+Core loads public node manifests from the BlueprintSystem package root `**/Specs/Nodes` and from project `Assets/**` manifests. `BlueprintExecutorRegistry.CreateDefault()` delegates SmartObject registration through `SmartObjectExecutorRegistrar.Register(registry)`.
 
 ## Authoring
 

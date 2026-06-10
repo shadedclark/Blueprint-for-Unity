@@ -66,6 +66,8 @@ Default verification should use JSON parsing, schema checks when available, Blue
 
 Do not call `Unity_ManageEditor` with `Action: "Play"` as part of the default workflow. If runtime behavior cannot be fully verified without Play Mode, report that limitation in the final response instead of running Play Mode.
 
+Do not use reflection during validation, compile, or testing for BlueprintSystem or Behavior Tree work. Entry-agent checks and delegated subagent checks must use documented tooling, public APIs, editor menu flows, or `unity_mcp` tools; do not reflect into internal/private compiler, validator, runner, or test methods as a shortcut.
+
 ## Input Handling Policy
 
 Blueprint input handling should be explicit in the blueprint tick flow. Prefer `Game.Event.OnTick` plus input-state query/polling nodes so the graph visibly owns the input decision each frame.
@@ -102,6 +104,7 @@ Responsibilities:
 - Create one UI interaction blueprint per interactive UI component and intent; do not group multiple buttons, toggles, scroll views, tabs, confirm/cancel controls, or repeated-item events into one adapter.
 - Define the binding contract from the actual UI prefab/scene anchors produced by the UI agent.
 - Run BlueprintSystem valid/validation and compile for changed blueprints.
+- Do not use reflection to compile, validate, or test changed blueprints.
 
 ### UI Agent
 
@@ -135,6 +138,7 @@ Responsibilities:
 - Define `BehaviorTreeRunner` integration requirements for NPC/enemy/companion owners.
 - Validate and compile changed behavior trees when tooling is available.
 - Do not create or modify any `.cs` file.
+- Do not use reflection to compile, validate, run, or test behavior trees.
 
 ## Mandatory Context Pass
 

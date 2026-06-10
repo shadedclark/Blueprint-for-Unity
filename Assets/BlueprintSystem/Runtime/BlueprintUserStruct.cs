@@ -295,10 +295,21 @@ namespace BlueprintSystem
         private static Dictionary<string, BlueprintUserStructDefinition> LoadDefinitions()
         {
             Dictionary<string, BlueprintUserStructDefinition> result = new Dictionary<string, BlueprintUserStructDefinition>(StringComparer.Ordinal);
+#if UNITY_EDITOR
+            LoadEditorJsonDefinitions(result);
+            LoadEditorAssetDefinitions(result);
+#else
+            LoadRuntimeJsonDefinitions(result);
+#endif
+            return result;
+        }
+
+        private static void LoadRuntimeJsonDefinitions(Dictionary<string, BlueprintUserStructDefinition> result)
+        {
             string root = GetAbsoluteStructRoot();
             if (string.IsNullOrEmpty(root) || !Directory.Exists(root))
             {
-                return result;
+                return;
             }
 
             string[] files;
@@ -308,7 +319,7 @@ namespace BlueprintSystem
             }
             catch
             {
-                return result;
+                return;
             }
 
             Array.Sort(files, StringComparer.OrdinalIgnoreCase);
@@ -326,15 +337,39 @@ namespace BlueprintSystem
                 {
                 }
             }
-
-#if UNITY_EDITOR
-            LoadEditorAssetDefinitions(result);
-#endif
-
-            return result;
         }
 
 #if UNITY_EDITOR
+        private static void LoadEditorJsonDefinitions(Dictionary<string, BlueprintUserStructDefinition> result)
+        {
+            if (result == null)
+            {
+                return;
+            }
+
+            List<string> paths = BlueprintAssetDiscovery.FindTextAssetPaths(StructAssetExtension);
+            for (int i = 0; i < paths.Count; i++)
+            {
+                TextAsset structJson = AssetDatabase.LoadAssetAtPath<TextAsset>(paths[i]);
+                if (structJson == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    BlueprintUserStructDefinition definition = BlueprintUserStructDefinition.FromJson(structJson.text);
+                    if (IsValidDefinition(definition))
+                    {
+                        result[definition.TypeId] = definition;
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
         private static void LoadEditorAssetDefinitions(Dictionary<string, BlueprintUserStructDefinition> result)
         {
             if (result == null)
@@ -342,14 +377,10 @@ namespace BlueprintSystem
                 return;
             }
 
-            string[] searchFolders = AssetDatabase.IsValidFolder(DefaultAssetRoot)
-                ? new[] { DefaultAssetRoot }
-                : new[] { "Assets" };
-            string[] guids = AssetDatabase.FindAssets("t:BlueprintUserStructAsset", searchFolders);
-            Array.Sort(guids, StringComparer.Ordinal);
-            for (int i = 0; i < guids.Length; i++)
+            List<string> paths = BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintUserStructAsset");
+            for (int i = 0; i < paths.Count; i++)
             {
-                string path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                string path = paths[i];
                 BlueprintUserStructAsset asset = AssetDatabase.LoadAssetAtPath<BlueprintUserStructAsset>(path);
                 if (asset == null)
                 {

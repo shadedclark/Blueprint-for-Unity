@@ -741,11 +741,6 @@ namespace BlueprintSystem.Editor
 
     internal static class BlueprintNodeManifestAssetUtility
     {
-        private const string PackageModuleRoot = "Packages/com.shadedclark.blueprint-system";
-        private const string ProjectModuleRoot = "Assets/BlueprintSystem";
-        private const string PackageManifestRoot = PackageModuleRoot + "/Specs/Nodes";
-        private const string ProjectManifestRoot = ProjectModuleRoot + "/Specs/Nodes";
-
         internal static BlueprintNodeManifestCollection LoadManifests()
         {
             Dictionary<string, string> manifestTextsByTypeId;
@@ -787,108 +782,45 @@ namespace BlueprintSystem.Editor
 
         internal static bool IsManifestPath(string path)
         {
-            path = NormalizeAssetPath(path);
+            path = BlueprintAssetDiscovery.NormalizeAssetPath(path);
             if (string.IsNullOrEmpty(path) || !path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            return IsModuleManifestPath(path, PackageModuleRoot) ||
-                   IsModuleManifestPath(path, ProjectModuleRoot);
+            if (BlueprintAssetDiscovery.IsProjectAssetPath(path))
+            {
+                return true;
+            }
+
+            if (IsPackageManifestPath(path, BlueprintAssetDiscovery.PackageAssetRoot))
+            {
+                return true;
+            }
+
+            string[] packageRoots = BlueprintAssetDiscovery.GetBlueprintPackageRoots();
+            for (int i = 0; i < packageRoots.Length; i++)
+            {
+                if (IsPackageManifestPath(path, packageRoots[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsPackageManifestPath(string path, string packageRoot)
+        {
+            return BlueprintAssetDiscovery.IsPathInRoot(path, packageRoot) &&
+                   path.IndexOf("/Specs/Nodes/", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static List<string> FindManifestAssetPaths()
         {
-            List<string> paths = new List<string>();
-            List<string> roots = FindManifestRoots();
-            for (int i = 0; i < roots.Count; i++)
-            {
-                List<string> rootPaths = FindManifestAssetPathsInRoot(roots[i]);
-                rootPaths.Sort(StringComparer.OrdinalIgnoreCase);
-                paths.AddRange(rootPaths);
-            }
-
-            return paths;
-        }
-
-        private static List<string> FindManifestRoots()
-        {
-            List<string> roots = new List<string>();
-            AddManifestRootIfValid(roots, PackageManifestRoot);
-            AddManifestRootIfValid(roots, ProjectManifestRoot);
-            AddModuleManifestRoots(roots, PackageModuleRoot);
-            AddModuleManifestRoots(roots, ProjectModuleRoot);
-            return roots;
-        }
-
-        private static void AddModuleManifestRoots(List<string> roots, string moduleRoot)
-        {
-            moduleRoot = NormalizeAssetPath(moduleRoot);
-            if (!AssetDatabase.IsValidFolder(moduleRoot))
-            {
-                return;
-            }
-
-            string[] moduleFolders = AssetDatabase.GetSubFolders(moduleRoot);
-            for (int i = 0; i < moduleFolders.Length; i++)
-            {
-                AddManifestRootIfValid(roots, NormalizeAssetPath(moduleFolders[i]) + "/Specs/Nodes");
-            }
-        }
-
-        private static void AddManifestRootIfValid(List<string> roots, string root)
-        {
-            root = NormalizeAssetPath(root);
-            if (string.IsNullOrEmpty(root) || !AssetDatabase.IsValidFolder(root) || roots.Contains(root))
-            {
-                return;
-            }
-
-            roots.Add(root);
-        }
-
-        private static List<string> FindManifestAssetPathsInRoot(string root)
-        {
-            List<string> paths = new List<string>();
-            string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { root });
-            for (int i = 0; i < guids.Length; i++)
-            {
-                string path = NormalizeAssetPath(AssetDatabase.GUIDToAssetPath(guids[i]));
-                if (IsPathInRoot(path, root) && path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
-                {
-                    paths.Add(path);
-                }
-            }
-
-            return paths;
-        }
-
-        private static bool IsPathInRoot(string path, string root)
-        {
-            path = NormalizeAssetPath(path);
-            root = NormalizeAssetPath(root);
-            return !string.IsNullOrEmpty(path) &&
-                   !string.IsNullOrEmpty(root) &&
-                   path.StartsWith(root + "/", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsModuleManifestPath(string path, string moduleRoot)
-        {
-            path = NormalizeAssetPath(path);
-            moduleRoot = NormalizeAssetPath(moduleRoot);
-            if (string.IsNullOrEmpty(path) ||
-                string.IsNullOrEmpty(moduleRoot) ||
-                !path.StartsWith(moduleRoot + "/", StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            return path.IndexOf("/Specs/Nodes/", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private static string NormalizeAssetPath(string path)
-        {
-            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
+            List<string> manifestPaths = BlueprintAssetDiscovery.FindTextAssetPaths(".node.json");
+            manifestPaths.RemoveAll(path => !IsManifestPath(path));
+            return manifestPaths;
         }
     }
 
@@ -1073,6 +1005,105 @@ namespace BlueprintSystem.Editor
             bool didDomainReload)
         {
             BlueprintHotReloadService.OnAssetsChanged(importedAssets, deletedAssets, movedAssets);
+        }
+    }
+
+    internal sealed class BlueprintRegistryRefreshAssetPostprocessor : AssetPostprocessor
+    {
+        private static void OnPostprocessAllAssets(
+            string[] importedAssets,
+            string[] deletedAssets,
+            string[] movedAssets,
+            string[] movedFromAssetPaths,
+            bool didDomainReload)
+        {
+            BlueprintRegistryRefreshService.OnAssetsChanged(importedAssets, false);
+            BlueprintRegistryRefreshService.OnAssetsChanged(movedAssets, false);
+            BlueprintRegistryRefreshService.OnAssetsChanged(deletedAssets, true);
+            BlueprintRegistryRefreshService.OnAssetsChanged(movedFromAssetPaths, true);
+        }
+    }
+
+    internal static class BlueprintRegistryRefreshService
+    {
+        internal static void OnAssetsChanged(string[] paths, bool deleted)
+        {
+            if (paths == null || paths.Length == 0)
+            {
+                return;
+            }
+
+            bool userStructChanged = false;
+            bool dataTableChanged = false;
+            for (int i = 0; i < paths.Length; i++)
+            {
+                string path = BlueprintAssetDiscovery.NormalizeAssetPath(paths[i]);
+                if (IsUserStructDefinitionPath(path, deleted))
+                {
+                    userStructChanged = true;
+                }
+
+                if (IsDataTableDefinitionPath(path, deleted))
+                {
+                    dataTableChanged = true;
+                }
+            }
+
+            if (userStructChanged)
+            {
+                BlueprintUserStructRegistry.Refresh();
+            }
+
+            if (dataTableChanged)
+            {
+                BlueprintDataTableRegistry.Refresh();
+            }
+        }
+
+        private static bool IsUserStructDefinitionPath(string path, bool deleted)
+        {
+            if (!BlueprintAssetDiscovery.IsDiscoverableAssetPath(path))
+            {
+                return false;
+            }
+
+            if (path.EndsWith(BlueprintUserStructRegistry.StructAssetExtension, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return IsScriptableRegistryAssetPath(path, deleted, typeof(BlueprintUserStructAsset));
+        }
+
+        private static bool IsDataTableDefinitionPath(string path, bool deleted)
+        {
+            if (!BlueprintAssetDiscovery.IsDiscoverableAssetPath(path))
+            {
+                return false;
+            }
+
+            if (path.EndsWith(BlueprintDataTableRegistry.DataTableAssetExtension, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return IsScriptableRegistryAssetPath(path, deleted, typeof(BlueprintDataTableAsset));
+        }
+
+        private static bool IsScriptableRegistryAssetPath(string path, bool deleted, Type expectedType)
+        {
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".asset", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (deleted)
+            {
+                return true;
+            }
+
+            Type assetType = AssetDatabase.GetMainAssetTypeAtPath(path);
+            return assetType != null && expectedType.IsAssignableFrom(assetType);
         }
     }
 

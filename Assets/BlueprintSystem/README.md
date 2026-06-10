@@ -235,7 +235,7 @@ Variable shape:
 
 ## 5. Node Manifest Contract
 
-Node manifests live in `Assets/BlueprintSystem/Specs/Nodes/*.node.json`.
+Node manifests for package/core nodes live under the BlueprintSystem package root `**/Specs/Nodes/*.node.json`; project-owned manifests may live anywhere under `Assets/**`.
 
 Manifest fields:
 
@@ -350,7 +350,7 @@ BlueprintExecutorRegistry.CreateDefault()
 
 Follow this exact sequence:
 
-1. Add a manifest in `Assets/BlueprintSystem/Specs/Nodes`.
+1. Add a manifest under the BlueprintSystem package `**/Specs/Nodes` for package/core nodes, or under project `Assets/**` for project-owned nodes.
 2. Add or update an executor in `Assets/BlueprintSystem/Executors`.
 3. Register the executor in `BlueprintExecutorRegistry.CreateDefault()`.
 4. Add or update a sample `.blueprint.json`.
@@ -589,7 +589,7 @@ Automation lives in:
 Assets/BlueprintSystem/Editor/BlueprintRunnerManifestSync.cs
 ```
 
-It validates a `.blueprint.json` asset against `Assets/BlueprintSystem/Specs/Nodes/*.node.json`, bakes manifest defaults into node properties, and writes `<BlueprintName>.compiled.asset` next to the source blueprint. Runtime execution requires the compiled asset; runners do not reference source JSON or compile from node manifests.
+It validates a `.blueprint.json` asset against discovered `.node.json` manifests from the BlueprintSystem package roots and project `Assets/**`, bakes manifest defaults into node properties, and writes `<BlueprintName>.compiled.asset` next to the source blueprint. Runtime execution requires the compiled asset; runners do not reference source JSON or compile from node manifests.
 
 Compile runs from:
 
