@@ -176,13 +176,14 @@ Vector2
 Vector3
 GameObject
 Transform
+NavMeshPath
 Blueprint
 BlueprintRef
 ```
 
-Default values may store primitives, strings, vectors, and `Blueprint` asset paths. `GameObject`, `Transform`, and `BlueprintRef` values are runtime-only object values and should use `null` JSON defaults.
+Default values may store primitives, strings, vectors, and `Blueprint` asset paths. `GameObject`, `Transform`, `NavMeshPath`, and `BlueprintRef` values are runtime-only object values and must use `null` JSON defaults.
 
-`BehaviorTreeRunner` exposes Blackboard overrides in the Inspector for compiled keys. `GameObject` and `Transform` overrides use `ObjectValue`; other keys use JSON text where possible, with plain string fallback for `string` and `Blueprint`.
+`BehaviorTreeRunner` exposes Blackboard overrides in the Inspector for compiled keys. `GameObject` and `Transform` overrides use `ObjectValue`; other keys use JSON text where possible, with plain string fallback for `string` and `Blueprint`. `NavMeshPath` keys are not exposed as Runner overrides because paths are runtime query results.
 
 Vector resolution accepts `Vector3`, `Vector2`, `Transform`, `GameObject`, `Component`, or a three-item JSON array. A `Vector2` resolves to `(x, 0, y)`.
 
@@ -195,9 +196,9 @@ Runner Blackboard task nodes can read or write another `BehaviorTreeRunner` Blac
 | Family | Type IDs | Purpose |
 | --- | --- | --- |
 | Composites | `BT.Root`, `BT.Selector`, `BT.Sequence`, `BT.Parallel`, `BT.RandomSelector`, `BT.PrioritySelector`, `BT.WeightedSelector` | Root entry, ordered child evaluation, parallel child polling, randomized selection, priority re-evaluation, and weighted selection. |
-| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, local and cross-runner Blackboard mutation, subtree execution, movement, rotation, Blueprint event bridging, and simple async Blueprint-task polling. |
-| Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown` | Branch guards evaluated before ticking the attached node. |
-| Services | `BT.UpdateDistance`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` | Periodic updates while the owning node is active. |
+| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, `BT.SetNavigationPath`, `BT.WaitForNavigation`, `BT.PauseNavigation`, `BT.ResumeNavigation`, `BT.SampleNavMeshPosition`, `BT.WarpNavigation`, `BT.TraverseOffMeshLink`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, Blackboard mutation, subtree execution, navigation, rotation, Blueprint event bridging, and async task polling. |
+| Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown`, `BT.NavigationCondition` | Branch guards evaluated before ticking the attached node. |
+| Services | `BT.UpdateDistance`, `BT.UpdateNavigationState`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` | Periodic updates while the owning node is active. |
 
 ## Composite Nodes
 
@@ -375,6 +376,103 @@ It returns `Failure` when the owner is missing or the owner does not have an ena
 | --- | --- | --- | --- | --- |
 | `stopAgent` | input/property | bool | `true` | When true, sets `NavMeshAgent.isStopped` after clearing the path. `BT.MoveTo` will set it back to false when it issues a new destination. |
 
+### Composable NavMesh Tasks
+
+The following tasks expose the intermediate `NavMeshAgent` states that `BT.MoveTo` normally owns internally. A typical precomputed-path sequence is:
+
+```text
+BT.CalculateNavigationPath -> BT.SetNavigationPath -> BT.WaitForNavigation
+```
+
+Unless stated otherwise, these tasks return `Failure` when the owner is missing, the `NavMeshAgent` is missing or disabled, or the operation requires an agent on the NavMesh and `isOnNavMesh` is false.
+
+### `BT.SetNavigationDestination`
+
+Calls `NavMeshAgent.SetDestination` and returns immediately. `Success` means the destination request was accepted; path calculation may remain pending for later ticks.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `target` | input | Vector3-compatible value | required | Preferred destination source. |
+| `targetKey` | property | Blackboard key name | none | Legacy/fallback destination source. |
+| `targetPosition` | input/property | Vector3 | none | Direct destination fallback. |
+
+### `BT.CalculateNavigationPath`
+
+Synchronously calculates a path with the owner agent and writes the resulting runtime `NavMeshPath` to Blackboard. The destination key must be declared with type `NavMeshPath`.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `target` | input | Vector3-compatible value | required | Preferred destination source. |
+| `targetKey` | property | Blackboard key name | none | Legacy/fallback destination source. |
+| `targetPosition` | input/property | Vector3 | none | Direct destination fallback. |
+| `pathKey` | property | `NavMeshPath` Blackboard key name | required | Receives the calculated path, including invalid results. |
+| `allowPartial` | input/property | bool | `false` | Allows `PathPartial` to return `Success`; `PathInvalid` always fails. |
+
+Path calculation is synchronous. Avoid evaluating large numbers of candidates in the same frame.
+
+### `BT.SetNavigationPath`
+
+Assigns a precomputed path with `NavMeshAgent.SetPath`.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `path` | input | `NavMeshPath` Blackboard value | required | Preferred path source; this port is Blackboard-only and has no inline value. |
+| `pathKey` | property | `NavMeshPath` Blackboard key name | none | Legacy/fallback path source. |
+| `allowPartial` | input/property | bool | `false` | Allows assigning `PathPartial`; `PathInvalid` always fails. |
+
+### `BT.WaitForNavigation`
+
+Waits for the current agent path to finish. Returns `Running` while the path is pending, paused, or moving; returns `Success` after a complete path reaches the arrival threshold; returns `Failure` for no path, stale path, partial path, or invalid path.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `acceptableRadius` | input/property | float | `0.25` | Combined with `agent.stoppingDistance`; the larger value is used. |
+| `velocityThreshold` | input/property | float | `0.05` | Arrival also requires velocity magnitude at or below this value. |
+
+### `BT.PauseNavigation`
+
+Sets `NavMeshAgent.isStopped = true` without clearing the path and returns `Success`.
+
+### `BT.ResumeNavigation`
+
+Sets `NavMeshAgent.isStopped = false` so the agent continues along its retained path and returns `Success`.
+
+### `BT.SampleNavMeshPosition`
+
+Samples the nearest position with a `NavMeshQueryFilter` built from the owner agent type and selected area mask. It requires an enabled agent but does not require the agent to already be on the NavMesh.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `source` | input | Vector3-compatible value | owner position | Preferred sample origin. |
+| `sourceKey` | property | Blackboard key name | none | Legacy/fallback sample origin. |
+| `sourcePosition` | input/property | Vector3 | owner position | Direct origin fallback. |
+| `maxDistance` | input/property | float | `agent.height * 2` | Search radius when the value is not connected or stored. |
+| `areaMask` | input/property | int | `-1` | Areas allowed by the query filter; `-1` includes all areas. |
+| `positionKey` | property | `Vector3` Blackboard key name | required | Receives the sampled position. |
+| `areaMaskKey` | property | `int` Blackboard key name | none | Optional destination for the sampled hit mask. |
+
+### `BT.WarpNavigation`
+
+Calls `NavMeshAgent.Warp` and returns `Success` when the target is accepted. It requires an enabled agent but can be used when the agent is currently off the NavMesh. The executor does not call `ResetPath`.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `target` | input | Vector3-compatible value | required | Preferred warp destination. |
+| `targetKey` | property | Blackboard key name | none | Legacy/fallback destination. |
+| `targetPosition` | input/property | Vector3 | none | Direct destination fallback. |
+
+### `BT.TraverseOffMeshLink`
+
+Runs a custom traversal for the current OffMeshLink. It disables automatic traversal while active, moves to the link end, calls `CompleteOffMeshLink`, restores the previous `autoTraverseOffMeshLink` value, and returns `Success`.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `mode` | input/property | `BehaviorTreeOffMeshLinkTraversalMode` | `Linear` | `Teleport`, `Linear`, or `Parabola`. |
+| `duration` | input/property | float | `0.5` | Linear/parabolic traversal duration in seconds. |
+| `height` | input/property | float | `1` | Parabolic vertical height. |
+
+`Teleport` completes in one tick. `Linear` and `Parabola` return `Running` until `duration` elapses. Aborting a running traversal returns the transform to the stored link start, restores automatic traversal, clears the path, and stops the agent.
+
 ### `BT.RotateTo`
 
 Rotates the owner toward a target and returns `Running` until it faces the target.
@@ -519,6 +617,34 @@ Allows the branch, then blocks it until the cooldown expires. A node already ret
 | `duration` | float | `cooldown` or `0` | Cooldown seconds after an allowed evaluation. |
 | `cooldown` | float | `0` | Legacy duration fallback. |
 
+### `BT.NavigationCondition`
+
+Evaluates the owner `NavMeshAgent`. `AgentAvailable` checks for an enabled component, `IsOnNavMesh` also checks placement, and all other conditions evaluate false when the agent is unavailable or off the NavMesh.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `condition` | input/property | `BehaviorTreeNavigationCondition` | `AgentAvailable` | State to evaluate. |
+| `invert` | input/property | bool | `false` | Inverts the final result. |
+| `acceptableRadius` | input/property | float | `0.25` | Used by `HasArrived` with `agent.stoppingDistance`. |
+| `velocityThreshold` | input/property | float | `0.05` | Used by `IsMoving` and `HasArrived`. |
+
+Supported conditions:
+
+```text
+AgentAvailable
+IsOnNavMesh
+HasPath
+PathPending
+PathComplete
+PathPartial
+PathInvalid
+IsStopped
+IsMoving
+HasArrived
+IsPathStale
+IsOnOffMeshLink
+```
+
 ## Service Nodes
 
 Services tick only while their owning tree node is active.
@@ -541,6 +667,28 @@ Writes the distance between a source and target to Blackboard.
 | `targetKey` | Blackboard key name | none | Target vector key. |
 | `targetPosition` | Vector3 | none | Direct target fallback. |
 | `distanceKey` | Blackboard key name | `DistanceToTarget` | Destination key. If the target cannot resolve, writes `Infinity`. |
+
+### `BT.UpdateNavigationState`
+
+Writes selected `NavMeshAgent` state values to declared Blackboard keys. Every destination property is optional. `acceptableRadius` and `velocityThreshold` use the same arrival semantics as `BT.NavigationCondition` and `BT.WaitForNavigation`.
+
+| Property | Blackboard Type | Invalid-agent value |
+| --- | --- | --- |
+| `agentAvailableKey` | bool | `false` when the component is missing or disabled |
+| `isOnNavMeshKey` | bool | `false` |
+| `hasPathKey` | bool | `false` |
+| `pathPendingKey` | bool | `false` |
+| `pathStatusKey` | string | `PathInvalid` |
+| `remainingDistanceKey` | float | `Infinity` |
+| `velocityKey` | Vector3 | `(0, 0, 0)` |
+| `destinationKey` | Vector3 | `(0, 0, 0)` |
+| `isStoppedKey` | bool | `true` |
+| `isMovingKey` | bool | `false` |
+| `hasArrivedKey` | bool | `false` |
+| `isPathStaleKey` | bool | `false` |
+| `isOnOffMeshLinkKey` | bool | `false` |
+
+The service also accepts `acceptableRadius` with default `0.25` and `velocityThreshold` with default `0.05`.
 
 ### `BT.PerceptionSphere`
 
@@ -610,6 +758,15 @@ BTTaskCopyRunnerBlackboardNode
 BTTaskRunSubtreeNode
 BTTaskMoveToNode
 BTTaskStopNavigationNode
+BTTaskSetNavigationDestinationNode
+BTTaskCalculateNavigationPathNode
+BTTaskSetNavigationPathNode
+BTTaskWaitForNavigationNode
+BTTaskPauseNavigationNode
+BTTaskResumeNavigationNode
+BTTaskSampleNavMeshPositionNode
+BTTaskWarpNavigationNode
+BTTaskTraverseOffMeshLinkNode
 BTTaskRotateToNode
 BTTaskTriggerBlueprintEventNode
 BTTaskRunBlueprintTaskNode
@@ -626,6 +783,7 @@ BTDecoratorCompareBoolNode
 BTDecoratorObjectIsSetNode
 BTDecoratorDistanceLessThanNode
 BTDecoratorCooldownNode
+BTDecoratorNavigationConditionNode
 ```
 
 `BehaviorTreeVisualNode` is the compatibility fallback for older or unknown serialized tree nodes. `BehaviorTreeVisualDecoratorNode` is both the create-menu fallback Decorator node and the compatibility fallback for older or unknown serialized Decorator nodes. When created directly, it defaults to `BT.BlackboardCondition`; prefer the dedicated `BTDecorator*` visual node classes for the other built-in Decorator types. Decorators connect to tree nodes through the `Conditions` input and are still stored in graph-level `Decorators` plus each tree node's attached Decorator id list. Services remain edited as attached id lists on tree nodes and stored in graph-level `Services`.
@@ -636,12 +794,14 @@ For `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboar
 
 For `BT.RunSubtree`, the visual node title and a `Subtree` ObjectField on the visual node show the referenced Behavior Tree asset. The same `Subtree` asset field and `Open` jump button are also editable from the Graph Inspector. Export writes the selected asset path to `properties.behaviorTree`. `blackboardMode`, `inputMappings`, and `outputMappings` remain in node properties. The node is a Task and does not expose child ports.
 
+`NavMeshPath` Blackboard variables are Graph Toolkit connection values with no inline default. `BT.CalculateNavigationPath.pathKey`, `BT.SampleNavMeshPosition.positionKey` / `areaMaskKey`, and `BT.UpdateNavigationState` destination keys remain explicit properties because they name Blackboard entries that the node writes.
+
 ## Validation Rules
 
 The validator enforces:
 
 - Blackboard keys must have unique names and known types.
-- `BlueprintRef`, `GameObject`, and `Transform` Blackboard keys cannot store JSON object reference defaults.
+- `BlueprintRef`, `GameObject`, `Transform`, and `NavMeshPath` Blackboard keys cannot store JSON object reference defaults.
 - Each behavior tree must contain exactly one `BT.Root` node.
 - The top-level `root` field must reference the `BT.Root` node.
 - `BT.Root` must have exactly one child.
@@ -650,6 +810,10 @@ The validator enforces:
 - Child, decorator, service, property-key, and input-key references must exist.
 - The tree cannot contain cycles.
 - `BT.MoveTo` needs `target`, `targetKey`, or `targetPosition`.
+- `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, and `BT.WarpNavigation` need `target`, `targetKey`, or `targetPosition`.
+- `BT.CalculateNavigationPath.pathKey` and `BT.SetNavigationPath.path` / `pathKey` must reference `NavMeshPath` Blackboard keys.
+- `BT.SampleNavMeshPosition` needs a `Vector3` `positionKey`; optional `areaMaskKey` must be `int`.
+- `BT.UpdateNavigationState` validates every configured output key against its documented Blackboard type.
 - `BT.SetBlackboard` and `BT.ClearBlackboard` need `key`.
 - `BT.*RunnerBlackboard` task nodes need a `target` input and their required `sourceKey`/`targetKey` properties. Remote key properties are not validated against the current tree, except `BT.GetRunnerBlackboard.targetKey`, which writes back into the current tree.
 - `BT.RunSubtree` needs `behaviorTree`, accepts only `Shared` or `Isolated` `blackboardMode`, and validates parent-side isolated mapping keys in the source validator. The editor compiler also validates subtree paths, child-side mapping keys, shared Blackboard type compatibility, and subtree cycles.

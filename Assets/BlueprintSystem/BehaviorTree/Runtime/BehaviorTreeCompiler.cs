@@ -261,7 +261,23 @@ namespace BlueprintSystem
             "completeKey",
             "failureKey",
             "blackboardKey",
-            "hitPointKey"
+            "hitPointKey",
+            "pathKey",
+            "positionKey",
+            "areaMaskKey",
+            "agentAvailableKey",
+            "isOnNavMeshKey",
+            "hasPathKey",
+            "pathPendingKey",
+            "pathStatusKey",
+            "remainingDistanceKey",
+            "velocityKey",
+            "destinationKey",
+            "isStoppedKey",
+            "isMovingKey",
+            "hasArrivedKey",
+            "isPathStaleKey",
+            "isOnOffMeshLinkKey"
         };
 
         public BlueprintDiagnosticList Validate(BehaviorTreeSource source, BehaviorTreeExecutorRegistry registry = null)
@@ -316,6 +332,11 @@ namespace BlueprintSystem
                 if ((key.Type == "GameObject" || key.Type == "Transform") && key.DefaultValue != null)
                 {
                     diagnostics.Add(BlueprintDiagnostic.Error("BT024", key.Type + " blackboard key '" + key.Name + "' cannot store a JSON object reference default."));
+                }
+
+                if (key.Type == BehaviorTreeValueUtility.NavMeshPathTypeId && key.DefaultValue != null)
+                {
+                    diagnostics.Add(BlueprintDiagnostic.Error("BT025", "NavMeshPath blackboard key '" + key.Name + "' cannot have a JSON default value."));
                 }
 
                 result[key.Name] = key;
@@ -427,6 +448,7 @@ namespace BlueprintSystem
                 }
 
                 ValidateBlackboardReferences(service.Properties, blackboard, diagnostics, service.Id);
+                ValidateServiceBlackboardTypes(service, blackboard, diagnostics);
                 result[service.Id] = service;
             }
 
@@ -518,6 +540,7 @@ namespace BlueprintSystem
 
                 ValidateRequiredProperties(node, diagnostics);
                 ValidateNodeBlackboardReferences(node, blackboard, diagnostics);
+                ValidateNodeBlackboardTypes(node, blackboard, diagnostics);
                 ValidateRunSubtreeLocalMappings(node, blackboard, diagnostics);
                 ValidateInputBindings(node.Inputs, blackboard, diagnostics, node.Id);
             }
@@ -572,6 +595,35 @@ namespace BlueprintSystem
                 !node.Properties.ContainsKey("targetPosition"))
             {
                 diagnostics.Add(BlueprintDiagnostic.Error("BT090", "MoveTo requires a target input, targetKey, or targetPosition.", node.Id));
+            }
+
+            if ((node.TypeId == "BT.SetNavigationDestination" ||
+                 node.TypeId == "BT.CalculateNavigationPath" ||
+                 node.TypeId == "BT.WarpNavigation") &&
+                !HasInputBinding(node, "target") &&
+                !HasNonEmpty(node.Properties, "targetKey") &&
+                !node.Properties.ContainsKey("targetPosition"))
+            {
+                diagnostics.Add(BlueprintDiagnostic.Error("BT090", node.TypeId + " requires a target input, targetKey, or targetPosition.", node.Id));
+            }
+
+            if (node.TypeId == "BT.CalculateNavigationPath" &&
+                !HasNonEmpty(node.Properties, "pathKey"))
+            {
+                diagnostics.Add(BlueprintDiagnostic.Error("BT093", node.TypeId + " requires pathKey.", node.Id));
+            }
+
+            if (node.TypeId == "BT.SetNavigationPath" &&
+                !HasInputBinding(node, "path") &&
+                !HasNonEmpty(node.Properties, "pathKey"))
+            {
+                diagnostics.Add(BlueprintDiagnostic.Error("BT093", node.TypeId + " requires a path input or pathKey.", node.Id));
+            }
+
+            if (node.TypeId == "BT.SampleNavMeshPosition" &&
+                !HasNonEmpty(node.Properties, "positionKey"))
+            {
+                diagnostics.Add(BlueprintDiagnostic.Error("BT093", node.TypeId + " requires positionKey.", node.Id));
             }
 
             if ((node.TypeId == "BT.SetBlackboard" || node.TypeId == "BT.ClearBlackboard") &&
@@ -722,6 +774,125 @@ namespace BlueprintSystem
                    typeId == "BT.GetRunnerBlackboard" ||
                    typeId == "BT.ClearRunnerBlackboard" ||
                    typeId == "BT.CopyRunnerBlackboard";
+        }
+
+        private static void ValidateNodeBlackboardTypes(
+            BehaviorTreeNodeSource node,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics)
+        {
+            if (node == null)
+            {
+                return;
+            }
+
+            if (node.TypeId == "BT.CalculateNavigationPath")
+            {
+                ValidatePropertyKeyType(
+                    node.Properties, "pathKey", BehaviorTreeValueUtility.NavMeshPathTypeId,
+                    blackboard, diagnostics, node.Id);
+            }
+            else if (node.TypeId == "BT.SetNavigationPath")
+            {
+                ValidateInputKeyType(
+                    node.Inputs, "path", BehaviorTreeValueUtility.NavMeshPathTypeId,
+                    blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(
+                    node.Properties, "pathKey", BehaviorTreeValueUtility.NavMeshPathTypeId,
+                    blackboard, diagnostics, node.Id);
+            }
+            else if (node.TypeId == "BT.SampleNavMeshPosition")
+            {
+                ValidatePropertyKeyType(
+                    node.Properties, "positionKey", "Vector3",
+                    blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(
+                    node.Properties, "areaMaskKey", "int",
+                    blackboard, diagnostics, node.Id);
+            }
+        }
+
+        private static void ValidateServiceBlackboardTypes(
+            BehaviorTreeServiceSource service,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics)
+        {
+            if (service == null || service.TypeId != "BT.UpdateNavigationState")
+            {
+                return;
+            }
+
+            ValidatePropertyKeyType(service.Properties, "agentAvailableKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "isOnNavMeshKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "hasPathKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "pathPendingKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "pathStatusKey", "string", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "remainingDistanceKey", "float", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "velocityKey", "Vector3", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "destinationKey", "Vector3", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "isStoppedKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "isMovingKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "hasArrivedKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "isPathStaleKey", "bool", blackboard, diagnostics, service.Id);
+            ValidatePropertyKeyType(service.Properties, "isOnOffMeshLinkKey", "bool", blackboard, diagnostics, service.Id);
+        }
+
+        private static void ValidatePropertyKeyType(
+            Dictionary<string, object> properties,
+            string propertyName,
+            string expectedType,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics,
+            string sourceId)
+        {
+            string key = GetPropertyString(properties, propertyName, null);
+            if (string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            ValidateBlackboardKeyType(key, expectedType, blackboard, diagnostics, sourceId, propertyName);
+        }
+
+        private static void ValidateInputKeyType(
+            Dictionary<string, string> inputs,
+            string inputId,
+            string expectedType,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics,
+            string sourceId)
+        {
+            string key;
+            if (inputs == null || !inputs.TryGetValue(inputId, out key) || string.IsNullOrEmpty(key))
+            {
+                return;
+            }
+
+            ValidateBlackboardKeyType(key, expectedType, blackboard, diagnostics, sourceId, inputId);
+        }
+
+        private static void ValidateBlackboardKeyType(
+            string key,
+            string expectedType,
+            Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
+            BlueprintDiagnosticList diagnostics,
+            string sourceId,
+            string parameterName)
+        {
+            BehaviorTreeBlackboardKey definition;
+            if (!blackboard.TryGetValue(key, out definition) || definition == null)
+            {
+                return;
+            }
+
+            if (!string.Equals(definition.Type, expectedType, StringComparison.Ordinal))
+            {
+                diagnostics.Add(BlueprintDiagnostic.Error(
+                    "BT101",
+                    "Blackboard key '" + key + "' for '" + parameterName +
+                    "' must be type " + expectedType + ", but is " + definition.Type + ".",
+                    sourceId));
+            }
         }
 
         private static void ValidateRunSubtreeLocalMappings(

@@ -5,6 +5,7 @@ using System.Reflection;
 using Unity.GraphToolkit.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace BlueprintSystem.Editor
 {
@@ -1181,6 +1182,10 @@ namespace BlueprintSystem.Editor
             {
                 case nameof(BehaviorTreeComparisonOperator):
                     return typeof(BehaviorTreeComparisonOperator);
+                case nameof(BehaviorTreeNavigationCondition):
+                    return typeof(BehaviorTreeNavigationCondition);
+                case nameof(BehaviorTreeOffMeshLinkTraversalMode):
+                    return typeof(BehaviorTreeOffMeshLinkTraversalMode);
                 case "bool":
                     return typeof(bool);
                 case "int":
@@ -1195,6 +1200,8 @@ namespace BlueprintSystem.Editor
                     return typeof(GameObject);
                 case "Transform":
                     return typeof(Transform);
+                case BehaviorTreeValueUtility.NavMeshPathTypeId:
+                    return typeof(NavMeshPath);
                 case "string":
                 case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:

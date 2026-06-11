@@ -243,6 +243,11 @@ namespace BlueprintSystem
         {
             value = null;
             string type = key == null ? variableOverride.Type : key.Type;
+            if (type == BehaviorTreeValueUtility.NavMeshPathTypeId)
+            {
+                return false;
+            }
+
             if (type == "GameObject")
             {
                 value = BehaviorTreeValueUtility.ToGameObject(variableOverride.ObjectValue);

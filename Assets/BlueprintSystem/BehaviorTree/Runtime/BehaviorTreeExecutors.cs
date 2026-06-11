@@ -139,6 +139,15 @@ namespace BlueprintSystem
             registry.Register(new BehaviorTreeRunSubtreeExecutor());
             registry.Register(new BehaviorTreeMoveToExecutor());
             registry.Register(new BehaviorTreeStopNavigationExecutor());
+            registry.Register(new BehaviorTreeSetNavigationDestinationExecutor());
+            registry.Register(new BehaviorTreeCalculateNavigationPathExecutor());
+            registry.Register(new BehaviorTreeSetNavigationPathExecutor());
+            registry.Register(new BehaviorTreeWaitForNavigationExecutor());
+            registry.Register(new BehaviorTreePauseNavigationExecutor());
+            registry.Register(new BehaviorTreeResumeNavigationExecutor());
+            registry.Register(new BehaviorTreeSampleNavMeshPositionExecutor());
+            registry.Register(new BehaviorTreeWarpNavigationExecutor());
+            registry.Register(new BehaviorTreeTraverseOffMeshLinkExecutor());
             registry.Register(new BehaviorTreeRotateToExecutor());
             registry.Register(new BehaviorTreeTriggerBlueprintEventExecutor());
             registry.Register(new BehaviorTreeRunBlueprintTaskExecutor());
@@ -149,7 +158,9 @@ namespace BlueprintSystem
             registry.Register(new BehaviorTreeObjectIsSetDecorator());
             registry.Register(new BehaviorTreeDistanceLessThanDecorator());
             registry.Register(new BehaviorTreeCooldownDecorator());
+            registry.Register(new BehaviorTreeNavigationConditionDecorator());
             registry.Register(new BehaviorTreeUpdateDistanceService());
+            registry.Register(new BehaviorTreeUpdateNavigationStateService());
             registry.Register(new BehaviorTreePerceptionSphereService());
             registry.Register(new BehaviorTreePerceptionRaycastService());
             registry.Register(new BehaviorTreeSetBlackboardFromBlueprintService());
@@ -1259,6 +1270,155 @@ namespace BlueprintSystem
         }
     }
 
+    internal sealed class BehaviorTreeSetNavigationDestinationExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeSetNavigationDestinationImplementation _implementation =
+            new BehaviorTreeSetNavigationDestinationImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.SetNavigationDestination"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeCalculateNavigationPathExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeCalculateNavigationPathImplementation _implementation =
+            new BehaviorTreeCalculateNavigationPathImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.CalculateNavigationPath"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeSetNavigationPathExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeSetNavigationPathImplementation _implementation =
+            new BehaviorTreeSetNavigationPathImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.SetNavigationPath"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeWaitForNavigationExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeWaitForNavigationImplementation _implementation =
+            new BehaviorTreeWaitForNavigationImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.WaitForNavigation"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreePauseNavigationExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreePauseNavigationImplementation _implementation =
+            new BehaviorTreePauseNavigationImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.PauseNavigation"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeResumeNavigationExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeResumeNavigationImplementation _implementation =
+            new BehaviorTreeResumeNavigationImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.ResumeNavigation"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeSampleNavMeshPositionExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeSampleNavMeshPositionImplementation _implementation =
+            new BehaviorTreeSampleNavMeshPositionImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.SampleNavMeshPosition"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeWarpNavigationExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeWarpNavigationImplementation _implementation =
+            new BehaviorTreeWarpNavigationImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.WarpNavigation"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+    }
+
+    internal sealed class BehaviorTreeTraverseOffMeshLinkExecutor : BehaviorTreeNodeExecutor
+    {
+        private readonly BehaviorTreeTraverseOffMeshLinkImplementation _implementation =
+            new BehaviorTreeTraverseOffMeshLinkImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.TraverseOffMeshLink"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return _implementation.Tick(context, node);
+        }
+
+        public override void Abort(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            _implementation.Abort(context, node);
+        }
+    }
+
     internal sealed class BehaviorTreeMoveToExecutor : BehaviorTreeNodeExecutor
     {
         public override string TypeId
@@ -1582,6 +1742,25 @@ namespace BlueprintSystem
         }
     }
 
+    internal sealed class BehaviorTreeNavigationConditionDecorator : BehaviorTreeDecoratorExecutor
+    {
+        private readonly BehaviorTreeNavigationConditionImplementation _implementation =
+            new BehaviorTreeNavigationConditionImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.NavigationCondition"; }
+        }
+
+        public override bool Evaluate(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            RuntimeBehaviorTreeDecorator decorator)
+        {
+            return _implementation.Evaluate(context, node, decorator);
+        }
+    }
+
     internal sealed class BehaviorTreeBlackboardConditionDecorator : BehaviorTreeDecoratorExecutor
     {
         public override string TypeId
@@ -1750,6 +1929,25 @@ namespace BlueprintSystem
                 BehaviorTreePropertyUtility.GetFloat(decorator.Properties, "cooldown", 0f));
             state.Data["readyAt"] = context.TimeSeconds + Mathf.Max(0f, duration);
             return true;
+        }
+    }
+
+    internal sealed class BehaviorTreeUpdateNavigationStateService : BehaviorTreeServiceExecutor
+    {
+        private readonly BehaviorTreeUpdateNavigationStateImplementation _implementation =
+            new BehaviorTreeUpdateNavigationStateImplementation();
+
+        public override string TypeId
+        {
+            get { return "BT.UpdateNavigationState"; }
+        }
+
+        public override void Tick(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            RuntimeBehaviorTreeService service)
+        {
+            _implementation.Tick(context, node, service);
         }
     }
 

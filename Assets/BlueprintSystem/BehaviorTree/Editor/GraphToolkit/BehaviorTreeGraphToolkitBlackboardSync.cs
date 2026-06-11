@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Unity.GraphToolkit.Editor;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace BlueprintSystem.Editor
 {
@@ -17,7 +18,8 @@ namespace BlueprintSystem.Editor
             typeof(Vector2),
             typeof(Vector3),
             typeof(GameObject),
-            typeof(Transform)
+            typeof(Transform),
+            typeof(NavMeshPath)
         };
 
         public static bool SyncBlackboardToGraph(BehaviorTreeVisualGraph graph)
@@ -213,6 +215,9 @@ namespace BlueprintSystem.Editor
                 case "Transform":
                     graphType = typeof(Transform);
                     return true;
+                case BehaviorTreeValueUtility.NavMeshPathTypeId:
+                    graphType = typeof(NavMeshPath);
+                    return true;
                 case "string":
                 case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
@@ -282,6 +287,12 @@ namespace BlueprintSystem.Editor
                 return true;
             }
 
+            if (variable.dataType == typeof(NavMeshPath))
+            {
+                behaviorType = BehaviorTreeValueUtility.NavMeshPathTypeId;
+                return true;
+            }
+
             if (variable.dataType == typeof(string))
             {
                 behaviorType = metadata == null || string.IsNullOrEmpty(metadata.Type) ? "string" : metadata.Type;
@@ -316,6 +327,7 @@ namespace BlueprintSystem.Editor
                     return BlueprintTypeUtility.ToVector3(value, Vector3.zero);
                 case "GameObject":
                 case "Transform":
+                case BehaviorTreeValueUtility.NavMeshPathTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                     return null;
                 default:
@@ -375,6 +387,7 @@ namespace BlueprintSystem.Editor
                     return false;
                 case "GameObject":
                 case "Transform":
+                case BehaviorTreeValueUtility.NavMeshPathTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                     return false;
                 case "string":

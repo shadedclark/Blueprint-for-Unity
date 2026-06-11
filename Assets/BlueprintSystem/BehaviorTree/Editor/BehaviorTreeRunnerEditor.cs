@@ -502,7 +502,10 @@ namespace BlueprintSystem.Editor
 
         internal static bool IsVisibleKey(BehaviorTreeCompiledBlackboardKey key)
         {
-            return key != null && !string.IsNullOrEmpty(key.Name) && key.Exposed;
+            return key != null &&
+                   !string.IsNullOrEmpty(key.Name) &&
+                   key.Exposed &&
+                   key.Type != BehaviorTreeValueUtility.NavMeshPathTypeId;
         }
 
         internal static bool IsObjectReferenceType(string blackboardType)

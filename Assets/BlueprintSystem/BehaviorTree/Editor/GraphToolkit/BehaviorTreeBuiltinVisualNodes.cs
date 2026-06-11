@@ -19,6 +19,7 @@ namespace BlueprintSystem.Editor
         public const string ObjectIsSet = "BT.ObjectIsSet";
         public const string DistanceLessThan = "BT.DistanceLessThan";
         public const string Cooldown = "BT.Cooldown";
+        public const string NavigationCondition = "BT.NavigationCondition";
         public const string SetRunnerBlackboard = "BT.SetRunnerBlackboard";
         public const string GetRunnerBlackboard = "BT.GetRunnerBlackboard";
         public const string ClearRunnerBlackboard = "BT.ClearRunnerBlackboard";
@@ -63,6 +64,24 @@ namespace BlueprintSystem.Editor
                     return new BTTaskMoveToNode();
                 case "BT.StopNavigation":
                     return new BTTaskStopNavigationNode();
+                case "BT.SetNavigationDestination":
+                    return new BTTaskSetNavigationDestinationNode();
+                case "BT.CalculateNavigationPath":
+                    return new BTTaskCalculateNavigationPathNode();
+                case "BT.SetNavigationPath":
+                    return new BTTaskSetNavigationPathNode();
+                case "BT.WaitForNavigation":
+                    return new BTTaskWaitForNavigationNode();
+                case "BT.PauseNavigation":
+                    return new BTTaskPauseNavigationNode();
+                case "BT.ResumeNavigation":
+                    return new BTTaskResumeNavigationNode();
+                case "BT.SampleNavMeshPosition":
+                    return new BTTaskSampleNavMeshPositionNode();
+                case "BT.WarpNavigation":
+                    return new BTTaskWarpNavigationNode();
+                case "BT.TraverseOffMeshLink":
+                    return new BTTaskTraverseOffMeshLinkNode();
                 case "BT.RotateTo":
                     return new BTTaskRotateToNode();
                 case "BT.TriggerBlueprintEvent":
@@ -92,6 +111,8 @@ namespace BlueprintSystem.Editor
                     return new BTDecoratorDistanceLessThanNode();
                 case Cooldown:
                     return new BTDecoratorCooldownNode();
+                case NavigationCondition:
+                    return new BTDecoratorNavigationConditionNode();
                 default:
                     return new BehaviorTreeVisualDecoratorNode();
             }
@@ -104,7 +125,8 @@ namespace BlueprintSystem.Editor
                    typeId == CompareBool ||
                    typeId == ObjectIsSet ||
                    typeId == DistanceLessThan ||
-                   typeId == Cooldown;
+                   typeId == Cooldown ||
+                   typeId == NavigationCondition;
         }
 
         public static string CreateTitle(string typeId)
@@ -145,6 +167,24 @@ namespace BlueprintSystem.Editor
                     return "Task: Move To";
                 case "BT.StopNavigation":
                     return "Task: Stop Navigation";
+                case "BT.SetNavigationDestination":
+                    return "Task: Set Navigation Destination";
+                case "BT.CalculateNavigationPath":
+                    return "Task: Calculate Navigation Path";
+                case "BT.SetNavigationPath":
+                    return "Task: Set Navigation Path";
+                case "BT.WaitForNavigation":
+                    return "Task: Wait For Navigation";
+                case "BT.PauseNavigation":
+                    return "Task: Pause Navigation";
+                case "BT.ResumeNavigation":
+                    return "Task: Resume Navigation";
+                case "BT.SampleNavMeshPosition":
+                    return "Task: Sample NavMesh Position";
+                case "BT.WarpNavigation":
+                    return "Task: Warp Navigation";
+                case "BT.TraverseOffMeshLink":
+                    return "Task: Traverse OffMeshLink";
                 case "BT.RotateTo":
                     return "Task: Rotate To";
                 case "BT.TriggerBlueprintEvent":
@@ -165,8 +205,12 @@ namespace BlueprintSystem.Editor
                     return "Decorator: Distance Less Than";
                 case Cooldown:
                     return "Decorator: Cooldown";
+                case NavigationCondition:
+                    return "Decorator: Navigation Condition";
                 case "BT.UpdateDistance":
                     return "Service: Update Distance";
+                case "BT.UpdateNavigationState":
+                    return "Service: Update Navigation State";
                 case "BT.PerceptionSphere":
                     return "Service: Perception Sphere";
                 case "BT.PerceptionRaycast":
@@ -221,11 +265,28 @@ namespace BlueprintSystem.Editor
                     break;
                 case "target":
                     if (typeId == "BT.MoveTo" ||
+                        typeId == "BT.SetNavigationDestination" ||
+                        typeId == "BT.CalculateNavigationPath" ||
+                        typeId == "BT.WarpNavigation" ||
                         typeId == "BT.RotateTo" ||
                         typeId == "BT.TriggerBlueprintEvent" ||
                         typeId == "BT.RunBlueprintTask")
                     {
                         return "targetKey";
+                    }
+
+                    break;
+                case "source":
+                    if (typeId == "BT.SampleNavMeshPosition")
+                    {
+                        return "sourceKey";
+                    }
+
+                    break;
+                case "path":
+                    if (typeId == "BT.SetNavigationPath")
+                    {
+                        return "pathKey";
                     }
 
                     break;
@@ -291,6 +352,84 @@ namespace BlueprintSystem.Editor
                     if (inputId == "stopAgent")
                     {
                         value = true;
+                        return true;
+                    }
+
+                    break;
+                case "BT.SetNavigationDestination":
+                case "BT.CalculateNavigationPath":
+                case "BT.WarpNavigation":
+                    if (inputId == "targetPosition")
+                    {
+                        value = new UnityEngine.Vector3(0f, 0f, 0f);
+                        return true;
+                    }
+
+                    if (typeId == "BT.CalculateNavigationPath" && inputId == "allowPartial")
+                    {
+                        value = false;
+                        return true;
+                    }
+
+                    break;
+                case "BT.SetNavigationPath":
+                    if (inputId == "allowPartial")
+                    {
+                        value = false;
+                        return true;
+                    }
+
+                    break;
+                case "BT.WaitForNavigation":
+                    if (inputId == "acceptableRadius")
+                    {
+                        value = 0.25f;
+                        return true;
+                    }
+
+                    if (inputId == "velocityThreshold")
+                    {
+                        value = 0.05f;
+                        return true;
+                    }
+
+                    break;
+                case "BT.SampleNavMeshPosition":
+                    if (inputId == "sourcePosition")
+                    {
+                        value = new UnityEngine.Vector3(0f, 0f, 0f);
+                        return true;
+                    }
+
+                    if (inputId == "maxDistance")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    if (inputId == "areaMask")
+                    {
+                        value = -1;
+                        return true;
+                    }
+
+                    break;
+                case "BT.TraverseOffMeshLink":
+                    if (inputId == "mode")
+                    {
+                        value = BehaviorTreeOffMeshLinkTraversalMode.Linear;
+                        return true;
+                    }
+
+                    if (inputId == "duration")
+                    {
+                        value = 0.5f;
+                        return true;
+                    }
+
+                    if (inputId == "height")
+                    {
+                        value = 1f;
                         return true;
                     }
 
@@ -409,6 +548,32 @@ namespace BlueprintSystem.Editor
                     if (inputId == "duration")
                     {
                         value = 0f;
+                        return true;
+                    }
+
+                    break;
+                case NavigationCondition:
+                    if (inputId == "condition")
+                    {
+                        value = BehaviorTreeNavigationCondition.AgentAvailable;
+                        return true;
+                    }
+
+                    if (inputId == "invert")
+                    {
+                        value = false;
+                        return true;
+                    }
+
+                    if (inputId == "acceptableRadius")
+                    {
+                        value = 0.25f;
+                        return true;
+                    }
+
+                    if (inputId == "velocityThreshold")
+                    {
+                        value = 0.05f;
                         return true;
                     }
 
@@ -775,6 +940,146 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskSetNavigationDestinationNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.SetNavigationDestination", "Task: Set Navigation Destination", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("target", null, "Target", false);
+            AddBlackboardInput("targetPosition", "Vector3", "Target Position", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskCalculateNavigationPathNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.CalculateNavigationPath", "Task: Calculate Navigation Path", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("target", null, "Target", false);
+            AddBlackboardInput("targetPosition", "Vector3", "Target Position", true);
+            AddBlackboardInput("allowPartial", "bool", "Allow Partial", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskSetNavigationPathNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.SetNavigationPath", "Task: Set Navigation Path", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("path", BehaviorTreeValueUtility.NavMeshPathTypeId, "Path", false);
+            AddBlackboardInput("allowPartial", "bool", "Allow Partial", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskWaitForNavigationNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.WaitForNavigation", "Task: Wait For Navigation", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("acceptableRadius", "float", "Acceptable Radius", true);
+            AddBlackboardInput("velocityThreshold", "float", "Velocity Threshold", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskPauseNavigationNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.PauseNavigation", "Task: Pause Navigation", 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskResumeNavigationNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.ResumeNavigation", "Task: Resume Navigation", 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskSampleNavMeshPositionNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.SampleNavMeshPosition", "Task: Sample NavMesh Position", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("source", null, "Source", false);
+            AddBlackboardInput("sourcePosition", "Vector3", "Source Position", true);
+            AddBlackboardInput("maxDistance", "float", "Max Distance", true);
+            AddBlackboardInput("areaMask", "int", "Area Mask", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskWarpNavigationNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.WarpNavigation", "Task: Warp Navigation", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("target", null, "Target", false);
+            AddBlackboardInput("targetPosition", "Vector3", "Target Position", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskTraverseOffMeshLinkNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.TraverseOffMeshLink", "Task: Traverse OffMeshLink", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput(
+                "mode",
+                nameof(BehaviorTreeOffMeshLinkTraversalMode),
+                "Mode",
+                true);
+            AddBlackboardInput("duration", "float", "Duration", true);
+            AddBlackboardInput("height", "float", "Height", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
     public sealed class BTTaskRotateToNode : BehaviorTreeVisualNode
     {
         protected override void ConfigureDefaultNode()
@@ -944,6 +1249,30 @@ namespace BlueprintSystem.Editor
         protected override void ApplyDefaultMetadata()
         {
             AddDecoratorInput("duration", "float", "Duration", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTDecoratorNavigationConditionNode : BehaviorTreeVisualDecoratorNode
+    {
+        protected override void ConfigureDefaultDecorator()
+        {
+            SetIdentity(
+                BehaviorTreeVisualNodeMetadata.NavigationCondition,
+                "Decorator: Navigation Condition");
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddDecoratorInput(
+                "condition",
+                nameof(BehaviorTreeNavigationCondition),
+                "Condition",
+                true);
+            AddDecoratorInput("invert", "bool", "Invert", true);
+            AddDecoratorInput("acceptableRadius", "float", "Acceptable Radius", true);
+            AddDecoratorInput("velocityThreshold", "float", "Velocity Threshold", true);
         }
     }
 }

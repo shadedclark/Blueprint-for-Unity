@@ -259,9 +259,9 @@ Behavior Tree 节点分为五类：
 | Family | Type IDs |
 | --- | --- |
 | Composites | `BT.Root`, `BT.Selector`, `BT.Sequence`, `BT.Parallel`, `BT.RandomSelector`, `BT.PrioritySelector`, `BT.WeightedSelector` |
-| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.MoveTo`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` |
-| Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown` |
-| Services | `BT.UpdateDistance`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` |
+| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.MoveTo`, `BT.StopNavigation`, `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, `BT.SetNavigationPath`, `BT.WaitForNavigation`, `BT.PauseNavigation`, `BT.ResumeNavigation`, `BT.SampleNavMeshPosition`, `BT.WarpNavigation`, `BT.TraverseOffMeshLink`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` |
+| Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown`, `BT.NavigationCondition` |
+| Services | `BT.UpdateDistance`, `BT.UpdateNavigationState`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` |
 
 新增 Behavior Tree 节点时需要 Behavior Tree executor、registry entry 和 Graph Toolkit metadata 或专用 visual node。不要通过普通 Blueprint `.node.json` manifest 声明 `BT.*` 行为树节点。
 
@@ -336,6 +336,7 @@ Vector2
 Vector3
 GameObject
 Transform
+NavMeshPath
 Blueprint
 BlueprintRef
 ```
@@ -344,7 +345,8 @@ BlueprintRef
 
 - `bool`、`int`、`float`、`string`、`Vector2`、`Vector3` 可以在 JSON 中保存默认值。
 - `Blueprint` 默认值保存 `.blueprint.json` 资产路径。
-- `GameObject`、`Transform`、`BlueprintRef` 是运行时对象值，JSON 默认值使用 `null`。
+- `GameObject`、`Transform`、`NavMeshPath`、`BlueprintRef` 是运行时对象值，JSON 默认值使用 `null`。
+- `NavMeshPath` 是同步路径查询结果，可在树、子树和 Runner Blackboard 之间传递，但不提供 Runner Inspector override。
 - 需要 Inspector 或集成方覆盖的 key 标记 `exposed: true`。
 - 每个 key 都写清楚 `description`，说明谁写入、谁读取、何时更新。
 
@@ -397,6 +399,10 @@ Unity 组件交互规则：
 - `BehaviorTreeRunner` 挂在 AI owner GameObject 上。
 - Runner 持有 compiled behavior tree，并创建每个实例自己的 Blackboard。
 - 通用能力用内置 BT Task 封装，例如 `BT.MoveTo` 读取 `NavMeshAgent`。
+- 简单移动继续使用 `BT.MoveTo`；需要观察中间状态或预计算路径时，使用 `BT.CalculateNavigationPath -> BT.SetNavigationPath -> BT.WaitForNavigation`。
+- `BT.PauseNavigation` / `BT.ResumeNavigation` 保留当前路径；`BT.StopNavigation` 清除路径。三者语义不能互换。
+- `BT.NavigationCondition` 用于分支判断，`BT.UpdateNavigationState` 用于把同一组 Agent 状态同步到 Blackboard。
+- `BT.TraverseOffMeshLink` 负责内置 `Teleport`、`Linear`、`Parabola` 穿越；被 Abort 时必须回到 Link 起点并停止导航。
 - 项目专属能力交给普通 Blueprint 或业务组件，例如战斗、动画事件、技能释放。
 - JSON 中用 Blackboard key、binding name、component role 或 Blueprint asset path 描述依赖。
 
@@ -455,6 +461,9 @@ Graph Toolkit 中的 Behavior Tree 图应保持树形阅读顺序：
 - Decorator 引用了没有写入来源的 Blackboard key。
 - Service interval 过小。
 - MoveTo 没有目标 key。
+- 导航目标节点没有 `target` / `targetKey` / `targetPosition`。
+- `CalculateNavigationPath` / `SetNavigationPath` 引用了非 `NavMeshPath` Blackboard key。
+- `SampleNavMeshPosition` 的输出 key 类型不是 `Vector3` / `int`。
 - Blueprint bridge target 为空或资产不存在。
 
 ## 运行时规范

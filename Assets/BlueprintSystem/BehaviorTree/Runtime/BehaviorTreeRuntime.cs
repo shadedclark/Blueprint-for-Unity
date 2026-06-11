@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace BlueprintSystem
 {
@@ -808,6 +809,8 @@ namespace BlueprintSystem
 
     public static class BehaviorTreeValueUtility
     {
+        public const string NavMeshPathTypeId = "NavMeshPath";
+
         public static bool IsKnownBlackboardType(string type)
         {
             if (string.IsNullOrEmpty(type))
@@ -825,6 +828,7 @@ namespace BlueprintSystem
                 case "Vector3":
                 case "GameObject":
                 case "Transform":
+                case NavMeshPathTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                     return true;
@@ -859,6 +863,8 @@ namespace BlueprintSystem
                     return ToGameObject(value);
                 case "Transform":
                     return ToTransform(value);
+                case NavMeshPathTypeId:
+                    return value is NavMeshPath ? value : null;
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                     return value is BlueprintRef ? value : null;
                 default:
@@ -868,12 +874,21 @@ namespace BlueprintSystem
 
         public static object NormalizeValueForJson(object value, string type)
         {
+            if (type == NavMeshPathTypeId)
+            {
+                return null;
+            }
+
             if (value == null)
             {
                 return null;
             }
 
-            if (value is GameObject || value is Transform || value is Component || value is BlueprintRef)
+            if (value is GameObject ||
+                value is Transform ||
+                value is Component ||
+                value is BlueprintRef ||
+                value is NavMeshPath)
             {
                 return null;
             }
