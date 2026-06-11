@@ -82,16 +82,32 @@ namespace BlueprintSystem
         public static bool TryGetByPath(string path, out BlueprintDataTableDefinition definition)
         {
             definition = null;
-            EnsureLoaded();
             string normalizedPath = NormalizeAssetPath(path);
-            return !string.IsNullOrEmpty(normalizedPath) && definitionsByPath.TryGetValue(normalizedPath, out definition);
+            if (string.IsNullOrEmpty(normalizedPath))
+            {
+                return false;
+            }
+
+            lock (CacheLock)
+            {
+                EnsureLoadedLocked();
+                return definitionsByPath.TryGetValue(normalizedPath, out definition);
+            }
         }
 
         public static bool TryGetByTableId(string tableId, out BlueprintDataTableDefinition definition)
         {
             definition = null;
-            EnsureLoaded();
-            return !string.IsNullOrEmpty(tableId) && definitionsByTableId.TryGetValue(tableId, out definition);
+            if (string.IsNullOrEmpty(tableId))
+            {
+                return false;
+            }
+
+            lock (CacheLock)
+            {
+                EnsureLoadedLocked();
+                return definitionsByTableId.TryGetValue(tableId, out definition);
+            }
         }
 
         public static void Refresh()
@@ -113,22 +129,18 @@ namespace BlueprintSystem
             return BlueprintAssetDiscovery.ChangeAssetPathExtension(assetPath, DataTableAssetExtension);
         }
 
-        private static void EnsureLoaded()
+        private static void EnsureLoadedLocked()
         {
             if (definitionsByPath != null && definitionsByTableId != null)
             {
                 return;
             }
 
-            lock (CacheLock)
-            {
-                if (definitionsByPath != null && definitionsByTableId != null)
-                {
-                    return;
-                }
-
-                LoadDefinitions(out definitionsByPath, out definitionsByTableId);
-            }
+            Dictionary<string, BlueprintDataTableDefinition> loadedByPath;
+            Dictionary<string, BlueprintDataTableDefinition> loadedByTableId;
+            LoadDefinitions(out loadedByPath, out loadedByTableId);
+            definitionsByPath = loadedByPath;
+            definitionsByTableId = loadedByTableId;
         }
 
         private static void LoadDefinitions(
