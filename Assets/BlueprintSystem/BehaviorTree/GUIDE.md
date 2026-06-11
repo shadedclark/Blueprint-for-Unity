@@ -195,7 +195,7 @@ Runner Blackboard task nodes can read or write another `BehaviorTreeRunner` Blac
 | Family | Type IDs | Purpose |
 | --- | --- | --- |
 | Composites | `BT.Root`, `BT.Selector`, `BT.Sequence`, `BT.Parallel`, `BT.RandomSelector`, `BT.PrioritySelector`, `BT.WeightedSelector` | Root entry, ordered child evaluation, parallel child polling, randomized selection, priority re-evaluation, and weighted selection. |
-| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, local and cross-runner Blackboard mutation, subtree execution, movement, rotation, Blueprint event bridging, and simple async Blueprint-task polling. |
+| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, local and cross-runner Blackboard mutation, subtree execution, movement, rotation, Blueprint event bridging, and simple async Blueprint-task polling. |
 | Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown` | Branch guards evaluated before ticking the attached node. |
 | Services | `BT.UpdateDistance`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` | Periodic updates while the owning node is active. |
 
@@ -364,6 +364,16 @@ Moves the owner toward a target and returns `Running` until it reaches the targe
 | `speed` | input/property | float | `3` | Transform fallback movement speed. |
 | `allowTransformFallback` | input/property | bool | `true` | Allows direct transform movement when no usable `NavMeshAgent` exists. |
 | `stopOnAbort` | input/property | bool | `true` | Stops the `NavMeshAgent` when the running node is aborted. |
+
+### `BT.StopNavigation`
+
+Clears the owner `NavMeshAgent` path and returns `Success`. This task is useful when a higher-priority branch interrupts movement and the tree should explicitly cancel the current NavMesh destination instead of only stopping the agent.
+
+It returns `Failure` when the owner is missing or the owner does not have an enabled `NavMeshAgent` on the NavMesh.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `stopAgent` | input/property | bool | `true` | When true, sets `NavMeshAgent.isStopped` after clearing the path. `BT.MoveTo` will set it back to false when it issues a new destination. |
 
 ### `BT.RotateTo`
 
@@ -599,6 +609,7 @@ BTTaskClearRunnerBlackboardNode
 BTTaskCopyRunnerBlackboardNode
 BTTaskRunSubtreeNode
 BTTaskMoveToNode
+BTTaskStopNavigationNode
 BTTaskRotateToNode
 BTTaskTriggerBlueprintEventNode
 BTTaskRunBlueprintTaskNode

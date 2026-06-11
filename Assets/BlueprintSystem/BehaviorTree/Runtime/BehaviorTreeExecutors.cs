@@ -138,6 +138,7 @@ namespace BlueprintSystem
             registry.Register(new BehaviorTreeCopyRunnerBlackboardExecutor());
             registry.Register(new BehaviorTreeRunSubtreeExecutor());
             registry.Register(new BehaviorTreeMoveToExecutor());
+            registry.Register(new BehaviorTreeStopNavigationExecutor());
             registry.Register(new BehaviorTreeRotateToExecutor());
             registry.Register(new BehaviorTreeTriggerBlueprintEventExecutor());
             registry.Register(new BehaviorTreeRunBlueprintTaskExecutor());
@@ -1357,6 +1358,35 @@ namespace BlueprintSystem
             return remainingDistance <= Mathf.Max(acceptableRadius, agent.stoppingDistance)
                 ? BehaviorTreeStatus.Success
                 : BehaviorTreeStatus.Running;
+        }
+    }
+
+    internal sealed class BehaviorTreeStopNavigationExecutor : BehaviorTreeNodeExecutor
+    {
+        public override string TypeId
+        {
+            get { return "BT.StopNavigation"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            if (context.Owner == null)
+            {
+                context.Runtime.MarkFailure("StopNavigation requires an owner GameObject.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            NavMeshAgent agent = context.Owner.GetComponent<NavMeshAgent>();
+            if (agent == null || !agent.enabled || !agent.isOnNavMesh)
+            {
+                context.Runtime.MarkFailure("StopNavigation requires an enabled NavMeshAgent on the NavMesh.");
+                return BehaviorTreeStatus.Failure;
+            }
+
+            bool stopAgent = BehaviorTreePropertyUtility.ResolveBool(context, node, "stopAgent", "stopAgent", true);
+            agent.ResetPath();
+            agent.isStopped = stopAgent;
+            return BehaviorTreeStatus.Success;
         }
     }
 

@@ -61,6 +61,8 @@ namespace BlueprintSystem.Editor
                     return new BTTaskRunSubtreeNode();
                 case "BT.MoveTo":
                     return new BTTaskMoveToNode();
+                case "BT.StopNavigation":
+                    return new BTTaskStopNavigationNode();
                 case "BT.RotateTo":
                     return new BTTaskRotateToNode();
                 case "BT.TriggerBlueprintEvent":
@@ -141,6 +143,8 @@ namespace BlueprintSystem.Editor
                     return "Task: Run Subtree";
                 case "BT.MoveTo":
                     return "Task: Move To";
+                case "BT.StopNavigation":
+                    return "Task: Stop Navigation";
                 case "BT.RotateTo":
                     return "Task: Rotate To";
                 case "BT.TriggerBlueprintEvent":
@@ -277,6 +281,14 @@ namespace BlueprintSystem.Editor
                     }
 
                     if (inputId == "allowTransformFallback" || inputId == "stopOnAbort")
+                    {
+                        value = true;
+                        return true;
+                    }
+
+                    break;
+                case "BT.StopNavigation":
+                    if (inputId == "stopAgent")
                     {
                         value = true;
                         return true;
@@ -743,6 +755,21 @@ namespace BlueprintSystem.Editor
             AddBlackboardInput("speed", "float", "Speed", true);
             AddBlackboardInput("allowTransformFallback", "bool", "Allow Transform Fallback", true);
             AddBlackboardInput("stopOnAbort", "bool", "Stop On Abort", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskStopNavigationNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("BT.StopNavigation", "Task: Stop Navigation", 0);
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("stopAgent", "bool", "Stop Agent", true);
         }
     }
 
