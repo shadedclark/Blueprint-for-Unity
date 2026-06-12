@@ -1474,11 +1474,13 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity("DataTable.GetRow", "Data Table Get Row", "DataTable", "Returns a row from a Blueprint data table by row name.");
+            AddValueInput("dataTable", BlueprintGraphToolkitDataTableTypes.TypeId, false, "propertyOrConnection", "Data Table");
             AddValueInput("rowName", "string", true, "propertyOrConnection");
             AddValueOutput("row", null);
             AddValueOutput("found", "bool");
+            AddProperty("dataTable", BlueprintGraphToolkitDataTableTypes.TypeId, false, null, "Data Table");
             AddProperty("rowName", "string", false, string.Empty);
-            AddProperty("tablePath", "string", true, null, null, false, true);
+            AddProperty("tablePath", "string", false, null, null, false, true);
             AddProperty("tableAssetGuid", "string", false, null, null, false, true);
             AddProperty("rowStructTypeId", "string", true, null, null, false, true);
         }
@@ -1497,8 +1499,10 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity("DataTable.GetRowNames", "Data Table Get Row Names", "DataTable", "Returns all row names from a Blueprint data table.");
+            AddValueInput("dataTable", BlueprintGraphToolkitDataTableTypes.TypeId, false, "propertyOrConnection", "Data Table");
             AddValueOutput("rowNames", "Array<string>");
-            AddProperty("tablePath", "string", true, null, null, false, true);
+            AddProperty("dataTable", BlueprintGraphToolkitDataTableTypes.TypeId, false, null, "Data Table");
+            AddProperty("tablePath", "string", false, null, null, false, true);
             AddProperty("tableAssetGuid", "string", false, null, null, false, true);
             AddProperty("rowStructTypeId", "string", true, null, null, false, true);
         }
@@ -1517,8 +1521,10 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity("DataTable.GetAllRows", "Data Table Get All Rows", "DataTable", "Returns all rows from a Blueprint data table.");
+            AddValueInput("dataTable", BlueprintGraphToolkitDataTableTypes.TypeId, false, "propertyOrConnection", "Data Table");
             AddValueOutput("rows", null);
-            AddProperty("tablePath", "string", true, null, null, false, true);
+            AddProperty("dataTable", BlueprintGraphToolkitDataTableTypes.TypeId, false, null, "Data Table");
+            AddProperty("tablePath", "string", false, null, null, false, true);
             AddProperty("tableAssetGuid", "string", false, null, null, false, true);
             AddProperty("rowStructTypeId", "string", true, null, null, false, true);
         }
@@ -1540,7 +1546,8 @@ namespace BlueprintSystem.Editor
 
             EnsureLists(node);
             bool changed = false;
-            changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.TablePathPropertyId, "string", true);
+            changed |= EnsureDataTableInputAndProperty(node, null);
+            changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.TablePathPropertyId, "string", false);
             changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.TableAssetGuidPropertyId, "string", false);
             changed |= EnsureHiddenProperty(node.Properties, BlueprintDataTableNodeUtility.RowStructTypePropertyId, "string", true);
 
@@ -1555,6 +1562,7 @@ namespace BlueprintSystem.Editor
                 }
 
                 changed |= RebuildOutputs(node, fallbackStructTypeId);
+                changed |= EnsureDataTableInputAndProperty(node, fallbackStructTypeId);
                 return changed;
             }
 
@@ -1565,8 +1573,20 @@ namespace BlueprintSystem.Editor
                 changed = true;
             }
 
-            changed |= SetPropertyValue(node.Properties, BlueprintDataTableNodeUtility.TablePathPropertyId, "string", true, tablePath);
+            bool hasDataTableValue =
+                !string.IsNullOrEmpty(GetStringProperty(nodeSource, BlueprintDataTableNodeUtility.DataTableInputId)) ||
+                !string.IsNullOrEmpty(GetStringProperty(node.Properties, BlueprintDataTableNodeUtility.DataTableInputId));
+            changed |= SetPropertyValue(node.Properties, BlueprintDataTableNodeUtility.TablePathPropertyId, "string", false, tablePath);
             changed |= SetPropertyValue(node.Properties, BlueprintDataTableNodeUtility.RowStructTypePropertyId, "string", true, definition.RowStructTypeId);
+            changed |= EnsureDataTableInputAndProperty(node, definition.RowStructTypeId);
+            if (hasDataTableValue)
+            {
+                changed |= SetDataTablePropertyValue(
+                    node.Properties,
+                    BlueprintDataTableVariableTypeUtility.MakeType(definition.RowStructTypeId),
+                    tablePath);
+            }
+
             changed |= RebuildOutputs(node, definition.RowStructTypeId);
             return changed;
         }
@@ -1595,6 +1615,18 @@ namespace BlueprintSystem.Editor
         {
             tablePath = null;
             definition = null;
+
+            tablePath = GetStringProperty(nodeSource, BlueprintDataTableNodeUtility.DataTableInputId);
+            if (string.IsNullOrEmpty(tablePath))
+            {
+                tablePath = GetStringProperty(properties, BlueprintDataTableNodeUtility.DataTableInputId);
+            }
+
+            if (!string.IsNullOrEmpty(tablePath) &&
+                BlueprintDataTableRegistry.TryGetByPath(tablePath, out definition))
+            {
+                return true;
+            }
 
             string assetGuid = GetStringProperty(nodeSource, BlueprintDataTableNodeUtility.TableAssetGuidPropertyId);
             if (string.IsNullOrEmpty(assetGuid))
@@ -1625,6 +1657,105 @@ namespace BlueprintSystem.Editor
 
             return !string.IsNullOrEmpty(tablePath) &&
                 BlueprintDataTableRegistry.TryGetByPath(tablePath, out definition);
+        }
+
+        private static bool EnsureDataTableInputAndProperty(BlueprintVisualNode node, string rowStructTypeId)
+        {
+            string dataTableType = string.IsNullOrEmpty(rowStructTypeId)
+                ? BlueprintGraphToolkitDataTableTypes.TypeId
+                : BlueprintDataTableVariableTypeUtility.MakeType(rowStructTypeId);
+            bool changed = false;
+
+            BlueprintVisualPortData input = null;
+            for (int i = 0; i < node.Inputs.Count; i++)
+            {
+                if (node.Inputs[i] != null && node.Inputs[i].Id == BlueprintDataTableNodeUtility.DataTableInputId)
+                {
+                    input = node.Inputs[i];
+                    break;
+                }
+            }
+
+            if (input == null)
+            {
+                input = new BlueprintVisualPortData
+                {
+                    Id = BlueprintDataTableNodeUtility.DataTableInputId,
+                    DisplayName = "Data Table",
+                    Kind = "value",
+                    Required = false,
+                    Source = "propertyOrConnection"
+                };
+                node.Inputs.Insert(0, input);
+                changed = true;
+            }
+
+            if (input.Type != dataTableType)
+            {
+                input.Type = dataTableType;
+                changed = true;
+            }
+
+            BlueprintVisualPropertyData property = FindProperty(
+                node.Properties,
+                BlueprintDataTableNodeUtility.DataTableInputId);
+            if (property == null)
+            {
+                property = new BlueprintVisualPropertyData
+                {
+                    Id = BlueprintDataTableNodeUtility.DataTableInputId,
+                    DisplayName = "Data Table",
+                    Required = false,
+                    HasValue = false,
+                    JsonValue = string.Empty,
+                    Hidden = false
+                };
+                node.Properties.Insert(0, property);
+                changed = true;
+            }
+
+            if (property.Type != dataTableType ||
+                property.Required ||
+                property.Hidden ||
+                property.DisplayName != "Data Table")
+            {
+                property.Type = dataTableType;
+                property.Required = false;
+                property.Hidden = false;
+                property.DisplayName = "Data Table";
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private static bool SetDataTablePropertyValue(
+            List<BlueprintVisualPropertyData> properties,
+            string dataTableType,
+            string tablePath)
+        {
+            BlueprintVisualPropertyData property = FindProperty(
+                properties,
+                BlueprintDataTableNodeUtility.DataTableInputId);
+            if (property == null)
+            {
+                return false;
+            }
+
+            string jsonValue = BlueprintVisualValueUtility.ToJson(tablePath);
+            bool changed = property.Type != dataTableType ||
+                property.Required ||
+                property.Hidden ||
+                !property.HasValue ||
+                property.JsonValue != jsonValue ||
+                property.DisplayName != "Data Table";
+            property.Type = dataTableType;
+            property.Required = false;
+            property.Hidden = false;
+            property.HasValue = true;
+            property.JsonValue = jsonValue;
+            property.DisplayName = "Data Table";
+            return changed;
         }
 
         private static bool RebuildOutputs(BlueprintVisualNode node, string rowStructTypeId)

@@ -316,11 +316,83 @@ namespace BlueprintSystem
         }
     }
 
+    public static class BlueprintDataTableVariableTypeUtility
+    {
+        private const string TypePrefix = "DataTable<";
+
+        public static bool IsDataTableType(string blueprintType)
+        {
+            string ignored;
+            return TryGetRowStructType(blueprintType, out ignored);
+        }
+
+        public static bool IsSupportedType(string blueprintType)
+        {
+            string rowStructTypeId;
+            return TryGetRowStructType(blueprintType, out rowStructTypeId) &&
+                   BlueprintUserStructRegistry.IsUserStructType(rowStructTypeId);
+        }
+
+        public static bool TryGetRowStructType(string blueprintType, out string rowStructTypeId)
+        {
+            rowStructTypeId = null;
+            if (string.IsNullOrEmpty(blueprintType) ||
+                !blueprintType.StartsWith(TypePrefix, StringComparison.Ordinal) ||
+                !blueprintType.EndsWith(">", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            rowStructTypeId = blueprintType.Substring(TypePrefix.Length, blueprintType.Length - TypePrefix.Length - 1).Trim();
+            return !string.IsNullOrEmpty(rowStructTypeId) &&
+                   !rowStructTypeId.StartsWith(TypePrefix, StringComparison.Ordinal) &&
+                   !BlueprintArrayUtility.IsArrayType(rowStructTypeId);
+        }
+
+        public static string MakeType(string rowStructTypeId)
+        {
+            return TypePrefix + (rowStructTypeId ?? string.Empty).Trim() + ">";
+        }
+
+        public static bool TryResolveValue(
+            object value,
+            string blueprintType,
+            out string tablePath,
+            out BlueprintDataTableDefinition definition)
+        {
+            tablePath = null;
+            definition = null;
+
+            string rowStructTypeId;
+            if (!IsSupportedType(blueprintType) ||
+                !TryGetRowStructType(blueprintType, out rowStructTypeId) ||
+                value == null)
+            {
+                return false;
+            }
+
+            tablePath = BlueprintDataTableRegistry.NormalizeAssetPath(
+                Convert.ToString(value, CultureInfo.InvariantCulture));
+            if (string.IsNullOrEmpty(tablePath) ||
+                !BlueprintDataTableRegistry.TryGetByPath(tablePath, out definition) ||
+                definition == null ||
+                definition.RowStructTypeId != rowStructTypeId)
+            {
+                definition = null;
+                return false;
+            }
+
+            tablePath = BlueprintDataTableRegistry.NormalizeAssetPath(definition.SourcePath ?? tablePath);
+            return true;
+        }
+    }
+
     public static class BlueprintDataTableNodeUtility
     {
         public const string GetRowNodeTypeId = "DataTable.GetRow";
         public const string GetRowNamesNodeTypeId = "DataTable.GetRowNames";
         public const string GetAllRowsNodeTypeId = "DataTable.GetAllRows";
+        public const string DataTableInputId = "dataTable";
         public const string TablePathPropertyId = "tablePath";
         public const string TableAssetGuidPropertyId = "tableAssetGuid";
         public const string RowStructTypePropertyId = "rowStructTypeId";
@@ -371,6 +443,46 @@ namespace BlueprintSystem
 
         public static bool TryResolveDefinition(IDictionary<string, object> properties, out string tablePath, out BlueprintDataTableDefinition definition)
         {
+            object dataTableValue;
+            if (properties != null &&
+                properties.TryGetValue(DataTableInputId, out dataTableValue) &&
+                HasTableValue(dataTableValue))
+            {
+                return TryResolveDefinition(properties, dataTableValue, out tablePath, out definition);
+            }
+
+            return TryResolveLegacyDefinition(properties, out tablePath, out definition);
+        }
+
+        public static bool TryResolveDefinition(
+            IDictionary<string, object> properties,
+            object dataTableValue,
+            out string tablePath,
+            out BlueprintDataTableDefinition definition)
+        {
+            if (HasTableValue(dataTableValue))
+            {
+                tablePath = BlueprintDataTableRegistry.NormalizeAssetPath(
+                    Convert.ToString(dataTableValue, CultureInfo.InvariantCulture));
+                if (!BlueprintDataTableRegistry.TryGetByPath(tablePath, out definition))
+                {
+                    definition = null;
+                    return false;
+                }
+
+                string expectedRowStructTypeId = GetRowStructTypeId(properties);
+                return string.IsNullOrEmpty(expectedRowStructTypeId) ||
+                       definition != null && definition.RowStructTypeId == expectedRowStructTypeId;
+            }
+
+            return TryResolveLegacyDefinition(properties, out tablePath, out definition);
+        }
+
+        private static bool TryResolveLegacyDefinition(
+            IDictionary<string, object> properties,
+            out string tablePath,
+            out BlueprintDataTableDefinition definition)
+        {
 #if UNITY_EDITOR
             object assetGuidValue;
             if (properties != null &&
@@ -403,6 +515,12 @@ namespace BlueprintSystem
             }
 
             return BlueprintDataTableRegistry.TryGetByPath(tablePath, out definition);
+        }
+
+        private static bool HasTableValue(object value)
+        {
+            return value != null &&
+                   !string.IsNullOrEmpty(Convert.ToString(value, CultureInfo.InvariantCulture));
         }
     }
 

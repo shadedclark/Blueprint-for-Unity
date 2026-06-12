@@ -11,6 +11,7 @@ namespace BlueprintSystem.Editor
             {
                 List<string> types = new List<string>(BlueprintVariableTypeRegistry.GetSupportedBlueprintTypes());
                 types.Add("Array");
+                types.Add(BlueprintGraphToolkitDataTableTypes.TypeId);
                 return types.ToArray();
             }
         }
@@ -28,6 +29,7 @@ namespace BlueprintSystem.Editor
 
                 types.Add(typeof(Array));
                 types.Add(typeof(Blueprint));
+                types.Add(typeof(DataTable));
                 return types.ToArray();
             }
         }
@@ -43,6 +45,13 @@ namespace BlueprintSystem.Editor
             if (blueprintType == "Array")
             {
                 graphType = typeof(Array);
+                return true;
+            }
+
+            if (blueprintType == BlueprintGraphToolkitDataTableTypes.TypeId ||
+                BlueprintDataTableVariableTypeUtility.IsSupportedType(blueprintType))
+            {
+                graphType = typeof(DataTable);
                 return true;
             }
 
@@ -75,6 +84,15 @@ namespace BlueprintSystem.Editor
             {
                 blueprintType = BlueprintGraphToolkitArrayTypes.MakeBlueprintType(BlueprintGraphToolkitArrayTypes.DefaultElementType);
                 return true;
+            }
+
+            if (graphType == typeof(DataTable))
+            {
+                string[] rowStructTypes = BlueprintGraphToolkitDataTableTypes.SupportedRowStructTypes;
+                blueprintType = rowStructTypes.Length == 0
+                    ? null
+                    : BlueprintDataTableVariableTypeUtility.MakeType(rowStructTypes[0]);
+                return !string.IsNullOrEmpty(blueprintType);
             }
 
             if (graphType == typeof(Struct))

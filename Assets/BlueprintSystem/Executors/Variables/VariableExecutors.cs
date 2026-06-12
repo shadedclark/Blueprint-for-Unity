@@ -50,6 +50,17 @@ namespace BlueprintSystem
                 return BlueprintExecResult.Error("Variable.Set node '" + node.Id + "' references unknown variable '" + name + "'.");
             }
 
+            BlueprintVariableDeclaration declaration = context.Blueprint == null
+                ? null
+                : context.Blueprint.Variables.Find(item => item != null && item.Name == name);
+            if (declaration != null &&
+                BlueprintDataTableVariableTypeUtility.IsDataTableType(declaration.Type) &&
+                !BlueprintTypeUtility.IsValueAssignableToType(value, declaration.Type))
+            {
+                return BlueprintExecResult.Error(
+                    "Variable.Set node '" + node.Id + "' expects " + declaration.Type + " for variable '" + name + "'.");
+            }
+
             context.Variables.Set(name, value);
             BlueprintReactiveBindingRuntime.RefreshForContext(context);
             return BlueprintExecResult.Continue("execOut");

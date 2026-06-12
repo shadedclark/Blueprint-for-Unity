@@ -5159,6 +5159,197 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void DataTableVariablesValidateAndRoundTripAsTypedPaths()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+
+            try
+            {
+                WriteDataTableDefinition(tablePath);
+                string dataTableType = BlueprintDataTableVariableTypeUtility.MakeType("Struct.TestInventoryItem");
+
+                Assert.True(BlueprintVariableTypeRegistry.IsKnownType(dataTableType));
+                Assert.True(BlueprintTypeUtility.IsValueAssignableToType(tablePath, dataTableType));
+                Assert.False(BlueprintTypeUtility.IsValueAssignableToType("Assets/Missing.bpdatatable.json", dataTableType));
+                Assert.False(BlueprintVariableTypeRegistry.IsKnownType("DataTable"));
+                Assert.False(BlueprintVariableTypeRegistry.IsKnownType("Array<" + dataTableType + ">"));
+
+                BlueprintSource source = new BlueprintSource
+                {
+                    SchemaVersion = "0.1",
+                    Name = "TypedDataTableVariable"
+                };
+                source.Variables.Add(new BlueprintVariableDeclaration
+                {
+                    Name = "itemTable",
+                    Type = dataTableType,
+                    DefaultValue = tablePath,
+                    Scope = "runtime"
+                });
+
+                BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(
+                    source,
+                    LoadManifests(),
+                    BlueprintExecutorRegistry.CreateDefault());
+                BlueprintSource roundTrip = BlueprintSource.FromJson(source.ToJson());
+
+                Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+                Assert.AreEqual(dataTableType, roundTrip.Variables[0].Type);
+                Assert.AreEqual(tablePath, roundTrip.Variables[0].DefaultValue);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableNodesAcceptTypedVariableConnectionsAndRejectOtherRowTypes()
+        {
+            const string OtherStructPath = "Assets/BlueprintSystem/Specs/Structs/TestOtherItem.bpstruct.json";
+            const string ItemTablePath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+            const string OtherTablePath = "Assets/BlueprintSystem/Specs/Tables/TestOtherItems.bpdatatable.json";
+            WriteUserStructDefinition();
+
+            try
+            {
+                WriteRegistryUserStructDefinition(OtherStructPath, "Struct.TestOtherItem");
+                WriteDataTableDefinition(ItemTablePath);
+                WriteRegistryDataTableDefinition(OtherTablePath, "Table.TestOtherItems", "Struct.TestOtherItem");
+
+                BlueprintSource valid = CreateDataTableVariableConnectionSource(
+                    BlueprintDataTableVariableTypeUtility.MakeType("Struct.TestInventoryItem"),
+                    ItemTablePath);
+                BlueprintDiagnosticList validDiagnostics = new BlueprintValidator().Validate(
+                    valid,
+                    LoadManifests(),
+                    BlueprintExecutorRegistry.CreateDefault());
+
+                BlueprintSource mismatch = CreateDataTableVariableConnectionSource(
+                    BlueprintDataTableVariableTypeUtility.MakeType("Struct.TestOtherItem"),
+                    OtherTablePath);
+                BlueprintDiagnosticList mismatchDiagnostics = new BlueprintValidator().Validate(
+                    mismatch,
+                    LoadManifests(),
+                    BlueprintExecutorRegistry.CreateDefault());
+
+                Assert.False(validDiagnostics.HasErrors, validDiagnostics.ToDisplayString());
+                Assert.True(
+                    mismatchDiagnostics.Exists(diagnostic =>
+                        diagnostic.Code == "BP003" &&
+                        diagnostic.PortId == BlueprintDataTableNodeUtility.DataTableInputId),
+                    mismatchDiagnostics.ToDisplayString());
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(ItemTablePath);
+                AssetDatabase.DeleteAsset(ItemTablePath + ".meta");
+                AssetDatabase.DeleteAsset(OtherTablePath);
+                AssetDatabase.DeleteAsset(OtherTablePath + ".meta");
+                AssetDatabase.DeleteAsset(OtherStructPath);
+                AssetDatabase.DeleteAsset(OtherStructPath + ".meta");
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void VariableSetRejectsInvalidTypedDataTableAssignments()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+            GameObject owner = new GameObject("TypedDataTableVariableSetOwner");
+
+            try
+            {
+                WriteDataTableDefinition(tablePath);
+                RuntimeBlueprint blueprint = new RuntimeBlueprint();
+                blueprint.Variables.Add(new BlueprintVariableDeclaration
+                {
+                    Name = "itemTable",
+                    Type = "DataTable<Struct.TestInventoryItem>",
+                    DefaultValue = tablePath
+                });
+
+                BlueprintNodeManifest manifest;
+                Assert.True(LoadManifests().TryGet("Variable.Set", out manifest));
+                RuntimeNode node = new RuntimeNode
+                {
+                    Id = "set_item_table",
+                    TypeId = "Variable.Set",
+                    Manifest = manifest,
+                    Executor = new VariableSetExecutor()
+                };
+                node.Properties["name"] = "itemTable";
+                node.Properties["value"] = "Assets/Missing.bpdatatable.json";
+
+                DictionaryBlueprintVariableStore store = new DictionaryBlueprintVariableStore(blueprint);
+                BlueprintExecutionContext context = new BlueprintExecutionContext(
+                    blueprint,
+                    owner,
+                    null,
+                    new NullBlueprintBindingResolver(),
+                    store,
+                    null,
+                    new RecordingBlueprintLogger());
+                BlueprintExecResult result = new VariableSetExecutor().Execute(context, node);
+
+                Assert.False(string.IsNullOrEmpty(result.ErrorMessage));
+                Assert.AreEqual(tablePath, store.Get("itemTable"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableNodeInputOverridesLegacyTablePath()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/TestItems.bpdatatable.json";
+
+            try
+            {
+                WriteDataTableDefinition(tablePath);
+                RuntimeNode node = CreateDataTableRuntimeNode(
+                    "get_row",
+                    BlueprintDataTableNodeUtility.GetRowNodeTypeId,
+                    "Assets/Missing.bpdatatable.json");
+                node.Properties[BlueprintDataTableNodeUtility.DataTableInputId] = tablePath;
+                node.Properties["rowName"] = "sword_01";
+
+                BlueprintExecutionContext context = CreateTestContext(
+                    new RuntimeBlueprint(),
+                    new TestBindingResolver(),
+                    new RecordingBlueprintLogger(),
+                    null);
+                object row = new DataTableGetRowExecutor().Evaluate(context, node, "row");
+
+                Assert.IsInstanceOf<BlueprintStructValue>(row);
+
+                node.Properties[BlueprintDataTableNodeUtility.DataTableInputId] = "Assets/Missing.bpdatatable.json";
+                node.Properties[BlueprintDataTableNodeUtility.TablePathPropertyId] = tablePath;
+                Assert.Null(new DataTableGetRowExecutor().Evaluate(context, node, "row"));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
         public void ValidatorTypesDataTableDynamicOutputs()
         {
             WriteUserStructDefinition();
@@ -5227,16 +5418,97 @@ namespace BlueprintSystem.Tests
                 BlueprintVisualPortData row = visualNode.Outputs.Find(port => port.Id == "row");
 
                 Assert.AreEqual("DataTable.GetRow", sourceNode.TypeId);
+                Assert.AreEqual(tablePath, sourceNode.Properties["dataTable"]);
                 Assert.AreEqual(tablePath, sourceNode.Properties["tablePath"]);
                 Assert.AreEqual(guid, sourceNode.Properties["tableAssetGuid"]);
                 Assert.AreEqual("Struct.TestInventoryItem", sourceNode.Properties["rowStructTypeId"]);
                 Assert.NotNull(row);
                 Assert.AreEqual("Struct.TestInventoryItem", row.Type);
+                BlueprintVisualPortData dataTableInput = visualNode.Inputs.Find(port => port.Id == "dataTable");
+                Assert.NotNull(dataTableInput);
+                Assert.AreEqual("DataTable<Struct.TestInventoryItem>", dataTableInput.Type);
             }
             finally
             {
                 AssetDatabase.DeleteAsset(graphPath);
                 AssetDatabase.DeleteAsset(assetPath);
+                BlueprintDataTableRegistry.Refresh();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void GraphToolkitCreatesAndReusesTypedDataTableVariables()
+        {
+            string graphPath = "Assets/BlueprintSystem/Tests/Editor/DataTableVariableTest.bpgraph";
+            string exportPath = "Assets/BlueprintSystem/Tests/Editor/DataTableVariableTest.export.blueprint.json";
+            string assetPath = "Assets/BlueprintSystem/Specs/Tables/DataTableVariableItems.asset";
+            string renamedAssetPath = "Assets/BlueprintSystem/Specs/Tables/DataTableVariableItemsRenamed.asset";
+            AssetDatabase.DeleteAsset(graphPath);
+            AssetDatabase.DeleteAsset(assetPath);
+            AssetDatabase.DeleteAsset(renamedAssetPath);
+            DeleteTemporaryCompiledArtifacts(exportPath);
+            WriteUserStructDefinition();
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+                BlueprintDataTableAsset asset = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                asset.RowStructTypeId = "Struct.TestInventoryItem";
+                asset.Rows.Add(new BlueprintDataTableAssetRow
+                {
+                    rowName = "sword_01",
+                    valueJson = "{\"itemId\":\"sword_01\",\"count\":1,\"position\":[1,2]}"
+                });
+                AssetDatabase.CreateAsset(asset, assetPath);
+                AssetDatabase.ImportAsset(assetPath);
+                BlueprintDataTableRegistry.Refresh();
+
+                string tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
+                BlueprintVisualGraph graph = GraphDatabase.CreateGraph<BlueprintVisualGraph>(graphPath);
+                graph.BlueprintName = "DataTableVariableTest";
+                IVariable variable = BlueprintGraphToolkitUIDragDrop.EnsureDataTableAssetVariable(
+                    graph,
+                    "ItemTable",
+                    tablePath,
+                    asset.RowStructTypeId);
+                IVariable reused = BlueprintGraphToolkitUIDragDrop.EnsureDataTableAssetVariable(
+                    graph,
+                    "DifferentName",
+                    tablePath,
+                    asset.RowStructTypeId);
+
+                Assert.AreSame(variable, reused);
+                Assert.AreEqual(typeof(BlueprintSystem.Editor.DataTable), variable.dataType);
+
+                Assert.AreEqual(string.Empty, AssetDatabase.MoveAsset(assetPath, renamedAssetPath));
+                BlueprintDataTableRegistry.Refresh();
+                tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(renamedAssetPath);
+                object refreshedDefaultValue;
+                Assert.True(BlueprintGraphToolkitBlackboardSync.TryReadDefaultValue(
+                    variable,
+                    "DataTable<Struct.TestInventoryItem>",
+                    out refreshedDefaultValue));
+                Assert.AreEqual(tablePath, refreshedDefaultValue);
+
+                BlueprintGraphToolkitReflection.CreateBlackboardVariableNode(graph, variable, new Vector2(100, 200));
+                BlueprintGraphToolkitUIDragDrop.CreateVariableSetNodeFromBlackboard(graph, variable, new Vector2(320, 200));
+                BlueprintGraphToolkitBridge.ExportGraphAtPath(graphPath, exportPath);
+
+                BlueprintSource exported = LoadBlueprint(exportPath);
+                BlueprintVariableDeclaration exportedVariable = exported.Variables.Find(item => item.Name == "ItemTable");
+                Assert.NotNull(exportedVariable);
+                Assert.AreEqual("DataTable<Struct.TestInventoryItem>", exportedVariable.Type);
+                Assert.AreEqual(tablePath, exportedVariable.DefaultValue);
+                Assert.NotNull(exported.Nodes.Find(node => node.TypeId == "Variable.Get"));
+                Assert.NotNull(exported.Nodes.Find(node => node.TypeId == "Variable.Set"));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(graphPath);
+                AssetDatabase.DeleteAsset(assetPath);
+                AssetDatabase.DeleteAsset(renamedAssetPath);
+                DeleteTemporaryCompiledArtifacts(exportPath);
                 BlueprintDataTableRegistry.Refresh();
                 DeleteUserStructDefinition();
             }
@@ -6516,6 +6788,36 @@ namespace BlueprintSystem.Tests
 
             source.Edges.Add(new BlueprintEdgeSource { From = "get_row.row", To = "set_item.value" });
             source.Edges.Add(new BlueprintEdgeSource { From = "get_all_rows.rows", To = "set_rows.value" });
+            return source;
+        }
+
+        private static BlueprintSource CreateDataTableVariableConnectionSource(string dataTableType, string tablePath)
+        {
+            BlueprintSource source = new BlueprintSource
+            {
+                SchemaVersion = "0.1",
+                Name = "DataTableVariableConnectionTest"
+            };
+            source.Variables.Add(new BlueprintVariableDeclaration
+            {
+                Name = "itemTable",
+                Type = dataTableType,
+                DefaultValue = tablePath,
+                Scope = "runtime"
+            });
+
+            BlueprintNodeSource getVariable = AddNode(source, "get_item_table", "Variable.Get");
+            getVariable.Properties["name"] = "itemTable";
+
+            BlueprintNodeSource getRow = AddNode(source, "get_row", "DataTable.GetRow");
+            getRow.Properties["rowStructTypeId"] = "Struct.TestInventoryItem";
+            getRow.Properties["rowName"] = "sword_01";
+
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "get_item_table.value",
+                To = "get_row.dataTable"
+            });
             return source;
         }
 

@@ -341,6 +341,15 @@ namespace BlueprintSystem
                 case "Color":
                     return value is Color ? value : ToColor(value, defaultValue is Color ? (Color)defaultValue : Color.white);
                 default:
+                    if (BlueprintDataTableVariableTypeUtility.IsDataTableType(type))
+                    {
+                        string tablePath;
+                        BlueprintDataTableDefinition definition;
+                        return BlueprintDataTableVariableTypeUtility.TryResolveValue(value, type, out tablePath, out definition)
+                            ? tablePath
+                            : defaultValue;
+                    }
+
                     object arrayValue;
                     if (BlueprintArrayUtility.TryConvertToRuntimeArray(value, type, out arrayValue))
                     {

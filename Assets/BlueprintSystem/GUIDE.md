@@ -2238,7 +2238,26 @@ Generated JSON shape:
 }
 ```
 
-`tableId` is read-only and derived from the asset file name as `Table.{FileName}`. Blueprint node JSON stores the generated `.bpdatatable.json` path in `tablePath`; Graph Toolkit also stores a hidden `tableAssetGuid` so dragged table nodes can refresh to the current asset after editor moves or renames. Runtime row values are normalized through the selected user struct definition and returned as `BlueprintStructValue`.
+`tableId` is read-only and derived from the asset file name as `Table.{FileName}`. New Blueprint node JSON stores the generated `.bpdatatable.json` path in `dataTable`; `tablePath` remains the legacy fallback. Graph Toolkit also stores a hidden `tableAssetGuid` so dragged table nodes can refresh to the current asset after editor moves or renames. Runtime row values are normalized through the selected user struct definition and returned as `BlueprintStructValue`.
+
+### DataTable Variables
+
+Blueprint variables support strong typed table references using `DataTable<Struct.RowType>`. The runtime value is the normalized `.bpdatatable.json` path, not a Unity object or in-memory table definition:
+
+```json
+{
+  "name": "itemTable",
+  "type": "DataTable<Struct.ItemRow>",
+  "defaultValue": "Assets/Game/Data/ItemTable.bpdatatable.json",
+  "scope": "runtime"
+}
+```
+
+The referenced table must exist and use the same `rowStructTypeId` as the generic type. Bare `DataTable`, unknown row structs, nested DataTables, and `Array<DataTable<...>>` are invalid. `Variable.Set` and cross-blueprint writes reject paths whose table row type does not match the declared variable type.
+
+Graph Toolkit displays one `DataTable` Blackboard type with a row-struct selector, a `BlueprintDataTableAsset` picker, and the serialized path. Dragging a DataTable variable from the Blackboard offers normal Get/Set variable nodes. Dragging a `BlueprintDataTableAsset` from the Project window keeps the direct query-node choices and also offers DataTable variable Get/Set choices; an existing variable with the same path and row type is reused.
+
+DataTable query nodes resolve their table in this order: connected `dataTable` input, literal `dataTable` property, then legacy `tableAssetGuid` / `tablePath`. The cached `rowStructTypeId` types the input and outputs, so connecting different row-struct types is a validation error.
 
 ### `DataTable.GetRow`
 
@@ -2269,10 +2288,12 @@ Ports and parameters:
 
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
+| `dataTable` | input value | `DataTable<Struct.{RowType}>` | propertyOrConnection | no | Typed table reference; overrides legacy table properties. |
 | `rowName` | input value | string | propertyOrConnection | yes | Unique row key. |
 | `row` | output value | `Struct.{RowType}` | none | no | Dynamic type from the table row struct. |
 | `found` | output value | bool | none | no | True only when `rowName` exists. |
-| `tablePath` | hidden property | string | property | yes | Generated `.bpdatatable.json` path. |
+| `dataTable` | property | `DataTable<Struct.{RowType}>` | property | no | Optional literal table selected in Graph Toolkit. |
+| `tablePath` | hidden property | string | property | no | Legacy generated `.bpdatatable.json` path fallback. |
 | `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
 | `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
 
@@ -2303,8 +2324,10 @@ Ports and parameters:
 
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
+| `dataTable` | input value | `DataTable<Struct.{RowType}>` | propertyOrConnection | no | Typed table reference; overrides legacy table properties. |
 | `rowNames` | output value | `Array<string>` | none | no | Row names in table order. |
-| `tablePath` | hidden property | string | property | yes | Generated `.bpdatatable.json` path. |
+| `dataTable` | property | `DataTable<Struct.{RowType}>` | property | no | Optional literal table selected in Graph Toolkit. |
+| `tablePath` | hidden property | string | property | no | Legacy generated `.bpdatatable.json` path fallback. |
 | `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
 | `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
 
@@ -2335,8 +2358,10 @@ Ports and parameters:
 
 | ID | Kind | Type | Source | Required | Notes |
 | --- | --- | --- | --- | --- | --- |
+| `dataTable` | input value | `DataTable<Struct.{RowType}>` | propertyOrConnection | no | Typed table reference; overrides legacy table properties. |
 | `rows` | output value | `Array<Struct.{RowType}>` | none | no | Dynamic type from the table row struct. |
-| `tablePath` | hidden property | string | property | yes | Generated `.bpdatatable.json` path. |
+| `dataTable` | property | `DataTable<Struct.{RowType}>` | property | no | Optional literal table selected in Graph Toolkit. |
+| `tablePath` | hidden property | string | property | no | Legacy generated `.bpdatatable.json` path fallback. |
 | `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
 | `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
 

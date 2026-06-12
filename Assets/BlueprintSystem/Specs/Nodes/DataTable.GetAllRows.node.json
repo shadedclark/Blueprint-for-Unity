@@ -5,7 +5,14 @@
   "category": "DataTable",
   "description": "Returns all rows from a Blueprint data table.",
   "executor": "DataTable.GetAllRows",
-  "inputs": [],
+  "inputs": [
+    {
+      "id": "dataTable",
+      "kind": "value",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
   "outputs": [
     {
       "id": "rows",
@@ -14,9 +21,13 @@
   ],
   "properties": [
     {
+      "id": "dataTable",
+      "required": false
+    },
+    {
       "id": "tablePath",
       "type": "string",
-      "required": true
+      "required": false
     },
     {
       "id": "tableAssetGuid",

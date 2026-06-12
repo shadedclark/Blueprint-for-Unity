@@ -87,6 +87,12 @@ namespace BlueprintSystem
         public static bool TryGetClrType(string typeId, out Type clrType)
         {
             clrType = null;
+            if (BlueprintDataTableVariableTypeUtility.IsSupportedType(typeId))
+            {
+                clrType = typeof(string);
+                return true;
+            }
+
             if (typeId == BlueprintAssetTypeId)
             {
                 clrType = typeof(string);
@@ -150,6 +156,7 @@ namespace BlueprintSystem
         {
             return typeId == BlueprintAssetTypeId ||
                    typeId == BlueprintRefTypeId ||
+                   BlueprintDataTableVariableTypeUtility.IsDataTableType(typeId) ||
                    !string.IsNullOrEmpty(typeId) && BuiltinTypesById.ContainsKey(typeId);
         }
 
@@ -357,6 +364,7 @@ namespace BlueprintSystem
         public static bool IsSupportedElementType(string elementType)
         {
             if (string.IsNullOrEmpty(elementType) || IsArrayType(elementType) ||
+                BlueprintDataTableVariableTypeUtility.IsDataTableType(elementType) ||
                 elementType.StartsWith("Binding<", StringComparison.Ordinal))
             {
                 return false;

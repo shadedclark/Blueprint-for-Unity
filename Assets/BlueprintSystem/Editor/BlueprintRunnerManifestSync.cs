@@ -676,6 +676,16 @@ namespace BlueprintSystem.Editor
             object jsonValue;
             if (!string.IsNullOrEmpty(blueprintType))
             {
+                if (BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
+                {
+                    string tablePath;
+                    BlueprintDataTableDefinition definition;
+                    if (BlueprintDataTableVariableTypeUtility.TryResolveValue(value, blueprintType, out tablePath, out definition))
+                    {
+                        return tablePath;
+                    }
+                }
+
                 if (BlueprintArrayUtility.TryConvertToJsonArray(value, blueprintType, out jsonValue))
                 {
                     return jsonValue;

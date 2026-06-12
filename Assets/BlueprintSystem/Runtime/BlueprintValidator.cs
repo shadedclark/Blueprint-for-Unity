@@ -23,8 +23,9 @@ namespace BlueprintSystem
             Dictionary<BlueprintPortKey, List<RuntimeEdge>> execEdges = new Dictionary<BlueprintPortKey, List<RuntimeEdge>>();
             Dictionary<BlueprintPortKey, RuntimeEdge> valueInputs = new Dictionary<BlueprintPortKey, RuntimeEdge>();
 
-            ValidateNodes(source, manifests, registry, bindingsByName, variablesByName, valueInputs, diagnostics);
+            ValidateNodes(source, manifests, registry, bindingsByName, variablesByName, diagnostics);
             ValidateEdges(source, manifests, nodesById, variablesByName, execEdges, valueInputs, diagnostics);
+            ValidateDataTableNodes(source, valueInputs, diagnostics);
             ValidateRequiredValueInputs(source, manifests, valueInputs, diagnostics);
             ValidateVariableSetValues(source, variablesByName, valueInputs, diagnostics);
             ValidateEvents(source, manifests, diagnostics);
@@ -163,7 +164,6 @@ namespace BlueprintSystem
             BlueprintExecutorRegistry registry,
             Dictionary<string, BlueprintBindingDeclaration> bindingsByName,
             Dictionary<string, BlueprintVariableDeclaration> variablesByName,
-            Dictionary<BlueprintPortKey, RuntimeEdge> valueInputs,
             BlueprintDiagnosticList diagnostics)
         {
             for (int i = 0; i < source.Nodes.Count; i++)
@@ -185,7 +185,6 @@ namespace BlueprintSystem
                 ValidateProperties(node, manifest, bindingsByName, diagnostics);
                 ValidateVariableReference(node, variablesByName, diagnostics);
                 ValidateBreakStructNode(node, diagnostics);
-                ValidateDataTableNode(node, diagnostics);
             }
         }
 
@@ -357,9 +356,41 @@ namespace BlueprintSystem
             }
         }
 
-        private static void ValidateDataTableNode(BlueprintNodeSource node, BlueprintDiagnosticList diagnostics)
+        private static void ValidateDataTableNodes(
+            BlueprintSource source,
+            Dictionary<BlueprintPortKey, RuntimeEdge> valueInputs,
+            BlueprintDiagnosticList diagnostics)
         {
-            if (node == null || !BlueprintDataTableNodeUtility.IsDataTableNode(node.TypeId))
+            for (int i = 0; i < source.Nodes.Count; i++)
+            {
+                BlueprintNodeSource node = source.Nodes[i];
+                if (node == null || !BlueprintDataTableNodeUtility.IsDataTableNode(node.TypeId))
+                {
+                    continue;
+                }
+
+                ValidateDataTableNode(node, valueInputs, diagnostics);
+            }
+        }
+
+        private static void ValidateDataTableNode(
+            BlueprintNodeSource node,
+            Dictionary<BlueprintPortKey, RuntimeEdge> valueInputs,
+            BlueprintDiagnosticList diagnostics)
+        {
+            string expectedRowStructTypeId = BlueprintDataTableNodeUtility.GetRowStructTypeId(node);
+            if (!BlueprintUserStructRegistry.IsUserStructType(expectedRowStructTypeId))
+            {
+                string typeLabel = string.IsNullOrEmpty(expectedRowStructTypeId) ? "<missing>" : expectedRowStructTypeId;
+                diagnostics.Add(BlueprintDiagnostic.Error(
+                    "BP025",
+                    "Unknown row struct type '" + typeLabel + "' for data table node.",
+                    node.Id,
+                    BlueprintDataTableNodeUtility.RowStructTypePropertyId));
+                return;
+            }
+
+            if (valueInputs.ContainsKey(new BlueprintPortKey(node.Id, BlueprintDataTableNodeUtility.DataTableInputId)))
             {
                 return;
             }
@@ -378,10 +409,14 @@ namespace BlueprintSystem
                 return;
             }
 
-            if (!BlueprintUserStructRegistry.IsUserStructType(definition.RowStructTypeId))
+            if (definition.RowStructTypeId != expectedRowStructTypeId)
             {
-                string typeLabel = string.IsNullOrEmpty(definition.RowStructTypeId) ? "<missing>" : definition.RowStructTypeId;
-                diagnostics.Add(BlueprintDiagnostic.Error("BP025", "Unknown row struct type '" + typeLabel + "' for data table '" + tablePath + "'.", node.Id, BlueprintDataTableNodeUtility.RowStructTypePropertyId));
+                diagnostics.Add(BlueprintDiagnostic.Error(
+                    "BP025",
+                    "Data table '" + tablePath + "' uses " + definition.RowStructTypeId +
+                    " but the node expects " + expectedRowStructTypeId + ".",
+                    node.Id,
+                    BlueprintDataTableNodeUtility.RowStructTypePropertyId));
             }
         }
 
@@ -511,6 +546,18 @@ namespace BlueprintSystem
                 if (!string.IsNullOrEmpty(structTypeId))
                 {
                     return structTypeId;
+                }
+            }
+
+            if (node != null &&
+                input != null &&
+                BlueprintDataTableNodeUtility.IsDataTableNode(node.TypeId) &&
+                input.Id == BlueprintDataTableNodeUtility.DataTableInputId)
+            {
+                string rowStructTypeId = BlueprintDataTableNodeUtility.GetRowStructTypeId(node);
+                if (!string.IsNullOrEmpty(rowStructTypeId))
+                {
+                    return BlueprintDataTableVariableTypeUtility.MakeType(rowStructTypeId);
                 }
             }
 

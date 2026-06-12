@@ -300,6 +300,24 @@ namespace BlueprintSystem.Editor
                 return !string.IsNullOrEmpty(blueprintType);
             }
 
+            if (BlueprintGraphToolkitDataTableTypes.IsGraphDataTableType(variable.dataType))
+            {
+                object graphValue;
+                if (TryReadDefaultValue(variable, variable.dataType, out graphValue) &&
+                    BlueprintGraphToolkitDataTableTypes.TryGetBlueprintType(graphValue, out blueprintType))
+                {
+                    return true;
+                }
+
+                if (metadata != null && BlueprintDataTableVariableTypeUtility.IsSupportedType(metadata.Type))
+                {
+                    blueprintType = metadata.Type;
+                    return true;
+                }
+
+                return BlueprintGraphToolkitTypeRegistry.TryGetBlueprintType(variable.dataType, out blueprintType);
+            }
+
             if (metadata != null && !string.IsNullOrEmpty(metadata.Type))
             {
                 Type graphType;
@@ -481,6 +499,20 @@ namespace BlueprintSystem.Editor
 
                     return false;
                 default:
+                    if (BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
+                    {
+                        Type dataTableGraphType;
+                        object dataTableGraphValue;
+                        if (BlueprintGraphToolkitTypeRegistry.TryGetGraphType(blueprintType, out dataTableGraphType) &&
+                            TryReadDefaultValue(variable, dataTableGraphType, out dataTableGraphValue))
+                        {
+                            value = BlueprintVisualValueUtility.ConvertFromGraphField(dataTableGraphValue, blueprintType);
+                            return BlueprintTypeUtility.IsValueAssignableToType(value, blueprintType);
+                        }
+
+                        return false;
+                    }
+
                     if (BlueprintArrayUtility.IsArrayType(blueprintType))
                     {
                         Type arrayGraphType;

@@ -314,6 +314,7 @@ namespace BlueprintSystem.Editor
             public string DataTableAssetPath;
             public string DataTableAssetGuid;
             public string DataTableRowStructTypeId;
+            public string DataTableVariableName;
             public BlueprintDataTableAsset DataTableAsset;
             public string MenuPath;
 
@@ -336,6 +337,17 @@ namespace BlueprintSystem.Editor
             {
                 get { return DataTableAsset != null && !string.IsNullOrEmpty(DataTableAssetPath); }
             }
+
+            public bool IsDataTableVariable
+            {
+                get
+                {
+                    return IsDataTableAsset &&
+                           !string.IsNullOrEmpty(DataTableVariableName) &&
+                           Manifest != null &&
+                           (Manifest.TypeId == "Variable.Get" || Manifest.TypeId == "Variable.Set");
+                }
+            }
         }
 
         private static List<DropNodeChoice> BuildDropChoices(BlueprintVisualGraph graph)
@@ -343,7 +355,7 @@ namespace BlueprintSystem.Editor
             List<DropNodeChoice> choices = new List<DropNodeChoice>();
             AddVariableDropChoices(graph, choices);
             AddBlueprintAssetDropChoices(graph, choices);
-            AddDataTableAssetDropChoices(choices);
+            AddDataTableAssetDropChoices(graph, choices);
             AddUserStructAssetDropChoices(choices);
             AddSpriteBindingDropChoices(choices);
             AddBindingDropChoices(graph, choices);
@@ -498,7 +510,7 @@ namespace BlueprintSystem.Editor
             }
         }
 
-        private static void AddDataTableAssetDropChoices(List<DropNodeChoice> choices)
+        private static void AddDataTableAssetDropChoices(BlueprintVisualGraph graph, List<DropNodeChoice> choices)
         {
             List<BlueprintDataTableAsset> tableAssets = ResolveDataTableAssets(DragAndDrop.objectReferences);
             if (tableAssets.Count == 0)
@@ -510,21 +522,73 @@ namespace BlueprintSystem.Editor
             BlueprintNodeManifest getRowManifest;
             BlueprintNodeManifest getRowNamesManifest;
             BlueprintNodeManifest getAllRowsManifest;
+            BlueprintNodeManifest variableGetManifest;
+            BlueprintNodeManifest variableSetManifest;
             manifests.TryGet(BlueprintDataTableNodeUtility.GetRowNodeTypeId, out getRowManifest);
             manifests.TryGet(BlueprintDataTableNodeUtility.GetRowNamesNodeTypeId, out getRowNamesManifest);
             manifests.TryGet(BlueprintDataTableNodeUtility.GetAllRowsNodeTypeId, out getAllRowsManifest);
+            manifests.TryGet("Variable.Get", out variableGetManifest);
+            manifests.TryGet("Variable.Set", out variableSetManifest);
 
+            HashSet<string> reservedNames = CollectVariableNames(graph);
             for (int i = 0; i < tableAssets.Count; i++)
             {
                 BlueprintDataTableAsset asset = tableAssets[i];
                 string assetPath = AssetDatabase.GetAssetPath(asset);
                 string tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
                 string guid = string.IsNullOrEmpty(assetPath) ? string.Empty : AssetDatabase.AssetPathToGUID(assetPath);
+                string variableType = BlueprintDataTableVariableTypeUtility.MakeType(asset.RowStructTypeId);
+                IVariable existingVariable;
+                string variableName = TryFindDataTableAssetVariable(graph, tablePath, variableType, out existingVariable)
+                    ? existingVariable.name
+                    : CreateUniqueVariableName(GetDataTableVariableBaseName(asset), reservedNames);
 
                 AddDataTableChoice(choices, getRowManifest, asset, tablePath, guid, "DataTable/Get Row " + asset.TableId);
                 AddDataTableChoice(choices, getRowNamesManifest, asset, tablePath, guid, "DataTable/Get Row Names " + asset.TableId);
                 AddDataTableChoice(choices, getAllRowsManifest, asset, tablePath, guid, "DataTable/Get All Rows " + asset.TableId);
+                AddDataTableVariableChoice(
+                    choices,
+                    variableGetManifest,
+                    asset,
+                    tablePath,
+                    guid,
+                    variableName,
+                    "Variables/Get " + variableName + " (DataTable)");
+                AddDataTableVariableChoice(
+                    choices,
+                    variableSetManifest,
+                    asset,
+                    tablePath,
+                    guid,
+                    variableName,
+                    "Variables/Set " + variableName + " (DataTable)");
             }
+        }
+
+        private static void AddDataTableVariableChoice(
+            List<DropNodeChoice> choices,
+            BlueprintNodeManifest manifest,
+            BlueprintDataTableAsset asset,
+            string assetPath,
+            string guid,
+            string variableName,
+            string menuPath)
+        {
+            if (manifest == null || asset == null || string.IsNullOrEmpty(assetPath))
+            {
+                return;
+            }
+
+            choices.Add(new DropNodeChoice
+            {
+                Manifest = manifest,
+                DataTableAsset = asset,
+                DataTableAssetPath = assetPath,
+                DataTableAssetGuid = guid,
+                DataTableRowStructTypeId = asset.RowStructTypeId,
+                DataTableVariableName = variableName,
+                MenuPath = menuPath
+            });
         }
 
         private static void AddDataTableChoice(
@@ -712,6 +776,12 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
+            if (choice.IsDataTableVariable)
+            {
+                CreateDataTableVariableNodeFromChoice(graph, choice, graphPosition);
+                return;
+            }
+
             if (choice.IsDataTableAsset)
             {
                 CreateDataTableNodeFromChoice(graph, choice, graphPosition);
@@ -843,6 +913,33 @@ namespace BlueprintSystem.Editor
             Debug.Log("[Blueprint] Added '" + choice.Manifest.TypeId + "' for '" + choice.DataTableAssetPath + "'.");
         }
 
+        private static void CreateDataTableVariableNodeFromChoice(
+            BlueprintVisualGraph graph,
+            DropNodeChoice choice,
+            Vector2 graphPosition)
+        {
+            IVariable variable = EnsureDataTableAssetVariable(
+                graph,
+                choice.DataTableVariableName,
+                choice.DataTableAssetPath,
+                choice.DataTableRowStructTypeId);
+            if (choice.Manifest.TypeId == "Variable.Get")
+            {
+                BlueprintGraphToolkitReflection.CreateBlackboardVariableNodeWithUndo(
+                    graph,
+                    variable,
+                    graphPosition,
+                    "Create Blueprint Data Table Get Variable Node");
+                BlueprintGraphToolkitReflection.MarkDirty(graph);
+                GraphDatabase.SaveGraphIfDirty(graph);
+                AssetDatabase.SaveAssets();
+                Debug.Log("[Blueprint] Added DataTable variable '" + variable.name + "' from '" + choice.DataTableAssetPath + "'.");
+                return;
+            }
+
+            CreateVariableSetNodeFromBlackboard(graph, variable, graphPosition);
+        }
+
         internal static BlueprintNodeSource CreateBreakStructNodeSource(
             BlueprintVisualGraph graph,
             string structTypeId,
@@ -908,6 +1005,7 @@ namespace BlueprintSystem.Editor
             };
 
             source.Properties[BlueprintDataTableNodeUtility.TablePathPropertyId] = tablePath;
+            source.Properties[BlueprintDataTableNodeUtility.DataTableInputId] = tablePath;
             source.Properties[BlueprintDataTableNodeUtility.RowStructTypePropertyId] = rowStructTypeId;
             if (!string.IsNullOrEmpty(tableAssetGuid))
             {
@@ -915,6 +1013,93 @@ namespace BlueprintSystem.Editor
             }
 
             return source;
+        }
+
+        internal static IVariable EnsureDataTableAssetVariable(
+            BlueprintVisualGraph graph,
+            string suggestedName,
+            string tablePath,
+            string rowStructTypeId)
+        {
+            if (graph == null)
+            {
+                throw new ArgumentNullException("graph");
+            }
+
+            string normalizedPath = BlueprintAssetDiscovery.NormalizeAssetPath(tablePath);
+            string blueprintType = BlueprintDataTableVariableTypeUtility.MakeType(rowStructTypeId);
+            if (!BlueprintDataTableVariableTypeUtility.IsSupportedType(blueprintType))
+            {
+                throw new ArgumentException("Expected a supported DataTable row struct type.", "rowStructTypeId");
+            }
+
+            BlueprintDataTableDefinition definition;
+            if (!BlueprintDataTableRegistry.TryGetByPath(normalizedPath, out definition) ||
+                definition == null ||
+                definition.RowStructTypeId != rowStructTypeId)
+            {
+                throw new ArgumentException("Expected a DataTable path with row type '" + rowStructTypeId + "'.", "tablePath");
+            }
+
+            IVariable existingVariable;
+            if (TryFindDataTableAssetVariable(graph, normalizedPath, blueprintType, out existingVariable))
+            {
+                return existingVariable;
+            }
+
+            HashSet<string> usedNames = CollectVariableNames(graph);
+            string variableName = CreateUniqueVariableName(suggestedName, usedNames);
+            IVariable variable = BlueprintGraphToolkitReflection.CreateBlackboardVariable(
+                graph,
+                variableName,
+                typeof(DataTable),
+                new DataTable(
+                    rowStructTypeId,
+                    normalizedPath,
+                    GetDataTableAssetGuid(normalizedPath)));
+
+            EnsureGraphVariableMetadata(graph, variableName, normalizedPath, blueprintType);
+            BlueprintGraphToolkitReflection.MarkDirty(graph);
+            GraphDatabase.SaveGraphIfDirty(graph);
+            AssetDatabase.SaveAssets();
+            return variable;
+        }
+
+        private static bool TryFindDataTableAssetVariable(
+            BlueprintVisualGraph graph,
+            string tablePath,
+            string blueprintType,
+            out IVariable variable)
+        {
+            variable = null;
+            foreach (IVariable candidate in graph.GetVariables())
+            {
+                if (candidate == null || candidate.dataType != typeof(DataTable))
+                {
+                    continue;
+                }
+
+                string candidateType;
+                object defaultValue;
+                if (BlueprintGraphToolkitBlackboardSync.TryGetBlueprintType(graph, candidate, out candidateType) &&
+                    candidateType == blueprintType &&
+                    BlueprintGraphToolkitBlackboardSync.TryReadDefaultValue(candidate, candidateType, out defaultValue) &&
+                    BlueprintAssetDiscovery.NormalizeAssetPath(defaultValue as string) == tablePath)
+                {
+                    variable = candidate;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetDataTableAssetGuid(string tablePath)
+        {
+            BlueprintDataTableAsset asset = BlueprintGraphToolkitDataTableTypes.LoadAsset(tablePath);
+            return asset == null
+                ? string.Empty
+                : AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
         }
 
         internal static IVariable EnsureBlueprintAssetVariable(BlueprintVisualGraph graph, string suggestedName, string blueprintAssetPath)
@@ -1032,6 +1217,11 @@ namespace BlueprintSystem.Editor
             if (BlueprintGraphToolkitBlackboardSync.TryReadDefaultValue(variable, blueprintType, out value))
             {
                 return value;
+            }
+
+            if (BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
+            {
+                return null;
             }
 
             switch (blueprintType)
@@ -1610,7 +1800,34 @@ namespace BlueprintSystem.Editor
             return fileName;
         }
 
+        private static string GetDataTableVariableBaseName(BlueprintDataTableAsset asset)
+        {
+            if (asset == null)
+            {
+                return "DataTable";
+            }
+
+            string tableId = asset.TableId;
+            const string prefix = "Table.";
+            return !string.IsNullOrEmpty(tableId) && tableId.StartsWith(prefix, StringComparison.Ordinal)
+                ? tableId.Substring(prefix.Length)
+                : asset.name;
+        }
+
         private static void EnsureGraphVariableMetadata(BlueprintVisualGraph graph, string variableName, string blueprintAssetPath)
+        {
+            EnsureGraphVariableMetadata(
+                graph,
+                variableName,
+                blueprintAssetPath,
+                BlueprintGraphToolkitBlueprintTypes.TypeId);
+        }
+
+        private static void EnsureGraphVariableMetadata(
+            BlueprintVisualGraph graph,
+            string variableName,
+            string defaultPath,
+            string blueprintType)
         {
             if (graph.Variables == null)
             {
@@ -1622,9 +1839,9 @@ namespace BlueprintSystem.Editor
                 BlueprintVisualVariableData variable = graph.Variables[i];
                 if (variable != null && variable.Name == variableName)
                 {
-                    variable.Type = BlueprintGraphToolkitBlueprintTypes.TypeId;
+                    variable.Type = blueprintType;
                     variable.HasDefaultValue = true;
-                    variable.JsonDefaultValue = BlueprintVisualValueUtility.ToJson(blueprintAssetPath);
+                    variable.JsonDefaultValue = BlueprintVisualValueUtility.ToJson(defaultPath);
                     return;
                 }
             }
@@ -1632,9 +1849,9 @@ namespace BlueprintSystem.Editor
             graph.Variables.Add(new BlueprintVisualVariableData
             {
                 Name = variableName,
-                Type = BlueprintGraphToolkitBlueprintTypes.TypeId,
+                Type = blueprintType,
                 HasDefaultValue = true,
-                JsonDefaultValue = BlueprintVisualValueUtility.ToJson(blueprintAssetPath),
+                JsonDefaultValue = BlueprintVisualValueUtility.ToJson(defaultPath),
                 Scope = "runtime"
             });
         }

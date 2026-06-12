@@ -111,6 +111,19 @@ namespace BlueprintSystem
                 {
                     defaultValue = structuredDefaultValue;
                 }
+                else if (BlueprintDataTableVariableTypeUtility.IsDataTableType(variable.Type) && variable.DefaultValue != null)
+                {
+                    string tablePath;
+                    BlueprintDataTableDefinition definition;
+                    if (BlueprintDataTableVariableTypeUtility.TryResolveValue(
+                        variable.DefaultValue,
+                        variable.Type,
+                        out tablePath,
+                        out definition))
+                    {
+                        defaultValue = tablePath;
+                    }
+                }
 
                 item["defaultValue"] = defaultValue;
                 if (!string.IsNullOrEmpty(variable.Scope))

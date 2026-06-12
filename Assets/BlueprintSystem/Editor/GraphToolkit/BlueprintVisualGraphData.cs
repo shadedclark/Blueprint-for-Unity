@@ -129,6 +129,12 @@ namespace BlueprintSystem.Editor
                 return BlueprintGraphToolkitBlueprintTypes.CreateGraphValue(value);
             }
 
+            if (blueprintType == BlueprintGraphToolkitDataTableTypes.TypeId ||
+                BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
+            {
+                return BlueprintGraphToolkitDataTableTypes.CreateGraphValue(value, blueprintType);
+            }
+
             if (BlueprintArrayUtility.IsArrayType(blueprintType))
             {
                 object jsonValue;
@@ -228,6 +234,13 @@ namespace BlueprintSystem.Editor
             {
                 string blueprintPath;
                 return BlueprintGraphToolkitBlueprintTypes.TryGetPath(value, out blueprintPath) ? blueprintPath : string.Empty;
+            }
+
+            if (blueprintType == BlueprintGraphToolkitDataTableTypes.TypeId ||
+                BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
+            {
+                string tablePath;
+                return BlueprintGraphToolkitDataTableTypes.TryGetPath(value, out tablePath) ? tablePath : string.Empty;
             }
 
             if (BlueprintArrayUtility.IsArrayType(blueprintType))
@@ -443,6 +456,16 @@ namespace BlueprintSystem.Editor
                     return true;
                 }
             }
+            else if (blueprintType == BlueprintGraphToolkitDataTableTypes.TypeId ||
+                     BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
+            {
+                object typed;
+                if (TryReadGraphValue(port, graphType, out typed))
+                {
+                    value = ConvertFromGraphField(typed, blueprintType);
+                    return true;
+                }
+            }
             else if (BlueprintVariableTypeRegistry.IsCustomType(blueprintType))
             {
                 object typed;
@@ -560,6 +583,16 @@ namespace BlueprintSystem.Editor
                 }
             }
             else if (blueprintType == BlueprintGraphToolkitBlueprintTypes.TypeId)
+            {
+                object typed;
+                if (TryReadGraphValue(option, graphType, out typed))
+                {
+                    value = ConvertFromGraphField(typed, blueprintType);
+                    return true;
+                }
+            }
+            else if (blueprintType == BlueprintGraphToolkitDataTableTypes.TypeId ||
+                     BlueprintDataTableVariableTypeUtility.IsDataTableType(blueprintType))
             {
                 object typed;
                 if (TryReadGraphValue(option, graphType, out typed))

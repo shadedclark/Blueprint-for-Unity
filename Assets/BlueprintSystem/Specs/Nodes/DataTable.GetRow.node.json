@@ -7,6 +7,12 @@
   "executor": "DataTable.GetRow",
   "inputs": [
     {
+      "id": "dataTable",
+      "kind": "value",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
       "id": "rowName",
       "kind": "value",
       "type": "string",
@@ -27,6 +33,10 @@
   ],
   "properties": [
     {
+      "id": "dataTable",
+      "required": false
+    },
+    {
       "id": "rowName",
       "type": "string",
       "required": false,
@@ -35,7 +45,7 @@
     {
       "id": "tablePath",
       "type": "string",
-      "required": true
+      "required": false
     },
     {
       "id": "tableAssetGuid",

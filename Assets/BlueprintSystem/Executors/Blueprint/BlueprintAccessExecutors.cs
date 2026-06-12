@@ -325,6 +325,13 @@ namespace BlueprintSystem
                 return false;
             }
 
+            if (BlueprintDataTableVariableTypeUtility.IsDataTableType(declaration.Type) &&
+                !BlueprintTypeUtility.IsValueAssignableToType(value, declaration.Type))
+            {
+                error = "Cross-blueprint variable write expects " + declaration.Type + " for '" + variableName + "'.";
+                return false;
+            }
+
             if (!instance.TrySetVariable(variableName, value))
             {
                 error = "Cross-blueprint variable write could not set '" + variableName + "' on '" + instance.InstanceName + "'.";

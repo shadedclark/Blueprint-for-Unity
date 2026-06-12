@@ -19,6 +19,12 @@ namespace BlueprintSystem
                 return true;
             }
 
+            if (BlueprintDataTableVariableTypeUtility.IsDataTableType(fromType) ||
+                BlueprintDataTableVariableTypeUtility.IsDataTableType(toType))
+            {
+                return false;
+            }
+
             if ((fromType == BlueprintVariableTypeRegistry.BlueprintAssetTypeId && toType == "string") ||
                 (fromType == "string" && toType == BlueprintVariableTypeRegistry.BlueprintAssetTypeId))
             {
@@ -85,6 +91,18 @@ namespace BlueprintSystem
                 case "Color":
                     return value is Color || IsListLength(value, 3) || IsListLength(value, 4);
                 default:
+                    if (BlueprintDataTableVariableTypeUtility.IsDataTableType(type))
+                    {
+                        string tablePath;
+                        BlueprintDataTableDefinition definition;
+                        return value is string &&
+                               BlueprintDataTableVariableTypeUtility.TryResolveValue(
+                                   value,
+                                   type,
+                                   out tablePath,
+                                   out definition);
+                    }
+
                     if (type.StartsWith("Binding<", StringComparison.Ordinal))
                     {
                         return value is string;

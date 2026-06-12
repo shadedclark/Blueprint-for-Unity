@@ -18,7 +18,8 @@ namespace BlueprintSystem
 
             string tablePath;
             BlueprintDataTableDefinition definition;
-            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node.Properties, out tablePath, out definition))
+            object dataTableValue = context.GetInputValue(node, BlueprintDataTableNodeUtility.DataTableInputId);
+            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node.Properties, dataTableValue, out tablePath, out definition))
             {
                 context.Logger.Error("DataTable.GetRow node '" + node.Id + "' has unknown table '" +
                     BlueprintDataTableNodeUtility.GetTablePath(node.Properties) + "'.");
@@ -54,7 +55,8 @@ namespace BlueprintSystem
 
             string tablePath;
             BlueprintDataTableDefinition definition;
-            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node.Properties, out tablePath, out definition))
+            object dataTableValue = context.GetInputValue(node, BlueprintDataTableNodeUtility.DataTableInputId);
+            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node.Properties, dataTableValue, out tablePath, out definition))
             {
                 context.Logger.Error("DataTable.GetRowNames node '" + node.Id + "' has unknown table '" +
                     BlueprintDataTableNodeUtility.GetTablePath(node.Properties) + "'.");
@@ -88,7 +90,8 @@ namespace BlueprintSystem
 
             string tablePath;
             BlueprintDataTableDefinition definition;
-            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node.Properties, out tablePath, out definition))
+            object dataTableValue = context.GetInputValue(node, BlueprintDataTableNodeUtility.DataTableInputId);
+            if (!BlueprintDataTableNodeUtility.TryResolveDefinition(node.Properties, dataTableValue, out tablePath, out definition))
             {
                 context.Logger.Error("DataTable.GetAllRows node '" + node.Id + "' has unknown table '" +
                     BlueprintDataTableNodeUtility.GetTablePath(node.Properties) + "'.");
