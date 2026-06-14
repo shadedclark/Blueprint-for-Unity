@@ -3045,6 +3045,159 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void InstantiateObjectNodeManifestAndVisualNodeAreAligned()
+        {
+            BlueprintNodeManifest manifest;
+            Assert.True(LoadManifests().TryGet("Game.InstantiateObject", out manifest));
+            Assert.AreEqual("Instantiate Object", manifest.Title);
+            Assert.AreEqual("Game/Object", manifest.Category);
+            Assert.AreEqual("Game.InstantiateObject", manifest.Executor);
+
+            BlueprintPortSpec prefabInput = manifest.FindInput("prefab");
+            BlueprintPortSpec parentInput = manifest.FindInput("parent");
+            BlueprintPortSpec instanceOutput = manifest.FindOutput("instance");
+            BlueprintPortSpec transformOutput = manifest.FindOutput("transform");
+            Assert.NotNull(prefabInput);
+            Assert.AreEqual("Binding<GameObject>", prefabInput.Type);
+            Assert.True(prefabInput.Required);
+            Assert.AreEqual(BlueprintValueSource.PropertyOrConnection, prefabInput.Source);
+            Assert.NotNull(parentInput);
+            Assert.AreEqual("Binding<Transform>", parentInput.Type);
+            Assert.False(parentInput.Required);
+            Assert.AreEqual(BlueprintValueSource.PropertyOrConnection, parentInput.Source);
+            Assert.NotNull(instanceOutput);
+            Assert.AreEqual("GameObject", instanceOutput.Type);
+            Assert.NotNull(transformOutput);
+            Assert.AreEqual("Transform", transformOutput.Type);
+            Assert.NotNull(manifest.FindProperty("prefab"));
+            Assert.False(manifest.FindProperty("prefab").Required);
+
+            BlueprintVisualNode visualNode = BlueprintVisualNodeFactory.Create("Game.InstantiateObject");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), visualNode.GetType());
+            Assert.AreEqual("Game.InstantiateObject", visualNode.ReadTypeId());
+            Assert.AreEqual("Binding<GameObject>", visualNode.Inputs.Find(port => port.Id == "prefab").Type);
+            Assert.AreEqual("propertyOrConnection", visualNode.Inputs.Find(port => port.Id == "prefab").Source);
+            Assert.AreEqual("Binding<Transform>", visualNode.Inputs.Find(port => port.Id == "parent").Type);
+            Assert.AreEqual("GameObject", visualNode.Outputs.Find(port => port.Id == "instance").Type);
+            Assert.AreEqual("Transform", visualNode.Outputs.Find(port => port.Id == "transform").Type);
+        }
+
+        [Test]
+        public void ValidatorAcceptsInstantiateObjectPrefabSources()
+        {
+            BlueprintSource bindingSource = new BlueprintSource();
+            bindingSource.SchemaVersion = "0.1";
+            bindingSource.Name = "InstantiateObjectBindingSourceTest";
+            bindingSource.Bindings.Add(new BlueprintBindingDeclaration { Name = "EnemyPrefab", Type = "GameObject", Required = true });
+            bindingSource.Bindings.Add(new BlueprintBindingDeclaration { Name = "SpawnParent", Type = "Transform", Required = false });
+            BlueprintNodeSource spawnBinding = AddNode(bindingSource, "spawn_binding", "Game.InstantiateObject");
+            spawnBinding.Properties["prefab"] = "EnemyPrefab";
+            spawnBinding.Properties["parent"] = "SpawnParent";
+            BlueprintNodeSource setLocalPosition = AddNode(bindingSource, "set_spawn_position", "Game.SetTransformLocalPosition");
+            setLocalPosition.Properties["value"] = new List<object> { 1f, 2f, 3f };
+            bindingSource.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "spawn_binding.transform",
+                To = "set_spawn_position.target"
+            });
+
+            BlueprintDiagnosticList bindingDiagnostics = new BlueprintValidator().Validate(bindingSource, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.False(bindingDiagnostics.HasErrors, bindingDiagnostics.ToDisplayString());
+
+            BlueprintSource resourceSource = new BlueprintSource();
+            resourceSource.SchemaVersion = "0.1";
+            resourceSource.Name = "InstantiateObjectResourceSourceTest";
+            BlueprintNodeSource load = AddNode(resourceSource, "load_prefab", "Resource.LoadAsync");
+            load.Properties["resourceType"] = "Enemy";
+            load.Properties["resourceName"] = "Grunt";
+            BlueprintNodeSource spawnResource = AddNode(resourceSource, "spawn_resource", "Game.InstantiateObject");
+            resourceSource.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "load_prefab.asset",
+                To = "spawn_resource.prefab"
+            });
+
+            BlueprintDiagnosticList resourceDiagnostics = new BlueprintValidator().Validate(resourceSource, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.False(resourceDiagnostics.HasErrors, resourceDiagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void RuntimeInstantiatesObjectUnderParentAndOutputsReferences()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "InstantiateObjectRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "EnemyPrefab", Type = "GameObject", Required = true });
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "SpawnParent", Type = "Transform", Required = true });
+
+            BlueprintNodeSource spawn = AddNode(source, "spawn_enemy", "Game.InstantiateObject");
+            spawn.Properties["prefab"] = "EnemyPrefab";
+            spawn.Properties["parent"] = "SpawnParent";
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject prefab = new GameObject("EnemyPrefab");
+            GameObject parent = new GameObject("SpawnParent");
+            GameObject instance = null;
+            try
+            {
+                prefab.transform.localRotation = Quaternion.Euler(0f, 45f, 0f);
+                prefab.transform.localScale = new Vector3(2f, 3f, 4f);
+                parent.transform.position = new Vector3(10f, 20f, 30f);
+
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("EnemyPrefab", prefab);
+                resolver.Add("SpawnParent", parent);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, parent, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "spawn_enemy");
+
+                RuntimeNode runtimeNode = compileResult.Blueprint.GetNode("spawn_enemy");
+                instance = runtimeNode.Executor.Evaluate(context, runtimeNode, "instance") as GameObject;
+                Transform instanceTransform = runtimeNode.Executor.Evaluate(context, runtimeNode, "transform") as Transform;
+                Assert.NotNull(instance);
+                Assert.NotNull(instanceTransform);
+                Assert.AreEqual(instance.transform, instanceTransform);
+                Assert.AreNotEqual(prefab, instance);
+                Assert.AreEqual(parent.transform, instance.transform.parent);
+                Assert.AreEqual(Vector3.zero, instance.transform.localPosition);
+                Assert.AreEqual(prefab.transform.localRotation, instance.transform.localRotation);
+                Assert.AreEqual(prefab.transform.localScale, instance.transform.localScale);
+            }
+            finally
+            {
+                if (instance != null)
+                {
+                    Object.DestroyImmediate(instance);
+                }
+
+                Object.DestroyImmediate(prefab);
+                Object.DestroyImmediate(parent);
+            }
+        }
+
+        [Test]
+        public void RuntimeInstantiateObjectReportsMissingPrefab()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "InstantiateObjectMissingPrefabTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "MissingPrefab", Type = "GameObject", Required = true });
+            BlueprintNodeSource spawn = AddNode(source, "spawn_missing", "Game.InstantiateObject");
+            spawn.Properties["prefab"] = "MissingPrefab";
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, null, new TestBindingResolver());
+            RuntimeNode runtimeNode = compileResult.Blueprint.GetNode("spawn_missing");
+            BlueprintExecResult result = runtimeNode.Executor.Execute(context, runtimeNode);
+
+            Assert.True(result.ErrorMessage.Contains("could not resolve prefab"), result.ErrorMessage);
+        }
+
+        [Test]
         public void BlueprintRunnerResolvesBindingsForTransformNodes()
         {
             BlueprintSource source = new BlueprintSource();

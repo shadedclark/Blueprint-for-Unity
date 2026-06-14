@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Resource.GetLoadState",
+  "title": "Get Resource Load State",
+  "category": "Resource",
+  "description": "Returns the current Resource Manager state, loaded asset, and last error for a resource id.",
+  "executor": "Resource.GetLoadState",
+  "inputs": [
+    { "id": "resourceType", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "resourceName", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "state", "kind": "value", "type": "BlueprintResourceLoadState" },
+    { "id": "loaded", "kind": "value" },
+    { "id": "error", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "resourceType", "type": "string", "required": true },
+    { "id": "resourceName", "type": "string", "required": true }
+  ],
+  "tags": ["resource", "state", "status"]
+}

@@ -2,7 +2,9 @@
     "name": "BlueprintSystem",
     "rootNamespace": "BlueprintSystem",
     "references": [
+        "Unity.Addressables",
         "Unity.InputSystem",
+        "Unity.ResourceManager",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],

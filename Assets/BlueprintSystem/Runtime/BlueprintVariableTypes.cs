@@ -58,7 +58,9 @@ namespace BlueprintSystem
             { "LoadSceneMode", typeof(LoadSceneMode) },
             { "Key", typeof(Key) },
             { "ComparisonMode", typeof(ComparisonMode) },
-            { "TickPhase", typeof(TickPhase) }
+            { "TickPhase", typeof(TickPhase) },
+            { "BlueprintResourceScope", typeof(BlueprintResourceScope) },
+            { "BlueprintResourceLoadState", typeof(BlueprintResourceLoadState) }
         };
 
         private static readonly Dictionary<Type, string> BuiltinIdsByType = new Dictionary<Type, string>
@@ -77,7 +79,9 @@ namespace BlueprintSystem
             { typeof(LoadSceneMode), "LoadSceneMode" },
             { typeof(Key), "Key" },
             { typeof(ComparisonMode), "ComparisonMode" },
-            { typeof(TickPhase), "TickPhase" }
+            { typeof(TickPhase), "TickPhase" },
+            { typeof(BlueprintResourceScope), "BlueprintResourceScope" },
+            { typeof(BlueprintResourceLoadState), "BlueprintResourceLoadState" }
         };
 
         private static readonly object CacheLock = new object();

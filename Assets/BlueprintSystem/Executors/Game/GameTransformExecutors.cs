@@ -123,7 +123,7 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
-            string target = context.GetInputValue(node, "target", string.Empty);
+            object target = context.GetInputValue(node, "target");
             Transform transform = GameExecutorBindingUtility.ResolveBinding<Transform>(context, target);
             if (transform == null)
             {
@@ -144,7 +144,7 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
-            string target = context.GetInputValue(node, "target", string.Empty);
+            object target = context.GetInputValue(node, "target");
             Transform transform = GameExecutorBindingUtility.ResolveBinding<Transform>(context, target);
             if (transform == null)
             {
@@ -205,7 +205,7 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
-            string target = context.GetInputValue(node, "target", string.Empty);
+            object target = context.GetInputValue(node, "target");
             Transform transform = GameExecutorBindingUtility.ResolveBinding<Transform>(context, target);
             if (transform == null)
             {
@@ -276,7 +276,7 @@ namespace BlueprintSystem
                 return GameTransformExecutorUtility.ResolveError(context, node, ExecutorId);
             }
 
-            string lookTarget = context.GetInputValue(node, "lookTarget", string.Empty);
+            object lookTarget = context.GetInputValue(node, "lookTarget");
             Transform lookTargetTransform = GameExecutorBindingUtility.ResolveBinding<Transform>(context, lookTarget);
             Vector3 position = lookTargetTransform == null
                 ? GameExecutorValueUtility.GetVector3Input(context, node, "targetPosition", Vector3.zero)
@@ -302,11 +302,11 @@ namespace BlueprintSystem
                 return GameTransformExecutorUtility.ResolveError(context, node, ExecutorId);
             }
 
-            string parentName = context.GetInputValue(node, "parent", string.Empty);
-            Transform parent = GameExecutorBindingUtility.ResolveBinding<Transform>(context, parentName);
+            object parentValue = context.GetInputValue(node, "parent");
+            Transform parent = GameExecutorBindingUtility.ResolveBinding<Transform>(context, parentValue);
             if (parent == null)
             {
-                return BlueprintExecResult.Error("Game.SetTransformParent could not resolve parent Transform binding '" + parentName + "'.");
+                return BlueprintExecResult.Error("Game.SetTransformParent could not resolve parent Transform binding '" + parentValue + "'.");
             }
 
             bool worldPositionStays = context.GetInputValue(node, "worldPositionStays", true);
@@ -340,7 +340,7 @@ namespace BlueprintSystem
     {
         public static Transform ResolveTransform(BlueprintExecutionContext context, RuntimeNode node, string executorId, bool logMissing = false)
         {
-            string target = context.GetInputValue(node, "target", string.Empty);
+            object target = context.GetInputValue(node, "target");
             Transform transform = GameExecutorBindingUtility.ResolveBinding<Transform>(context, target);
             if (logMissing && transform == null && context != null && context.Logger != null)
             {
@@ -352,7 +352,7 @@ namespace BlueprintSystem
 
         public static BlueprintExecResult ResolveError(BlueprintExecutionContext context, RuntimeNode node, string executorId)
         {
-            string target = context.GetInputValue(node, "target", string.Empty);
+            object target = context.GetInputValue(node, "target");
             return BlueprintExecResult.Error(executorId + " could not resolve Transform binding '" + target + "'.");
         }
     }

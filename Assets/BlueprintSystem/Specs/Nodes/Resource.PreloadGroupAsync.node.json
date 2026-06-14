@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Resource.PreloadGroupAsync",
+  "title": "Preload Resource Group Async",
+  "category": "Resource",
+  "description": "Asynchronously preloads all resources in a named Resource Blueprint preload group.",
+  "executor": "Resource.PreloadGroupAsync",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "preloadGroup", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "scope", "kind": "value", "type": "BlueprintResourceScope", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "completed", "kind": "exec" },
+    { "id": "failed", "kind": "exec" },
+    { "id": "state", "kind": "value", "type": "BlueprintResourceLoadState" },
+    { "id": "error", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "preloadGroup", "type": "string", "required": true },
+    { "id": "scope", "type": "BlueprintResourceScope", "required": false, "defaultValue": "Manual" }
+  ],
+  "tags": ["resource", "preload", "group", "async"]
+}

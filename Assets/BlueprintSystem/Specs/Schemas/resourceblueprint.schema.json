@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blueprint Resource Blueprint",
+  "type": "object",
+  "required": ["schemaVersion", "resourceType", "resourceName", "mainAsset"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "resourceType": { "type": "string", "minLength": 1 },
+    "resourceName": { "type": "string", "minLength": 1 },
+    "displayName": { "type": "string" },
+    "description": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "mainAsset": { "$ref": "#/$defs/assetReference" },
+    "dependencies": { "type": "array", "items": { "$ref": "#/$defs/dependency" } },
+    "preloadGroups": { "type": "array", "items": { "type": "string" } },
+    "priority": { "type": "integer" },
+    "memoryBudgetMb": { "type": "number", "minimum": 0 },
+    "remoteCatalog": { "type": "string" },
+    "contentVersion": { "type": "string" },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "assetReference": {
+      "type": "object",
+      "properties": {
+        "guid": { "type": "string" },
+        "path": { "type": "string" },
+        "address": { "type": "string" },
+        "assetType": { "type": "string" }
+      }
+    },
+    "dependency": {
+      "type": "object",
+      "required": ["resourceType", "resourceName"],
+      "properties": {
+        "resourceType": { "type": "string", "minLength": 1 },
+        "resourceName": { "type": "string", "minLength": 1 },
+        "required": { "type": "boolean" },
+        "preloadGroup": { "type": "string" }
+      }
+    }
+  }
+}

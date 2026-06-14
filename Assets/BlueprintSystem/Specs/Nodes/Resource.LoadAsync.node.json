@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Resource.LoadAsync",
+  "title": "Load Resource Async",
+  "category": "Resource",
+  "description": "Asynchronously loads a resource blueprint primary asset by Type+Name through the runtime Resource Manager.",
+  "executor": "Resource.LoadAsync",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "resourceType", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "resourceName", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "scope", "kind": "value", "type": "BlueprintResourceScope", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "loaded", "kind": "exec" },
+    { "id": "failed", "kind": "exec" },
+    { "id": "cancelled", "kind": "exec" },
+    { "id": "asset", "kind": "value" },
+    { "id": "state", "kind": "value", "type": "BlueprintResourceLoadState" },
+    { "id": "error", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "resourceType", "type": "string", "required": true },
+    { "id": "resourceName", "type": "string", "required": true },
+    { "id": "scope", "type": "BlueprintResourceScope", "required": false, "defaultValue": "Manual" }
+  ],
+  "tags": ["resource", "asset", "async", "addressables"]
+}

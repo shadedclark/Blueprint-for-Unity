@@ -5,6 +5,7 @@
         "BlueprintSystem",
         "Unity.AI.Assistant.API.Editor",
         "Unity.AI.MCP.Editor",
+        "Unity.Addressables.Editor",
         "Unity.GraphToolkit.Common.Editor",
         "Unity.GraphToolkit.Editor",
         "Unity.TextMeshPro",

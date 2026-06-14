@@ -233,11 +233,17 @@ namespace BlueprintSystem
             registry.Register(new BehaviorTreeSetBlackboardStringExecutor());
             registry.Register(new BehaviorTreeSetBlackboardVector3Executor());
             registry.Register(new BehaviorTreeClearRunnerBlackboardExecutor());
+            registry.Register(new ResourceLoadAsyncExecutor());
+            registry.Register(new ResourcePreloadGroupAsyncExecutor());
+            registry.Register(new ResourceReleaseExecutor());
+            registry.Register(new ResourceGetLoadStateExecutor());
+            registry.Register(new ResourceGetMetadataExecutor());
             SmartObjectExecutorRegistrar.Register(registry);
             registry.Register(new GameLogExecutor());
             registry.Register(new GameSendEventExecutor());
             registry.Register(new GameLoadSceneExecutor());
             registry.Register(new GameLoadSceneAsyncExecutor());
+            registry.Register(new GameInstantiateObjectExecutor());
             registry.Register(new GameIsCollidingExecutor());
             registry.Register(new GameGetTransformPositionExecutor());
             registry.Register(new GameGetTransformEulerAnglesExecutor());

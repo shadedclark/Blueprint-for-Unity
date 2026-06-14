@@ -104,6 +104,75 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class GameInstantiateObjectExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.InstantiateObject"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            object prefabValue = context.GetInputValue(node, "prefab");
+            GameObject prefab = GameExecutorBindingUtility.ResolveBinding<GameObject>(context, prefabValue);
+            if (prefab == null)
+            {
+                return BlueprintExecResult.Error("Game.InstantiateObject node '" + node.Id + "' could not resolve prefab.");
+            }
+
+            object parentValue = context.GetInputValue(node, "parent");
+            Transform parent = null;
+            if (!IsEmpty(parentValue))
+            {
+                parent = GameExecutorBindingUtility.ResolveBinding<Transform>(context, parentValue);
+                if (parent == null)
+                {
+                    return BlueprintExecResult.Error("Game.InstantiateObject node '" + node.Id + "' could not resolve parent Transform.");
+                }
+            }
+
+            GameObject instance = parent == null
+                ? UnityEngine.Object.Instantiate(prefab)
+                : UnityEngine.Object.Instantiate(prefab, parent, false);
+
+            if (parent == null)
+            {
+                instance.transform.position = Vector3.zero;
+            }
+            else
+            {
+                instance.transform.localPosition = Vector3.zero;
+            }
+
+            context.SetState(StateKey(node, "instance"), instance);
+            context.SetState(StateKey(node, "transform"), instance.transform);
+            return BlueprintExecResult.Continue("execOut");
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            object value;
+            if ((outputPortId == "instance" || outputPortId == "transform") &&
+                context.TryGetState(StateKey(node, outputPortId), out value))
+            {
+                return value;
+            }
+
+            return null;
+        }
+
+        private static bool IsEmpty(object value)
+        {
+            string text = value as string;
+            return value == null || (text != null && string.IsNullOrEmpty(text));
+        }
+
+        private static string StateKey(RuntimeNode node, string value)
+        {
+            return "instantiateObject:" + node.Id + ":" + value;
+        }
+    }
+
     public sealed class GameIsCollidingExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

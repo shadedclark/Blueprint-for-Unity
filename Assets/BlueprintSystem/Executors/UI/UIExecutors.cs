@@ -238,10 +238,9 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
-            string target = context.GetInputValue(node, "target", string.Empty);
+            object target = context.GetInputValue(node, "target");
             bool value = context.GetInputValue(node, "value", true);
-            Object resolved = context.BindingResolver.Resolve(target);
-            GameObject gameObject = ResolveGameObject(resolved);
+            GameObject gameObject = GameExecutorBindingUtility.ResolveBinding<GameObject>(context, target);
             if (gameObject == null)
             {
                 return BlueprintExecResult.Error("UI.SetVisible could not resolve binding '" + target + "'.");
@@ -249,18 +248,6 @@ namespace BlueprintSystem
 
             gameObject.SetActive(value);
             return BlueprintExecResult.Continue("execOut");
-        }
-
-        private static GameObject ResolveGameObject(Object resolved)
-        {
-            GameObject gameObject = resolved as GameObject;
-            if (gameObject != null)
-            {
-                return gameObject;
-            }
-
-            Component component = resolved as Component;
-            return component == null ? null : component.gameObject;
         }
     }
 

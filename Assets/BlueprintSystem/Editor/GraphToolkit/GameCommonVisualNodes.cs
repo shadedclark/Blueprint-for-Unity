@@ -181,6 +181,25 @@ namespace BlueprintSystem.Editor
         }
     }
 
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.InstantiateObject")]
+    public sealed class GameInstantiateObjectVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.InstantiateObject", "Instantiate Object", "Game/Object", "Instantiates a GameObject prefab from a binding or connected runtime asset.");
+            AddExecInput("execIn");
+            AddValueInput("prefab", "Binding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("parent", "Binding<Transform>", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddValueOutput("instance", "GameObject");
+            AddValueOutput("transform", "Transform");
+            AddProperty("prefab", "Binding<GameObject>", false);
+            AddProperty("parent", "Binding<Transform>", false);
+        }
+    }
+
     public abstract class GameTransformGetterVisualNode : BlueprintVisualNode
     {
         protected void ConfigureGetter(string typeId, string title, string description)

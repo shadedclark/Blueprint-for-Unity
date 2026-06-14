@@ -1716,6 +1716,11 @@ namespace BlueprintSystem.Editor
 
         public static void MarkDirty(BlueprintVisualGraph graph)
         {
+            MarkDirty((Graph)graph);
+        }
+
+        public static void MarkDirty(Graph graph)
+        {
             object implementation = GetGraphImplementation(graph);
             MethodInfo dirtyMethod = FindMethod(implementation.GetType(), "SetGraphObjectDirty", method => method.GetParameters().Length == 0);
             if (dirtyMethod != null)

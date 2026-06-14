@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Resource.Release",
+  "title": "Release Resource",
+  "category": "Resource",
+  "description": "Releases one Resource Manager reference by Type+Name or releases every resource in a scope.",
+  "executor": "Resource.Release",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "resourceType", "kind": "value", "type": "string", "required": false, "source": "propertyOrConnection" },
+    { "id": "resourceName", "kind": "value", "type": "string", "required": false, "source": "propertyOrConnection" },
+    { "id": "scope", "kind": "value", "type": "BlueprintResourceScope", "required": false, "source": "propertyOrConnection" },
+    { "id": "releaseScope", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" }
+  ],
+  "properties": [
+    { "id": "resourceType", "type": "string", "required": false },
+    { "id": "resourceName", "type": "string", "required": false },
+    { "id": "scope", "type": "BlueprintResourceScope", "required": false, "defaultValue": "Manual" },
+    { "id": "releaseScope", "type": "bool", "required": false, "defaultValue": false }
+  ],
+  "tags": ["resource", "release", "scope"]
+}

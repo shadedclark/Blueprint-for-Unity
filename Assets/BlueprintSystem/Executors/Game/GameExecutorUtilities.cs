@@ -8,37 +8,71 @@ namespace BlueprintSystem
     {
         public static T ResolveBinding<T>(BlueprintExecutionContext context, string bindingName) where T : Object
         {
+            return ResolveBinding<T>(context, (object)bindingName);
+        }
+
+        public static T ResolveBinding<T>(BlueprintExecutionContext context, object value) where T : Object
+        {
+            T direct = ResolveDirect<T>(value);
+            if (direct != null)
+            {
+                return direct;
+            }
+
+            string bindingName = value as string;
             if (context == null || context.BindingResolver == null || string.IsNullOrEmpty(bindingName))
             {
                 return null;
             }
 
-            T direct = context.BindingResolver.Resolve<T>(bindingName);
+            direct = context.BindingResolver.Resolve<T>(bindingName);
             if (direct != null)
             {
                 return direct;
             }
 
-            Object resolved = context.BindingResolver.Resolve(bindingName);
-            direct = resolved as T;
-            if (direct != null)
-            {
-                return direct;
-            }
+            return ResolveDirect<T>(context.BindingResolver.Resolve(bindingName));
+        }
 
-            if (!typeof(Component).IsAssignableFrom(typeof(T)))
+        private static T ResolveDirect<T>(object value) where T : Object
+        {
+            if (value == null)
             {
                 return null;
             }
 
-            GameObject gameObject = resolved as GameObject;
-            if (gameObject != null)
+            T direct = value as T;
+            if (direct != null)
             {
-                return gameObject.GetComponent(typeof(T)) as T;
+                return direct;
             }
 
-            Component component = resolved as Component;
-            if (component != null)
+            GameObject gameObject = value as GameObject;
+            if (gameObject != null)
+            {
+                if (typeof(T) == typeof(GameObject))
+                {
+                    return gameObject as T;
+                }
+
+                if (typeof(Component).IsAssignableFrom(typeof(T)))
+                {
+                    return gameObject.GetComponent(typeof(T)) as T;
+                }
+            }
+
+            Component component = value as Component;
+            if (component == null)
+            {
+                return null;
+            }
+
+            if (typeof(T) == typeof(GameObject))
+            {
+                return component.gameObject as T;
+            }
+
+            if (typeof(Component).IsAssignableFrom(typeof(T)))
             {
                 return component.GetComponent(typeof(T)) as T;
             }

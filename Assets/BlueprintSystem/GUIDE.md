@@ -48,6 +48,7 @@ connected value edge -> compiled node property -> null
 | `Game.SendEvent` | Send Event | Game | `Game.SendEvent` | `GameSendEventExecutor` | Publishes a named event to the blueprint event bus. |
 | `Game.LoadScene` | Load Scene | Game | `Game.LoadScene` | `GameLoadSceneExecutor` | Loads a Unity scene by name. |
 | `Game.LoadSceneAsync` | Load Scene Async | Game | `Game.LoadSceneAsync` | `GameLoadSceneAsyncExecutor` | Loads a Unity scene by name and continues from `complete` after the async operation finishes. |
+| `Game.InstantiateObject` | Instantiate Object | Game/Object | `Game.InstantiateObject` | `GameInstantiateObjectExecutor` | Clones a `GameObject` prefab from a binding or connected runtime asset, optionally under a parent Transform. |
 | `Blueprint.IsValid` | Is Blueprint Valid | Blueprint | `Blueprint.IsValid` | `BlueprintIsValidExecutor` | Returns true when a `Blueprint` asset path or runtime `BlueprintRef` resolves inside the current Blueprint instance tree. |
 | `Blueprint.GetOwner` | Get Blueprint Owner | Blueprint | `Blueprint.GetOwner` | `BlueprintGetOwnerExecutor` | Returns the owner `BlueprintRef` for the current component or supplied `BlueprintRef`. |
 | `Blueprint.GetComponent` | Get Blueprint Component | Blueprint | `Blueprint.GetComponent` | `BlueprintGetComponentExecutor` | Finds a named component from the current instance or supplied `BlueprintRef`, walking owner instances outward. |
@@ -114,6 +115,11 @@ connected value edge -> compiled node property -> null
 | `DataTable.GetRow` | Data Table Get Row | DataTable | `DataTable.GetRow` | `DataTableGetRowExecutor` | Reads a typed struct row from a Blueprint data table by row name. |
 | `DataTable.GetRowNames` | Data Table Get Row Names | DataTable | `DataTable.GetRowNames` | `DataTableGetRowNamesExecutor` | Returns all row names from a Blueprint data table. |
 | `DataTable.GetAllRows` | Data Table Get All Rows | DataTable | `DataTable.GetAllRows` | `DataTableGetAllRowsExecutor` | Returns all typed struct rows from a Blueprint data table. |
+| `Resource.LoadAsync` | Resource Load Async | Resource | `Resource.LoadAsync` | `ResourceLoadAsyncExecutor` | Loads a primary resource through the runtime resource manager and resumes through loaded, failed, or cancelled. |
+| `Resource.PreloadGroupAsync` | Resource Preload Group Async | Resource | `Resource.PreloadGroupAsync` | `ResourcePreloadGroupAsyncExecutor` | Preloads every resource in a named preload group. |
+| `Resource.Release` | Resource Release | Resource | `Resource.Release` | `ResourceReleaseExecutor` | Releases a primary resource reference or all resources owned by a scope. |
+| `Resource.GetLoadState` | Resource Get Load State | Resource | `Resource.GetLoadState` | `ResourceGetLoadStateExecutor` | Reads the current load state, loaded object, and last error for a primary resource. |
+| `Resource.GetMetadata` | Resource Get Metadata | Resource | `Resource.GetMetadata` | `ResourceGetMetadataExecutor` | Reads one metadata value or the full metadata JSON for a primary resource. |
 | `Array.Count` | Array Count | Array | `Array.Count` | `ArrayCountExecutor` | Returns item count from an array value. |
 | `Array.Get` | Array Get | Array | `Array.Get` | `ArrayGetExecutor` | Returns an item from an array by index. |
 | `Array.ForEachLoop` | For Each Loop | Array | `Array.ForEachLoop` | `ArrayForEachLoopExecutor` | Executes a loop body once per array item. |
@@ -216,6 +222,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | Array construction | `Array.Make`, `Array.Append`, `Array.Clear`, `Array.Resize`, `Array.Shuffle` | Create or transform array values. These nodes return a new array value instead of mutating a variable directly. |
 | Array mutation-style values | `Array.Add`, `Array.AddUnique`, `Array.Insert`, `Array.RemoveIndex`, `Array.RemoveItem`, `Array.SetElement`, `Array.RandomItem`, `Array.LastIndex` | Return changed array copies plus useful metadata such as index, removed, added, success, or validity flags. Connect the returned `array` output into `Variable.Set.value` when persistent variable changes are needed. |
 | Tick and time | `Game.Event.OnTick`, `Game.GetDeltaTime`, `Game.GetFixedDeltaTime`, `Game.GetTimeSeconds`, `Game.GetUnscaledTime`, `Game.GetTimeScale`, `Game.SetTimeScale` | Frame tick entry and common Unity time values/actions. `Game.Event.OnTick.phase` chooses `Update`, `FixedUpdate`, or `LateUpdate`; Runner only fires tick events that exist, so blueprints without Tick do not log every frame. |
+| Object instantiation | `Game.InstantiateObject` | Clone an already available `GameObject` prefab from a binding or a connected runtime asset such as `Resource.LoadAsync.asset`; outputs the created `GameObject` and `Transform`. |
 | Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `Binding<Transform>` strings resolved at runtime. |
 | Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
 
@@ -227,6 +234,7 @@ Use `Flow.SwitchString` or `Flow.SwitchEnum` before creating specialized enum sw
 Array mutation-style nodes are pure value transforms; do not add hidden variable side effects to them.
 Use Transform binding nodes before creating domain-specific movement helpers.
 Use physics query result names or follow-up bindings before adding JSON-stored Unity object references.
+Use `Resource.LoadAsync` before `Game.InstantiateObject` when a prefab needs asynchronous resource loading.
 ```
 
 ## Tick, Time, Transform, and Physics Nodes
@@ -249,6 +257,52 @@ Avoid duplicates:
 Use `Game.Event.OnTick.phase` for Update, FixedUpdate, and LateUpdate behavior before adding specialized update events.
 Use the time getter nodes instead of reading Unity Time directly in domain-specific executors.
 ```
+
+### Object Instantiation
+
+| Type ID | Purpose | Ports and notes |
+| --- | --- | --- |
+| `Game.InstantiateObject` | Instantiates a `GameObject` prefab. | `prefab: Binding<GameObject>` is required and may be a binding name or a connected runtime object such as `Resource.LoadAsync.asset`; optional `parent: Binding<Transform>` may be a binding name or connected `Transform`; outputs `instance: GameObject`, `transform: Transform`, and `execOut`. |
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.InstantiateObject.node.json
+```
+
+Executor:
+
+```text
+ID: Game.InstantiateObject
+Class: GameInstantiateObjectExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+```
+
+Function:
+
+```text
+Resolve `prefab` as a GameObject from a direct runtime object, Component owner, or binding name.
+Resolve optional `parent` as a Transform from a direct runtime object, GameObject, Component, or binding name.
+When `parent` is present, instantiate under it and set `localPosition` to `[0, 0, 0]`.
+When `parent` is absent, instantiate as a scene root and set world position to `[0, 0, 0]`.
+Preserve prefab-authored rotation and scale.
+Return an error and stop when `prefab` is missing/invalid, or when a supplied `parent` cannot resolve.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Default | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | none | Starts instantiation. |
+| `prefab` | input value | `Binding<GameObject>` | propertyOrConnection | yes | none | Binding name string or connected runtime asset/object. |
+| `parent` | input value | `Binding<Transform>` | propertyOrConnection | no | none | Binding name string or connected runtime Transform/GameObject/Component. |
+| `prefab` | property | `Binding<GameObject>` | property | no | none | Optional binding-name fallback; no Unity object is serialized in JSON. |
+| `parent` | property | `Binding<Transform>` | property | no | none | Optional binding-name fallback; empty means no parent. |
+| `execOut` | output exec | none | none | no | none | Continuation after a successful instantiate. |
+| `instance` | output value | `GameObject` | none | no | none | Runtime-only created GameObject. |
+| `transform` | output value | `Transform` | none | no | none | Runtime-only created Transform. |
+
+`GameObject`, `Transform`, and `Component` runtime outputs can connect to compatible `Binding<GameObject>` and `Binding<Transform>` inputs. They are runtime values only and must not be declared as persisted variables or serialized Unity references in `.blueprint.json`.
 
 ### Transform
 
@@ -2364,6 +2418,333 @@ Ports and parameters:
 | `tablePath` | hidden property | string | property | no | Legacy generated `.bpdatatable.json` path fallback. |
 | `tableAssetGuid` | hidden property | string | property | no | Editor-only tracking for dragged table assets. |
 | `rowStructTypeId` | hidden property | string | property | yes | Cached row struct type id for typing. |
+
+## Resource Blueprints
+
+Resource Blueprints describe project assets in the same role as an Unreal `PrimaryDataAsset`: stable identity, typed metadata, soft references, dependencies, preload groups, load priority, and budget hints. They are data assets only. V1 Resource Graphs do not execute `OnLoaded`, `OnRelease`, or any other lifecycle graph.
+
+Source of truth:
+
+```text
+Resource Blueprint JSON: Assets/**/*.resourceblueprint.json
+Resource Graph Toolkit asset: Assets/**/*.resourcebpgraph
+Generated runtime registry: Assets/Resources/BlueprintResourceRegistry.asset
+Resource type catalog: BlueprintResourceTypeCatalogAsset
+Schema: Assets/BlueprintSystem/Specs/Schemas/resourceblueprint.schema.json
+```
+
+The JSON file is always authoritative. A `.resourcebpgraph` graph is an editor view for configuration, dependencies, preload groups, and validation context. Import/export bridge commands live under:
+
+```text
+Tools > Blueprint System > Resource Graph Toolkit > Import Selected Resource Blueprint JSON
+Tools > Blueprint System > Resource Graph Toolkit > Export Selected Resource Graph To JSON
+Assets > Create > Blueprint System > Resource Blueprint Graph
+```
+
+Double-clicking a `.resourceblueprint.json` source asset opens the Resource Graph Toolkit view by importing or refreshing the sibling `.resourcebpgraph`.
+
+Resource Graph authoring in Graph Toolkit uses the Blackboard for the primary resource fields: `resourceType`, `resourceName`, `displayName`, and `mainAsset`. `resourceType` is a catalog-backed dropdown sourced from `BlueprintResourceTypeCatalogAsset.ResourceTypes`, similar to Unreal Asset Manager's central Primary Asset Types configuration. Add or edit entries in the catalog asset to add available type options. The blackboard stores the selected resource type as a string reference and exports it to JSON as `"resourceType": "<string>"`. Empty values stay empty, and missing or unknown current values remain selectable so older graphs do not lose their ids when a catalog entry is absent. `mainAsset` is a `BlueprintResourceAssetReference` value with an Object Field for picking or dragging the Unity asset; the graph still exports the soft-reference JSON shape `{ guid, path, address, assetType }`. When `mainAsset` changes and `resourceName` is empty, export/sync fills `resourceName` from the selected asset name, or from the asset path file name when the asset cannot be loaded. `mainAsset.address` is still generated by the Asset Manager, not hand-authored in the graph.
+
+Older resource graphs may still contain `mainAssetPath`, `mainAssetGuid`, and `mainAssetType` blackboard variables. Opening or syncing the graph migrates those legacy string variables into the typed `mainAsset` field and removes the old variables from the fixed resource blackboard surface.
+
+`Dependencies` are still edited through Asset Manager or JSON in V1. They use resource type and resource name selectors backed by scanned `.resourceblueprint.json` ids where available, while preserving missing typed values. A friendlier object picker/type dropdown surface can be added later as a dedicated Resource editor window because Graph Toolkit graph assets are not regular `UnityEngine.Object` graph model inspectors.
+
+Resource identity uses `Type + Name` and forms the stable primary id:
+
+```text
+PrimaryResourceId = "{resourceType}:{resourceName}"
+```
+
+Unity GUIDs, asset paths, and Addressables addresses are tracking and migration details, not the primary identity. Renaming `resourceType` or `resourceName` is a semantic id migration and may affect dependents.
+
+Minimal JSON shape:
+
+```json
+{
+  "schemaVersion": "0.1",
+  "resourceType": "Item",
+  "resourceName": "Sword_01",
+  "displayName": "Sword 01",
+  "tags": ["Weapon"],
+  "mainAsset": {
+    "guid": "00000000000000000000000000000000",
+    "path": "Assets/Game/Items/Sword_01.prefab",
+    "address": "Resource/Item/Sword_01",
+    "assetType": "UnityEngine.GameObject"
+  },
+  "dependencies": [
+    { "resourceType": "Icon", "resourceName": "Sword_01", "required": true, "preloadGroup": "Inventory" }
+  ],
+  "preloadGroups": ["Inventory"],
+  "priority": 0,
+  "memoryBudgetMb": 0,
+  "metadata": [
+    { "key": "rarity", "type": "string", "value": "Rare" }
+  ]
+}
+```
+
+Authoring rules:
+
+| Rule | Notes |
+| --- | --- |
+| Unique id | `resourceType + resourceName` must be unique across the project. |
+| Main asset | The main asset is selected in the editor, but the JSON stores soft reference data: GUID, path, Addressables address, and asset type. |
+| Dependencies | Dependencies reference other primary resource ids, not Unity object references. |
+| Metadata | Common metadata is stored on every resource; resource-type-specific required fields come from the matching `BlueprintResourceTypeCatalogAsset.ResourceTypes` entry. |
+| Preload groups | Any resource can belong to one or more groups. Groups are compiled into the registry for runtime batch preload. |
+| Priority and budget | Priority participates in the runtime load queue; memory budget is an estimate used for reporting and scheduling hints. |
+
+The Asset Manager creates the canonical project resource type catalog at `Assets/BlueprintSystem/Resources/BlueprintResourceTypeCatalog.asset` when the Resource Asset Manager window opens and no catalog exists. You can also create one manually with:
+
+```text
+Create > Blueprint System > Resource Type Catalog
+```
+
+The catalog contains the full project resource type list. Each type entry can require metadata fields and provide default values for the Asset Manager. Missing required fields are validation errors. Resource type metadata is authored only through this catalog.
+
+### Resource Asset Manager
+
+Open the project-level resource manager from:
+
+```text
+Tools > Blueprint System > Resource Asset Manager > Open
+Tools > Blueprint System > Resource Asset Manager > Validate
+Tools > Blueprint System > Resource Asset Manager > Sync All
+```
+
+The Asset Manager scans all `.resourceblueprint.json` files, validates them, normalizes soft reference data, syncs Addressables, and writes `Assets/Resources/BlueprintResourceRegistry.asset` when there are no blocking errors. The window uses a list plus detail layout with search, type/tag filters, validation issues, main asset status, dependencies, reverse dependencies, and buttons to open the JSON or Resource Graph. Its `Resource Types` toolbar view edits the canonical `BlueprintResourceTypeCatalogAsset` inline and includes a `Ping Catalog` shortcut for locating the asset in the Project window.
+
+Addressables sync is owned by the Asset Manager:
+
+| Generated value | Rule |
+| --- | --- |
+| Base group | `BlueprintResources_Base_{resourceType}` |
+| DLC group | `BlueprintResources_DLC_{dlcId}_{resourceType}` |
+| Address | `Resource/{resourceType}/{resourceName}` |
+| Labels | `ResourceBlueprint`, `Resource.{resourceType}`, `ResourceContent.Base` or `ResourceContent.DLC`, optional `ResourceDLC.{dlcId}`, and `ResourceTag.{tag}` |
+
+Automatic sync is scheduled after resource blueprint JSON, resource graph, resource type catalog, or resource packaging policy imports. Manual `Sync All` performs a full scan, Addressables sync, registry write, and validation pass.
+
+Build-time validation blocks the player build when a resource error exists:
+
+```text
+duplicate Type+Name
+missing main asset
+invalid Addressables address
+stale or missing registry
+dependency cycle
+missing dependency
+asset type mismatch
+required metadata field missing
+invalid budget or priority configuration
+```
+
+Warnings do not block builds, but they should be fixed before content ship. Loading failures at runtime return an error state and log through the blueprint logger; V1 does not silently substitute fallback resources.
+
+### Runtime Resource Manager
+
+The generated `BlueprintResourceRegistryAsset` maps primary ids to runtime summaries:
+
+```text
+PrimaryResourceId -> Addressables address, asset type, tags, metadata, dependencies, preload groups, source hash, priority, memory budget
+```
+
+`BlueprintResourceManager` is async-first and Addressables-backed by default. It exposes:
+
+```text
+LoadAsync(resourceType, resourceName, scope)
+PreloadGroupAsync(groupName, scope)
+Release(resourceType, resourceName)
+ReleaseScope(scope)
+GetLoadState(resourceType, resourceName)
+GetLoadedAsset(resourceType, resourceName)
+GetLastError(resourceType, resourceName)
+GetMetadata(resourceType, resourceName)
+```
+
+Scopes are explicit: `Scene`, `Screen`, `Gameplay`, `Global`, and `Manual`. Scope release decrements all references owned by that scope. Loading is reference-counted; same-id concurrent requests are deduplicated and share the provider operation. Cancelling a handle removes that subscriber. The underlying load continues while other subscribers or retained references remain.
+
+The scheduler respects registry priority, a max concurrent load count, and memory budget estimates. Remote catalog and content version fields are preserved for future content delivery work, but V1 targets local Addressables packages.
+
+### `Resource.LoadAsync`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Resource.LoadAsync.node.json
+```
+
+Executor:
+
+```text
+ID: Resource.LoadAsync
+Class: ResourceLoadAsyncExecutor
+File: Assets/BlueprintSystem/Executors/Resource/ResourceExecutors.cs
+```
+
+Function:
+
+```text
+Reads `resourceType`, `resourceName`, and `scope`, then requests an async load from `BlueprintResourceManager`.
+When the handle completes, resumes through `loaded`, `failed`, or `cancelled`.
+Outputs the loaded Unity object, final state, and error text.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts the load request. |
+| `resourceType` | input value | string | propertyOrConnection | yes | Primary resource type. |
+| `resourceName` | input value | string | propertyOrConnection | yes | Primary resource name. |
+| `scope` | input value | `BlueprintResourceScope` | propertyOrConnection | no | Defaults to `Manual`. |
+| `resourceType` | property | string | property | yes | Used when no value edge is connected. |
+| `resourceName` | property | string | property | yes | Used when no value edge is connected. |
+| `scope` | property | `BlueprintResourceScope` | property | no | Graph Toolkit enum dropdown. |
+| `loaded` | output exec | none | none | no | Fires when a Unity object was loaded. |
+| `failed` | output exec | none | none | no | Fires on registry, provider, or Addressables failure. |
+| `cancelled` | output exec | none | none | no | Fires when this subscriber was cancelled before completion. |
+| `asset` | output value | object | none | no | Loaded Unity object. |
+| `state` | output value | `BlueprintResourceLoadState` | none | no | Final state for this node execution. |
+| `error` | output value | string | none | no | Empty on success. |
+
+### `Resource.PreloadGroupAsync`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Resource.PreloadGroupAsync.node.json
+```
+
+Executor:
+
+```text
+ID: Resource.PreloadGroupAsync
+Class: ResourcePreloadGroupAsyncExecutor
+File: Assets/BlueprintSystem/Executors/Resource/ResourceExecutors.cs
+```
+
+Function:
+
+```text
+Reads `groupName` and `scope`, then loads every registry entry in that preload group.
+Resumes through `completed` when every handle succeeds, or `failed` when any member fails.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts preload. |
+| `groupName` | input value | string | propertyOrConnection | yes | Preload group name. |
+| `scope` | input value | `BlueprintResourceScope` | propertyOrConnection | no | Defaults to `Manual`. |
+| `groupName` | property | string | property | yes | Used when no value edge is connected. |
+| `scope` | property | `BlueprintResourceScope` | property | no | Graph Toolkit enum dropdown. |
+| `completed` | output exec | none | none | no | Fires when all resources loaded. |
+| `failed` | output exec | none | none | no | Fires if any load failed. |
+| `state` | output value | `BlueprintResourceLoadState` | none | no | `Loaded` or `Failed`. |
+| `error` | output value | string | none | no | Combined failure text. |
+
+### `Resource.Release`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Resource.Release.node.json
+```
+
+Executor:
+
+```text
+ID: Resource.Release
+Class: ResourceReleaseExecutor
+File: Assets/BlueprintSystem/Executors/Resource/ResourceExecutors.cs
+```
+
+Function:
+
+```text
+Releases one resource reference by `resourceType + resourceName`, or releases every reference owned by `scope` when `releaseScope=true`.
+Always continues through `execOut`.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `execIn` | input exec | none | none | no | Starts release. |
+| `resourceType` | input value | string | propertyOrConnection | no | Required when `releaseScope=false`. |
+| `resourceName` | input value | string | propertyOrConnection | no | Required when `releaseScope=false`. |
+| `releaseScope` | input value | bool | propertyOrConnection | no | Releases a whole scope when true. |
+| `scope` | input value | `BlueprintResourceScope` | propertyOrConnection | no | Scope to release. |
+| `execOut` | output exec | none | none | no | Continuation after release. |
+
+### `Resource.GetLoadState`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Resource.GetLoadState.node.json
+```
+
+Executor:
+
+```text
+ID: Resource.GetLoadState
+Class: ResourceGetLoadStateExecutor
+File: Assets/BlueprintSystem/Executors/Resource/ResourceExecutors.cs
+```
+
+Function:
+
+```text
+Reads current resource manager state without starting a load.
+Returns state, loaded Unity object if present, and last error.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `resourceType` | input value | string | propertyOrConnection | yes | Primary resource type. |
+| `resourceName` | input value | string | propertyOrConnection | yes | Primary resource name. |
+| `state` | output value | `BlueprintResourceLoadState` | none | no | `Unloaded`, `Queued`, `Loading`, `Loaded`, `Failed`, or `Cancelled`. |
+| `loaded` | output value | object | none | no | Loaded Unity object when present. |
+| `error` | output value | string | none | no | Last failure text. |
+
+### `Resource.GetMetadata`
+
+Manifest:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Resource.GetMetadata.node.json
+```
+
+Executor:
+
+```text
+ID: Resource.GetMetadata
+Class: ResourceGetMetadataExecutor
+File: Assets/BlueprintSystem/Executors/Resource/ResourceExecutors.cs
+```
+
+Function:
+
+```text
+Reads metadata from the generated registry. If `key` is empty, returns the full metadata object as compact JSON.
+```
+
+Ports and parameters:
+
+| ID | Kind | Type | Source | Required | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `resourceType` | input value | string | propertyOrConnection | yes | Primary resource type. |
+| `resourceName` | input value | string | propertyOrConnection | yes | Primary resource name. |
+| `key` | input value | string | propertyOrConnection | no | Metadata key. Empty returns the full object. |
+| `value` | output value | string | none | no | Metadata value or full metadata JSON. |
+| `found` | output value | bool | none | no | True when a resource and matching key exist. |
+| `error` | output value | string | none | no | Registry or missing resource error. |
 
 ## Array Nodes
 

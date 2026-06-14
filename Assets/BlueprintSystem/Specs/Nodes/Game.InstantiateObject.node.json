@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.InstantiateObject",
+  "title": "Instantiate Object",
+  "category": "Game/Object",
+  "description": "Instantiates a GameObject prefab from a binding or connected runtime asset.",
+  "executor": "Game.InstantiateObject",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "prefab",
+      "kind": "value",
+      "type": "Binding<GameObject>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "parent",
+      "kind": "value",
+      "type": "Binding<Transform>",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "instance",
+      "kind": "value",
+      "type": "GameObject"
+    },
+    {
+      "id": "transform",
+      "kind": "value",
+      "type": "Transform"
+    }
+  ],
+  "properties": [
+    {
+      "id": "prefab",
+      "type": "Binding<GameObject>",
+      "required": false
+    },
+    {
+      "id": "parent",
+      "type": "Binding<Transform>",
+      "required": false
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "prefab",
+    "instantiate",
+    "spawn"
+  ]
+}

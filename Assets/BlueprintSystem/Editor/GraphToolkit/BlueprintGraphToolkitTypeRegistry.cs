@@ -36,6 +36,22 @@ namespace BlueprintSystem.Editor
 
         public static bool TryGetGraphType(string blueprintType, out Type graphType)
         {
+            switch (blueprintType)
+            {
+                case "Object":
+                    graphType = typeof(UnityEngine.Object);
+                    return true;
+                case "GameObject":
+                    graphType = typeof(UnityEngine.GameObject);
+                    return true;
+                case "Transform":
+                    graphType = typeof(UnityEngine.Transform);
+                    return true;
+                case "Component":
+                    graphType = typeof(UnityEngine.Component);
+                    return true;
+            }
+
             if (blueprintType == BlueprintGraphToolkitBlueprintTypes.TypeId)
             {
                 graphType = typeof(Blueprint);
@@ -74,6 +90,30 @@ namespace BlueprintSystem.Editor
 
         public static bool TryGetBlueprintType(Type graphType, out string blueprintType)
         {
+            if (graphType == typeof(UnityEngine.Object))
+            {
+                blueprintType = "Object";
+                return true;
+            }
+
+            if (graphType == typeof(UnityEngine.GameObject))
+            {
+                blueprintType = "GameObject";
+                return true;
+            }
+
+            if (graphType == typeof(UnityEngine.Transform))
+            {
+                blueprintType = "Transform";
+                return true;
+            }
+
+            if (graphType == typeof(UnityEngine.Component))
+            {
+                blueprintType = "Component";
+                return true;
+            }
+
             if (graphType == typeof(Blueprint))
             {
                 blueprintType = BlueprintGraphToolkitBlueprintTypes.TypeId;

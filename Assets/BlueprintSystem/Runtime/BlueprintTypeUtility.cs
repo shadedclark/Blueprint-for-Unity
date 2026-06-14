@@ -52,12 +52,62 @@ namespace BlueprintSystem
                 return true;
             }
 
+            if (toType.StartsWith("Binding<", StringComparison.Ordinal) &&
+                IsRuntimeObjectCompatibleWithBinding(fromType, toType))
+            {
+                return true;
+            }
+
             if (fromType.StartsWith("Binding<", StringComparison.Ordinal) && toType == fromType)
             {
                 return true;
             }
 
             return false;
+        }
+
+        private static bool IsRuntimeObjectCompatibleWithBinding(string fromType, string bindingType)
+        {
+            string innerType = GetBindingInnerType(bindingType);
+            if (string.IsNullOrEmpty(innerType))
+            {
+                return false;
+            }
+
+            if (fromType == innerType)
+            {
+                return true;
+            }
+
+            if (fromType == "GameObject")
+            {
+                return innerType == "Transform";
+            }
+
+            if (fromType == "Transform")
+            {
+                return innerType == "GameObject";
+            }
+
+            if (fromType == "Component")
+            {
+                return innerType == "GameObject" || innerType == "Transform";
+            }
+
+            return false;
+        }
+
+        private static string GetBindingInnerType(string bindingType)
+        {
+            const string prefix = "Binding<";
+            if (string.IsNullOrEmpty(bindingType) ||
+                !bindingType.StartsWith(prefix, StringComparison.Ordinal) ||
+                !bindingType.EndsWith(">", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            return bindingType.Substring(prefix.Length, bindingType.Length - prefix.Length - 1);
         }
 
         public static bool IsValueAssignableToType(object value, string type)
