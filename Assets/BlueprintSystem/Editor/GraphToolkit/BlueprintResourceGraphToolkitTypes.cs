@@ -109,7 +109,7 @@ namespace BlueprintSystem.Editor
             }
 
             HashSet<BlueprintPrimaryResourceId> seen = new HashSet<BlueprintPrimaryResourceId>();
-            List<string> paths = BlueprintAssetDiscovery.FindTextAssetPaths(BlueprintResourceBlueprintSource.AssetExtension);
+            List<string> paths = BlueprintEditorAssetDiscovery.FindTextAssetPaths(BlueprintResourceBlueprintSource.AssetExtension);
             for (int i = 0; i < paths.Count; i++)
             {
                 try

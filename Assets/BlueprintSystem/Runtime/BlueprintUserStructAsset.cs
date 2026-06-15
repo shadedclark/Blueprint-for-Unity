@@ -2,10 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
-#if UNITY_EDITOR
-using System.IO;
-using UnityEditor;
-#endif
 
 namespace BlueprintSystem
 {
@@ -335,13 +331,6 @@ namespace BlueprintSystem
         private string GetDerivedTypeId()
         {
             string assetName = name;
-#if UNITY_EDITOR
-            string assetPath = AssetDatabase.GetAssetPath(this);
-            if (!string.IsNullOrEmpty(assetPath))
-            {
-                assetName = Path.GetFileNameWithoutExtension(assetPath);
-            }
-#endif
             if (string.IsNullOrEmpty(assetName))
             {
                 assetName = "NewUserStruct";

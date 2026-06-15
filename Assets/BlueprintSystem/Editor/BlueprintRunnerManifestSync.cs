@@ -808,7 +808,7 @@ namespace BlueprintSystem.Editor
                 return true;
             }
 
-            string[] packageRoots = BlueprintAssetDiscovery.GetBlueprintPackageRoots();
+            string[] packageRoots = BlueprintEditorAssetDiscovery.GetBlueprintPackageRoots();
             for (int i = 0; i < packageRoots.Length; i++)
             {
                 if (IsPackageManifestPath(path, packageRoots[i]))
@@ -822,13 +822,13 @@ namespace BlueprintSystem.Editor
 
         private static bool IsPackageManifestPath(string path, string packageRoot)
         {
-            return BlueprintAssetDiscovery.IsPathInRoot(path, packageRoot) &&
+            return BlueprintEditorAssetDiscovery.IsPathInRoot(path, packageRoot) &&
                    path.IndexOf("/Specs/Nodes/", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static List<string> FindManifestAssetPaths()
         {
-            List<string> manifestPaths = BlueprintAssetDiscovery.FindTextAssetPaths(".node.json");
+            List<string> manifestPaths = BlueprintEditorAssetDiscovery.FindTextAssetPaths(".node.json");
             manifestPaths.RemoveAll(path => !IsManifestPath(path));
             return manifestPaths;
         }
@@ -1072,7 +1072,7 @@ namespace BlueprintSystem.Editor
 
         private static bool IsUserStructDefinitionPath(string path, bool deleted)
         {
-            if (!BlueprintAssetDiscovery.IsDiscoverableAssetPath(path))
+            if (!BlueprintEditorAssetDiscovery.IsDiscoverableAssetPath(path))
             {
                 return false;
             }
@@ -1087,7 +1087,7 @@ namespace BlueprintSystem.Editor
 
         private static bool IsDataTableDefinitionPath(string path, bool deleted)
         {
-            if (!BlueprintAssetDiscovery.IsDiscoverableAssetPath(path))
+            if (!BlueprintEditorAssetDiscovery.IsDiscoverableAssetPath(path))
             {
                 return false;
             }

@@ -2,11 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace BlueprintSystem
 {
@@ -271,6 +267,7 @@ namespace BlueprintSystem
                 definitionsByTypeId = null;
             }
 
+            BlueprintRuntimeRegistry.Refresh();
             BlueprintVariableTypeRegistry.Refresh();
         }
 
@@ -295,106 +292,19 @@ namespace BlueprintSystem
         private static Dictionary<string, BlueprintUserStructDefinition> LoadDefinitions()
         {
             Dictionary<string, BlueprintUserStructDefinition> result = new Dictionary<string, BlueprintUserStructDefinition>(StringComparer.Ordinal);
-#if UNITY_EDITOR
-            LoadEditorJsonDefinitions(result);
-            LoadEditorAssetDefinitions(result);
-#else
-            LoadRuntimeJsonDefinitions(result);
-#endif
-            return result;
-        }
-
-        private static void LoadRuntimeJsonDefinitions(Dictionary<string, BlueprintUserStructDefinition> result)
-        {
-            string root = GetAbsoluteStructRoot();
-            if (string.IsNullOrEmpty(root) || !Directory.Exists(root))
+            string[] typeIds = BlueprintRuntimeRegistry.GetUserStructTypeIds();
+            for (int i = 0; i < typeIds.Length; i++)
             {
-                return;
-            }
-
-            string[] files;
-            try
-            {
-                files = Directory.GetFiles(root, "*" + StructAssetExtension, SearchOption.AllDirectories);
-            }
-            catch
-            {
-                return;
-            }
-
-            Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-            for (int i = 0; i < files.Length; i++)
-            {
-                try
-                {
-                    BlueprintUserStructDefinition definition = BlueprintUserStructDefinition.FromJson(File.ReadAllText(files[i]));
-                    if (IsValidDefinition(definition) && !result.ContainsKey(definition.TypeId))
-                    {
-                        result.Add(definition.TypeId, definition);
-                    }
-                }
-                catch
-                {
-                }
-            }
-        }
-
-#if UNITY_EDITOR
-        private static void LoadEditorJsonDefinitions(Dictionary<string, BlueprintUserStructDefinition> result)
-        {
-            if (result == null)
-            {
-                return;
-            }
-
-            List<string> paths = BlueprintAssetDiscovery.FindTextAssetPaths(StructAssetExtension);
-            for (int i = 0; i < paths.Count; i++)
-            {
-                TextAsset structJson = AssetDatabase.LoadAssetAtPath<TextAsset>(paths[i]);
-                if (structJson == null)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    BlueprintUserStructDefinition definition = BlueprintUserStructDefinition.FromJson(structJson.text);
-                    if (IsValidDefinition(definition))
-                    {
-                        result[definition.TypeId] = definition;
-                    }
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        private static void LoadEditorAssetDefinitions(Dictionary<string, BlueprintUserStructDefinition> result)
-        {
-            if (result == null)
-            {
-                return;
-            }
-
-            List<string> paths = BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintUserStructAsset");
-            for (int i = 0; i < paths.Count; i++)
-            {
-                string path = paths[i];
-                BlueprintUserStructAsset asset = AssetDatabase.LoadAssetAtPath<BlueprintUserStructAsset>(path);
-                if (asset == null)
-                {
-                    continue;
-                }
-
-                BlueprintUserStructDefinition definition = asset.ToDefinition();
-                if (IsValidDefinition(definition))
+                BlueprintUserStructDefinition definition;
+                if (BlueprintRuntimeRegistry.TryGetUserStructDefinition(typeIds[i], out definition) &&
+                    IsValidDefinition(definition))
                 {
                     result[definition.TypeId] = definition;
                 }
             }
+
+            return result;
         }
-#endif
 
         private static bool IsValidDefinition(BlueprintUserStructDefinition definition)
         {
@@ -420,17 +330,6 @@ namespace BlueprintSystem
             }
 
             return true;
-        }
-
-        private static string GetAbsoluteStructRoot()
-        {
-            string dataPath = Application.dataPath;
-            if (string.IsNullOrEmpty(dataPath))
-            {
-                return null;
-            }
-
-            return Path.Combine(dataPath, "BlueprintSystem/Specs/Structs");
         }
     }
 
@@ -465,28 +364,17 @@ namespace BlueprintSystem
 
         public static bool TryResolveDefinition(IDictionary<string, object> properties, out string structTypeId, out BlueprintUserStructDefinition definition)
         {
-#if UNITY_EDITOR
             object assetGuidValue;
             if (properties != null &&
                 properties.TryGetValue(StructAssetGuidPropertyId, out assetGuidValue) &&
                 assetGuidValue != null)
             {
                 string assetGuid = Convert.ToString(assetGuidValue, CultureInfo.InvariantCulture);
-                if (!string.IsNullOrEmpty(assetGuid))
+                if (BlueprintRuntimeRegistry.TryResolveUserStructGuid(assetGuid, out structTypeId, out definition))
                 {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
-                    BlueprintUserStructAsset asset = string.IsNullOrEmpty(assetPath)
-                        ? null
-                        : AssetDatabase.LoadAssetAtPath<BlueprintUserStructAsset>(assetPath);
-                    if (asset != null)
-                    {
-                        structTypeId = asset.TypeId;
-                        definition = asset.ToDefinition();
-                        return !string.IsNullOrEmpty(structTypeId) && definition != null;
-                    }
+                    return true;
                 }
             }
-#endif
 
             structTypeId = GetStructTypeId(properties);
             if (string.IsNullOrEmpty(structTypeId))

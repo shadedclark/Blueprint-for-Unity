@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-#if UNITY_EDITOR
-using System.IO;
-using UnityEditor;
-#endif
 
 namespace BlueprintSystem
 {
@@ -150,13 +146,6 @@ namespace BlueprintSystem
         private string GetDerivedTableId()
         {
             string assetName = name;
-#if UNITY_EDITOR
-            string assetPath = AssetDatabase.GetAssetPath(this);
-            if (!string.IsNullOrEmpty(assetPath))
-            {
-                assetName = Path.GetFileNameWithoutExtension(assetPath);
-            }
-#endif
             if (string.IsNullOrEmpty(assetName))
             {
                 assetName = "NewDataTable";

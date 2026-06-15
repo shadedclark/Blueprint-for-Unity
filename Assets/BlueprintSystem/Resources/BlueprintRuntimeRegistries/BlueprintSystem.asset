@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6306fde2dc5eb41c1b9e08eee9c22991, type: 3}
+  m_Name: BlueprintSystem
+  m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BlueprintRuntimeRegistryAsset
+  catalogId: BlueprintSystem
+  priority: 0
+  generatedHash: 5608ebb144b93f9329a5b0008d691d86c8eb7402c909f5907abbdad3832bfac0
+  userStructs:
+  - TypeId: Struct.NewUserStruct
+    SourcePath: Assets/BlueprintSystem/Specs/Structs/NewUserStruct.asset
+    SourceGuid: e58daf2021ac447f693b3eb0114171c1
+    DefinitionJson: "{\n  \"schemaVersion\": \"0.1\",\n  \"typeId\": \"Struct.NewUserStruct\",\n 
+      \"fields\": [\n    {\n      \"id\": \"fld_2f30ad2739e742c0b5f048ad24a298e7\",\n     
+      \"name\": \"ewqe\",\n      \"type\": \"int\"\n    },\n    {\n      \"id\":
+      \"fld_37717905de074d6c9b206ef4001e1ab0\",\n      \"name\": \"ee\",\n      \"type\":
+      \"int\"\n    },\n    {\n      \"id\": \"fld_685531584d7d41bf98725eb2cfd21ae8\",\n     
+      \"name\": \"we\",\n      \"type\": \"string\"\n    },\n    {\n      \"id\":
+      \"fld_8f0cbaef2be64c4e88b825141401bd33\",\n      \"name\": \"kjk\",\n     
+      \"type\": \"string\"\n    }\n  ]\n}"
+  - TypeId: Struct.SampleItemConfigRow
+    SourcePath: Assets/BlueprintSystem/Specs/Structs/SampleItemConfigRow.bpstruct.json
+    SourceGuid: 5129ede6081645a8a271cdb5332ec0f5
+    DefinitionJson: "{\n  \"schemaVersion\": \"0.1\",\n  \"typeId\": \"Struct.SampleItemConfigRow\",\n 
+      \"fields\": [\n    {\n      \"id\": \"itemId\",\n      \"name\": \"itemId\",\n     
+      \"type\": \"string\"\n    },\n    {\n      \"id\": \"displayName\",\n     
+      \"name\": \"displayName\",\n      \"type\": \"string\"\n    },\n    {\n     
+      \"id\": \"category\",\n      \"name\": \"category\",\n      \"type\": \"string\"\n   
+      },\n    {\n      \"id\": \"price\",\n      \"name\": \"price\",\n      \"type\":
+      \"int\"\n    }\n  ]\n}\n"
+  dataTables:
+  - TableId: Table.NewDataTable
+    SourcePath: Assets/BlueprintSystem/Specs/Structs/NewDataTable.bpdatatable.json
+    AssetPathAlias: Assets/BlueprintSystem/Specs/Structs/NewDataTable.asset
+    PathAliases:
+    - Assets/BlueprintSystem/Specs/Structs/NewDataTable.bpdatatable.json
+    - Packages/com.shadedclark.blueprint-system/Specs/Structs/NewDataTable.bpdatatable.json
+    - Assets/BlueprintSystem/Specs/Structs/NewDataTable.asset
+    - Packages/com.shadedclark.blueprint-system/Specs/Structs/NewDataTable.asset
+    SourceGuid: 1802ddea5cd5b419c9222e6105656e48
+    DefinitionJson: "{\n  \"schemaVersion\": \"0.1\",\n  \"tableId\": \"Table.NewDataTable\",\n 
+      \"rowStructTypeId\": \"Struct.NewUserStruct\",\n  \"rows\": [\n    {\n     
+      \"rowName\": \"yuuiji\",\n      \"value\": null\n    }\n  ]\n}"
+  - TableId: Table.SampleItemConfig
+    SourcePath: Assets/BlueprintSystem/Specs/Tables/SampleItemConfig.bpdatatable.json
+    AssetPathAlias: 
+    PathAliases:
+    - Assets/BlueprintSystem/Specs/Tables/SampleItemConfig.bpdatatable.json
+    - Packages/com.shadedclark.blueprint-system/Specs/Tables/SampleItemConfig.bpdatatable.json
+    SourceGuid: 12bbd9bec38e4272856c5cadb8a64143
+    DefinitionJson: "{\n  \"schemaVersion\": \"0.1\",\n  \"tableId\": \"Table.SampleItemConfig\",\n 
+      \"rowStructTypeId\": \"Struct.SampleItemConfigRow\",\n  \"rows\": [\n    {\n     
+      \"rowName\": \"potion_small\",\n      \"value\": {\n        \"itemId\": \"potion_small\",\n       
+      \"displayName\": \"Small Potion\",\n        \"category\": \"Consumable\",\n       
+      \"price\": 25\n      }\n    },\n    {\n      \"rowName\": \"iron_sword\",\n     
+      \"value\": {\n        \"itemId\": \"iron_sword\",\n        \"displayName\":
+      \"Iron Sword\",\n        \"category\": \"Equipment\",\n        \"price\": 120\n     
+      }\n    },\n    {\n      \"rowName\": \"silver_ore\",\n      \"value\": {\n       
+      \"itemId\": \"silver_ore\",\n        \"displayName\": \"Silver Ore\",\n       
+      \"category\": \"Material\",\n        \"price\": 40\n      }\n    }\n  ]\n}\n"

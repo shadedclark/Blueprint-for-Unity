@@ -211,7 +211,7 @@ namespace BlueprintSystem.Editor
 
         public static List<string> FindResourceTypeCatalogAssetPaths()
         {
-            List<string> paths = BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintResourceTypeCatalogAsset");
+            List<string> paths = BlueprintEditorAssetDiscovery.FindAssetPaths("t:BlueprintResourceTypeCatalogAsset");
             AddResourceTypeCatalogAssetPath(paths, ResourceTypeCatalogAssetPath);
             return paths;
         }
@@ -222,7 +222,7 @@ namespace BlueprintSystem.Editor
             report.PackagingPolicy = LoadResourcePackagingPolicyAsset();
             Dictionary<string, BlueprintResourceAssetRecord> byId = new Dictionary<string, BlueprintResourceAssetRecord>(StringComparer.Ordinal);
             Dictionary<string, BlueprintResourceTypeDefinition> typeDefinitions = LoadTypeDefinitions();
-            List<string> paths = BlueprintAssetDiscovery.FindTextAssetPaths(BlueprintResourceBlueprintSource.AssetExtension);
+            List<string> paths = BlueprintEditorAssetDiscovery.FindTextAssetPaths(BlueprintResourceBlueprintSource.AssetExtension);
             for (int i = 0; i < paths.Count; i++)
             {
                 BlueprintResourceAssetRecord record = LoadRecord(paths[i]);

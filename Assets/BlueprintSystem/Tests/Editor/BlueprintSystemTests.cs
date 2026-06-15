@@ -5122,7 +5122,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(graphPath);
                 AssetDatabase.DeleteAsset(assetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
             }
         }
 
@@ -5147,7 +5147,7 @@ namespace BlueprintSystem.Tests
                 });
                 AssetDatabase.CreateAsset(asset, assetPath);
                 AssetDatabase.ImportAsset(assetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintUserStructDefinition definition;
                 object runtimeValue;
@@ -5164,7 +5164,7 @@ namespace BlueprintSystem.Tests
                 Assert.True(string.IsNullOrEmpty(renameError), renameError);
                 assetPath = renamedAssetPath;
                 AssetDatabase.ImportAsset(assetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 Assert.AreEqual("Struct.RenamedSpellStruct", asset.TypeId);
                 Assert.True(BlueprintUserStructRegistry.TryGet("Struct.RenamedSpellStruct", out definition));
@@ -5177,7 +5177,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(assetPath);
                 AssetDatabase.DeleteAsset(renamedAssetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
             }
         }
 
@@ -5193,7 +5193,7 @@ namespace BlueprintSystem.Tests
             try
             {
                 WriteDataTableDefinition(tableJsonPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintDataTableDefinition jsonDefinition;
                 Assert.True(BlueprintDataTableRegistry.TryGetByPath(tableJsonPath, out jsonDefinition));
@@ -5211,7 +5211,7 @@ namespace BlueprintSystem.Tests
                 Directory.CreateDirectory(Path.GetDirectoryName(tableAssetPath));
                 AssetDatabase.CreateAsset(asset, tableAssetPath);
                 AssetDatabase.ImportAsset(tableAssetPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintDataTableDefinition assetDefinition;
                 Assert.True(BlueprintDataTableRegistry.TryGetByPath(tableAssetPath, out assetDefinition));
@@ -5224,7 +5224,7 @@ namespace BlueprintSystem.Tests
                 AssetDatabase.DeleteAsset(tableJsonPath);
                 AssetDatabase.DeleteAsset(tableJsonPath + ".meta");
                 AssetDatabase.DeleteAsset(tableAssetPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5306,7 +5306,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(tablePath);
                 AssetDatabase.DeleteAsset(tablePath + ".meta");
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5355,7 +5355,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(tablePath);
                 AssetDatabase.DeleteAsset(tablePath + ".meta");
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5405,7 +5405,7 @@ namespace BlueprintSystem.Tests
                 AssetDatabase.DeleteAsset(OtherTablePath + ".meta");
                 AssetDatabase.DeleteAsset(OtherStructPath);
                 AssetDatabase.DeleteAsset(OtherStructPath + ".meta");
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5459,7 +5459,7 @@ namespace BlueprintSystem.Tests
                 Object.DestroyImmediate(owner);
                 AssetDatabase.DeleteAsset(tablePath);
                 AssetDatabase.DeleteAsset(tablePath + ".meta");
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5497,7 +5497,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(tablePath);
                 AssetDatabase.DeleteAsset(tablePath + ".meta");
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5527,7 +5527,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(tablePath);
                 AssetDatabase.DeleteAsset(tablePath + ".meta");
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5585,7 +5585,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(graphPath);
                 AssetDatabase.DeleteAsset(assetPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5615,7 +5615,7 @@ namespace BlueprintSystem.Tests
                 });
                 AssetDatabase.CreateAsset(asset, assetPath);
                 AssetDatabase.ImportAsset(assetPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 string tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
                 BlueprintVisualGraph graph = GraphDatabase.CreateGraph<BlueprintVisualGraph>(graphPath);
@@ -5635,7 +5635,7 @@ namespace BlueprintSystem.Tests
                 Assert.AreEqual(typeof(BlueprintSystem.Editor.DataTable), variable.dataType);
 
                 Assert.AreEqual(string.Empty, AssetDatabase.MoveAsset(assetPath, renamedAssetPath));
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(renamedAssetPath);
                 object refreshedDefaultValue;
                 Assert.True(BlueprintGraphToolkitBlackboardSync.TryReadDefaultValue(
@@ -5662,7 +5662,7 @@ namespace BlueprintSystem.Tests
                 AssetDatabase.DeleteAsset(assetPath);
                 AssetDatabase.DeleteAsset(renamedAssetPath);
                 DeleteTemporaryCompiledArtifacts(exportPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
                 DeleteUserStructDefinition();
             }
         }
@@ -5676,7 +5676,7 @@ namespace BlueprintSystem.Tests
             try
             {
                 WriteRegistryUserStructDefinition(StructPath, "Struct.ProjectRegistryStruct");
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintUserStructDefinition definition;
                 Assert.True(BlueprintUserStructRegistry.TryGet("Struct.ProjectRegistryStruct", out definition));
@@ -5687,7 +5687,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(StructPath);
                 AssetDatabase.DeleteAsset(StructPath + ".meta");
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
             }
         }
 
@@ -5712,7 +5712,7 @@ namespace BlueprintSystem.Tests
                 });
                 AssetDatabase.CreateAsset(asset, assetPath);
                 AssetDatabase.ImportAsset(assetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintUserStructDefinition definition;
                 Assert.True(BlueprintUserStructRegistry.TryGet("Struct.ProjectStructAsset", out definition));
@@ -5722,7 +5722,7 @@ namespace BlueprintSystem.Tests
                 Assert.True(string.IsNullOrEmpty(renameError), renameError);
                 assetPath = renamedAssetPath;
                 AssetDatabase.ImportAsset(assetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 Assert.True(BlueprintUserStructRegistry.TryGet("Struct.ProjectStructAssetRenamed", out definition));
                 Assert.AreEqual("Struct.ProjectStructAssetRenamed", definition.TypeId);
@@ -5731,7 +5731,7 @@ namespace BlueprintSystem.Tests
             {
                 AssetDatabase.DeleteAsset(assetPath);
                 AssetDatabase.DeleteAsset(renamedAssetPath);
-                BlueprintUserStructRegistry.Refresh();
+                SyncRuntimeRegistries();
             }
         }
 
@@ -5749,8 +5749,7 @@ namespace BlueprintSystem.Tests
             {
                 WriteRegistryUserStructDefinition(StructPath, "Struct.ProjectTableRow");
                 WriteRegistryDataTableDefinition(TableJsonPath, "Table.ProjectItems", "Struct.ProjectTableRow");
-                BlueprintUserStructRegistry.Refresh();
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintDataTableDefinition jsonDefinition;
                 Assert.True(BlueprintDataTableRegistry.TryGetByPath(TableJsonPath, out jsonDefinition));
@@ -5767,7 +5766,7 @@ namespace BlueprintSystem.Tests
                 });
                 AssetDatabase.CreateAsset(asset, TableAssetPath);
                 AssetDatabase.ImportAsset(TableAssetPath);
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
 
                 BlueprintDataTableDefinition assetDefinition;
                 Assert.True(BlueprintDataTableRegistry.TryGetByPath(TableAssetPath, out assetDefinition));
@@ -5781,8 +5780,45 @@ namespace BlueprintSystem.Tests
                 AssetDatabase.DeleteAsset(TableJsonPath);
                 AssetDatabase.DeleteAsset(TableJsonPath + ".meta");
                 AssetDatabase.DeleteAsset(TableAssetPath);
-                BlueprintUserStructRegistry.Refresh();
-                BlueprintDataTableRegistry.Refresh();
+                SyncRuntimeRegistries();
+            }
+        }
+
+        [Test]
+        public void RuntimeRegistryProjectOverlayOverridesPackageCatalog()
+        {
+            const string PackageStructPath = "Assets/BlueprintSystem/Specs/Structs/RuntimeOverlayItem.bpstruct.json";
+            const string ProjectStructPath = "Assets/Game/Blueprint/RuntimeRegistry/Structs/RuntimeOverlayItem.bpstruct.json";
+            AssetDatabase.DeleteAsset(PackageStructPath);
+            AssetDatabase.DeleteAsset(ProjectStructPath);
+
+            try
+            {
+                WriteRegistryUserStructDefinition(PackageStructPath, "Struct.RuntimeOverlayItem");
+                Directory.CreateDirectory(Path.GetDirectoryName(ProjectStructPath));
+                File.WriteAllText(ProjectStructPath, "{\n" +
+                    "  \"schemaVersion\": \"0.1\",\n" +
+                    "  \"typeId\": \"Struct.RuntimeOverlayItem\",\n" +
+                    "  \"fields\": [\n" +
+                    "    { \"id\": \"fld_project_only\", \"name\": \"projectOnly\", \"type\": \"string\", \"defaultValue\": \"overlay\" }\n" +
+                    "  ]\n" +
+                    "}\n");
+                AssetDatabase.ImportAsset(ProjectStructPath);
+                SyncRuntimeRegistries();
+
+                BlueprintUserStructDefinition definition;
+                BlueprintUserStructField field;
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.RuntimeOverlayItem", out definition));
+                Assert.True(definition.TryGetField("projectOnly", out field));
+                Assert.AreEqual("fld_project_only", field.Id);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(PackageStructPath);
+                AssetDatabase.DeleteAsset(PackageStructPath + ".meta");
+                AssetDatabase.DeleteAsset(ProjectStructPath);
+                AssetDatabase.DeleteAsset(ProjectStructPath + ".meta");
+                SyncRuntimeRegistries();
             }
         }
 
@@ -6849,7 +6885,7 @@ namespace BlueprintSystem.Tests
                 "  ]\n" +
                 "}\n");
             AssetDatabase.ImportAsset(assetPath);
-            BlueprintUserStructRegistry.Refresh();
+            SyncRuntimeRegistries();
         }
 
         private static void WriteDataTableDefinition(string assetPath)
@@ -6865,7 +6901,7 @@ namespace BlueprintSystem.Tests
                 "  ]\n" +
                 "}\n");
             AssetDatabase.ImportAsset(assetPath);
-            BlueprintDataTableRegistry.Refresh();
+            SyncRuntimeRegistries();
         }
 
         private static void WriteRegistryUserStructDefinition(string assetPath, string typeId)
@@ -6880,7 +6916,7 @@ namespace BlueprintSystem.Tests
                 "  ]\n" +
                 "}\n");
             AssetDatabase.ImportAsset(assetPath);
-            BlueprintUserStructRegistry.Refresh();
+            SyncRuntimeRegistries();
         }
 
         private static void WriteRegistryDataTableDefinition(string assetPath, string tableId, string rowStructTypeId)
@@ -6895,7 +6931,12 @@ namespace BlueprintSystem.Tests
                 "  ]\n" +
                 "}\n");
             AssetDatabase.ImportAsset(assetPath);
-            BlueprintDataTableRegistry.Refresh();
+            SyncRuntimeRegistries();
+        }
+
+        private static void SyncRuntimeRegistries()
+        {
+            BlueprintRuntimeRegistryAssetManagerUtility.SyncAll(false);
         }
 
         private static RuntimeNode CreateDataTableRuntimeNode(string id, string typeId, string tablePath)
@@ -6978,7 +7019,7 @@ namespace BlueprintSystem.Tests
         {
             AssetDatabase.DeleteAsset("Assets/BlueprintSystem/Specs/Structs/TestInventoryItem.bpstruct.json");
             AssetDatabase.DeleteAsset("Assets/BlueprintSystem/Specs/Structs/TestInventoryItem.bpstruct.json.meta");
-            BlueprintUserStructRegistry.Refresh();
+            SyncRuntimeRegistries();
         }
 
         private static BlueprintSource CreateSetImageSpriteTestSource()

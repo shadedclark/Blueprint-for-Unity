@@ -240,7 +240,7 @@ namespace BlueprintSystem.Editor
                 return null;
             }
 
-            List<string> assetPaths = BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintDataTableAsset");
+            List<string> assetPaths = BlueprintEditorAssetDiscovery.FindAssetPaths("t:BlueprintDataTableAsset");
             for (int i = 0; i < assetPaths.Count; i++)
             {
                 string assetPath = assetPaths[i];

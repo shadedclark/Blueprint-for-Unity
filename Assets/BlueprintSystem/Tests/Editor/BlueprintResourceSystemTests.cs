@@ -1037,7 +1037,7 @@ namespace BlueprintSystem.Tests
 
         private static int CountResourceTypeCatalogAssets()
         {
-            return BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintResourceTypeCatalogAsset").Count;
+            return BlueprintEditorAssetDiscovery.FindAssetPaths("t:BlueprintResourceTypeCatalogAsset").Count;
         }
 
         private static void WriteResourceSource(string path, string resourceType, string resourceName)

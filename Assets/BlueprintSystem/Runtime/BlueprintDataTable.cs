@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using UnityEngine;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace BlueprintSystem
 {
@@ -75,48 +71,32 @@ namespace BlueprintSystem
         public const string DataTableAssetExtension = ".bpdatatable.json";
         public const string DefaultAssetRoot = "Assets/BlueprintSystem/Specs/Tables";
 
-        private static readonly object CacheLock = new object();
-        private static Dictionary<string, BlueprintDataTableDefinition> definitionsByPath;
-        private static Dictionary<string, BlueprintDataTableDefinition> definitionsByTableId;
-
         public static bool TryGetByPath(string path, out BlueprintDataTableDefinition definition)
         {
-            definition = null;
             string normalizedPath = NormalizeAssetPath(path);
             if (string.IsNullOrEmpty(normalizedPath))
             {
+                definition = null;
                 return false;
             }
 
-            lock (CacheLock)
-            {
-                EnsureLoadedLocked();
-                return definitionsByPath.TryGetValue(normalizedPath, out definition);
-            }
+            return BlueprintRuntimeRegistry.TryGetDataTableByPath(normalizedPath, out definition);
         }
 
         public static bool TryGetByTableId(string tableId, out BlueprintDataTableDefinition definition)
         {
-            definition = null;
             if (string.IsNullOrEmpty(tableId))
             {
+                definition = null;
                 return false;
             }
 
-            lock (CacheLock)
-            {
-                EnsureLoadedLocked();
-                return definitionsByTableId.TryGetValue(tableId, out definition);
-            }
+            return BlueprintRuntimeRegistry.TryGetDataTableByTableId(tableId, out definition);
         }
 
         public static void Refresh()
         {
-            lock (CacheLock)
-            {
-                definitionsByPath = null;
-                definitionsByTableId = null;
-            }
+            BlueprintRuntimeRegistry.Refresh();
         }
 
         internal static string NormalizeAssetPath(string path)
@@ -127,192 +107,6 @@ namespace BlueprintSystem
         public static string GetJsonPathForAssetPath(string assetPath)
         {
             return BlueprintAssetDiscovery.ChangeAssetPathExtension(assetPath, DataTableAssetExtension);
-        }
-
-        private static void EnsureLoadedLocked()
-        {
-            if (definitionsByPath != null && definitionsByTableId != null)
-            {
-                return;
-            }
-
-            Dictionary<string, BlueprintDataTableDefinition> loadedByPath;
-            Dictionary<string, BlueprintDataTableDefinition> loadedByTableId;
-            LoadDefinitions(out loadedByPath, out loadedByTableId);
-            definitionsByPath = loadedByPath;
-            definitionsByTableId = loadedByTableId;
-        }
-
-        private static void LoadDefinitions(
-            out Dictionary<string, BlueprintDataTableDefinition> byPath,
-            out Dictionary<string, BlueprintDataTableDefinition> byTableId)
-        {
-            byPath = new Dictionary<string, BlueprintDataTableDefinition>(StringComparer.OrdinalIgnoreCase);
-            byTableId = new Dictionary<string, BlueprintDataTableDefinition>(StringComparer.Ordinal);
-
-#if UNITY_EDITOR
-            LoadEditorJsonDefinitions(byPath, byTableId);
-            LoadEditorAssetDefinitions(byPath, byTableId);
-#else
-            LoadRuntimeJsonDefinitions(byPath, byTableId);
-#endif
-        }
-
-        private static void LoadRuntimeJsonDefinitions(
-            Dictionary<string, BlueprintDataTableDefinition> byPath,
-            Dictionary<string, BlueprintDataTableDefinition> byTableId)
-        {
-            string root = GetAbsoluteTableRoot();
-            if (!string.IsNullOrEmpty(root) && Directory.Exists(root))
-            {
-                string[] files;
-                try
-                {
-                    files = Directory.GetFiles(root, "*" + DataTableAssetExtension, SearchOption.AllDirectories);
-                }
-                catch
-                {
-                    files = new string[0];
-                }
-
-                Array.Sort(files, StringComparer.OrdinalIgnoreCase);
-                for (int i = 0; i < files.Length; i++)
-                {
-                    try
-                    {
-                        BlueprintDataTableDefinition definition = BlueprintDataTableDefinition.FromJson(File.ReadAllText(files[i]));
-                        definition.SourcePath = AbsolutePathToAssetPath(files[i]);
-                        AddDefinition(definition, byPath, byTableId);
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-        }
-
-#if UNITY_EDITOR
-        private static void LoadEditorJsonDefinitions(
-            Dictionary<string, BlueprintDataTableDefinition> byPath,
-            Dictionary<string, BlueprintDataTableDefinition> byTableId)
-        {
-            List<string> paths = BlueprintAssetDiscovery.FindTextAssetPaths(DataTableAssetExtension);
-            for (int i = 0; i < paths.Count; i++)
-            {
-                string path = paths[i];
-                TextAsset tableJson = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-                if (tableJson == null)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    BlueprintDataTableDefinition definition = BlueprintDataTableDefinition.FromJson(tableJson.text);
-                    definition.SourcePath = path;
-                    AddDefinition(definition, byPath, byTableId);
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        private static void LoadEditorAssetDefinitions(
-            Dictionary<string, BlueprintDataTableDefinition> byPath,
-            Dictionary<string, BlueprintDataTableDefinition> byTableId)
-        {
-            List<string> paths = BlueprintAssetDiscovery.FindAssetPaths("t:BlueprintDataTableAsset");
-            for (int i = 0; i < paths.Count; i++)
-            {
-                string path = paths[i];
-                BlueprintDataTableAsset asset = AssetDatabase.LoadAssetAtPath<BlueprintDataTableAsset>(path);
-                if (asset == null)
-                {
-                    continue;
-                }
-
-                BlueprintDataTableDefinition definition = asset.ToDefinition();
-                definition.SourcePath = GetJsonPathForAssetPath(path);
-                if (AddDefinition(definition, byPath, byTableId))
-                {
-                    byPath[NormalizeAssetPath(path)] = definition;
-                }
-            }
-        }
-#endif
-
-        private static bool AddDefinition(
-            BlueprintDataTableDefinition definition,
-            Dictionary<string, BlueprintDataTableDefinition> byPath,
-            Dictionary<string, BlueprintDataTableDefinition> byTableId)
-        {
-            if (!IsValidDefinition(definition))
-            {
-                return false;
-            }
-
-            if (!string.IsNullOrEmpty(definition.SourcePath))
-            {
-                byPath[NormalizeAssetPath(definition.SourcePath)] = definition;
-            }
-
-            if (!string.IsNullOrEmpty(definition.TableId))
-            {
-                byTableId[definition.TableId] = definition;
-            }
-
-            return true;
-        }
-
-        private static bool IsValidDefinition(BlueprintDataTableDefinition definition)
-        {
-            if (definition == null ||
-                string.IsNullOrEmpty(definition.TableId) ||
-                string.IsNullOrEmpty(definition.RowStructTypeId))
-            {
-                return false;
-            }
-
-            HashSet<string> rowNames = new HashSet<string>(StringComparer.Ordinal);
-            for (int i = 0; i < definition.Rows.Count; i++)
-            {
-                BlueprintDataTableRowDefinition row = definition.Rows[i];
-                if (row == null || string.IsNullOrEmpty(row.RowName) || !rowNames.Add(row.RowName))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static string GetAbsoluteTableRoot()
-        {
-            string dataPath = Application.dataPath;
-            if (string.IsNullOrEmpty(dataPath))
-            {
-                return null;
-            }
-
-            return Path.Combine(dataPath, "BlueprintSystem/Specs/Tables");
-        }
-
-        private static string AbsolutePathToAssetPath(string absolutePath)
-        {
-            if (string.IsNullOrEmpty(absolutePath))
-            {
-                return null;
-            }
-
-            string normalized = NormalizeAssetPath(Path.GetFullPath(absolutePath));
-            string dataPath = NormalizeAssetPath(Path.GetFullPath(Application.dataPath));
-            if (normalized.StartsWith(dataPath + "/", StringComparison.OrdinalIgnoreCase))
-            {
-                return "Assets/" + normalized.Substring(dataPath.Length + 1);
-            }
-
-            return normalized;
         }
     }
 
@@ -483,29 +277,17 @@ namespace BlueprintSystem
             out string tablePath,
             out BlueprintDataTableDefinition definition)
         {
-#if UNITY_EDITOR
             object assetGuidValue;
             if (properties != null &&
                 properties.TryGetValue(TableAssetGuidPropertyId, out assetGuidValue) &&
                 assetGuidValue != null)
             {
                 string assetGuid = Convert.ToString(assetGuidValue, CultureInfo.InvariantCulture);
-                if (!string.IsNullOrEmpty(assetGuid))
+                if (BlueprintRuntimeRegistry.TryResolveDataTableGuid(assetGuid, out tablePath, out definition))
                 {
-                    string assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
-                    BlueprintDataTableAsset asset = string.IsNullOrEmpty(assetPath)
-                        ? null
-                        : AssetDatabase.LoadAssetAtPath<BlueprintDataTableAsset>(assetPath);
-                    if (asset != null)
-                    {
-                        tablePath = BlueprintDataTableRegistry.GetJsonPathForAssetPath(assetPath);
-                        definition = asset.ToDefinition();
-                        definition.SourcePath = tablePath;
-                        return !string.IsNullOrEmpty(tablePath) && definition != null;
-                    }
+                    return true;
                 }
             }
-#endif
 
             tablePath = GetTablePath(properties);
             if (string.IsNullOrEmpty(tablePath))
