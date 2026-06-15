@@ -3446,12 +3446,16 @@ namespace BlueprintSystem.Tests
             AssertManifestValueInput(releaseManifest, "deactivate", "bool", true, BlueprintValueSource.PropertyOrConnection);
             Assert.Null(releaseManifest.FindProperty("target"));
             Assert.AreEqual("bool", releaseManifest.FindOutput("released").Type);
+            Assert.AreEqual(BlueprintPortKind.Exec, releaseManifest.FindOutput("reset").Kind);
+            Assert.AreEqual("GameObject", releaseManifest.FindOutput("target").Type);
 
             BlueprintVisualNode releaseVisual = BlueprintVisualNodeFactory.Create("GameObject.ReleaseToPool");
             Assert.AreNotEqual(typeof(BlueprintVisualNode), releaseVisual.GetType());
             Assert.AreEqual("GameObject.ReleaseToPool", releaseVisual.ReadTypeId());
             AssertVisualValueInput(releaseVisual, "target", "GameObject", "connection");
             Assert.AreEqual("bool", releaseVisual.Outputs.Find(port => port.Id == "released").Type);
+            Assert.NotNull(releaseVisual.Outputs.Find(port => port.Id == "reset"));
+            Assert.AreEqual("GameObject", releaseVisual.Outputs.Find(port => port.Id == "target").Type);
 
             BlueprintNodeManifest clearManifest;
             Assert.True(manifests.TryGet("GameObject.ClearPool", out clearManifest));
@@ -3466,6 +3470,42 @@ namespace BlueprintSystem.Tests
             Assert.AreEqual("GameObject.ClearPool", clearVisual.ReadTypeId());
             AssertVisualValueInput(clearVisual, "poolId", "string", "propertyOrConnection");
             Assert.AreEqual("int", clearVisual.Outputs.Find(port => port.Id == "destroyedCount").Type);
+
+            BlueprintNodeManifest statsManifest;
+            Assert.True(manifests.TryGet("GameObject.GetPoolStats", out statsManifest));
+            Assert.AreEqual("Get GameObject Pool Stats", statsManifest.Title);
+            Assert.AreEqual("GameObject/Pool", statsManifest.Category);
+            Assert.AreEqual("GameObject.GetPoolStats", statsManifest.Executor);
+            AssertManifestValueInput(statsManifest, "poolId", "string", true, BlueprintValueSource.PropertyOrConnection);
+            Assert.AreEqual("default", statsManifest.FindProperty("poolId").DefaultValue);
+            Assert.AreEqual("int", statsManifest.FindOutput("activeCount").Type);
+            Assert.AreEqual("int", statsManifest.FindOutput("availableCount").Type);
+            Assert.AreEqual("int", statsManifest.FindOutput("managedCount").Type);
+            Assert.AreEqual("bool", statsManifest.FindOutput("exists").Type);
+
+            BlueprintVisualNode statsVisual = BlueprintVisualNodeFactory.Create("GameObject.GetPoolStats");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), statsVisual.GetType());
+            Assert.AreEqual("GameObject.GetPoolStats", statsVisual.ReadTypeId());
+            AssertVisualValueInput(statsVisual, "poolId", "string", "propertyOrConnection");
+            Assert.AreEqual("int", statsVisual.Outputs.Find(port => port.Id == "activeCount").Type);
+            Assert.AreEqual("int", statsVisual.Outputs.Find(port => port.Id == "availableCount").Type);
+            Assert.AreEqual("int", statsVisual.Outputs.Find(port => port.Id == "managedCount").Type);
+            Assert.AreEqual("bool", statsVisual.Outputs.Find(port => port.Id == "exists").Type);
+
+            BlueprintNodeManifest activeInstancesManifest;
+            Assert.True(manifests.TryGet("GameObject.GetPoolActiveInstances", out activeInstancesManifest));
+            Assert.AreEqual("Get Pool Active Instances", activeInstancesManifest.Title);
+            Assert.AreEqual("GameObject/Pool", activeInstancesManifest.Category);
+            Assert.AreEqual("GameObject.GetPoolActiveInstances", activeInstancesManifest.Executor);
+            AssertManifestValueInput(activeInstancesManifest, "poolId", "string", true, BlueprintValueSource.PropertyOrConnection);
+            Assert.AreEqual("default", activeInstancesManifest.FindProperty("poolId").DefaultValue);
+            Assert.AreEqual("Array<GameObject>", activeInstancesManifest.FindOutput("instances").Type);
+
+            BlueprintVisualNode activeInstancesVisual = BlueprintVisualNodeFactory.Create("GameObject.GetPoolActiveInstances");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), activeInstancesVisual.GetType());
+            Assert.AreEqual("GameObject.GetPoolActiveInstances", activeInstancesVisual.ReadTypeId());
+            AssertVisualValueInput(activeInstancesVisual, "poolId", "string", "propertyOrConnection");
+            Assert.AreEqual("Array<GameObject>", activeInstancesVisual.Outputs.Find(port => port.Id == "instances").Type);
         }
 
         [Test]
@@ -3539,6 +3579,245 @@ namespace BlueprintSystem.Tests
                 Object.DestroyImmediate(owner);
                 Object.DestroyImmediate(prefab);
                 Object.DestroyImmediate(parent);
+            }
+        }
+
+        [Test]
+        public void RuntimeGameObjectPoolRunsReleaseResetBeforeDeactivate()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "PoolReleaseResetRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "PoolPrefab", Type = "GameObject", Required = true });
+
+            BlueprintNodeSource prewarm = AddNode(source, "prewarm_pool", "GameObject.PrewarmPool");
+            prewarm.Properties["poolId"] = "main";
+            prewarm.Properties["prefab"] = "PoolPrefab";
+            prewarm.Properties["capacity"] = 1;
+
+            BlueprintNodeSource acquire = AddNode(source, "acquire_pool", "GameObject.AcquireFromPool");
+            acquire.Properties["poolId"] = "main";
+
+            BlueprintNodeSource release = AddNode(source, "release_pool", "GameObject.ReleaseToPool");
+            release.Properties["poolId"] = "main";
+            release.Properties["deactivate"] = true;
+
+            BlueprintNodeSource resetPosition = AddNode(source, "reset_position", "Game.SetTransformPosition");
+            resetPosition.Properties["value"] = new List<object> { 7f, 8f, 9f };
+
+            BlueprintNodeSource resetActive = AddNode(source, "reset_active", "GameObject.SetActive");
+            resetActive.Properties["active"] = true;
+
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "acquire_pool.instance",
+                To = "release_pool.target"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "release_pool.reset",
+                To = "reset_position.execIn"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "release_pool.target",
+                To = "reset_position.target"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "reset_position.execOut",
+                To = "reset_active.execIn"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "release_pool.target",
+                To = "reset_active.target"
+            });
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("PoolResetOwner");
+            GameObject prefab = new GameObject("PoolResetPrefab");
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("PoolPrefab", prefab);
+
+                BlueprintVM vm = new BlueprintVM();
+                BlueprintExecutionContext context = null;
+                context = new BlueprintExecutionContext(
+                    compileResult.Blueprint,
+                    owner,
+                    null,
+                    resolver,
+                    new DictionaryBlueprintVariableStore(compileResult.Blueprint),
+                    null,
+                    new RecordingBlueprintLogger(),
+                    (node, outputPortId) => vm.ExecuteFromOutput(context, node, outputPortId));
+
+                ExecuteNode(compileResult.Blueprint, context, "prewarm_pool");
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "acquire_pool");
+                GameObject instance = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_pool", "instance") as GameObject;
+                Assert.NotNull(instance);
+                Assert.True(instance.activeSelf);
+                instance.transform.position = new Vector3(1f, 2f, 3f);
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "release_pool");
+                Assert.True((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "release_pool", "released"));
+                Assert.AreEqual(instance, EvaluateNodeOutput(compileResult.Blueprint, context, "release_pool", "target"));
+                Assert.AreEqual(new Vector3(7f, 8f, 9f), instance.transform.position);
+                Assert.False(instance.activeSelf);
+
+                instance.transform.position = new Vector3(1f, 2f, 3f);
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "release_pool");
+                Assert.False((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "release_pool", "released"));
+                Assert.AreEqual(new Vector3(1f, 2f, 3f), instance.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+                Object.DestroyImmediate(prefab);
+            }
+        }
+
+        [Test]
+        public void RuntimeGameObjectPoolQueriesStatsAndActiveInstances()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "PoolQueryRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "PoolPrefab", Type = "GameObject", Required = true });
+
+            BlueprintNodeSource prewarm = AddNode(source, "prewarm_pool", "GameObject.PrewarmPool");
+            prewarm.Properties["poolId"] = "main";
+            prewarm.Properties["prefab"] = "PoolPrefab";
+            prewarm.Properties["capacity"] = 2;
+
+            BlueprintNodeSource acquireFirst = AddNode(source, "acquire_first", "GameObject.AcquireFromPool");
+            acquireFirst.Properties["poolId"] = "main";
+
+            BlueprintNodeSource acquireSecond = AddNode(source, "acquire_second", "GameObject.AcquireFromPool");
+            acquireSecond.Properties["poolId"] = "main";
+
+            BlueprintNodeSource statsActive = AddNode(source, "stats_active", "GameObject.GetPoolStats");
+            statsActive.Properties["poolId"] = "main";
+
+            BlueprintNodeSource activeInstances = AddNode(source, "active_instances", "GameObject.GetPoolActiveInstances");
+            activeInstances.Properties["poolId"] = "main";
+
+            BlueprintNodeSource releaseFirst = AddNode(source, "release_first", "GameObject.ReleaseToPool");
+            releaseFirst.Properties["poolId"] = "main";
+
+            BlueprintNodeSource statsAfterRelease = AddNode(source, "stats_after_release", "GameObject.GetPoolStats");
+            statsAfterRelease.Properties["poolId"] = "main";
+
+            BlueprintNodeSource activeInstancesAfterRelease = AddNode(source, "active_instances_after_release", "GameObject.GetPoolActiveInstances");
+            activeInstancesAfterRelease.Properties["poolId"] = "main";
+
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "acquire_first.instance",
+                To = "release_first.target"
+            });
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("PoolQueryOwner");
+            GameObject prefab = new GameObject("PoolQueryPrefab");
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("PoolPrefab", prefab);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, owner, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "prewarm_pool");
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "acquire_first");
+                GameObject firstInstance = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_first", "instance") as GameObject;
+                Assert.NotNull(firstInstance);
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "acquire_second");
+                GameObject secondInstance = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_second", "instance") as GameObject;
+                Assert.NotNull(secondInstance);
+                Assert.AreNotEqual(firstInstance, secondInstance);
+
+                context.ClearValueCache();
+                Assert.AreEqual(2, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_active", "activeCount"));
+                Assert.AreEqual(0, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_active", "availableCount"));
+                Assert.AreEqual(2, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_active", "managedCount"));
+                Assert.True((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "stats_active", "exists"));
+
+                IList activeList = EvaluateNodeOutput(compileResult.Blueprint, context, "active_instances", "instances") as IList;
+                Assert.NotNull(activeList);
+                Assert.AreEqual(2, activeList.Count);
+                CollectionAssert.Contains(activeList, firstInstance);
+                CollectionAssert.Contains(activeList, secondInstance);
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "release_first");
+
+                context.ClearValueCache();
+                Assert.AreEqual(1, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_after_release", "activeCount"));
+                Assert.AreEqual(1, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_after_release", "availableCount"));
+                Assert.AreEqual(2, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_after_release", "managedCount"));
+                Assert.True((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "stats_after_release", "exists"));
+
+                IList activeAfterRelease = EvaluateNodeOutput(compileResult.Blueprint, context, "active_instances_after_release", "instances") as IList;
+                Assert.NotNull(activeAfterRelease);
+                Assert.AreEqual(1, activeAfterRelease.Count);
+                CollectionAssert.DoesNotContain(activeAfterRelease, firstInstance);
+                CollectionAssert.Contains(activeAfterRelease, secondInstance);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+                Object.DestroyImmediate(prefab);
+            }
+        }
+
+        [Test]
+        public void RuntimeGameObjectPoolQueriesMissingPoolReturnEmptyWithoutCreatingHost()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "PoolMissingQueryRuntimeTest";
+
+            BlueprintNodeSource stats = AddNode(source, "stats_missing", "GameObject.GetPoolStats");
+            stats.Properties["poolId"] = "missing";
+
+            BlueprintNodeSource activeInstances = AddNode(source, "active_missing", "GameObject.GetPoolActiveInstances");
+            activeInstances.Properties["poolId"] = "missing";
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("PoolMissingQueryOwner");
+            try
+            {
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, owner, new TestBindingResolver());
+                Assert.Null(owner.GetComponent<BlueprintGameObjectPoolHost>());
+
+                Assert.AreEqual(0, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_missing", "activeCount"));
+                Assert.AreEqual(0, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_missing", "availableCount"));
+                Assert.AreEqual(0, EvaluateNodeOutput(compileResult.Blueprint, context, "stats_missing", "managedCount"));
+                Assert.False((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "stats_missing", "exists"));
+
+                IList instances = EvaluateNodeOutput(compileResult.Blueprint, context, "active_missing", "instances") as IList;
+                Assert.NotNull(instances);
+                Assert.AreEqual(0, instances.Count);
+                Assert.Null(owner.GetComponent<BlueprintGameObjectPoolHost>());
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
             }
         }
 

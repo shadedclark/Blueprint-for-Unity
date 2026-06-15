@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.GetPoolStats",
+  "title": "Get GameObject Pool Stats",
+  "category": "GameObject/Pool",
+  "description": "Reads counts from a runner-scoped GameObject pool without creating it.",
+  "executor": "GameObject.GetPoolStats",
+  "inputs": [
+    {
+      "id": "poolId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "activeCount",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "availableCount",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "managedCount",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "exists",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "poolId",
+      "type": "string",
+      "required": false,
+      "defaultValue": "default"
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "pool",
+    "stats",
+    "count"
+  ]
+}

@@ -159,28 +159,54 @@ namespace BlueprintSystem
                 return BlueprintExecResult.Error("GameObject.ReleaseToPool node '" + node.Id + "' could not find pool '" + poolId + "'.");
             }
 
-            bool deactivate = context.GetInputValue(node, "deactivate", true);
             string error;
-            bool released = pool.Release(target, deactivate, out error);
+            bool released = pool.BeginRelease(target, out error);
             if (!string.IsNullOrEmpty(error))
             {
                 return BlueprintExecResult.Error("GameObject.ReleaseToPool node '" + node.Id + "' " + error);
             }
 
             context.SetState(GameObjectPoolExecutorUtility.StateKey(node, "released"), released);
+            context.SetState(GameObjectPoolExecutorUtility.StateKey(node, "target"), target);
+            if (released)
+            {
+                bool deactivate = context.GetInputValue(node, "deactivate", true);
+                try
+                {
+                    if (GameObjectPoolExecutorUtility.HasExecConnections(context, node, "reset"))
+                    {
+                        context.ExecuteFromOutput(node, "reset");
+                    }
+                }
+                finally
+                {
+                    pool.CompleteRelease(target, deactivate);
+                }
+            }
+
             return BlueprintExecResult.Continue("execOut");
         }
 
         public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
         {
             object value;
-            if (outputPortId == "released" &&
+            if ((outputPortId == "released" || outputPortId == "target") &&
                 context.TryGetState(GameObjectPoolExecutorUtility.StateKey(node, outputPortId), out value))
             {
                 return value;
             }
 
-            return false;
+            if (outputPortId == "released")
+            {
+                return false;
+            }
+
+            if (outputPortId == "target")
+            {
+                return null;
+            }
+
+            return base.Evaluate(context, node, outputPortId);
         }
     }
 
@@ -210,6 +236,62 @@ namespace BlueprintSystem
             }
 
             return 0;
+        }
+    }
+
+    public sealed class GameObjectGetPoolStatsExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "GameObject.GetPoolStats"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            BlueprintGameObjectPool pool;
+            bool exists = GameObjectPoolExecutorUtility.TryGetPool(context, node, out pool);
+            if (outputPortId == "exists")
+            {
+                return exists;
+            }
+
+            if (outputPortId == "activeCount")
+            {
+                return exists ? pool.ActiveCount : 0;
+            }
+
+            if (outputPortId == "availableCount")
+            {
+                return exists ? pool.AvailableCount : 0;
+            }
+
+            if (outputPortId == "managedCount")
+            {
+                return exists ? pool.ManagedCount : 0;
+            }
+
+            return base.Evaluate(context, node, outputPortId);
+        }
+    }
+
+    public sealed class GameObjectGetPoolActiveInstancesExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "GameObject.GetPoolActiveInstances"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            if (outputPortId != "instances")
+            {
+                return base.Evaluate(context, node, outputPortId);
+            }
+
+            BlueprintGameObjectPool pool;
+            return GameObjectPoolExecutorUtility.TryGetPool(context, node, out pool)
+                ? pool.GetActiveInstances()
+                : new List<GameObject>();
         }
     }
 
@@ -290,6 +372,7 @@ namespace BlueprintSystem
         private readonly List<GameObject> _available = new List<GameObject>();
         private readonly HashSet<GameObject> _active = new HashSet<GameObject>();
         private readonly HashSet<GameObject> _managed = new HashSet<GameObject>();
+        private readonly HashSet<GameObject> _pendingRelease = new HashSet<GameObject>();
         private Transform _parent;
 
         public BlueprintGameObjectPool(string poolId, GameObject prefab, Transform parent)
@@ -300,6 +383,33 @@ namespace BlueprintSystem
         }
 
         public GameObject Prefab { get; private set; }
+
+        public int ActiveCount
+        {
+            get
+            {
+                CleanupDestroyed();
+                return _active.Count;
+            }
+        }
+
+        public int AvailableCount
+        {
+            get
+            {
+                CleanupDestroyed();
+                return _available.Count;
+            }
+        }
+
+        public int ManagedCount
+        {
+            get
+            {
+                CleanupDestroyed();
+                return _managed.Count;
+            }
+        }
 
         public void SetParent(Transform parent)
         {
@@ -349,7 +459,7 @@ namespace BlueprintSystem
             return true;
         }
 
-        public bool Release(GameObject target, bool deactivate, out string error)
+        public bool BeginRelease(GameObject target, out string error)
         {
             CleanupDestroyed();
             if (!_managed.Contains(target))
@@ -358,7 +468,40 @@ namespace BlueprintSystem
                 return false;
             }
 
-            bool wasActive = _active.Remove(target);
+            if (_pendingRelease.Contains(target))
+            {
+                error = null;
+                return false;
+            }
+
+            bool wasActive = _active.Contains(target);
+            if (!wasActive && _available.Contains(target))
+            {
+                error = null;
+                return false;
+            }
+
+            _pendingRelease.Add(target);
+            error = null;
+            return true;
+        }
+
+        public void CompleteRelease(GameObject target, bool deactivate)
+        {
+            _pendingRelease.Remove(target);
+            if (target == null)
+            {
+                CleanupDestroyed();
+                return;
+            }
+
+            CleanupDestroyed();
+            if (!_managed.Contains(target))
+            {
+                return;
+            }
+
+            _active.Remove(target);
             if (deactivate)
             {
                 target.SetActive(false);
@@ -367,12 +510,19 @@ namespace BlueprintSystem
             if (!_available.Contains(target))
             {
                 _available.Add(target);
-                error = null;
-                return true;
+            }
+        }
+
+        public bool Release(GameObject target, bool deactivate, out string error)
+        {
+            bool released = BeginRelease(target, out error);
+            if (!released || !string.IsNullOrEmpty(error))
+            {
+                return false;
             }
 
-            error = null;
-            return wasActive;
+            CompleteRelease(target, deactivate);
+            return true;
         }
 
         public int Clear()
@@ -395,7 +545,14 @@ namespace BlueprintSystem
             _available.Clear();
             _active.Clear();
             _managed.Clear();
+            _pendingRelease.Clear();
             return destroyedCount;
+        }
+
+        public List<GameObject> GetActiveInstances()
+        {
+            CleanupDestroyed();
+            return new List<GameObject>(_active);
         }
 
         private GameObject PopAvailable()
@@ -452,6 +609,7 @@ namespace BlueprintSystem
 
             _active.RemoveWhere(IsDestroyed);
             _managed.RemoveWhere(IsDestroyed);
+            _pendingRelease.RemoveWhere(IsDestroyed);
         }
 
         private static bool IsDestroyed(GameObject instance)
@@ -521,6 +679,52 @@ namespace BlueprintSystem
             }
 
             return registry;
+        }
+
+        public static bool TryGetPool(BlueprintExecutionContext context, RuntimeNode node, out BlueprintGameObjectPool pool)
+        {
+            pool = null;
+            BlueprintGameObjectPoolRegistry registry;
+            if (!TryGetRegistry(context, out registry))
+            {
+                return false;
+            }
+
+            return registry.TryGet(GetPoolId(context, node), out pool);
+        }
+
+        public static bool HasExecConnections(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            if (context == null || context.Blueprint == null || node == null || string.IsNullOrEmpty(outputPortId))
+            {
+                return false;
+            }
+
+            List<RuntimeEdge> edges = context.Blueprint.GetExecEdges(new BlueprintPortKey(node.Id, outputPortId));
+            return edges != null && edges.Count > 0;
+        }
+
+        private static bool TryGetRegistry(BlueprintExecutionContext context, out BlueprintGameObjectPoolRegistry registry)
+        {
+            registry = null;
+            if (context != null && context.Owner != null)
+            {
+                BlueprintGameObjectPoolHost host = context.Owner.GetComponent<BlueprintGameObjectPoolHost>();
+                if (host != null)
+                {
+                    registry = host.Registry;
+                    return true;
+                }
+            }
+
+            object value;
+            if (context != null && context.TryGetState(RegistryStateKey, out value))
+            {
+                registry = value as BlueprintGameObjectPoolRegistry;
+                return registry != null;
+            }
+
+            return false;
         }
 
         public static GameObject ResolveRequiredPrefab(BlueprintExecutionContext context, RuntimeNode node)

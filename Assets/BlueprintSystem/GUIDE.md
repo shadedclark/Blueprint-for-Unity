@@ -55,6 +55,8 @@ connected value edge -> compiled node property -> null
 | `GameObject.AcquireFromPool` | Acquire From GameObject Pool | GameObject/Pool | `GameObject.AcquireFromPool` | `GameObjectAcquireFromPoolExecutor` | Gets or optionally expands a runner-scoped `GameObject` pool and outputs the checked-out instance. |
 | `GameObject.ReleaseToPool` | Release To GameObject Pool | GameObject/Pool | `GameObject.ReleaseToPool` | `GameObjectReleaseToPoolExecutor` | Returns a managed instance to a runner-scoped `GameObject` pool. |
 | `GameObject.ClearPool` | Clear GameObject Pool | GameObject/Pool | `GameObject.ClearPool` | `GameObjectClearPoolExecutor` | Destroys all managed instances in a runner-scoped `GameObject` pool. |
+| `GameObject.GetPoolStats` | Get GameObject Pool Stats | GameObject/Pool | `GameObject.GetPoolStats` | `GameObjectGetPoolStatsExecutor` | Reads active, available, and managed counts from a runner-scoped `GameObject` pool. |
+| `GameObject.GetPoolActiveInstances` | Get Pool Active Instances | GameObject/Pool | `GameObject.GetPoolActiveInstances` | `GameObjectGetPoolActiveInstancesExecutor` | Returns a runtime snapshot of currently checked-out pool instances. |
 | `Blueprint.IsValid` | Is Blueprint Valid | Blueprint | `Blueprint.IsValid` | `BlueprintIsValidExecutor` | Returns true when a `Blueprint` asset path or runtime `BlueprintRef` resolves inside the current Blueprint instance tree. |
 | `Blueprint.GetOwner` | Get Blueprint Owner | Blueprint | `Blueprint.GetOwner` | `BlueprintGetOwnerExecutor` | Returns the owner `BlueprintRef` for the current component or supplied `BlueprintRef`. |
 | `Blueprint.GetComponent` | Get Blueprint Component | Blueprint | `Blueprint.GetComponent` | `BlueprintGetComponentExecutor` | Finds a named component from the current instance or supplied `BlueprintRef`, walking owner instances outward. |
@@ -230,7 +232,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | Tick and time | `Game.Event.OnTick`, `Game.GetDeltaTime`, `Game.GetFixedDeltaTime`, `Game.GetTimeSeconds`, `Game.GetUnscaledTime`, `Game.GetTimeScale`, `Game.SetTimeScale` | Frame tick entry and common Unity time values/actions. `Game.Event.OnTick.phase` chooses `Update`, `FixedUpdate`, or `LateUpdate`; Runner only fires tick events that exist, so blueprints without Tick do not log every frame. |
 | Object instantiation | `Game.InstantiateObject` | Clone an already available `GameObject` prefab from a binding or a connected runtime asset such as `Resource.LoadAsync.asset`; outputs the created `GameObject` and `Transform`. |
 | GameObject lifecycle | `GameObject.SetActive`, `GameObject.Destroy` | Act on connected runtime `GameObject` values such as `Game.InstantiateObject.instance`; these nodes do not resolve binding names or store Unity object references in JSON. |
-| GameObject pooling | `GameObject.PrewarmPool`, `GameObject.AcquireFromPool`, `GameObject.ReleaseToPool`, `GameObject.ClearPool` | Unreal-style runner-scoped object pooling for `GameObject` prefabs using string `poolId` keys. |
+| GameObject pooling | `GameObject.PrewarmPool`, `GameObject.AcquireFromPool`, `GameObject.ReleaseToPool`, `GameObject.ClearPool`, `GameObject.GetPoolStats`, `GameObject.GetPoolActiveInstances` | Unreal-style runner-scoped object pooling and read-only pool queries for `GameObject` prefabs using string `poolId` keys. |
 | Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `Binding<Transform>` strings resolved at runtime. |
 | Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
 
@@ -356,8 +358,10 @@ These nodes provide Unreal-style object pooling for `GameObject` prefabs. Pools 
 | --- | --- | --- |
 | `GameObject.PrewarmPool` | Creates inactive instances up to `capacity`. | `poolId: string` defaults to `default`; required `prefab: Binding<GameObject>` may be a binding name or connected runtime prefab; optional `parent: Binding<Transform>` is used for newly created instances; `capacity: int` defaults to `10`; output `execOut`. |
 | `GameObject.AcquireFromPool` | Checks out an instance. | `poolId: string` defaults to `default`; optional `prefab` is required only when the pool does not exist yet or needs to expand from an empty pool; optional `parent` is used for newly created instances; `activate: bool` defaults to `true`; `expandIfEmpty: bool` defaults to `true`; outputs `instance: GameObject`, `transform: Transform`, `success: bool`, and `execOut`. |
-| `GameObject.ReleaseToPool` | Returns a managed instance. | Required `target: GameObject` must be connected from a runtime value output; `poolId: string` defaults to `default`; `deactivate: bool` defaults to `true`; outputs `released: bool` and `execOut`. |
+| `GameObject.ReleaseToPool` | Returns a managed instance. | Required `target: GameObject` must be connected from a runtime value output; `poolId: string` defaults to `default`; `deactivate: bool` defaults to `true`; outputs `reset`, `released: bool`, `target: GameObject`, and `execOut`. |
 | `GameObject.ClearPool` | Destroys all managed instances. | `poolId: string` defaults to `default`; outputs `destroyedCount: int` and `execOut`. |
+| `GameObject.GetPoolStats` | Reads pool counts without creating a pool. | `poolId: string` defaults to `default`; outputs `activeCount: int`, `availableCount: int`, `managedCount: int`, and `exists: bool`. Missing pools return zero counts and `exists=false`. |
+| `GameObject.GetPoolActiveInstances` | Returns checked-out instances. | `poolId: string` defaults to `default`; outputs `instances: Array<GameObject>` as a runtime snapshot. Missing pools return an empty array. Connect this output to `Array.ForEachLoop` to iterate active instances. |
 
 Manifests:
 
@@ -366,6 +370,8 @@ Assets/BlueprintSystem/Specs/Nodes/GameObject.PrewarmPool.node.json
 Assets/BlueprintSystem/Specs/Nodes/GameObject.AcquireFromPool.node.json
 Assets/BlueprintSystem/Specs/Nodes/GameObject.ReleaseToPool.node.json
 Assets/BlueprintSystem/Specs/Nodes/GameObject.ClearPool.node.json
+Assets/BlueprintSystem/Specs/Nodes/GameObject.GetPoolStats.node.json
+Assets/BlueprintSystem/Specs/Nodes/GameObject.GetPoolActiveInstances.node.json
 ```
 
 Executors:
@@ -386,6 +392,14 @@ File: Assets/BlueprintSystem/Executors/Game/GameObjectPoolExecutors.cs
 ID: GameObject.ClearPool
 Class: GameObjectClearPoolExecutor
 File: Assets/BlueprintSystem/Executors/Game/GameObjectPoolExecutors.cs
+
+ID: GameObject.GetPoolStats
+Class: GameObjectGetPoolStatsExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameObjectPoolExecutors.cs
+
+ID: GameObject.GetPoolActiveInstances
+Class: GameObjectGetPoolActiveInstancesExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameObjectPoolExecutors.cs
 ```
 
 Function:
@@ -394,11 +408,19 @@ Function:
 Resolve `prefab` and `parent` the same way as Game.InstantiateObject.
 Prewarm and Acquire create inactive instances first, then Acquire sets active state from `activate`.
 Release only accepts instances created or already managed by the same pool; it is not a generic SetActive(false) node.
+When a release actually returns an object to the pool, `GameObject.ReleaseToPool.reset` executes synchronously before `deactivate` is applied and before the object is added back to the available list.
+Use `GameObject.ReleaseToPool.target` inside the reset branch to connect the released instance to Transform, Rigidbody, GameObject, or other compatible runtime-object inputs.
+If a reset branch uses async flow such as `Flow.Delay`, delayed continuations may run after the object has already been deactivated and returned to the pool.
+Repeated release attempts for an object that is already available, or already in a pending release reset, return `released=false` and do not execute `reset`.
 Acquire returns success=false without error when the pool is empty and expandIfEmpty=false.
 Acquire returns an error when it must create a pool or expand an empty pool but cannot resolve a prefab.
 Supplying a different prefab for an existing pool id is an error.
 ClearPool destroys both active and inactive managed instances, then removes that pool id.
-Object reset, Rigidbody velocity cleanup, and custom OnAcquire/OnRelease behavior should be authored explicitly with other Blueprint nodes.
+Pool query nodes are read-only: they do not create a pool registry or add `BlueprintGameObjectPoolHost` to the owner.
+`activeCount` and active instances mean checked out from the pool and not yet released; they are not based on `GameObject.activeSelf`.
+`GameObject.GetPoolActiveInstances.instances` is a runtime-only snapshot, order is unspecified, and it should not be stored as a persisted variable default.
+Object reset and Rigidbody velocity cleanup should be authored on the `GameObject.ReleaseToPool.reset` branch with existing Blueprint nodes.
+Custom OnAcquire behavior should still be authored explicitly after `GameObject.AcquireFromPool`.
 ```
 
 ### Transform

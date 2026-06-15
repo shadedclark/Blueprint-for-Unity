@@ -38,9 +38,18 @@
       "kind": "exec"
     },
     {
+      "id": "reset",
+      "kind": "exec"
+    },
+    {
       "id": "released",
       "kind": "value",
       "type": "bool"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "GameObject"
     }
   ],
   "properties": [

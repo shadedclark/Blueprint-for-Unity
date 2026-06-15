@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.GetPoolActiveInstances",
+  "title": "Get Pool Active Instances",
+  "category": "GameObject/Pool",
+  "description": "Returns a runtime snapshot of checked-out GameObject instances from a runner-scoped pool.",
+  "executor": "GameObject.GetPoolActiveInstances",
+  "inputs": [
+    {
+      "id": "poolId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "instances",
+      "kind": "value",
+      "type": "Array<GameObject>"
+    }
+  ],
+  "properties": [
+    {
+      "id": "poolId",
+      "type": "string",
+      "required": false,
+      "defaultValue": "default"
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "pool",
+    "active",
+    "instances"
+  ]
+}

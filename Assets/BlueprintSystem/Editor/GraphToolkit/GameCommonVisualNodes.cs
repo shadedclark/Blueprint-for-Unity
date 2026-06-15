@@ -290,7 +290,9 @@ namespace BlueprintSystem.Editor
             AddValueInput("target", "GameObject", true, "connection");
             AddValueInput("deactivate", "bool", true, "propertyOrConnection");
             AddExecOutput("execOut");
+            AddExecOutput("reset");
             AddValueOutput("released", "bool");
+            AddValueOutput("target", "GameObject");
             AddProperty("poolId", "string", false, "default");
             AddProperty("deactivate", "bool", false, true);
         }
@@ -308,6 +310,37 @@ namespace BlueprintSystem.Editor
             AddValueInput("poolId", "string", true, "propertyOrConnection");
             AddExecOutput("execOut");
             AddValueOutput("destroyedCount", "int");
+            AddProperty("poolId", "string", false, "default");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.GetPoolStats")]
+    public sealed class GameObjectGetPoolStatsVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.GetPoolStats", "Get GameObject Pool Stats", "GameObject/Pool", "Reads counts from a runner-scoped GameObject pool without creating it.");
+            AddValueInput("poolId", "string", true, "propertyOrConnection");
+            AddValueOutput("activeCount", "int");
+            AddValueOutput("availableCount", "int");
+            AddValueOutput("managedCount", "int");
+            AddValueOutput("exists", "bool");
+            AddProperty("poolId", "string", false, "default");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.GetPoolActiveInstances")]
+    public sealed class GameObjectGetPoolActiveInstancesVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.GetPoolActiveInstances", "Get Pool Active Instances", "GameObject/Pool", "Returns a runtime snapshot of checked-out GameObject instances from a runner-scoped pool.");
+            AddValueInput("poolId", "string", true, "propertyOrConnection");
+            AddValueOutput("instances", "Array<GameObject>");
             AddProperty("poolId", "string", false, "default");
         }
     }
