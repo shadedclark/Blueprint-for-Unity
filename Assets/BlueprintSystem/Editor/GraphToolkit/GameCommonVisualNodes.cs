@@ -200,6 +200,36 @@ namespace BlueprintSystem.Editor
         }
     }
 
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.SetActive")]
+    public sealed class GameObjectSetActiveVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.SetActive", "Set GameObject Active", "GameObject", "Sets active state on a runtime GameObject value.");
+            AddExecInput("execIn");
+            AddValueInput("target", "GameObject", true, "connection");
+            AddValueInput("active", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("active", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.Destroy")]
+    public sealed class GameObjectDestroyVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.Destroy", "Destroy GameObject", "GameObject", "Destroys a runtime GameObject value.");
+            AddExecInput("execIn");
+            AddValueInput("target", "GameObject", true, "connection");
+            AddExecOutput("execOut");
+        }
+    }
+
     public abstract class GameTransformGetterVisualNode : BlueprintVisualNode
     {
         protected void ConfigureGetter(string typeId, string title, string description)

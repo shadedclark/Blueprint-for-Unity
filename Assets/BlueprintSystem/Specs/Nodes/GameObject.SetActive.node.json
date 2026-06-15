@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.SetActive",
+  "title": "Set GameObject Active",
+  "category": "GameObject",
+  "description": "Sets active state on a runtime GameObject value.",
+  "executor": "GameObject.SetActive",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "GameObject",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "active",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "active",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "active",
+    "setactive",
+    "visibility"
+  ]
+}

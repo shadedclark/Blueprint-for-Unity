@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.Destroy",
+  "title": "Destroy GameObject",
+  "category": "GameObject",
+  "description": "Destroys a runtime GameObject value.",
+  "executor": "GameObject.Destroy",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "GameObject",
+      "required": true,
+      "source": "connection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [],
+  "tags": [
+    "gameobject",
+    "object",
+    "destroy",
+    "lifecycle"
+  ]
+}

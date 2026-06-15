@@ -173,6 +173,55 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class GameObjectSetActiveExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "GameObject.SetActive"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            GameObject target = context.GetInputValue(node, "target") as GameObject;
+            if (target == null)
+            {
+                return BlueprintExecResult.Error("GameObject.SetActive node '" + node.Id + "' requires a runtime GameObject target.");
+            }
+
+            bool active = context.GetInputValue(node, "active", true);
+            target.SetActive(active);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameObjectDestroyExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "GameObject.Destroy"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            GameObject target = context.GetInputValue(node, "target") as GameObject;
+            if (target == null)
+            {
+                return BlueprintExecResult.Error("GameObject.Destroy node '" + node.Id + "' requires a runtime GameObject target.");
+            }
+
+            if (Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(target);
+            }
+            else
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+            }
+
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
     public sealed class GameIsCollidingExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

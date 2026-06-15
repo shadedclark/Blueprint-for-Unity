@@ -49,6 +49,8 @@ connected value edge -> compiled node property -> null
 | `Game.LoadScene` | Load Scene | Game | `Game.LoadScene` | `GameLoadSceneExecutor` | Loads a Unity scene by name. |
 | `Game.LoadSceneAsync` | Load Scene Async | Game | `Game.LoadSceneAsync` | `GameLoadSceneAsyncExecutor` | Loads a Unity scene by name and continues from `complete` after the async operation finishes. |
 | `Game.InstantiateObject` | Instantiate Object | Game/Object | `Game.InstantiateObject` | `GameInstantiateObjectExecutor` | Clones a `GameObject` prefab from a binding or connected runtime asset, optionally under a parent Transform. |
+| `GameObject.SetActive` | Set GameObject Active | GameObject | `GameObject.SetActive` | `GameObjectSetActiveExecutor` | Sets active state on a connected runtime `GameObject` value. |
+| `GameObject.Destroy` | Destroy GameObject | GameObject | `GameObject.Destroy` | `GameObjectDestroyExecutor` | Destroys a connected runtime `GameObject` value. |
 | `Blueprint.IsValid` | Is Blueprint Valid | Blueprint | `Blueprint.IsValid` | `BlueprintIsValidExecutor` | Returns true when a `Blueprint` asset path or runtime `BlueprintRef` resolves inside the current Blueprint instance tree. |
 | `Blueprint.GetOwner` | Get Blueprint Owner | Blueprint | `Blueprint.GetOwner` | `BlueprintGetOwnerExecutor` | Returns the owner `BlueprintRef` for the current component or supplied `BlueprintRef`. |
 | `Blueprint.GetComponent` | Get Blueprint Component | Blueprint | `Blueprint.GetComponent` | `BlueprintGetComponentExecutor` | Finds a named component from the current instance or supplied `BlueprintRef`, walking owner instances outward. |
@@ -223,6 +225,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | Array mutation-style values | `Array.Add`, `Array.AddUnique`, `Array.Insert`, `Array.RemoveIndex`, `Array.RemoveItem`, `Array.SetElement`, `Array.RandomItem`, `Array.LastIndex` | Return changed array copies plus useful metadata such as index, removed, added, success, or validity flags. Connect the returned `array` output into `Variable.Set.value` when persistent variable changes are needed. |
 | Tick and time | `Game.Event.OnTick`, `Game.GetDeltaTime`, `Game.GetFixedDeltaTime`, `Game.GetTimeSeconds`, `Game.GetUnscaledTime`, `Game.GetTimeScale`, `Game.SetTimeScale` | Frame tick entry and common Unity time values/actions. `Game.Event.OnTick.phase` chooses `Update`, `FixedUpdate`, or `LateUpdate`; Runner only fires tick events that exist, so blueprints without Tick do not log every frame. |
 | Object instantiation | `Game.InstantiateObject` | Clone an already available `GameObject` prefab from a binding or a connected runtime asset such as `Resource.LoadAsync.asset`; outputs the created `GameObject` and `Transform`. |
+| GameObject lifecycle | `GameObject.SetActive`, `GameObject.Destroy` | Act on connected runtime `GameObject` values such as `Game.InstantiateObject.instance`; these nodes do not resolve binding names or store Unity object references in JSON. |
 | Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `Binding<Transform>` strings resolved at runtime. |
 | Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
 
@@ -303,6 +306,42 @@ Ports and parameters:
 | `transform` | output value | `Transform` | none | no | none | Runtime-only created Transform. |
 
 `GameObject`, `Transform`, and `Component` runtime outputs can connect to compatible `Binding<GameObject>` and `Binding<Transform>` inputs. They are runtime values only and must not be declared as persisted variables or serialized Unity references in `.blueprint.json`.
+
+### GameObject Lifecycle
+
+| Type ID | Purpose | Ports and notes |
+| --- | --- | --- |
+| `GameObject.SetActive` | Sets active state on a runtime `GameObject`. | Required `target: GameObject` must be connected from a runtime value output; `active: bool` defaults to `true` and may be connected or set as a property; output `execOut`. |
+| `GameObject.Destroy` | Destroys a runtime `GameObject`. | Required `target: GameObject` must be connected from a runtime value output; output `execOut`. |
+
+Manifests:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/GameObject.SetActive.node.json
+Assets/BlueprintSystem/Specs/Nodes/GameObject.Destroy.node.json
+```
+
+Executors:
+
+```text
+ID: GameObject.SetActive
+Class: GameObjectSetActiveExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+
+ID: GameObject.Destroy
+Class: GameObjectDestroyExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameExecutors.cs
+```
+
+Function:
+
+```text
+Read `target` as a direct runtime GameObject value from a value connection.
+Do not resolve `target` through Binding<GameObject> names or JSON properties.
+GameObject.SetActive calls `target.SetActive(active)`.
+GameObject.Destroy calls `Object.Destroy(target)` in play mode and `Object.DestroyImmediate(target)` outside play mode.
+Return an error and stop when `target` is missing or not a GameObject.
+```
 
 ### Transform
 

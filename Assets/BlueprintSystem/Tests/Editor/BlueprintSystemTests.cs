@@ -3083,6 +3083,59 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void GameObjectLifecycleNodeManifestsAndVisualNodesAreAligned()
+        {
+            BlueprintNodeManifest setActiveManifest;
+            Assert.True(LoadManifests().TryGet("GameObject.SetActive", out setActiveManifest));
+            Assert.AreEqual("Set GameObject Active", setActiveManifest.Title);
+            Assert.AreEqual("GameObject", setActiveManifest.Category);
+            Assert.AreEqual("GameObject.SetActive", setActiveManifest.Executor);
+            BlueprintPortSpec setActiveTarget = setActiveManifest.FindInput("target");
+            BlueprintPortSpec setActiveValue = setActiveManifest.FindInput("active");
+            Assert.NotNull(setActiveTarget);
+            Assert.AreEqual("GameObject", setActiveTarget.Type);
+            Assert.True(setActiveTarget.Required);
+            Assert.AreEqual(BlueprintValueSource.Connection, setActiveTarget.Source);
+            Assert.Null(setActiveManifest.FindProperty("target"));
+            Assert.NotNull(setActiveValue);
+            Assert.AreEqual("bool", setActiveValue.Type);
+            Assert.True(setActiveValue.Required);
+            Assert.AreEqual(BlueprintValueSource.PropertyOrConnection, setActiveValue.Source);
+            Assert.NotNull(setActiveManifest.FindProperty("active"));
+            Assert.False(setActiveManifest.FindProperty("active").Required);
+            Assert.AreEqual(true, setActiveManifest.FindProperty("active").DefaultValue);
+
+            BlueprintVisualNode setActiveVisual = BlueprintVisualNodeFactory.Create("GameObject.SetActive");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), setActiveVisual.GetType());
+            Assert.AreEqual("GameObject.SetActive", setActiveVisual.ReadTypeId());
+            Assert.AreEqual("GameObject", setActiveVisual.Inputs.Find(port => port.Id == "target").Type);
+            Assert.AreEqual("connection", setActiveVisual.Inputs.Find(port => port.Id == "target").Source);
+            Assert.AreEqual("bool", setActiveVisual.Inputs.Find(port => port.Id == "active").Type);
+            Assert.AreEqual("propertyOrConnection", setActiveVisual.Inputs.Find(port => port.Id == "active").Source);
+            Assert.Null(setActiveVisual.Properties.Find(property => property.Id == "target"));
+            Assert.NotNull(setActiveVisual.Properties.Find(property => property.Id == "active"));
+
+            BlueprintNodeManifest destroyManifest;
+            Assert.True(LoadManifests().TryGet("GameObject.Destroy", out destroyManifest));
+            Assert.AreEqual("Destroy GameObject", destroyManifest.Title);
+            Assert.AreEqual("GameObject", destroyManifest.Category);
+            Assert.AreEqual("GameObject.Destroy", destroyManifest.Executor);
+            BlueprintPortSpec destroyTarget = destroyManifest.FindInput("target");
+            Assert.NotNull(destroyTarget);
+            Assert.AreEqual("GameObject", destroyTarget.Type);
+            Assert.True(destroyTarget.Required);
+            Assert.AreEqual(BlueprintValueSource.Connection, destroyTarget.Source);
+            Assert.Null(destroyManifest.FindProperty("target"));
+
+            BlueprintVisualNode destroyVisual = BlueprintVisualNodeFactory.Create("GameObject.Destroy");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), destroyVisual.GetType());
+            Assert.AreEqual("GameObject.Destroy", destroyVisual.ReadTypeId());
+            Assert.AreEqual("GameObject", destroyVisual.Inputs.Find(port => port.Id == "target").Type);
+            Assert.AreEqual("connection", destroyVisual.Inputs.Find(port => port.Id == "target").Source);
+            Assert.Null(destroyVisual.Properties.Find(property => property.Id == "target"));
+        }
+
+        [Test]
         public void ValidatorAcceptsInstantiateObjectPrefabSources()
         {
             BlueprintSource bindingSource = new BlueprintSource();
@@ -3119,6 +3172,48 @@ namespace BlueprintSystem.Tests
 
             BlueprintDiagnosticList resourceDiagnostics = new BlueprintValidator().Validate(resourceSource, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
             Assert.False(resourceDiagnostics.HasErrors, resourceDiagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void ValidatorAcceptsRuntimeGameObjectLifecycleTargets()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "GameObjectLifecycleTargetValidationTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "EnemyPrefab", Type = "GameObject", Required = true });
+            BlueprintNodeSource spawn = AddNode(source, "spawn_enemy", "Game.InstantiateObject");
+            spawn.Properties["prefab"] = "EnemyPrefab";
+            BlueprintNodeSource setActive = AddNode(source, "set_enemy_inactive", "GameObject.SetActive");
+            setActive.Properties["active"] = false;
+            AddNode(source, "destroy_enemy", "GameObject.Destroy");
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "spawn_enemy.instance",
+                To = "set_enemy_inactive.target"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "spawn_enemy.instance",
+                To = "destroy_enemy.target"
+            });
+
+            BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+
+            BlueprintSource missingSetActiveTarget = new BlueprintSource();
+            missingSetActiveTarget.SchemaVersion = "0.1";
+            missingSetActiveTarget.Name = "MissingSetActiveTargetTest";
+            BlueprintNodeSource missingSetActive = AddNode(missingSetActiveTarget, "set_active_missing_target", "GameObject.SetActive");
+            missingSetActive.Properties["active"] = false;
+            BlueprintDiagnosticList setActiveDiagnostics = new BlueprintValidator().Validate(missingSetActiveTarget, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(setActiveDiagnostics.Exists(diagnostic => diagnostic.Code == "BP002" && diagnostic.NodeId == "set_active_missing_target"), setActiveDiagnostics.ToDisplayString());
+
+            BlueprintSource missingDestroyTarget = new BlueprintSource();
+            missingDestroyTarget.SchemaVersion = "0.1";
+            missingDestroyTarget.Name = "MissingDestroyTargetTest";
+            AddNode(missingDestroyTarget, "destroy_missing_target", "GameObject.Destroy");
+            BlueprintDiagnosticList destroyDiagnostics = new BlueprintValidator().Validate(missingDestroyTarget, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(destroyDiagnostics.Exists(diagnostic => diagnostic.Code == "BP002" && diagnostic.NodeId == "destroy_missing_target"), destroyDiagnostics.ToDisplayString());
         }
 
         [Test]
@@ -3174,6 +3269,102 @@ namespace BlueprintSystem.Tests
 
                 Object.DestroyImmediate(prefab);
                 Object.DestroyImmediate(parent);
+            }
+        }
+
+        [Test]
+        public void RuntimeSetsConnectedGameObjectActiveState()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "GameObjectSetActiveRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "EnemyPrefab", Type = "GameObject", Required = true });
+            BlueprintNodeSource spawn = AddNode(source, "spawn_enemy", "Game.InstantiateObject");
+            spawn.Properties["prefab"] = "EnemyPrefab";
+            BlueprintNodeSource setActive = AddNode(source, "set_enemy_inactive", "GameObject.SetActive");
+            setActive.Properties["active"] = false;
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "spawn_enemy.instance",
+                To = "set_enemy_inactive.target"
+            });
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject prefab = new GameObject("EnemyPrefab");
+            GameObject instance = null;
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("EnemyPrefab", prefab);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, null, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "spawn_enemy");
+                RuntimeNode spawnNode = compileResult.Blueprint.GetNode("spawn_enemy");
+                instance = spawnNode.Executor.Evaluate(context, spawnNode, "instance") as GameObject;
+                Assert.NotNull(instance);
+                Assert.True(instance.activeSelf);
+
+                ExecuteNode(compileResult.Blueprint, context, "set_enemy_inactive");
+
+                Assert.False(instance.activeSelf);
+            }
+            finally
+            {
+                if (instance != null)
+                {
+                    Object.DestroyImmediate(instance);
+                }
+
+                Object.DestroyImmediate(prefab);
+            }
+        }
+
+        [Test]
+        public void RuntimeDestroysConnectedGameObject()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "GameObjectDestroyRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "EnemyPrefab", Type = "GameObject", Required = true });
+            BlueprintNodeSource spawn = AddNode(source, "spawn_enemy", "Game.InstantiateObject");
+            spawn.Properties["prefab"] = "EnemyPrefab";
+            AddNode(source, "destroy_enemy", "GameObject.Destroy");
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "spawn_enemy.instance",
+                To = "destroy_enemy.target"
+            });
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject prefab = new GameObject("EnemyPrefab");
+            GameObject instance = null;
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("EnemyPrefab", prefab);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, null, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "spawn_enemy");
+                RuntimeNode spawnNode = compileResult.Blueprint.GetNode("spawn_enemy");
+                instance = spawnNode.Executor.Evaluate(context, spawnNode, "instance") as GameObject;
+                Assert.NotNull(instance);
+
+                ExecuteNode(compileResult.Blueprint, context, "destroy_enemy");
+
+                Assert.True(instance == null);
+            }
+            finally
+            {
+                if (instance != null)
+                {
+                    Object.DestroyImmediate(instance);
+                }
+
+                Object.DestroyImmediate(prefab);
             }
         }
 
