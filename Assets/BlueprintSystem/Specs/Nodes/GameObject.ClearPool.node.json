@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.ClearPool",
+  "title": "Clear GameObject Pool",
+  "category": "GameObject/Pool",
+  "description": "Destroys all managed GameObject instances in a runner-scoped object pool.",
+  "executor": "GameObject.ClearPool",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "poolId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "destroyedCount",
+      "kind": "value",
+      "type": "int"
+    }
+  ],
+  "properties": [
+    {
+      "id": "poolId",
+      "type": "string",
+      "required": false,
+      "defaultValue": "default"
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "pool",
+    "clear",
+    "destroy"
+  ]
+}

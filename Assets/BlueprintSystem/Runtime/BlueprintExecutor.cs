@@ -246,6 +246,10 @@ namespace BlueprintSystem
             registry.Register(new GameInstantiateObjectExecutor());
             registry.Register(new GameObjectSetActiveExecutor());
             registry.Register(new GameObjectDestroyExecutor());
+            registry.Register(new GameObjectPrewarmPoolExecutor());
+            registry.Register(new GameObjectAcquireFromPoolExecutor());
+            registry.Register(new GameObjectReleaseToPoolExecutor());
+            registry.Register(new GameObjectClearPoolExecutor());
             registry.Register(new GameIsCollidingExecutor());
             registry.Register(new GameGetTransformPositionExecutor());
             registry.Register(new GameGetTransformEulerAnglesExecutor());

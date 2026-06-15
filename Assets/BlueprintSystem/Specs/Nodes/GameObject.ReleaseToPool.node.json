@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.ReleaseToPool",
+  "title": "Release To GameObject Pool",
+  "category": "GameObject/Pool",
+  "description": "Returns a managed GameObject instance to a runner-scoped object pool.",
+  "executor": "GameObject.ReleaseToPool",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "poolId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "GameObject",
+      "required": true,
+      "source": "connection"
+    },
+    {
+      "id": "deactivate",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "released",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "poolId",
+      "type": "string",
+      "required": false,
+      "defaultValue": "default"
+    },
+    {
+      "id": "deactivate",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "pool",
+    "release",
+    "despawn"
+  ]
+}

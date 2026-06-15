@@ -3389,6 +3389,287 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void GameObjectPoolNodeManifestsAndVisualNodesAreAligned()
+        {
+            BlueprintNodeManifestCollection manifests = LoadManifests();
+
+            BlueprintNodeManifest prewarmManifest;
+            Assert.True(manifests.TryGet("GameObject.PrewarmPool", out prewarmManifest));
+            Assert.AreEqual("Prewarm GameObject Pool", prewarmManifest.Title);
+            Assert.AreEqual("GameObject/Pool", prewarmManifest.Category);
+            Assert.AreEqual("GameObject.PrewarmPool", prewarmManifest.Executor);
+            AssertManifestValueInput(prewarmManifest, "poolId", "string", true, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(prewarmManifest, "prefab", "Binding<GameObject>", true, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(prewarmManifest, "parent", "Binding<Transform>", false, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(prewarmManifest, "capacity", "int", true, BlueprintValueSource.PropertyOrConnection);
+            Assert.AreEqual("default", prewarmManifest.FindProperty("poolId").DefaultValue);
+            Assert.AreEqual(10, prewarmManifest.FindProperty("capacity").DefaultValue);
+
+            BlueprintVisualNode prewarmVisual = BlueprintVisualNodeFactory.Create("GameObject.PrewarmPool");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), prewarmVisual.GetType());
+            Assert.AreEqual("GameObject.PrewarmPool", prewarmVisual.ReadTypeId());
+            AssertVisualValueInput(prewarmVisual, "prefab", "Binding<GameObject>", "propertyOrConnection");
+            AssertVisualValueInput(prewarmVisual, "capacity", "int", "propertyOrConnection");
+
+            BlueprintNodeManifest acquireManifest;
+            Assert.True(manifests.TryGet("GameObject.AcquireFromPool", out acquireManifest));
+            Assert.AreEqual("Acquire From GameObject Pool", acquireManifest.Title);
+            Assert.AreEqual("GameObject/Pool", acquireManifest.Category);
+            Assert.AreEqual("GameObject.AcquireFromPool", acquireManifest.Executor);
+            AssertManifestValueInput(acquireManifest, "poolId", "string", true, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(acquireManifest, "prefab", "Binding<GameObject>", false, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(acquireManifest, "parent", "Binding<Transform>", false, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(acquireManifest, "activate", "bool", true, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(acquireManifest, "expandIfEmpty", "bool", true, BlueprintValueSource.PropertyOrConnection);
+            Assert.AreEqual("GameObject", acquireManifest.FindOutput("instance").Type);
+            Assert.AreEqual("Transform", acquireManifest.FindOutput("transform").Type);
+            Assert.AreEqual("bool", acquireManifest.FindOutput("success").Type);
+            Assert.AreEqual(true, acquireManifest.FindProperty("activate").DefaultValue);
+            Assert.AreEqual(true, acquireManifest.FindProperty("expandIfEmpty").DefaultValue);
+
+            BlueprintVisualNode acquireVisual = BlueprintVisualNodeFactory.Create("GameObject.AcquireFromPool");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), acquireVisual.GetType());
+            Assert.AreEqual("GameObject.AcquireFromPool", acquireVisual.ReadTypeId());
+            AssertVisualValueInput(acquireVisual, "prefab", "Binding<GameObject>", "propertyOrConnection");
+            AssertVisualValueInput(acquireVisual, "expandIfEmpty", "bool", "propertyOrConnection");
+            Assert.AreEqual("GameObject", acquireVisual.Outputs.Find(port => port.Id == "instance").Type);
+            Assert.AreEqual("Transform", acquireVisual.Outputs.Find(port => port.Id == "transform").Type);
+            Assert.AreEqual("bool", acquireVisual.Outputs.Find(port => port.Id == "success").Type);
+
+            BlueprintNodeManifest releaseManifest;
+            Assert.True(manifests.TryGet("GameObject.ReleaseToPool", out releaseManifest));
+            Assert.AreEqual("Release To GameObject Pool", releaseManifest.Title);
+            Assert.AreEqual("GameObject/Pool", releaseManifest.Category);
+            Assert.AreEqual("GameObject.ReleaseToPool", releaseManifest.Executor);
+            AssertManifestValueInput(releaseManifest, "poolId", "string", true, BlueprintValueSource.PropertyOrConnection);
+            AssertManifestValueInput(releaseManifest, "target", "GameObject", true, BlueprintValueSource.Connection);
+            AssertManifestValueInput(releaseManifest, "deactivate", "bool", true, BlueprintValueSource.PropertyOrConnection);
+            Assert.Null(releaseManifest.FindProperty("target"));
+            Assert.AreEqual("bool", releaseManifest.FindOutput("released").Type);
+
+            BlueprintVisualNode releaseVisual = BlueprintVisualNodeFactory.Create("GameObject.ReleaseToPool");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), releaseVisual.GetType());
+            Assert.AreEqual("GameObject.ReleaseToPool", releaseVisual.ReadTypeId());
+            AssertVisualValueInput(releaseVisual, "target", "GameObject", "connection");
+            Assert.AreEqual("bool", releaseVisual.Outputs.Find(port => port.Id == "released").Type);
+
+            BlueprintNodeManifest clearManifest;
+            Assert.True(manifests.TryGet("GameObject.ClearPool", out clearManifest));
+            Assert.AreEqual("Clear GameObject Pool", clearManifest.Title);
+            Assert.AreEqual("GameObject/Pool", clearManifest.Category);
+            Assert.AreEqual("GameObject.ClearPool", clearManifest.Executor);
+            AssertManifestValueInput(clearManifest, "poolId", "string", true, BlueprintValueSource.PropertyOrConnection);
+            Assert.AreEqual("int", clearManifest.FindOutput("destroyedCount").Type);
+
+            BlueprintVisualNode clearVisual = BlueprintVisualNodeFactory.Create("GameObject.ClearPool");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), clearVisual.GetType());
+            Assert.AreEqual("GameObject.ClearPool", clearVisual.ReadTypeId());
+            AssertVisualValueInput(clearVisual, "poolId", "string", "propertyOrConnection");
+            Assert.AreEqual("int", clearVisual.Outputs.Find(port => port.Id == "destroyedCount").Type);
+        }
+
+        [Test]
+        public void ValidatorAcceptsGameObjectPoolFlowAndRequiresReleaseTarget()
+        {
+            BlueprintSource source = CreatePoolFlowSource();
+            BlueprintDiagnosticList diagnostics = new BlueprintValidator().Validate(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            BlueprintSource missingTarget = new BlueprintSource();
+            missingTarget.SchemaVersion = "0.1";
+            missingTarget.Name = "PoolReleaseMissingTargetTest";
+            AddNode(missingTarget, "release_without_target", "GameObject.ReleaseToPool");
+
+            BlueprintDiagnosticList missingTargetDiagnostics = new BlueprintValidator().Validate(missingTarget, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(missingTargetDiagnostics.Exists(diagnostic => diagnostic.Code == "BP002" && diagnostic.NodeId == "release_without_target"), missingTargetDiagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void RuntimeGameObjectPoolReusesReleasedInstances()
+        {
+            BlueprintSource source = CreatePoolFlowSource();
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("PoolOwner");
+            GameObject prefab = new GameObject("PoolPrefab");
+            GameObject parent = new GameObject("PoolParent");
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("PoolPrefab", prefab);
+                resolver.Add("PoolParent", parent);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, owner, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "prewarm_pool");
+                Assert.NotNull(owner.GetComponent<BlueprintGameObjectPoolHost>());
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "acquire_pool");
+                GameObject firstInstance = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_pool", "instance") as GameObject;
+                Transform firstTransform = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_pool", "transform") as Transform;
+                Assert.NotNull(firstInstance);
+                Assert.NotNull(firstTransform);
+                Assert.AreEqual(firstInstance.transform, firstTransform);
+                Assert.True((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_pool", "success"));
+                Assert.True(firstInstance.activeSelf);
+                Assert.AreEqual(parent.transform, firstInstance.transform.parent);
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "release_pool");
+                Assert.True((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "release_pool", "released"));
+                Assert.False(firstInstance.activeSelf);
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "acquire_pool");
+                GameObject secondInstance = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_pool", "instance") as GameObject;
+                Assert.AreEqual(firstInstance, secondInstance);
+                Assert.True(secondInstance.activeSelf);
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "clear_pool");
+                Assert.AreEqual(2, EvaluateNodeOutput(compileResult.Blueprint, context, "clear_pool", "destroyedCount"));
+                Assert.True(firstInstance == null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+                Object.DestroyImmediate(prefab);
+                Object.DestroyImmediate(parent);
+            }
+        }
+
+        [Test]
+        public void RuntimeGameObjectPoolExpandsAndReportsPrefabErrors()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "PoolExpansionRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "PoolPrefab", Type = "GameObject", Required = true });
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "OtherPrefab", Type = "GameObject", Required = true });
+
+            BlueprintNodeSource acquireNoExpand = AddNode(source, "acquire_no_expand", "GameObject.AcquireFromPool");
+            acquireNoExpand.Properties["poolId"] = "expand";
+            acquireNoExpand.Properties["prefab"] = "PoolPrefab";
+            acquireNoExpand.Properties["expandIfEmpty"] = false;
+
+            BlueprintNodeSource acquireExpand = AddNode(source, "acquire_expand", "GameObject.AcquireFromPool");
+            acquireExpand.Properties["poolId"] = "expand";
+            acquireExpand.Properties["prefab"] = "PoolPrefab";
+
+            BlueprintNodeSource acquireMissingPrefab = AddNode(source, "acquire_missing_prefab", "GameObject.AcquireFromPool");
+            acquireMissingPrefab.Properties["poolId"] = "missing";
+
+            BlueprintNodeSource prewarmMismatch = AddNode(source, "prewarm_mismatch", "GameObject.PrewarmPool");
+            prewarmMismatch.Properties["poolId"] = "mismatch";
+            prewarmMismatch.Properties["prefab"] = "PoolPrefab";
+            prewarmMismatch.Properties["capacity"] = 1;
+
+            BlueprintNodeSource acquireMismatch = AddNode(source, "acquire_mismatch", "GameObject.AcquireFromPool");
+            acquireMismatch.Properties["poolId"] = "mismatch";
+            acquireMismatch.Properties["prefab"] = "OtherPrefab";
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("PoolErrorOwner");
+            GameObject prefab = new GameObject("PoolPrefab");
+            GameObject otherPrefab = new GameObject("OtherPrefab");
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("PoolPrefab", prefab);
+                resolver.Add("OtherPrefab", otherPrefab);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, owner, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "acquire_no_expand");
+                Assert.False((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_no_expand", "success"));
+                Assert.Null(EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_no_expand", "instance"));
+
+                context.ClearValueCache();
+                ExecuteNode(compileResult.Blueprint, context, "acquire_expand");
+                GameObject expanded = EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_expand", "instance") as GameObject;
+                Assert.NotNull(expanded);
+                Assert.True((bool)EvaluateNodeOutput(compileResult.Blueprint, context, "acquire_expand", "success"));
+
+                RuntimeNode missingPrefabNode = compileResult.Blueprint.GetNode("acquire_missing_prefab");
+                BlueprintExecResult missingPrefabResult = missingPrefabNode.Executor.Execute(context, missingPrefabNode);
+                Assert.True(missingPrefabResult.ErrorMessage.Contains("could not resolve prefab"), missingPrefabResult.ErrorMessage);
+
+                ExecuteNode(compileResult.Blueprint, context, "prewarm_mismatch");
+                RuntimeNode mismatchNode = compileResult.Blueprint.GetNode("acquire_mismatch");
+                BlueprintExecResult mismatchResult = mismatchNode.Executor.Execute(context, mismatchNode);
+                Assert.True(mismatchResult.ErrorMessage.Contains("different prefab"), mismatchResult.ErrorMessage);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+                Object.DestroyImmediate(prefab);
+                Object.DestroyImmediate(otherPrefab);
+            }
+        }
+
+        [Test]
+        public void RuntimeGameObjectPoolRejectsNonPoolReleaseTargets()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "PoolReleaseNonPoolTargetRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "PoolPrefab", Type = "GameObject", Required = true });
+
+            BlueprintNodeSource prewarm = AddNode(source, "prewarm_pool", "GameObject.PrewarmPool");
+            prewarm.Properties["poolId"] = "main";
+            prewarm.Properties["prefab"] = "PoolPrefab";
+            prewarm.Properties["capacity"] = 1;
+
+            BlueprintNodeSource instantiate = AddNode(source, "instantiate_non_pool", "Game.InstantiateObject");
+            instantiate.Properties["prefab"] = "PoolPrefab";
+
+            BlueprintNodeSource release = AddNode(source, "release_non_pool", "GameObject.ReleaseToPool");
+            release.Properties["poolId"] = "main";
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "instantiate_non_pool.instance",
+                To = "release_non_pool.target"
+            });
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("PoolReleaseOwner");
+            GameObject prefab = new GameObject("PoolPrefab");
+            GameObject nonPoolInstance = null;
+            try
+            {
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("PoolPrefab", prefab);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, owner, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "prewarm_pool");
+                ExecuteNode(compileResult.Blueprint, context, "instantiate_non_pool");
+                nonPoolInstance = EvaluateNodeOutput(compileResult.Blueprint, context, "instantiate_non_pool", "instance") as GameObject;
+                Assert.NotNull(nonPoolInstance);
+
+                RuntimeNode releaseNode = compileResult.Blueprint.GetNode("release_non_pool");
+                BlueprintExecResult releaseResult = releaseNode.Executor.Execute(context, releaseNode);
+                Assert.True(releaseResult.ErrorMessage.Contains("not managed"), releaseResult.ErrorMessage);
+            }
+            finally
+            {
+                if (nonPoolInstance != null)
+                {
+                    Object.DestroyImmediate(nonPoolInstance);
+                }
+
+                Object.DestroyImmediate(owner);
+                Object.DestroyImmediate(prefab);
+            }
+        }
+
+        [Test]
         public void BlueprintRunnerResolvesBindingsForTransformNodes()
         {
             BlueprintSource source = new BlueprintSource();
@@ -7449,6 +7730,84 @@ namespace BlueprintSystem.Tests
             BlueprintExecResult result = node.Executor.Execute(context, node);
             Assert.True(string.IsNullOrEmpty(result.ErrorMessage), result.ErrorMessage);
             Assert.AreEqual("execOut", result.NextExecPortId);
+        }
+
+        private static object EvaluateNodeOutput(RuntimeBlueprint blueprint, BlueprintExecutionContext context, string nodeId, string outputPortId)
+        {
+            RuntimeNode node = blueprint.GetNode(nodeId);
+            Assert.NotNull(node, nodeId);
+            return node.Executor.Evaluate(context, node, outputPortId);
+        }
+
+        private static void AssertManifestValueInput(
+            BlueprintNodeManifest manifest,
+            string id,
+            string type,
+            bool required,
+            BlueprintValueSource source)
+        {
+            BlueprintPortSpec input = manifest.FindInput(id);
+            Assert.NotNull(input, id);
+            Assert.AreEqual(type, input.Type, id);
+            Assert.AreEqual(required, input.Required, id);
+            Assert.AreEqual(source, input.Source, id);
+        }
+
+        private static void AssertVisualValueInput(BlueprintVisualNode visualNode, string id, string type, string source)
+        {
+            BlueprintVisualPortData input = visualNode.Inputs.Find(port => port.Id == id);
+            Assert.NotNull(input, id);
+            Assert.AreEqual(type, input.Type, id);
+            Assert.AreEqual(source, input.Source, id);
+        }
+
+        private static BlueprintSource CreatePoolFlowSource()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "GameObjectPoolFlowTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "PoolPrefab", Type = "GameObject", Required = true });
+            source.Bindings.Add(new BlueprintBindingDeclaration { Name = "PoolParent", Type = "Transform", Required = false });
+
+            BlueprintNodeSource prewarm = AddNode(source, "prewarm_pool", "GameObject.PrewarmPool");
+            prewarm.Properties["poolId"] = "main";
+            prewarm.Properties["prefab"] = "PoolPrefab";
+            prewarm.Properties["parent"] = "PoolParent";
+            prewarm.Properties["capacity"] = 2;
+
+            BlueprintNodeSource acquire = AddNode(source, "acquire_pool", "GameObject.AcquireFromPool");
+            acquire.Properties["poolId"] = "main";
+            acquire.Properties["activate"] = true;
+            acquire.Properties["expandIfEmpty"] = true;
+
+            BlueprintNodeSource release = AddNode(source, "release_pool", "GameObject.ReleaseToPool");
+            release.Properties["poolId"] = "main";
+
+            BlueprintNodeSource clear = AddNode(source, "clear_pool", "GameObject.ClearPool");
+            clear.Properties["poolId"] = "main";
+
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "prewarm_pool.execOut",
+                To = "acquire_pool.execIn"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "acquire_pool.execOut",
+                To = "release_pool.execIn"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "release_pool.execOut",
+                To = "clear_pool.execIn"
+            });
+            source.Edges.Add(new BlueprintEdgeSource
+            {
+                From = "acquire_pool.instance",
+                To = "release_pool.target"
+            });
+
+            return source;
         }
 
         private static bool EvaluateComparison(string comparison, object left, object right)

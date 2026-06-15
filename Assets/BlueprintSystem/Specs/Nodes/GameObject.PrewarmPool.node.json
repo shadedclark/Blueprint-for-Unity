@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.PrewarmPool",
+  "title": "Prewarm GameObject Pool",
+  "category": "GameObject/Pool",
+  "description": "Creates inactive GameObject instances for a runner-scoped object pool.",
+  "executor": "GameObject.PrewarmPool",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "poolId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "prefab",
+      "kind": "value",
+      "type": "Binding<GameObject>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "parent",
+      "kind": "value",
+      "type": "Binding<Transform>",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "capacity",
+      "kind": "value",
+      "type": "int",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "poolId",
+      "type": "string",
+      "required": false,
+      "defaultValue": "default"
+    },
+    {
+      "id": "prefab",
+      "type": "Binding<GameObject>",
+      "required": false
+    },
+    {
+      "id": "parent",
+      "type": "Binding<Transform>",
+      "required": false
+    },
+    {
+      "id": "capacity",
+      "type": "int",
+      "required": false,
+      "defaultValue": 10
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "pool",
+    "prewarm",
+    "spawn"
+  ]
+}

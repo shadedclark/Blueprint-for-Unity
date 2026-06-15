@@ -230,6 +230,88 @@ namespace BlueprintSystem.Editor
         }
     }
 
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.PrewarmPool")]
+    public sealed class GameObjectPrewarmPoolVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.PrewarmPool", "Prewarm GameObject Pool", "GameObject/Pool", "Creates inactive GameObject instances for a runner-scoped object pool.");
+            AddExecInput("execIn");
+            AddValueInput("poolId", "string", true, "propertyOrConnection");
+            AddValueInput("prefab", "Binding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("parent", "Binding<Transform>", false, "propertyOrConnection");
+            AddValueInput("capacity", "int", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("poolId", "string", false, "default");
+            AddProperty("prefab", "Binding<GameObject>", false);
+            AddProperty("parent", "Binding<Transform>", false);
+            AddProperty("capacity", "int", false, 10);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.AcquireFromPool")]
+    public sealed class GameObjectAcquireFromPoolVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.AcquireFromPool", "Acquire From GameObject Pool", "GameObject/Pool", "Gets a GameObject instance from a runner-scoped object pool.");
+            AddExecInput("execIn");
+            AddValueInput("poolId", "string", true, "propertyOrConnection");
+            AddValueInput("prefab", "Binding<GameObject>", false, "propertyOrConnection");
+            AddValueInput("parent", "Binding<Transform>", false, "propertyOrConnection");
+            AddValueInput("activate", "bool", true, "propertyOrConnection");
+            AddValueInput("expandIfEmpty", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddValueOutput("instance", "GameObject");
+            AddValueOutput("transform", "Transform");
+            AddValueOutput("success", "bool");
+            AddProperty("poolId", "string", false, "default");
+            AddProperty("prefab", "Binding<GameObject>", false);
+            AddProperty("parent", "Binding<Transform>", false);
+            AddProperty("activate", "bool", false, true);
+            AddProperty("expandIfEmpty", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.ReleaseToPool")]
+    public sealed class GameObjectReleaseToPoolVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.ReleaseToPool", "Release To GameObject Pool", "GameObject/Pool", "Returns a managed GameObject instance to a runner-scoped object pool.");
+            AddExecInput("execIn");
+            AddValueInput("poolId", "string", true, "propertyOrConnection");
+            AddValueInput("target", "GameObject", true, "connection");
+            AddValueInput("deactivate", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddValueOutput("released", "bool");
+            AddProperty("poolId", "string", false, "default");
+            AddProperty("deactivate", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("GameObject.ClearPool")]
+    public sealed class GameObjectClearPoolVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("GameObject.ClearPool", "Clear GameObject Pool", "GameObject/Pool", "Destroys all managed GameObject instances in a runner-scoped object pool.");
+            AddExecInput("execIn");
+            AddValueInput("poolId", "string", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddValueOutput("destroyedCount", "int");
+            AddProperty("poolId", "string", false, "default");
+        }
+    }
+
     public abstract class GameTransformGetterVisualNode : BlueprintVisualNode
     {
         protected void ConfigureGetter(string typeId, string title, string description)

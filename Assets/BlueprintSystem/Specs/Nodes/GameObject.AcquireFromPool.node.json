@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "GameObject.AcquireFromPool",
+  "title": "Acquire From GameObject Pool",
+  "category": "GameObject/Pool",
+  "description": "Gets a GameObject instance from a runner-scoped object pool.",
+  "executor": "GameObject.AcquireFromPool",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "poolId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "prefab",
+      "kind": "value",
+      "type": "Binding<GameObject>",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "parent",
+      "kind": "value",
+      "type": "Binding<Transform>",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "activate",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "expandIfEmpty",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    },
+    {
+      "id": "instance",
+      "kind": "value",
+      "type": "GameObject"
+    },
+    {
+      "id": "transform",
+      "kind": "value",
+      "type": "Transform"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "poolId",
+      "type": "string",
+      "required": false,
+      "defaultValue": "default"
+    },
+    {
+      "id": "prefab",
+      "type": "Binding<GameObject>",
+      "required": false
+    },
+    {
+      "id": "parent",
+      "type": "Binding<Transform>",
+      "required": false
+    },
+    {
+      "id": "activate",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    },
+    {
+      "id": "expandIfEmpty",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "tags": [
+    "gameobject",
+    "object",
+    "pool",
+    "acquire",
+    "spawn"
+  ]
+}
