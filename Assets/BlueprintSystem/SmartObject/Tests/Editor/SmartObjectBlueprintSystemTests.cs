@@ -17,6 +17,7 @@ namespace BlueprintSystem.Tests
             string[] typeIds =
             {
                 "SmartObject.FindBest",
+                "SmartObject.FindBestActor",
                 "SmartObject.Reserve",
                 "SmartObject.BeginUse",
                 "SmartObject.Release",
@@ -100,6 +101,60 @@ namespace BlueprintSystem.Tests
                 find.Properties["accessGroup"] = "Guest";
                 Assert.False((bool)executor.Evaluate(context, find, "found"));
                 Assert.AreEqual("AccessDenied", executor.Evaluate(context, find, "failReason"));
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
+        public void SmartObjectFindBestActorExcludesBoundActorAndReturnsTargetGameObject()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                GameObject selfActor = new GameObject("npc_self_actor");
+                objects.Add(selfActor);
+                SmartObjectComponent selfSmartObject = CreateSmartObject("npc_self_smart_object", "Handshake", Vector3.zero, 100f, 0f, "Npc", string.Empty);
+                selfSmartObject.transform.SetParent(selfActor.transform, false);
+                objects.Add(selfSmartObject.gameObject);
+
+                SmartObjectComponent otherSmartObject = CreateSmartObject("npc_other_smart_object", "Handshake", new Vector3(1f, 0f, 0f), 0f, 0f, "Npc", string.Empty);
+                objects.Add(otherSmartObject.gameObject);
+
+                RuntimeNode find = CreateRuntimeNode("find_best_actor", "SmartObject.FindBestActor");
+                find.Properties["requesterId"] = "npc-a";
+                find.Properties["activity"] = "Handshake";
+                find.Properties["center"] = Vector3.zero;
+                find.Properties["radius"] = 10f;
+                find.Properties["requiredTags"] = "Npc";
+                find.Properties["forbiddenTags"] = string.Empty;
+                find.Properties["accessGroup"] = string.Empty;
+                find.Properties["needScore"] = 0f;
+                find.Properties["maxDistancePenalty"] = 0f;
+                find.Properties["excludeGameObject"] = "SelfActor";
+
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Bind("SelfActor", selfActor);
+                SmartObjectFindBestActorExecutor executor = new SmartObjectFindBestActorExecutor();
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), resolver, new RecordingBlueprintLogger(), null);
+
+                Assert.True((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual(otherSmartObject.ObjectId, executor.Evaluate(context, find, "objectId"));
+                Assert.AreEqual(0, executor.Evaluate(context, find, "slotId"));
+                Assert.AreSame(otherSmartObject.gameObject, executor.Evaluate(context, find, "targetGameObject"));
+
+                find.Properties["excludeGameObject"] = "MissingActor";
+                Assert.True((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual(selfSmartObject.ObjectId, executor.Evaluate(context, find, "objectId"));
+                Assert.AreSame(selfSmartObject.gameObject, executor.Evaluate(context, find, "targetGameObject"));
+
+                find.Properties["excludeGameObject"] = string.Empty;
+                Assert.True((bool)executor.Evaluate(context, find, "found"));
+                Assert.AreEqual(selfSmartObject.ObjectId, executor.Evaluate(context, find, "objectId"));
             }
             finally
             {
@@ -567,6 +622,11 @@ namespace BlueprintSystem.Tests
         private sealed class TestBindingResolver : IBlueprintBindingResolver
         {
             private readonly Dictionary<string, Object> _bindings = new Dictionary<string, Object>();
+
+            public void Bind(string bindingName, Object value)
+            {
+                _bindings[bindingName] = value;
+            }
 
             public T Resolve<T>(string bindingName) where T : Object
             {

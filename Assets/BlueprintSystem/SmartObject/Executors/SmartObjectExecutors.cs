@@ -12,6 +12,7 @@ namespace BlueprintSystem
             }
 
             registry.Register(new SmartObjectFindBestExecutor());
+            registry.Register(new SmartObjectFindBestActorExecutor());
             registry.Register(new SmartObjectReserveExecutor());
             registry.Register(new SmartObjectBeginUseExecutor());
             registry.Register(new SmartObjectReleaseExecutor());
@@ -39,6 +40,33 @@ namespace BlueprintSystem
                 context.GetInputValue(node, "accessGroup", string.Empty),
                 context.GetInputValue(node, "needScore", 0f),
                 context.GetInputValue(node, "maxDistancePenalty", 0f));
+            return SmartObjectExecutorUtility.ReadResult(result, outputPortId);
+        }
+    }
+
+    public sealed class SmartObjectFindBestActorExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "SmartObject.FindBestActor"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            GameObject excludeGameObject = GameExecutorBindingUtility.ResolveBinding<GameObject>(
+                context,
+                context.GetInputValue(node, "excludeGameObject"));
+            SmartObjectResult result = SmartObjectRegistry.FindBestActor(
+                context.GetInputValue(node, "requesterId", string.Empty),
+                context.GetInputValue(node, "activity", string.Empty),
+                GameExecutorValueUtility.GetVector3Input(context, node, "center", Vector3.zero),
+                context.GetInputValue(node, "radius", 10f),
+                context.GetInputValue(node, "requiredTags", string.Empty),
+                context.GetInputValue(node, "forbiddenTags", string.Empty),
+                context.GetInputValue(node, "accessGroup", string.Empty),
+                context.GetInputValue(node, "needScore", 0f),
+                context.GetInputValue(node, "maxDistancePenalty", 0f),
+                excludeGameObject);
             return SmartObjectExecutorUtility.ReadResult(result, outputPortId);
         }
     }
@@ -192,6 +220,8 @@ namespace BlueprintSystem
                     return result.TargetPosition;
                 case "facingPosition":
                     return result.FacingPosition;
+                case "targetGameObject":
+                    return result.TargetGameObject;
                 case "useDuration":
                     return result.UseDuration;
                 case "score":

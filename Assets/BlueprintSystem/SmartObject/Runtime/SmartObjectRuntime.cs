@@ -379,6 +379,7 @@ namespace BlueprintSystem
         public string PreviousState;
         public Vector3 TargetPosition;
         public Vector3 FacingPosition;
+        public GameObject TargetGameObject;
         public float UseDuration;
         public float Score;
         public float RemainingSeconds;
@@ -532,6 +533,56 @@ namespace BlueprintSystem
             float needScore,
             float maxDistancePenalty)
         {
+            return FindBestInternal(
+                requesterId,
+                activity,
+                center,
+                radius,
+                requiredTags,
+                forbiddenTags,
+                accessGroup,
+                needScore,
+                maxDistancePenalty,
+                null);
+        }
+
+        public static SmartObjectResult FindBestActor(
+            string requesterId,
+            string activity,
+            Vector3 center,
+            float radius,
+            string requiredTags,
+            string forbiddenTags,
+            string accessGroup,
+            float needScore,
+            float maxDistancePenalty,
+            GameObject excludeGameObject)
+        {
+            return FindBestInternal(
+                requesterId,
+                activity,
+                center,
+                radius,
+                requiredTags,
+                forbiddenTags,
+                accessGroup,
+                needScore,
+                maxDistancePenalty,
+                excludeGameObject);
+        }
+
+        private static SmartObjectResult FindBestInternal(
+            string requesterId,
+            string activity,
+            Vector3 center,
+            float radius,
+            string requiredTags,
+            string forbiddenTags,
+            string accessGroup,
+            float needScore,
+            float maxDistancePenalty,
+            GameObject excludeGameObject)
+        {
             TickTimeouts();
 
             if (string.IsNullOrWhiteSpace(requesterId))
@@ -561,6 +612,11 @@ namespace BlueprintSystem
             {
                 SmartObjectComponent smartObject = RegisteredObjects[i];
                 if (smartObject == null)
+                {
+                    continue;
+                }
+
+                if (IsExcludedSmartObject(smartObject, excludeGameObject))
                 {
                     continue;
                 }
@@ -628,6 +684,7 @@ namespace BlueprintSystem
                         best.SlotId = slot.SlotId;
                         best.TargetPosition = targetPosition;
                         best.FacingPosition = slot.GetFacingPosition(smartObject.transform);
+                        best.TargetGameObject = smartObject.gameObject;
                         best.UseDuration = Mathf.Max(0f, slot.UseDuration);
                         best.Score = score;
                     }
@@ -1168,6 +1225,25 @@ namespace BlueprintSystem
             }
 
             return true;
+        }
+
+        private static bool IsExcludedSmartObject(SmartObjectComponent smartObject, GameObject excludeGameObject)
+        {
+            if (smartObject == null || excludeGameObject == null)
+            {
+                return false;
+            }
+
+            Transform smartObjectTransform = smartObject.transform;
+            Transform excludeTransform = excludeGameObject.transform;
+            if (smartObjectTransform == null || excludeTransform == null)
+            {
+                return false;
+            }
+
+            return smartObjectTransform == excludeTransform ||
+                smartObjectTransform.IsChildOf(excludeTransform) ||
+                excludeTransform.IsChildOf(smartObjectTransform);
         }
 
         private static bool IsCloserOrEarlier(SmartObjectComponent smartObject, float distance, float bestDistance, SmartObjectResult best)

@@ -73,7 +73,9 @@ List fields (`activities`, `tags`, `requiredTags`, and `forbiddenTags`) accept c
 
 ## Runtime Behavior
 
-`FindBest` never changes state.
+`FindBest` and `FindBestActor` never change state.
+
+`FindBestActor` uses the same scoring and filtering as `FindBest`, then skips any candidate SmartObject whose GameObject is the same as, a parent of, or a child of the optional `excludeGameObject` binding. Missing or unresolved `excludeGameObject` values are treated as no exclusion so existing search behavior remains available.
 
 `Reserve`, `BeginUse`, `Release`, and `ReleaseByRequester` are the only public nodes that change slot state.
 
@@ -104,6 +106,7 @@ Closed, inactive, disabled, or missing: gray
 | Type ID | Purpose | Ports and notes |
 | --- | --- | --- |
 | `SmartObject.FindBest` | Finds the highest-scoring available slot. | Inputs `requesterId`, `activity`, `center`, `radius`, optional `requiredTags`, `forbiddenTags`, `accessGroup`, `needScore`, `maxDistancePenalty`; outputs `found`, `objectId`, `slotId`, `targetPosition`, `facingPosition`, `useDuration`, `score`, `failReason`. Score is `100 + objectBaseScore + slotBaseScore + needScore - distancePenalty`, with `distancePenalty = distance * 2` and optional cap. |
+| `SmartObject.FindBestActor` | Finds the highest-scoring available slot while skipping the requester's own SmartObject. | Inputs match `FindBest` plus optional `excludeGameObject: Binding<GameObject>`; outputs match `FindBest` plus `targetGameObject: GameObject`. Bind `excludeGameObject` to the requester/NPC GameObject to avoid selecting a SmartObject on that actor for handshake-style BT flows; unresolved bindings simply skip no objects. |
 | `SmartObject.Reserve` | Reserves a specific `objectId` + `slotId`. | Exec input `execIn`; inputs `requesterId`, `objectId`, `slotId`, `activity`, optional `holdSeconds` default `30`, optional `accessGroup`; outputs `execOut`, `success`, `reservationToken`, `targetPosition`, `facingPosition`, `useDuration`, `failReason`. Repeating Reserve with the same requester and live token refreshes the hold time and returns the existing token. |
 | `SmartObject.BeginUse` | Converts a reservation token to occupied state. | Inputs `requesterId`, `reservationToken`; outputs `success`, `objectId`, `slotId`, `useDuration`, `failReason`. Expired tokens return `TokenExpired`. |
 | `SmartObject.Release` | Releases a reserved or occupied slot by token. | Inputs `requesterId`, `reservationToken`, optional `reason` default `Completed`; outputs `success`, `objectId`, `slotId`, `previousState`, `failReason`. Unknown or already released tokens return `TokenInvalid` without changing state. |
@@ -114,7 +117,7 @@ Failure reasons are returned as stable strings: `None`, `InvalidRequester`, `Inv
 
 ## Avoid Duplicates
 
-Use `SmartObject.FindBest -> SmartObject.Reserve -> SmartObject.BeginUse -> SmartObject.Release` for normal activity planning before adding one-off object-use nodes.
+Use `SmartObject.FindBest -> SmartObject.Reserve -> SmartObject.BeginUse -> SmartObject.Release` for normal activity planning before adding one-off object-use nodes. Use `SmartObject.FindBestActor` when the query needs a target actor GameObject and must avoid selecting the requester's own SmartObject.
 
 Use `ReleaseByRequester` only for requester death/disable/reset cleanup; normal completion should use `Release`.
 

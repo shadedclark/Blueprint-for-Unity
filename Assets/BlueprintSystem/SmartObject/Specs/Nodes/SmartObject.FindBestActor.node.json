@@ -1,0 +1,188 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "SmartObject.FindBestActor",
+  "title": "SmartObject Find Best Actor",
+  "category": "SmartObject",
+  "description": "Finds the highest-scoring available SmartObject slot, optionally excluding a bound GameObject, and returns the target GameObject.",
+  "executor": "SmartObject.FindBestActor",
+  "inputs": [
+    {
+      "id": "requesterId",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "activity",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "center",
+      "kind": "value",
+      "type": "Vector3",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "radius",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "requiredTags",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "forbiddenTags",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "accessGroup",
+      "kind": "value",
+      "type": "string",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "needScore",
+      "kind": "value",
+      "type": "float",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "maxDistancePenalty",
+      "kind": "value",
+      "type": "float",
+      "required": false,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "excludeGameObject",
+      "kind": "value",
+      "type": "Binding<GameObject>",
+      "required": false,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "found",
+      "kind": "value",
+      "type": "bool"
+    },
+    {
+      "id": "objectId",
+      "kind": "value",
+      "type": "string"
+    },
+    {
+      "id": "slotId",
+      "kind": "value",
+      "type": "int"
+    },
+    {
+      "id": "targetPosition",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "facingPosition",
+      "kind": "value",
+      "type": "Vector3"
+    },
+    {
+      "id": "targetGameObject",
+      "kind": "value",
+      "type": "GameObject"
+    },
+    {
+      "id": "useDuration",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "score",
+      "kind": "value",
+      "type": "float"
+    },
+    {
+      "id": "failReason",
+      "kind": "value",
+      "type": "string"
+    }
+  ],
+  "properties": [
+    {
+      "id": "requesterId",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "activity",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "center",
+      "required": false,
+      "type": "Vector3",
+      "defaultValue": [0, 0, 0]
+    },
+    {
+      "id": "radius",
+      "required": false,
+      "type": "float",
+      "defaultValue": 10
+    },
+    {
+      "id": "requiredTags",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "forbiddenTags",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "accessGroup",
+      "required": false,
+      "type": "string",
+      "defaultValue": ""
+    },
+    {
+      "id": "needScore",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0
+    },
+    {
+      "id": "maxDistancePenalty",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0
+    },
+    {
+      "id": "excludeGameObject",
+      "required": false,
+      "type": "Binding<GameObject>"
+    }
+  ]
+}

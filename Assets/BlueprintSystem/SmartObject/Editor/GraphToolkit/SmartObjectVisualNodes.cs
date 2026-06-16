@@ -51,6 +51,46 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("SmartObject.FindBestActor")]
+    public sealed class SmartObjectFindBestActorVisualNode : SmartObjectVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("SmartObject.FindBestActor", "SmartObject Find Best Actor", "SmartObject", "Finds the highest-scoring available SmartObject slot while optionally excluding a bound GameObject.");
+            AddValueInput("requesterId", "string", true, "propertyOrConnection");
+            AddValueInput("activity", "string", true, "propertyOrConnection");
+            AddValueInput("center", "Vector3", true, "propertyOrConnection");
+            AddValueInput("radius", "float", true, "propertyOrConnection");
+            AddValueInput("requiredTags", "string", false, "propertyOrConnection");
+            AddValueInput("forbiddenTags", "string", false, "propertyOrConnection");
+            AddValueInput("accessGroup", "string", false, "propertyOrConnection");
+            AddValueInput("needScore", "float", false, "propertyOrConnection");
+            AddValueInput("maxDistancePenalty", "float", false, "propertyOrConnection");
+            AddValueInput("excludeGameObject", "Binding<GameObject>", false, "propertyOrConnection");
+            AddValueOutput("found", "bool");
+            AddValueOutput("objectId", "string");
+            AddValueOutput("slotId", "int");
+            AddValueOutput("targetPosition", "Vector3");
+            AddValueOutput("facingPosition", "Vector3");
+            AddValueOutput("targetGameObject", "GameObject");
+            AddValueOutput("useDuration", "float");
+            AddValueOutput("score", "float");
+            AddValueOutput("failReason", "string");
+            AddProperty("requesterId", "string", false, "");
+            AddProperty("activity", "string", false, "");
+            AddProperty("center", "Vector3", false, Vector3Default(0f, 0f, 0f));
+            AddProperty("radius", "float", false, 10f);
+            AddProperty("requiredTags", "string", false, "");
+            AddProperty("forbiddenTags", "string", false, "");
+            AddProperty("accessGroup", "string", false, "");
+            AddProperty("needScore", "float", false, 0f);
+            AddProperty("maxDistancePenalty", "float", false, 0f);
+            AddProperty("excludeGameObject", "Binding<GameObject>", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("SmartObject.Reserve")]
     public sealed class SmartObjectReserveVisualNode : SmartObjectVisualNode
     {
