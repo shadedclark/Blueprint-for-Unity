@@ -91,6 +91,17 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("BehaviorTree.GetBlackboardGameObject")]
+    public sealed class BehaviorTreeGetBlackboardGameObjectVisualNode : BehaviorTreeBlackboardGetVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            ConfigureGet("BehaviorTree.GetBlackboardGameObject", "Get Blackboard GameObject", "GameObject", "Reads a GameObject value from a bound BehaviorTreeRunner Blackboard.");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("BehaviorTree.SetBlackboardBool")]
     public sealed class BehaviorTreeSetBlackboardBoolVisualNode : BehaviorTreeBlackboardSetVisualNode
     {
@@ -141,6 +152,17 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             ConfigureSet("BehaviorTree.SetBlackboardVector3", "Set Blackboard Vector3", "Vector3", new List<object> { 0f, 0f, 0f }, "Writes a Vector3 value to a bound BehaviorTreeRunner Blackboard.");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("BehaviorTree.SetBlackboardGameObject")]
+    public sealed class BehaviorTreeSetBlackboardGameObjectVisualNode : BehaviorTreeBlackboardSetVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            ConfigureSet("BehaviorTree.SetBlackboardGameObject", "Set Blackboard GameObject", "Binding<GameObject>", null, "Writes a GameObject value to a bound BehaviorTreeRunner Blackboard.");
         }
     }
 

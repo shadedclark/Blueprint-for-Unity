@@ -68,11 +68,13 @@ connected value edge -> compiled node property -> null
 | `BehaviorTree.GetBlackboardFloat` | Get Blackboard Float | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardFloat` | `BehaviorTreeGetBlackboardFloatExecutor` | Reads a float value from a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.GetBlackboardString` | Get Blackboard String | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardString` | `BehaviorTreeGetBlackboardStringExecutor` | Reads a string value from a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.GetBlackboardVector3` | Get Blackboard Vector3 | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardVector3` | `BehaviorTreeGetBlackboardVector3Executor` | Reads a `Vector3` value from a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.GetBlackboardGameObject` | Get Blackboard GameObject | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardGameObject` | `BehaviorTreeGetBlackboardGameObjectExecutor` | Reads a runtime `GameObject` value from a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.SetBlackboardBool` | Set Blackboard Bool | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardBool` | `BehaviorTreeSetBlackboardBoolExecutor` | Writes a bool value to a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.SetBlackboardInt` | Set Blackboard Int | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardInt` | `BehaviorTreeSetBlackboardIntExecutor` | Writes an int value to a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.SetBlackboardFloat` | Set Blackboard Float | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardFloat` | `BehaviorTreeSetBlackboardFloatExecutor` | Writes a float value to a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.SetBlackboardString` | Set Blackboard String | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardString` | `BehaviorTreeSetBlackboardStringExecutor` | Writes a string value to a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.SetBlackboardVector3` | Set Blackboard Vector3 | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardVector3` | `BehaviorTreeSetBlackboardVector3Executor` | Writes a `Vector3` value to a bound `BehaviorTreeRunner` Blackboard. |
+| `BehaviorTree.SetBlackboardGameObject` | Set Blackboard GameObject | BehaviorTree/Blackboard | `BehaviorTree.SetBlackboardGameObject` | `BehaviorTreeSetBlackboardGameObjectExecutor` | Writes a runtime `GameObject` value to a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.ClearBlackboard` | Clear Blackboard | BehaviorTree/Blackboard | `BehaviorTree.ClearBlackboard` | `BehaviorTreeClearRunnerBlackboardExecutor` | Clears one key on a bound `BehaviorTreeRunner` Blackboard. |
 | `Game.IsColliding` | Is Colliding | Game/Physics | `Game.IsColliding` | `GameIsCollidingExecutor` | Returns true when two bound GameObjects have overlapping colliders. |
 | `Game.SetTransformPosition` | Set Transform Position | Game/Transform | `Game.SetTransformPosition` | `GameSetTransformPositionExecutor` | Sets world `Transform.position`. |
@@ -188,11 +190,13 @@ Targets use `Binding<BehaviorTreeRunner>` and store a binding name in JSON. `Blu
 | `BehaviorTree.GetBlackboardFloat` | Reads a float Blackboard key. | Same inputs; outputs `value: float`, `success: bool`; default value is `0`. |
 | `BehaviorTree.GetBlackboardString` | Reads a string Blackboard key. | Same inputs; outputs `value: string`, `success: bool`; default value is an empty string. |
 | `BehaviorTree.GetBlackboardVector3` | Reads a `Vector3` Blackboard key. | Same inputs; outputs `value: Vector3`, `success: bool`; default value is `[0,0,0]`. |
+| `BehaviorTree.GetBlackboardGameObject` | Reads a runtime `GameObject` Blackboard key. | Same inputs; outputs `value: GameObject`, `success: bool`; missing or incompatible values output `null`. |
 | `BehaviorTree.SetBlackboardBool` | Writes a bool Blackboard key. | Exec input `execIn`; inputs `target`, `key`, `value: bool`; output `execOut`. Missing target or empty key returns an execution error. |
 | `BehaviorTree.SetBlackboardInt` | Writes an int Blackboard key. | Same shape with `value: int`. |
 | `BehaviorTree.SetBlackboardFloat` | Writes a float Blackboard key. | Same shape with `value: float`. |
 | `BehaviorTree.SetBlackboardString` | Writes a string Blackboard key. | Same shape with `value: string`. |
 | `BehaviorTree.SetBlackboardVector3` | Writes a `Vector3` Blackboard key. | Same shape with `value: Vector3`. |
+| `BehaviorTree.SetBlackboardGameObject` | Writes a runtime `GameObject` Blackboard key. | Same shape with `value: Binding<GameObject>`. The value may be a JSON binding name or a connected runtime `GameObject`/`Transform`/`Component`; the Blackboard stores the resolved runtime `GameObject`, not a serialized object reference. |
 | `BehaviorTree.ClearBlackboard` | Clears one Blackboard key by setting its runtime value to null. | Exec input `execIn`; inputs `target`, `key`; output `execOut`. Missing target or empty key returns an execution error. |
 
 Avoid duplicates:
@@ -200,7 +204,8 @@ Avoid duplicates:
 ```text
 Use Behavior Tree-native `BT.SetBlackboard`, decorators, and services when the logic belongs inside the tree.
 Use these Blueprint nodes when scene UI, demo visualization, or a normal Blueprint needs to observe or poke a running tree.
-Keep GameObject and Transform Blackboard writes in C# or Behavior Tree nodes until a binding-based object write node is explicitly needed.
+Use `BehaviorTree.SetBlackboardGameObject` for binding-based or runtime-object handoff into AI Blackboard state; keep `Transform` writes in C# or Behavior Tree nodes until a dedicated binding-based Transform write is explicitly needed.
+Do not store direct `GameObject`, `Transform`, `Component`, or other Unity object references as `.blueprint.json` defaults.
 ```
 
 ## SmartObject Module

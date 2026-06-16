@@ -117,6 +117,17 @@ namespace BlueprintSystem
 
             return BlueprintTypeUtility.ToVector3(value, Vector3.zero);
         }
+
+        public static object ToGameObjectObject(object value)
+        {
+            return BehaviorTreeValueUtility.ToGameObject(value);
+        }
+
+        public static GameObject GetGameObjectInput(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            object value = context.GetInputValue(node, "value");
+            return GameExecutorBindingUtility.ResolveBinding<GameObject>(context, value);
+        }
     }
 
     public sealed class BehaviorTreeGetBlackboardBoolExecutor : BlueprintNodeExecutor
@@ -184,6 +195,19 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class BehaviorTreeGetBlackboardGameObjectExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "BehaviorTree.GetBlackboardGameObject"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            return BehaviorTreeBlackboardExecutorUtility.EvaluateGet(context, node, outputPortId, ExecutorId, null, BehaviorTreeBlackboardExecutorUtility.ToGameObjectObject);
+        }
+    }
+
     public sealed class BehaviorTreeSetBlackboardBoolExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId
@@ -246,6 +270,25 @@ namespace BlueprintSystem
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
             return BehaviorTreeBlackboardExecutorUtility.SetValue(context, node, ExecutorId, GameExecutorValueUtility.GetVector3Input(context, node, "value", Vector3.zero));
+        }
+    }
+
+    public sealed class BehaviorTreeSetBlackboardGameObjectExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "BehaviorTree.SetBlackboardGameObject"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            GameObject value = BehaviorTreeBlackboardExecutorUtility.GetGameObjectInput(context, node);
+            if (value == null)
+            {
+                return BlueprintExecResult.Error(ExecutorId + " could not resolve GameObject value.");
+            }
+
+            return BehaviorTreeBlackboardExecutorUtility.SetValue(context, node, ExecutorId, value);
         }
     }
 

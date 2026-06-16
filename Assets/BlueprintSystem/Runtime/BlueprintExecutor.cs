@@ -227,11 +227,13 @@ namespace BlueprintSystem
             registry.Register(new BehaviorTreeGetBlackboardFloatExecutor());
             registry.Register(new BehaviorTreeGetBlackboardStringExecutor());
             registry.Register(new BehaviorTreeGetBlackboardVector3Executor());
+            registry.Register(new BehaviorTreeGetBlackboardGameObjectExecutor());
             registry.Register(new BehaviorTreeSetBlackboardBoolExecutor());
             registry.Register(new BehaviorTreeSetBlackboardIntExecutor());
             registry.Register(new BehaviorTreeSetBlackboardFloatExecutor());
             registry.Register(new BehaviorTreeSetBlackboardStringExecutor());
             registry.Register(new BehaviorTreeSetBlackboardVector3Executor());
+            registry.Register(new BehaviorTreeSetBlackboardGameObjectExecutor());
             registry.Register(new BehaviorTreeClearRunnerBlackboardExecutor());
             registry.Register(new ResourceLoadAsyncExecutor());
             registry.Register(new ResourcePreloadGroupAsyncExecutor());

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "BehaviorTree.GetBlackboardGameObject",
+  "title": "Get Blackboard GameObject",
+  "category": "BehaviorTree/Blackboard",
+  "description": "Reads a GameObject value from a bound BehaviorTreeRunner Blackboard.",
+  "executor": "BehaviorTree.GetBlackboardGameObject",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "key",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "GameObject"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<BehaviorTreeRunner>",
+      "required": true
+    },
+    {
+      "id": "key",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "behavior tree",
+    "blackboard",
+    "gameobject"
+  ]
+}

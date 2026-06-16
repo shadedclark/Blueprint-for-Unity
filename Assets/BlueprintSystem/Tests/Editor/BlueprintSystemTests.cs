@@ -2374,6 +2374,82 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BlueprintBehaviorTreeBlackboardGameObjectBridgeWritesAndReadsRuntimeObjects()
+        {
+            GameObject runnerObject = null;
+            GameObject targetObject = null;
+            try
+            {
+                runnerObject = new GameObject("BlueprintBlackboardGameObjectRunner");
+                targetObject = new GameObject("BlueprintBlackboardGameObjectTarget");
+                BehaviorTreeRunner runner = CreateBehaviorTreeRunnerWithBlackboard(
+                    runnerObject,
+                    CreateBlackboardKey("Target", "GameObject", null),
+                    CreateBlackboardKey("CopyTarget", "GameObject", null));
+
+                BlueprintSource source = new BlueprintSource();
+                source.SchemaVersion = "0.1";
+                source.Name = "BlackboardGameObjectBridgeTest";
+                source.Bindings.Add(new BlueprintBindingDeclaration
+                {
+                    Name = "Runner",
+                    Type = "BehaviorTreeRunner",
+                    Required = true
+                });
+                source.Bindings.Add(new BlueprintBindingDeclaration
+                {
+                    Name = "TargetObject",
+                    Type = "GameObject",
+                    Required = true
+                });
+
+                BlueprintNodeSource setTarget = AddNode(source, "set_target", "BehaviorTree.SetBlackboardGameObject");
+                setTarget.Properties["target"] = "Runner";
+                setTarget.Properties["key"] = "Target";
+                setTarget.Properties["value"] = "TargetObject";
+
+                BlueprintNodeSource getTarget = AddNode(source, "get_target", "BehaviorTree.GetBlackboardGameObject");
+                getTarget.Properties["target"] = "Runner";
+                getTarget.Properties["key"] = "Target";
+
+                BlueprintNodeSource setCopy = AddNode(source, "set_copy", "BehaviorTree.SetBlackboardGameObject");
+                setCopy.Properties["target"] = "Runner";
+                setCopy.Properties["key"] = "CopyTarget";
+                source.Edges.Add(new BlueprintEdgeSource
+                {
+                    From = "get_target.value",
+                    To = "set_copy.value"
+                });
+
+                RuntimeBlueprint blueprint = CompileSource(source);
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("Runner", runner);
+                resolver.Add("TargetObject", targetObject);
+                BlueprintExecutionContext context = CreateTestExecutionContext(blueprint, runnerObject, resolver);
+
+                ExecuteNode(blueprint, context, "set_target");
+                ExecuteNode(blueprint, context, "set_copy");
+
+                Assert.AreSame(targetObject, runner.GetBlackboardValue("Target"));
+                Assert.AreSame(targetObject, runner.GetBlackboardValue("CopyTarget"));
+                Assert.AreSame(targetObject, EvaluateNodeOutput(blueprint, context, "get_target", "value"));
+                Assert.AreEqual(true, EvaluateNodeOutput(blueprint, context, "get_target", "success"));
+            }
+            finally
+            {
+                if (runnerObject != null)
+                {
+                    Object.DestroyImmediate(runnerObject);
+                }
+
+                if (targetObject != null)
+                {
+                    Object.DestroyImmediate(targetObject);
+                }
+            }
+        }
+
+        [Test]
         public void ValidatorAcceptsInputPollingNodes()
         {
             BlueprintSource source = CreateVariableTestSource();
