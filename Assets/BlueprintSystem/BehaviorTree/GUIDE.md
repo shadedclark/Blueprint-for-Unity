@@ -36,6 +36,8 @@ Use `.btree.json` as the source of truth. `.btgraph` is a Graph Toolkit editor/c
 
 `BehaviorTreeRunner` supports `Update`, `FixedUpdate`, `Manual`, and `Interval` tick modes. `Update` ticks through `maxTickRate`, `Interval` ticks through `intervalSeconds`, and `Manual` expects callers to invoke `ManualTick(deltaTime)`.
 
+`BehaviorTreeRunner.playOnStart` starts the tree from Unity `Start`. `BehaviorTreeRunner.restartOnEnable` is disabled by default and is intended for pooled AI owners or other GameObjects that repeatedly toggle active state. When enabled, `OnEnable` starts a fresh runtime if the runner is not already running, so Blackboard defaults and runner overrides are reapplied before the next tick. `OnDisable` always stops the current tree; the next enable only restarts it when `restartOnEnable` is enabled. In `Manual` tick mode, `restartOnEnable` initializes the runtime but callers still drive execution through `ManualTick(deltaTime)`.
+
 Value input resolution order:
 
 ```text

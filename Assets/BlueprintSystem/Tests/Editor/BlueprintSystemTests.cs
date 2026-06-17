@@ -1585,6 +1585,176 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BehaviorTreeRunnerDoesNotRestartOnEnableByDefault()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/RunnerDefaultEnableBehaviorTree.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            GameObject runnerObject = null;
+
+            try
+            {
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeTestSource());
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                runnerObject = new GameObject("BehaviorTreeRunnerDefaultEnableTest");
+                BehaviorTreeRunner runner = runnerObject.AddComponent<BehaviorTreeRunner>();
+                runner.CompiledBehaviorTree = compiledAsset;
+
+                Assert.True(runner.StartTree());
+                BehaviorTreeRuntime initialRuntime = runner.Runtime;
+                Assert.True(runner.IsRunning);
+
+                InvokePrivateMethod(runner, "OnDisable");
+                Assert.False(runner.IsRunning);
+
+                InvokePrivateMethod(runner, "OnEnable");
+                Assert.False(runner.IsRunning);
+                Assert.AreSame(initialRuntime, runner.Runtime);
+            }
+            finally
+            {
+                if (runnerObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(runnerObject);
+                }
+
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerRestartOnEnableStartsInactivePooledRunner()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/RunnerRestartOnEnableBehaviorTree.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            GameObject runnerObject = null;
+
+            try
+            {
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeTestSource());
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                runnerObject = new GameObject("BehaviorTreeRunnerRestartOnEnableTest");
+                BehaviorTreeRunner runner = runnerObject.AddComponent<BehaviorTreeRunner>();
+                runner.CompiledBehaviorTree = compiledAsset;
+                runner.RestartOnEnable = true;
+
+                InvokePrivateMethod(runner, "OnEnable");
+
+                Assert.True(runner.IsRunning);
+                Assert.NotNull(runner.Blackboard);
+                runner.SetBlackboardValue("flag", true);
+                Assert.AreEqual(true, runner.GetBlackboardValue("flag"));
+            }
+            finally
+            {
+                if (runnerObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(runnerObject);
+                }
+
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerRestartOnEnableCreatesFreshRuntimeWithOverrides()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/RunnerRestartOverrideBehaviorTree.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            GameObject runnerObject = null;
+
+            try
+            {
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeTestSource());
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                runnerObject = new GameObject("BehaviorTreeRunnerRestartOverrideTest");
+                BehaviorTreeRunner runner = runnerObject.AddComponent<BehaviorTreeRunner>();
+                runner.CompiledBehaviorTree = compiledAsset;
+                runner.RestartOnEnable = true;
+                SetPrivateField(runner, "blackboardOverrides", new List<BlueprintVariableOverride>
+                {
+                    new BlueprintVariableOverride
+                    {
+                        Name = "flag",
+                        Type = "bool",
+                        Enabled = true,
+                        JsonValue = "true"
+                    }
+                });
+
+                InvokePrivateMethod(runner, "OnEnable");
+                BehaviorTreeRuntime initialRuntime = runner.Runtime;
+                Assert.True(runner.IsRunning);
+                Assert.AreEqual(true, runner.GetBlackboardValue("flag"));
+
+                runner.SetBlackboardValue("flag", false);
+                Assert.AreEqual(false, runner.GetBlackboardValue("flag"));
+
+                InvokePrivateMethod(runner, "OnDisable");
+                Assert.False(runner.IsRunning);
+
+                InvokePrivateMethod(runner, "OnEnable");
+                Assert.True(runner.IsRunning);
+                Assert.NotNull(runner.Runtime);
+                Assert.AreNotSame(initialRuntime, runner.Runtime);
+                Assert.AreEqual(true, runner.GetBlackboardValue("flag"));
+            }
+            finally
+            {
+                if (runnerObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(runnerObject);
+                }
+
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerRestartOnEnableDoesNotStartTwiceWithPlayOnStart()
+        {
+            string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/RunnerRestartStartGuardBehaviorTree.btree.json";
+            DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            GameObject runnerObject = null;
+
+            try
+            {
+                TextAsset sourceAsset = WriteTemporaryBehaviorTreeAsset(behaviorTreePath, CreateBehaviorTreeTestSource());
+                BehaviorTreeCompiledAsset compiledAsset;
+                Assert.True(BehaviorTreeCompiledAssetCompiler.CompileBehaviorTree(sourceAsset, false, out compiledAsset));
+
+                runnerObject = new GameObject("BehaviorTreeRunnerRestartStartGuardTest");
+                BehaviorTreeRunner runner = runnerObject.AddComponent<BehaviorTreeRunner>();
+                runner.CompiledBehaviorTree = compiledAsset;
+                runner.RestartOnEnable = true;
+
+                InvokePrivateMethod(runner, "OnEnable");
+                BehaviorTreeRuntime enabledRuntime = runner.Runtime;
+                Assert.True(runner.IsRunning);
+                Assert.NotNull(enabledRuntime);
+
+                InvokePrivateMethod(runner, "Start");
+
+                Assert.True(runner.IsRunning);
+                Assert.AreSame(enabledRuntime, runner.Runtime);
+            }
+            finally
+            {
+                if (runnerObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(runnerObject);
+                }
+
+                DeleteTemporaryBehaviorTreeArtifacts(behaviorTreePath);
+            }
+        }
+
+        [Test]
         public void BehaviorTreeGraphToolkitBridgeRoundTripsBehaviorTree()
         {
             string behaviorTreePath = "Assets/BlueprintSystem/Tests/Editor/GraphRoundTripBehaviorTree.btree.json";
@@ -8571,6 +8741,18 @@ namespace BlueprintSystem.Tests
 
             Assert.NotNull(field, fieldName);
             field.SetValue(target, value);
+        }
+
+        private static void InvokePrivateMethod(object target, string methodName)
+        {
+            MethodInfo method = null;
+            for (System.Type type = target.GetType(); type != null && method == null; type = type.BaseType)
+            {
+                method = type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+            }
+
+            Assert.NotNull(method, methodName);
+            method.Invoke(target, null);
         }
 
         private static void SetBlackboardDefaultValue(IVariable variable, object value)

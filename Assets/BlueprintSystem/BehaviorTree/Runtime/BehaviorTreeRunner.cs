@@ -16,6 +16,7 @@ namespace BlueprintSystem
     {
         [SerializeField] private BehaviorTreeCompiledAsset compiledBehaviorTree;
         [SerializeField] private bool playOnStart = true;
+        [SerializeField] private bool restartOnEnable;
         [SerializeField] private BehaviorTreeTickMode tickMode = BehaviorTreeTickMode.Update;
         [SerializeField] private float maxTickRate = 10f;
         [SerializeField] private float intervalSeconds = 0.1f;
@@ -30,6 +31,12 @@ namespace BlueprintSystem
         {
             get { return compiledBehaviorTree; }
             set { compiledBehaviorTree = value; }
+        }
+
+        public bool RestartOnEnable
+        {
+            get { return restartOnEnable; }
+            set { restartOnEnable = value; }
         }
 
         public BehaviorTreeRuntime Runtime
@@ -49,7 +56,7 @@ namespace BlueprintSystem
 
         private void Start()
         {
-            if (playOnStart)
+            if (playOnStart && !_running)
             {
                 StartTree();
             }
@@ -72,6 +79,14 @@ namespace BlueprintSystem
             if (tickMode == BehaviorTreeTickMode.FixedUpdate)
             {
                 TickTree(Time.fixedDeltaTime);
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (restartOnEnable && !_running)
+            {
+                StartTree();
             }
         }
 
