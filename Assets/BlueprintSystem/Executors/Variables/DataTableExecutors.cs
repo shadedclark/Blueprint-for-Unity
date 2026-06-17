@@ -60,14 +60,14 @@ namespace BlueprintSystem
             {
                 context.Logger.Error("DataTable.GetRowNames node '" + node.Id + "' has unknown table '" +
                     BlueprintDataTableNodeUtility.GetTablePath(node.Properties) + "'.");
-                return new List<object>();
+                return BlueprintDataTableUtility.EmptyRuntimeList;
             }
 
             List<object> rowNames;
             if (!BlueprintDataTableUtility.TryGetRowNames(definition, out rowNames))
             {
                 context.Logger.Error("DataTable.GetRowNames node '" + node.Id + "' could not read table '" + tablePath + "'.");
-                return new List<object>();
+                return BlueprintDataTableUtility.EmptyRuntimeList;
             }
 
             return rowNames;
@@ -95,14 +95,14 @@ namespace BlueprintSystem
             {
                 context.Logger.Error("DataTable.GetAllRows node '" + node.Id + "' has unknown table '" +
                     BlueprintDataTableNodeUtility.GetTablePath(node.Properties) + "'.");
-                return new List<object>();
+                return BlueprintDataTableUtility.EmptyRuntimeList;
             }
 
             List<object> rows;
             if (!BlueprintDataTableUtility.TryGetAllRows(definition, out rows))
             {
                 context.Logger.Error("DataTable.GetAllRows node '" + node.Id + "' could not read table '" + tablePath + "'.");
-                return new List<object>();
+                return BlueprintDataTableUtility.EmptyRuntimeList;
             }
 
             return rows;

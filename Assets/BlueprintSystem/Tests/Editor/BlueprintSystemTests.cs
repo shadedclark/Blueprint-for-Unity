@@ -6271,33 +6271,76 @@ namespace BlueprintSystem.Tests
                 getRow.Properties["rowName"] = "shield_01";
 
                 object row = new DataTableGetRowExecutor().Evaluate(context, getRow, "row");
+                object rowAgain = new DataTableGetRowExecutor().Evaluate(context, getRow, "row");
                 object count;
 
                 Assert.True((bool)new DataTableGetRowExecutor().Evaluate(context, getRow, "found"));
                 Assert.IsInstanceOf<BlueprintStructValue>(row);
+                Assert.AreSame(row, rowAgain);
                 Assert.True(BlueprintFieldUtility.TryGetValue(row, "count", out count));
                 Assert.AreEqual(2, System.Convert.ToInt32(count));
 
                 getRow.Properties["rowName"] = "missing";
                 object missingRow = new DataTableGetRowExecutor().Evaluate(context, getRow, "row");
+                object missingRowAgain = new DataTableGetRowExecutor().Evaluate(context, getRow, "row");
                 object defaultCount;
 
                 Assert.False((bool)new DataTableGetRowExecutor().Evaluate(context, getRow, "found"));
+                Assert.AreSame(missingRow, missingRowAgain);
                 Assert.True(BlueprintFieldUtility.TryGetValue(missingRow, "count", out defaultCount));
                 Assert.AreEqual(1, System.Convert.ToInt32(defaultCount));
 
                 RuntimeNode rowNames = CreateDataTableRuntimeNode("row_names", "DataTable.GetRowNames", tablePath);
                 IList names = (IList)new DataTableGetRowNamesExecutor().Evaluate(context, rowNames, "rowNames");
+                IList namesAgain = (IList)new DataTableGetRowNamesExecutor().Evaluate(context, rowNames, "rowNames");
 
+                Assert.AreSame(names, namesAgain);
                 Assert.AreEqual(2, names.Count);
                 Assert.AreEqual("sword_01", names[0]);
                 Assert.AreEqual("shield_01", names[1]);
 
                 RuntimeNode allRows = CreateDataTableRuntimeNode("all_rows", "DataTable.GetAllRows", tablePath);
                 IList rows = (IList)new DataTableGetAllRowsExecutor().Evaluate(context, allRows, "rows");
+                IList rowsAgain = (IList)new DataTableGetAllRowsExecutor().Evaluate(context, allRows, "rows");
 
+                Assert.AreSame(rows, rowsAgain);
                 Assert.AreEqual(2, rows.Count);
                 Assert.IsInstanceOf<BlueprintStructValue>(rows[0]);
+                Assert.AreSame(row, rows[1]);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                SyncRuntimeRegistries();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableExecutorsReuseEmptyRowsForInvalidRuntimeTables()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/TestInvalidRuntimeItems.bpdatatable.json";
+
+            try
+            {
+                WriteInvalidRuntimeDataTableDefinition(tablePath);
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+
+                RuntimeNode rowNames = CreateDataTableRuntimeNode("invalid_row_names", "DataTable.GetRowNames", tablePath);
+                IList names = (IList)new DataTableGetRowNamesExecutor().Evaluate(context, rowNames, "rowNames");
+                IList namesAgain = (IList)new DataTableGetRowNamesExecutor().Evaluate(context, rowNames, "rowNames");
+
+                Assert.AreSame(names, namesAgain);
+                Assert.AreEqual(0, names.Count);
+
+                RuntimeNode allRows = CreateDataTableRuntimeNode("invalid_all_rows", "DataTable.GetAllRows", tablePath);
+                IList rows = (IList)new DataTableGetAllRowsExecutor().Evaluate(context, allRows, "rows");
+                IList rowsAgain = (IList)new DataTableGetAllRowsExecutor().Evaluate(context, allRows, "rows");
+
+                Assert.AreSame(rows, rowsAgain);
+                Assert.AreEqual(0, rows.Count);
             }
             finally
             {
@@ -7895,6 +7938,21 @@ namespace BlueprintSystem.Tests
                 "  \"rows\": [\n" +
                 "    { \"rowName\": \"sword_01\", \"value\": { \"itemId\": \"sword_01\", \"count\": 1, \"position\": [1, 2] } },\n" +
                 "    { \"rowName\": \"shield_01\", \"value\": { \"itemId\": \"shield_01\", \"count\": 2, \"position\": [3, 4] } }\n" +
+                "  ]\n" +
+                "}\n");
+            AssetDatabase.ImportAsset(assetPath);
+            SyncRuntimeRegistries();
+        }
+
+        private static void WriteInvalidRuntimeDataTableDefinition(string assetPath)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(assetPath));
+            File.WriteAllText(assetPath, "{\n" +
+                "  \"schemaVersion\": \"0.1\",\n" +
+                "  \"tableId\": \"Table.TestInvalidRuntimeItems\",\n" +
+                "  \"rowStructTypeId\": \"Struct.TestInventoryItem\",\n" +
+                "  \"rows\": [\n" +
+                "    { \"rowName\": \"bad_count\", \"value\": { \"itemId\": \"bad_count\", \"count\": \"many\", \"position\": [1, 2] } }\n" +
                 "  ]\n" +
                 "}\n");
             AssetDatabase.ImportAsset(assetPath);

@@ -20,6 +20,12 @@ namespace BlueprintSystem
         public string RowStructTypeId;
         public string SourcePath;
         public readonly List<BlueprintDataTableRowDefinition> Rows = new List<BlueprintDataTableRowDefinition>();
+        [NonSerialized] internal List<object> RuntimeRows;
+        [NonSerialized] internal List<object> RuntimeRowNames;
+        [NonSerialized] internal Dictionary<string, object> RuntimeRowsByName;
+        [NonSerialized] internal object RuntimeDefaultRow;
+        [NonSerialized] internal bool RuntimePrepared;
+        [NonSerialized] internal bool RuntimeValid;
 
         public static BlueprintDataTableDefinition FromJson(string json)
         {
@@ -308,6 +314,8 @@ namespace BlueprintSystem
 
     public static class BlueprintDataTableUtility
     {
+        internal static readonly List<object> EmptyRuntimeList = new List<object>(0);
+
         public static bool TryGetRow(
             BlueprintDataTableDefinition definition,
             string rowName,
@@ -316,89 +324,82 @@ namespace BlueprintSystem
         {
             runtimeValue = null;
             found = false;
-            if (!IsValidTableForRuntime(definition))
+            if (!TryEnsureRuntimePrepared(definition))
             {
                 return false;
             }
 
-            BlueprintDataTableRowDefinition row;
-            if (definition.TryGetRow(rowName, out row))
+            if (!string.IsNullOrEmpty(rowName) &&
+                definition.RuntimeRowsByName.TryGetValue(rowName, out runtimeValue))
             {
                 found = true;
-                return BlueprintUserStructUtility.TryConvertToRuntimeValue(row.Value, definition.RowStructTypeId, out runtimeValue);
+                return true;
             }
 
-            return BlueprintUserStructUtility.TryCreateDefaultRuntimeValue(definition.RowStructTypeId, out runtimeValue);
+            runtimeValue = definition.RuntimeDefaultRow;
+            return true;
         }
 
         public static bool TryGetAllRows(BlueprintDataTableDefinition definition, out List<object> runtimeRows)
         {
             runtimeRows = null;
-            if (!IsValidTableForRuntime(definition))
+            if (!TryEnsureRuntimePrepared(definition))
             {
                 return false;
             }
 
-            List<object> rows = new List<object>();
-            for (int i = 0; i < definition.Rows.Count; i++)
-            {
-                BlueprintDataTableRowDefinition row = definition.Rows[i];
-                object runtimeValue;
-                if (row == null ||
-                    !BlueprintUserStructUtility.TryConvertToRuntimeValue(row.Value, definition.RowStructTypeId, out runtimeValue))
-                {
-                    return false;
-                }
-
-                rows.Add(runtimeValue);
-            }
-
-            runtimeRows = rows;
+            runtimeRows = definition.RuntimeRows;
             return true;
         }
 
         public static List<object> GetRowNames(BlueprintDataTableDefinition definition)
         {
-            List<object> rowNames = new List<object>();
-            if (definition == null)
-            {
-                return rowNames;
-            }
-
-            for (int i = 0; i < definition.Rows.Count; i++)
-            {
-                BlueprintDataTableRowDefinition row = definition.Rows[i];
-                if (row != null && !string.IsNullOrEmpty(row.RowName))
-                {
-                    rowNames.Add(row.RowName);
-                }
-            }
-
-            return rowNames;
+            List<object> rowNames;
+            return TryGetRowNames(definition, out rowNames) ? rowNames : EmptyRuntimeList;
         }
 
         public static bool TryGetRowNames(BlueprintDataTableDefinition definition, out List<object> rowNames)
         {
             rowNames = null;
-            if (!IsValidTableForRuntime(definition))
+            if (!TryEnsureRuntimePrepared(definition))
             {
                 return false;
             }
 
-            rowNames = GetRowNames(definition);
+            rowNames = definition.RuntimeRowNames;
             return true;
         }
 
-        private static bool IsValidTableForRuntime(BlueprintDataTableDefinition definition)
+        private static bool TryEnsureRuntimePrepared(BlueprintDataTableDefinition definition)
         {
-            if (definition == null ||
-                string.IsNullOrEmpty(definition.RowStructTypeId) ||
+            if (definition == null)
+            {
+                return false;
+            }
+
+            if (definition.RuntimePrepared)
+            {
+                return definition.RuntimeValid;
+            }
+
+            definition.RuntimePrepared = true;
+            definition.RuntimeValid = false;
+            definition.RuntimeRows = null;
+            definition.RuntimeRowNames = null;
+            definition.RuntimeRowsByName = null;
+            definition.RuntimeDefaultRow = null;
+
+            if (string.IsNullOrEmpty(definition.RowStructTypeId) ||
                 !BlueprintUserStructRegistry.IsUserStructType(definition.RowStructTypeId))
             {
                 return false;
             }
 
             HashSet<string> rowNames = new HashSet<string>(StringComparer.Ordinal);
+            List<object> runtimeRows = new List<object>(definition.Rows.Count);
+            List<object> runtimeRowNames = new List<object>(definition.Rows.Count);
+            Dictionary<string, object> runtimeRowsByName =
+                new Dictionary<string, object>(definition.Rows.Count, StringComparer.Ordinal);
             for (int i = 0; i < definition.Rows.Count; i++)
             {
                 BlueprintDataTableRowDefinition row = definition.Rows[i];
@@ -406,8 +407,29 @@ namespace BlueprintSystem
                 {
                     return false;
                 }
+
+                object runtimeValue;
+                if (!BlueprintUserStructUtility.TryConvertToRuntimeValue(row.Value, definition.RowStructTypeId, out runtimeValue))
+                {
+                    return false;
+                }
+
+                runtimeRows.Add(runtimeValue);
+                runtimeRowNames.Add(row.RowName);
+                runtimeRowsByName[row.RowName] = runtimeValue;
             }
 
+            object runtimeDefaultRow;
+            if (!BlueprintUserStructUtility.TryCreateDefaultRuntimeValue(definition.RowStructTypeId, out runtimeDefaultRow))
+            {
+                return false;
+            }
+
+            definition.RuntimeRows = runtimeRows;
+            definition.RuntimeRowNames = runtimeRowNames;
+            definition.RuntimeRowsByName = runtimeRowsByName;
+            definition.RuntimeDefaultRow = runtimeDefaultRow;
+            definition.RuntimeValid = true;
             return true;
         }
     }
