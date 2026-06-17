@@ -92,19 +92,19 @@ namespace BlueprintSystem.Editor
             string outputPath = BlueprintGraphToolkitBridge.GetDefaultBlueprintJsonPath(graphPath);
             if (File.Exists(outputPath) && File.GetLastWriteTimeUtc(graphPath) <= File.GetLastWriteTimeUtc(outputPath))
             {
-                Debug.Log("[Blueprint] Skipped auto-export for older visual graph cache: " + graphPath);
+                BlueprintLog.Log("[Blueprint] Skipped auto-export for older visual graph cache: " + graphPath);
                 return;
             }
 
             try
             {
                 string exportedPath = BlueprintGraphToolkitBridge.ExportGraphAtPath(graphPath, null);
-                Debug.Log("[Blueprint] Auto-exported visual graph to JSON: " + exportedPath);
+                BlueprintLog.Log("[Blueprint] Auto-exported visual graph to JSON: " + exportedPath);
                 RefreshOpenGraphToolkit(graphPath);
             }
             catch (Exception exception)
             {
-                Debug.LogWarning("[Blueprint] Failed to auto-export visual graph '" + graphPath + "': " + exception.Message);
+                BlueprintLog.Warning("[Blueprint] Failed to auto-export visual graph '" + graphPath + "': " + exception.Message);
             }
         }
 
@@ -116,13 +116,13 @@ namespace BlueprintSystem.Editor
                 {
                     if (BlueprintGraphToolkitBridge.RefreshOpenGraphToolkitAtPath(graphPath))
                     {
-                        Debug.Log("[Blueprint] Refreshed open Graph Toolkit view: " + graphPath);
+                        BlueprintLog.Log("[Blueprint] Refreshed open Graph Toolkit view: " + graphPath);
                     }
                 }
             }
             catch (Exception exception)
             {
-                Debug.LogWarning("[Blueprint] Failed to refresh Graph Toolkit view '" + graphPath + "': " + exception.Message);
+                BlueprintLog.Warning("[Blueprint] Failed to refresh Graph Toolkit view '" + graphPath + "': " + exception.Message);
             }
         }
 

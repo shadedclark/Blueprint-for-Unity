@@ -39,7 +39,7 @@ namespace BlueprintSystem.Editor
 
             if (GUILayout.Button("Log JSON Preview"))
             {
-                Debug.Log(asset.ToJson(), asset);
+                BlueprintLog.Log(asset.ToJson(), asset);
             }
         }
 
@@ -174,7 +174,7 @@ namespace BlueprintSystem.Editor
             List<string> errors = Validate(asset);
             if (errors.Count > 0)
             {
-                Debug.LogError("[Blueprint] Cannot sync user struct JSON:\n" + string.Join("\n", errors), asset);
+                BlueprintLog.Error("[Blueprint] Cannot sync user struct JSON:\n" + string.Join("\n", errors), asset);
                 return;
             }
 
@@ -189,7 +189,7 @@ namespace BlueprintSystem.Editor
             File.WriteAllText(jsonPath, asset.ToJson());
             AssetDatabase.ImportAsset(jsonPath);
             AssetDatabase.SaveAssets();
-            Debug.Log("[Blueprint] Synced user struct JSON: " + jsonPath, asset);
+            BlueprintLog.Log("[Blueprint] Synced user struct JSON: " + jsonPath, asset);
         }
 
         private static string GetJsonPath(string assetPath, BlueprintUserStructAsset asset)

@@ -17,7 +17,7 @@ namespace BlueprintSystem.Editor
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string graphPath = ImportResourceBlueprintAtPath(path, true);
-            Debug.Log("[Blueprint Resource] Imported resource graph: " + graphPath);
+            BlueprintLog.Log("[Blueprint Resource] Imported resource graph: " + graphPath);
         }
 
         [MenuItem(ImportMenu, true)]
@@ -31,7 +31,7 @@ namespace BlueprintSystem.Editor
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string outputPath = ExportGraphAtPath(path, null);
-            Debug.Log("[Blueprint Resource] Exported resource blueprint JSON: " + outputPath);
+            BlueprintLog.Log("[Blueprint Resource] Exported resource blueprint JSON: " + outputPath);
         }
 
         [MenuItem(ExportMenu, true)]
@@ -66,7 +66,7 @@ namespace BlueprintSystem.Editor
             }
             catch (Exception ex)
             {
-                Debug.LogError("[Blueprint Resource] Failed to open visual graph for '" + assetPath + "': " + ex.Message, asset);
+                BlueprintLog.Error("[Blueprint Resource] Failed to open visual graph for '" + assetPath + "': " + ex.Message, asset);
                 return false;
             }
         }

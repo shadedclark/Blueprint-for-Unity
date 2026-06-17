@@ -1019,7 +1019,7 @@ namespace BlueprintSystem.Editor
 
             if (report.Issues.Count == 0)
             {
-                Debug.Log("[Blueprint Resource] Validated " + report.Records.Count + " resource blueprint(s).");
+                BlueprintLog.Log("[Blueprint Resource] Validated " + report.Records.Count + " resource blueprint(s).");
                 return;
             }
 
@@ -1029,15 +1029,15 @@ namespace BlueprintSystem.Editor
                 string message = "[Blueprint Resource] " + issue.Severity + " " + issue.ResourceId + " " + issue.SourcePath + ": " + issue.Message;
                 if (issue.Severity == BlueprintResourceValidationSeverity.Error)
                 {
-                    Debug.LogError(message);
+                    BlueprintLog.Error(message);
                 }
                 else if (issue.Severity == BlueprintResourceValidationSeverity.Warning)
                 {
-                    Debug.LogWarning(message);
+                    BlueprintLog.Warning(message);
                 }
                 else
                 {
-                    Debug.Log(message);
+                    BlueprintLog.Log(message);
                 }
             }
         }

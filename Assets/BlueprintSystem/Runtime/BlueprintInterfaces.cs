@@ -447,17 +447,17 @@ namespace BlueprintSystem
     {
         public void Log(string message)
         {
-            Debug.Log("[Blueprint] " + message);
+            BlueprintLog.Log("[Blueprint] " + message);
         }
 
         public void Warning(string message)
         {
-            Debug.LogWarning("[Blueprint] " + message);
+            BlueprintLog.Warning("[Blueprint] " + message);
         }
 
         public void Error(string message)
         {
-            Debug.LogError("[Blueprint] " + message);
+            BlueprintLog.Error("[Blueprint] " + message);
         }
     }
 

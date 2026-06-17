@@ -39,12 +39,12 @@ internal static class LocalUnityMcpConnectionCap
                 return;
             }
 
-            Debug.LogWarning("Unity MCP connection cap override API was not found.");
+            BlueprintSystem.BlueprintLog.Warning("Unity MCP connection cap override API was not found.");
             return;
         }
 
         var policy = constructor.Invoke(new object[] { Cap, Cap });
         setMethod.Invoke(null, new[] { policy });
-        Debug.Log("Unity MCP connection cap set to " + Cap + ".");
+        BlueprintSystem.BlueprintLog.Log("Unity MCP connection cap set to " + Cap + ".");
     }
 }

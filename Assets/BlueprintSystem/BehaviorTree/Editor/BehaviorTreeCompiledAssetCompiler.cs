@@ -61,7 +61,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[BehaviorTree] Select a .btree.json or .btree TextAsset before compiling.");
+                    BlueprintLog.Error("[BehaviorTree] Select a .btree.json or .btree TextAsset before compiling.");
                 }
 
                 return false;
@@ -72,7 +72,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[BehaviorTree] Could not load behavior tree JSON at '" + sourcePath + "'.");
+                    BlueprintLog.Error("[BehaviorTree] Could not load behavior tree JSON at '" + sourcePath + "'.");
                 }
 
                 return false;
@@ -103,7 +103,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[BehaviorTree] Behavior tree JSON must be an asset before it can be compiled.", sourceAsset);
+                    BlueprintLog.Error("[BehaviorTree] Behavior tree JSON must be an asset before it can be compiled.", sourceAsset);
                 }
 
                 return false;
@@ -114,7 +114,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[BehaviorTree] Subtree cycle detected at '" + sourcePath + "'.", sourceAsset);
+                    BlueprintLog.Error("[BehaviorTree] Subtree cycle detected at '" + sourcePath + "'.", sourceAsset);
                 }
 
                 return false;
@@ -162,7 +162,7 @@ namespace BlueprintSystem.Editor
 
             if (log)
             {
-                Debug.Log("[BehaviorTree] Compiled '" + data.Source.Name + "' to " + assetPath + ".", compiledAsset);
+                BlueprintLog.Log("[BehaviorTree] Compiled '" + data.Source.Name + "' to " + assetPath + ".", compiledAsset);
             }
 
             return true;
@@ -269,7 +269,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[BehaviorTree] Could not parse behavior tree JSON at '" + sourcePath + "': " + exception.Message, sourceAsset);
+                    BlueprintLog.Error("[BehaviorTree] Could not parse behavior tree JSON at '" + sourcePath + "': " + exception.Message, sourceAsset);
                 }
 
                 return false;
@@ -280,7 +280,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[BehaviorTree] Compile failed for " + sourceAsset.name + "\n" + compileResult.Diagnostics.ToDisplayString(), sourceAsset);
+                    BlueprintLog.Error("[BehaviorTree] Compile failed for " + sourceAsset.name + "\n" + compileResult.Diagnostics.ToDisplayString(), sourceAsset);
                 }
 
                 return false;
@@ -634,7 +634,7 @@ namespace BlueprintSystem.Editor
         {
             if (log)
             {
-                Debug.LogError("[BehaviorTree] " + message);
+                BlueprintLog.Error("[BehaviorTree] " + message);
             }
         }
 

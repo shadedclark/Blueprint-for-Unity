@@ -44,7 +44,7 @@ namespace BlueprintSystem.Editor
 
             if (GUILayout.Button("Log JSON Preview"))
             {
-                Debug.Log(asset.ToJson(), asset);
+                BlueprintLog.Log(asset.ToJson(), asset);
             }
         }
 
@@ -635,7 +635,7 @@ namespace BlueprintSystem.Editor
             List<string> errors = Validate(asset);
             if (errors.Count > 0)
             {
-                Debug.LogError("[Blueprint] Cannot sync data table JSON:\n" + string.Join("\n", errors), asset);
+                BlueprintLog.Error("[Blueprint] Cannot sync data table JSON:\n" + string.Join("\n", errors), asset);
                 return;
             }
 
@@ -651,7 +651,7 @@ namespace BlueprintSystem.Editor
             AssetDatabase.ImportAsset(jsonPath);
             AssetDatabase.SaveAssets();
             BlueprintDataTableRegistry.Refresh();
-            Debug.Log("[Blueprint] Synced data table JSON: " + jsonPath, asset);
+            BlueprintLog.Log("[Blueprint] Synced data table JSON: " + jsonPath, asset);
         }
 
         private static string GetJsonPath(string assetPath, BlueprintDataTableAsset asset)

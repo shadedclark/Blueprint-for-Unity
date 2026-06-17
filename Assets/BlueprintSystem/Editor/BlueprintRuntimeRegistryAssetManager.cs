@@ -561,11 +561,11 @@ namespace BlueprintSystem.Editor
                 return;
             }
 
-            Debug.Log("[Blueprint Runtime Registry] Synced " + report.CatalogId + " to " + report.AssetPath +
-                      " (" + report.UserStructCount + " struct(s), " + report.DataTableCount + " table(s)).");
+            BlueprintLog.Log("[Blueprint Runtime Registry] Synced " + report.CatalogId + " to " + report.AssetPath +
+                             " (" + report.UserStructCount + " struct(s), " + report.DataTableCount + " table(s)).");
             for (int i = 0; i < report.Warnings.Count; i++)
             {
-                Debug.LogWarning("[Blueprint Runtime Registry] " + report.Warnings[i]);
+                BlueprintLog.Warning("[Blueprint Runtime Registry] " + report.Warnings[i]);
             }
         }
     }

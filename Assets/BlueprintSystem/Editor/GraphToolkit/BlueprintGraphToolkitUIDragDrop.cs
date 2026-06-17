@@ -268,7 +268,7 @@ namespace BlueprintSystem.Editor
                         }
                         catch (Exception exception)
                         {
-                            Debug.LogException(exception);
+                            BlueprintLog.Exception(exception);
                         }
                     });
                 }
@@ -821,11 +821,11 @@ namespace BlueprintSystem.Editor
 
             if (!runnerUpdated)
             {
-                Debug.LogWarning(CreateMissingRunnerMessage(choice, bindingName));
+                BlueprintLog.Warning(CreateMissingRunnerMessage(choice, bindingName));
             }
             else
             {
-                Debug.Log("[Blueprint] Added '" + choice.Manifest.TypeId + "' and bound '" + bindingName + "' to '" + choice.BindingTarget.name + "'.");
+                BlueprintLog.Log("[Blueprint] Added '" + choice.Manifest.TypeId + "' and bound '" + bindingName + "' to '" + choice.BindingTarget.name + "'.");
             }
         }
 
@@ -857,7 +857,7 @@ namespace BlueprintSystem.Editor
                 GraphDatabase.SaveGraphIfDirty(graph);
                 AssetDatabase.SaveAssets();
                 ClearVariableDragData();
-                Debug.Log("[Blueprint] Added 'Variable.Get' for variable '" + choice.VariableName + "'.");
+                BlueprintLog.Log("[Blueprint] Added 'Variable.Get' for variable '" + choice.VariableName + "'.");
                 return;
             }
 
@@ -878,7 +878,7 @@ namespace BlueprintSystem.Editor
                 BlueprintGraphToolkitReflection.MarkDirty(graph);
                 GraphDatabase.SaveGraphIfDirty(graph);
                 AssetDatabase.SaveAssets();
-                Debug.Log("[Blueprint] Added Blueprint variable '" + variable.name + "' from '" + choice.BlueprintAssetPath + "'.");
+                BlueprintLog.Log("[Blueprint] Added Blueprint variable '" + variable.name + "' from '" + choice.BlueprintAssetPath + "'.");
                 return;
             }
 
@@ -893,7 +893,7 @@ namespace BlueprintSystem.Editor
             BlueprintGraphToolkitReflection.MarkDirty(graph);
             GraphDatabase.SaveGraphIfDirty(graph);
             AssetDatabase.SaveAssets();
-            Debug.Log("[Blueprint] Added 'Variable.BreakStruct' for '" + choice.StructTypeId + "'.");
+            BlueprintLog.Log("[Blueprint] Added 'Variable.BreakStruct' for '" + choice.StructTypeId + "'.");
         }
 
         private static void CreateDataTableNodeFromChoice(BlueprintVisualGraph graph, DropNodeChoice choice, Vector2 graphPosition)
@@ -910,7 +910,7 @@ namespace BlueprintSystem.Editor
             BlueprintGraphToolkitReflection.MarkDirty(graph);
             GraphDatabase.SaveGraphIfDirty(graph);
             AssetDatabase.SaveAssets();
-            Debug.Log("[Blueprint] Added '" + choice.Manifest.TypeId + "' for '" + choice.DataTableAssetPath + "'.");
+            BlueprintLog.Log("[Blueprint] Added '" + choice.Manifest.TypeId + "' for '" + choice.DataTableAssetPath + "'.");
         }
 
         private static void CreateDataTableVariableNodeFromChoice(
@@ -933,7 +933,7 @@ namespace BlueprintSystem.Editor
                 BlueprintGraphToolkitReflection.MarkDirty(graph);
                 GraphDatabase.SaveGraphIfDirty(graph);
                 AssetDatabase.SaveAssets();
-                Debug.Log("[Blueprint] Added DataTable variable '" + variable.name + "' from '" + choice.DataTableAssetPath + "'.");
+                BlueprintLog.Log("[Blueprint] Added DataTable variable '" + variable.name + "' from '" + choice.DataTableAssetPath + "'.");
                 return;
             }
 
@@ -1207,7 +1207,7 @@ namespace BlueprintSystem.Editor
             BlueprintGraphToolkitReflection.MarkDirty(graph);
             GraphDatabase.SaveGraphIfDirty(graph);
             AssetDatabase.SaveAssets();
-            Debug.Log("[Blueprint] Added 'Variable.Set' for variable '" + variable.name + "'.");
+            BlueprintLog.Log("[Blueprint] Added 'Variable.Set' for variable '" + variable.name + "'.");
             return visualNode;
         }
 

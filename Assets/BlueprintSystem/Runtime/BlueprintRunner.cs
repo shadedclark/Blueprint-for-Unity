@@ -400,7 +400,7 @@ namespace BlueprintSystem
 
             if (options.Log)
             {
-                Debug.Log("[Blueprint] Hot reloaded " + name + ".", this);
+                BlueprintLog.Log("[Blueprint] Hot reloaded " + name + ".", this);
             }
 
             if (options.TriggerReloadEvent)
@@ -435,7 +435,7 @@ namespace BlueprintSystem
             {
                 if (log)
                 {
-                    Debug.LogWarning("[Blueprint] Missing compiled blueprint asset on " + name + ".");
+                    BlueprintLog.Warning("[Blueprint] Missing compiled blueprint asset on " + name + ".");
                 }
 
                 return false;
@@ -450,7 +450,7 @@ namespace BlueprintSystem
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + exception.Message, this);
+                    BlueprintLog.Error("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + exception.Message, this);
                 }
 
                 return false;
@@ -461,7 +461,7 @@ namespace BlueprintSystem
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + diagnostics.ToDisplayString(), this);
+                    BlueprintLog.Error("[Blueprint] Compile failed for " + compiledBlueprint.name + "\n" + diagnostics.ToDisplayString(), this);
                 }
 
                 return false;

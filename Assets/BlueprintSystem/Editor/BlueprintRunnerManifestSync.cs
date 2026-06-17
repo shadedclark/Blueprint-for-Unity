@@ -37,7 +37,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Select a .blueprint.json TextAsset before compiling.");
+                    BlueprintLog.Error("[Blueprint] Select a .blueprint.json TextAsset before compiling.");
                 }
 
                 return false;
@@ -68,7 +68,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Blueprint JSON must be an asset before it can be compiled.", blueprintJson);
+                    BlueprintLog.Error("[Blueprint] Blueprint JSON must be an asset before it can be compiled.", blueprintJson);
                 }
 
                 return false;
@@ -102,7 +102,7 @@ namespace BlueprintSystem.Editor
 
             if (log)
             {
-                Debug.Log("[Blueprint] Compiled '" + data.Source.Name + "' to " + assetPath + ".", compiledAsset);
+                BlueprintLog.Log("[Blueprint] Compiled '" + data.Source.Name + "' to " + assetPath + ".", compiledAsset);
             }
 
             return true;
@@ -132,7 +132,7 @@ namespace BlueprintSystem.Editor
             Type mainAssetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
             if (log)
             {
-                Debug.LogWarning(
+                BlueprintLog.Warning(
                     "[Blueprint] Rebuilding stale compiled blueprint asset record at '" + assetPath +
                     "' (guid " + existingGuid + ", main type " + (mainAssetType == null ? "null" : mainAssetType.FullName) + ").",
                     context);
@@ -296,7 +296,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Component blueprint cycle detected at '" + sourcePath + "'.", blueprintJson);
+                    BlueprintLog.Error("[Blueprint] Component blueprint cycle detected at '" + sourcePath + "'.", blueprintJson);
                 }
 
                 return false;
@@ -319,7 +319,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Could not parse blueprint JSON at '" + sourcePath + "': " + exception.Message, blueprintJson);
+                    BlueprintLog.Error("[Blueprint] Could not parse blueprint JSON at '" + sourcePath + "': " + exception.Message, blueprintJson);
                 }
 
                 compilationStack.Remove(sourcePath);
@@ -333,7 +333,7 @@ namespace BlueprintSystem.Editor
             {
                 if (log)
                 {
-                    Debug.LogError("[Blueprint] Compile failed for " + blueprintJson.name + "\n" + compileResult.Diagnostics.ToDisplayString(), blueprintJson);
+                    BlueprintLog.Error("[Blueprint] Compile failed for " + blueprintJson.name + "\n" + compileResult.Diagnostics.ToDisplayString(), blueprintJson);
                 }
 
                 compilationStack.Remove(sourcePath);
@@ -470,7 +470,7 @@ namespace BlueprintSystem.Editor
                     {
                         if (log)
                         {
-                            Debug.LogError("[Blueprint] Required component '" + component.Name + "' could not compile or load blueprint '" + component.Blueprint + "'.");
+                            BlueprintLog.Error("[Blueprint] Required component '" + component.Name + "' could not compile or load blueprint '" + component.Blueprint + "'.");
                         }
 
                         return false;
@@ -783,7 +783,7 @@ namespace BlueprintSystem.Editor
                 }
                 catch (Exception exception)
                 {
-                    Debug.LogWarning("[Blueprint] Could not parse node manifest at '" + path + "': " + exception.Message, manifestAsset);
+                    BlueprintLog.Warning("[Blueprint] Could not parse node manifest at '" + path + "': " + exception.Message, manifestAsset);
                 }
             }
 
@@ -856,7 +856,7 @@ namespace BlueprintSystem.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[Blueprint] Migrated " + migratedReferences + " legacy blueprint JSON references in " + migratedFiles + " asset files.");
+            BlueprintLog.Log("[Blueprint] Migrated " + migratedReferences + " legacy blueprint JSON references in " + migratedFiles + " asset files.");
         }
 
         private static string[] FindSceneAndPrefabAssetPaths()
@@ -1205,14 +1205,14 @@ namespace BlueprintSystem.Editor
             BlueprintCompiledAsset compiledAsset = runner.CompiledBlueprint;
             if (compiledAsset == null)
             {
-                Debug.LogWarning("[Blueprint] Cannot compile and reload '" + runner.name + "' because it has no compiled blueprint asset.", runner);
+                BlueprintLog.Warning("[Blueprint] Cannot compile and reload '" + runner.name + "' because it has no compiled blueprint asset.", runner);
                 return false;
             }
 
             string sourcePath = BlueprintCompiledAssetCompiler.GetCompiledAssetSourcePath(compiledAsset);
             if (string.IsNullOrEmpty(sourcePath))
             {
-                Debug.LogWarning("[Blueprint] Cannot compile and reload '" + runner.name + "' because the compiled asset has no source blueprint path.", runner);
+                BlueprintLog.Warning("[Blueprint] Cannot compile and reload '" + runner.name + "' because the compiled asset has no source blueprint path.", runner);
                 return false;
             }
 
@@ -1233,7 +1233,7 @@ namespace BlueprintSystem.Editor
                 });
             }
 
-            Debug.Log("[Blueprint] Compiled '" + sourcePath + "' for '" + runner.name + "'.", runner);
+            BlueprintLog.Log("[Blueprint] Compiled '" + sourcePath + "' for '" + runner.name + "'.", runner);
             return true;
         }
 
@@ -1404,7 +1404,7 @@ namespace BlueprintSystem.Editor
 
             if (reloaded > 0)
             {
-                Debug.Log("[Blueprint] Hot reloaded " + reloaded + " runner(s).");
+                BlueprintLog.Log("[Blueprint] Hot reloaded " + reloaded + " runner(s).");
             }
         }
 
@@ -1740,7 +1740,7 @@ namespace BlueprintSystem.Editor
                 BlueprintCompiledAsset compiledAsset = runner.CompiledBlueprint;
                 if (compiledAsset == null)
                 {
-                    Debug.LogWarning("[Blueprint] Cannot sync variable overrides for '" + runner.name + "' because it has no compiled blueprint asset.", runner);
+                    BlueprintLog.Warning("[Blueprint] Cannot sync variable overrides for '" + runner.name + "' because it has no compiled blueprint asset.", runner);
                     continue;
                 }
 

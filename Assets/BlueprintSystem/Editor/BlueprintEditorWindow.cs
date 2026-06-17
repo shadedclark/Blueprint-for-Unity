@@ -35,7 +35,7 @@ namespace BlueprintSystem.Editor
         {
             if (!TryOpenSelectedBlueprintJson())
             {
-                Debug.LogWarning("[Blueprint] Select a .blueprint.json TextAsset first.");
+                BlueprintLog.Warning("[Blueprint] Select a .blueprint.json TextAsset first.");
             }
         }
 
@@ -52,7 +52,7 @@ namespace BlueprintSystem.Editor
             string path = asset == null ? null : AssetDatabase.GetAssetPath(asset);
             if (!IsBlueprintJsonPath(path))
             {
-                Debug.LogWarning("[Blueprint] Select a .blueprint.json TextAsset first.");
+                BlueprintLog.Warning("[Blueprint] Select a .blueprint.json TextAsset first.");
                 return;
             }
 
@@ -60,11 +60,11 @@ namespace BlueprintSystem.Editor
             string message = path + "\n" + diagnostics.ToDisplayString();
             if (diagnostics.HasErrors)
             {
-                Debug.LogError("[Blueprint] Validation failed:\n" + message);
+                BlueprintLog.Error("[Blueprint] Validation failed:\n" + message);
             }
             else
             {
-                Debug.Log("[Blueprint] Validation passed:\n" + message);
+                BlueprintLog.Log("[Blueprint] Validation passed:\n" + message);
             }
         }
 

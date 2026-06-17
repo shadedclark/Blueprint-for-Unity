@@ -101,7 +101,7 @@ namespace BlueprintSystem
             {
                 if (logMissingAsset)
                 {
-                    Debug.LogWarning("[BehaviorTree] Missing compiled behavior tree asset on " + name + ".", this);
+                    BlueprintLog.Warning("[BehaviorTree] Missing compiled behavior tree asset on " + name + ".", this);
                 }
 
                 return false;

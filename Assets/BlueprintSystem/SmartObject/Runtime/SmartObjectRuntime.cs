@@ -458,7 +458,7 @@ namespace BlueprintSystem
 
             if (ObjectsById.TryGetValue(id, out existing) && existing != component)
             {
-                Debug.LogWarning("[Blueprint] Duplicate SmartObject objectId '" + id + "' ignored on " + component.name + ".");
+                BlueprintLog.Warning("[Blueprint] Duplicate SmartObject objectId '" + id + "' ignored on " + component.name + ".");
                 return;
             }
 

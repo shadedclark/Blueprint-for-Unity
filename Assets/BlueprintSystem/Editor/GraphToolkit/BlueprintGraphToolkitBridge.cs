@@ -19,7 +19,7 @@ namespace BlueprintSystem.Editor
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string graphPath = ImportBlueprintAtPath(path, true);
-            Debug.Log("[Blueprint] Imported visual graph: " + graphPath);
+            BlueprintLog.Log("[Blueprint] Imported visual graph: " + graphPath);
         }
 
         [MenuItem(ImportMenu, true)]
@@ -34,7 +34,7 @@ namespace BlueprintSystem.Editor
         {
             string graphPath = AssetDatabase.GetAssetPath(Selection.activeObject);
             string outputPath = ExportGraphAtPath(graphPath, null);
-            Debug.Log("[Blueprint] Exported blueprint JSON: " + outputPath);
+            BlueprintLog.Log("[Blueprint] Exported blueprint JSON: " + outputPath);
         }
 
         [MenuItem(ExportMenu, true)]
@@ -100,7 +100,7 @@ namespace BlueprintSystem.Editor
                 if (!TrySplitPortReference(edge.From, out fromNodeId, out fromPortId) ||
                     !TrySplitPortReference(edge.To, out toNodeId, out toPortId))
                 {
-                    Debug.LogWarning("[Blueprint] Skipped invalid edge reference: " + edge.From + " -> " + edge.To);
+                    BlueprintLog.Warning("[Blueprint] Skipped invalid edge reference: " + edge.From + " -> " + edge.To);
                     continue;
                 }
 
@@ -108,7 +108,7 @@ namespace BlueprintSystem.Editor
                 INode toNode;
                 if (!nodesById.TryGetValue(fromNodeId, out fromNode) || !nodesById.TryGetValue(toNodeId, out toNode))
                 {
-                    Debug.LogWarning("[Blueprint] Skipped edge with missing node: " + edge.From + " -> " + edge.To);
+                    BlueprintLog.Warning("[Blueprint] Skipped edge with missing node: " + edge.From + " -> " + edge.To);
                     continue;
                 }
 
@@ -116,7 +116,7 @@ namespace BlueprintSystem.Editor
                 IPort toPort = SafeGetInputPort(toNode, toPortId);
                 if (fromPort == null || toPort == null)
                 {
-                    Debug.LogWarning("[Blueprint] Skipped edge with missing port: " + edge.From + " -> " + edge.To);
+                    BlueprintLog.Warning("[Blueprint] Skipped edge with missing port: " + edge.From + " -> " + edge.To);
                     continue;
                 }
 

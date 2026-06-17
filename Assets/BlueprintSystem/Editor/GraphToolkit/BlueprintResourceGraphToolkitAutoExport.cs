@@ -79,18 +79,18 @@ namespace BlueprintSystem.Editor
             string outputPath = BlueprintResourceGraphToolkitBridge.GetDefaultResourceBlueprintJsonPath(graphPath);
             if (File.Exists(outputPath) && File.GetLastWriteTimeUtc(graphPath) <= File.GetLastWriteTimeUtc(outputPath))
             {
-                Debug.Log("[Blueprint Resource] Skipped auto-export for older resource graph cache: " + graphPath);
+                BlueprintLog.Log("[Blueprint Resource] Skipped auto-export for older resource graph cache: " + graphPath);
                 return;
             }
 
             try
             {
                 string exported = BlueprintResourceGraphToolkitBridge.ExportGraphAtPath(graphPath, null);
-                Debug.Log("[Blueprint Resource] Auto-exported resource graph to JSON: " + exported);
+                BlueprintLog.Log("[Blueprint Resource] Auto-exported resource graph to JSON: " + exported);
             }
             catch (Exception exception)
             {
-                Debug.LogWarning("[Blueprint Resource] Failed to auto-export resource graph '" + graphPath + "': " + exception.Message);
+                BlueprintLog.Warning("[Blueprint Resource] Failed to auto-export resource graph '" + graphPath + "': " + exception.Message);
             }
         }
     }

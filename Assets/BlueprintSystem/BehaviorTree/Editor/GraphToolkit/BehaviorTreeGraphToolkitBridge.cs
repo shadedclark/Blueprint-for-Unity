@@ -21,7 +21,7 @@ namespace BlueprintSystem.Editor
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string graphPath = ImportBehaviorTreeAtPath(path, true);
-            Debug.Log("[BehaviorTree] Imported visual graph: " + graphPath);
+            BlueprintLog.Log("[BehaviorTree] Imported visual graph: " + graphPath);
         }
 
         [MenuItem(ImportMenu, true)]
@@ -35,7 +35,7 @@ namespace BlueprintSystem.Editor
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string outputPath = ExportGraphAtPath(path, null);
-            Debug.Log("[BehaviorTree] Exported behavior tree JSON: " + outputPath);
+            BlueprintLog.Log("[BehaviorTree] Exported behavior tree JSON: " + outputPath);
         }
 
         [MenuItem(ExportMenu, true)]
@@ -161,7 +161,7 @@ namespace BlueprintSystem.Editor
             }
             catch (Exception ex)
             {
-                Debug.LogError("[BehaviorTree] Failed to open visual graph for '" + assetPath + "': " + ex.Message, asset);
+                BlueprintLog.Error("[BehaviorTree] Failed to open visual graph for '" + assetPath + "': " + ex.Message, asset);
                 return false;
             }
         }
