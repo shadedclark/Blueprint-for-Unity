@@ -91,6 +91,11 @@ connected value edge -> compiled node property -> null
 | `Game.SetRendererMaterial` | Set Renderer Material | Game/Rendering | `Game.SetRendererMaterial` | `GameSetRendererMaterialExecutor` | Sets an instance material slot on a `Renderer`. |
 | `Game.SetRendererMaterialColor` | Set Renderer Material Color | Game/Rendering | `Game.SetRendererMaterialColor` | `GameSetRendererMaterialColorExecutor` | Sets a color property on `renderer.material`. |
 | `Game.SetRendererTexture` | Set Renderer Texture | Game/Rendering | `Game.SetRendererTexture` | `GameSetRendererTextureExecutor` | Sets a texture property on `renderer.material`. |
+| `Game.SetLightEnabled` | Set Light Enabled | Game/Lighting | `Game.SetLightEnabled` | `GameSetLightEnabledExecutor` | Sets `Light.enabled`. |
+| `Game.SetLightIntensity` | Set Light Intensity | Game/Lighting | `Game.SetLightIntensity` | `GameSetLightIntensityExecutor` | Sets `Light.intensity`. |
+| `Game.SetLightColor` | Set Light Color | Game/Lighting | `Game.SetLightColor` | `GameSetLightColorExecutor` | Sets `Light.color`. |
+| `Game.SetLightRange` | Set Light Range | Game/Lighting | `Game.SetLightRange` | `GameSetLightRangeExecutor` | Sets `Light.range`. |
+| `Game.SetLightSpotAngle` | Set Light Spot Angle | Game/Lighting | `Game.SetLightSpotAngle` | `GameSetLightSpotAngleExecutor` | Sets `Light.spotAngle`. |
 | `Input.GetAxis` | Get Axis | Input | `Input.GetAxis` | `InputGetAxisExecutor` | Reads a smoothed legacy Input Manager axis value. |
 | `Input.GetAxisRaw` | Get Axis Raw | Input | `Input.GetAxisRaw` | `InputGetAxisRawExecutor` | Reads an unsmoothed legacy Input Manager axis value. |
 | `Input.GetActionVector2` | Get Action Vector2 | Input | `Input.GetActionVector2` | `InputGetActionVector2Executor` | Reads a `Vector2` from a project-wide Input System action. |
@@ -239,6 +244,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | GameObject lifecycle | `GameObject.SetActive`, `GameObject.Destroy` | Act on connected runtime `GameObject` values such as `Game.InstantiateObject.instance`; these nodes do not resolve binding names or store Unity object references in JSON. |
 | GameObject pooling | `GameObject.PrewarmPool`, `GameObject.AcquireFromPool`, `GameObject.ReleaseToPool`, `GameObject.ClearPool`, `GameObject.GetPoolStats`, `GameObject.GetPoolActiveInstances` | Unreal-style runner-scoped object pooling and read-only pool queries for `GameObject` prefabs using string `poolId` keys. |
 | Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `Binding<Transform>` strings resolved at runtime. |
+| Lighting actions | `Game.SetLightEnabled`, `Game.SetLightIntensity`, `Game.SetLightColor`, `Game.SetLightRange`, `Game.SetLightSpotAngle` | Common Unity `Light` component setters. All targets are `Binding<Light>` strings resolved at runtime. |
 | Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
 
 Avoid duplicates:
@@ -1065,6 +1071,46 @@ Ports and parameters:
 | `Game.SetRendererTexture` | `Binding<Renderer>` | `value: Binding<Texture>` | `propertyName: string` | `_MainTex` |
 
 All three nodes have `execIn` and `execOut`. `target` is property-only; value-like fields are property-or-connection where the manifest exposes them as inputs.
+
+### Lighting Nodes
+
+Manifests:
+
+```text
+Assets/BlueprintSystem/Specs/Nodes/Game.SetLightEnabled.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetLightIntensity.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetLightColor.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetLightRange.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SetLightSpotAngle.node.json
+```
+
+Executors:
+
+```text
+IDs: Game.SetLightEnabled, Game.SetLightIntensity, Game.SetLightColor, Game.SetLightRange, Game.SetLightSpotAngle
+Classes: GameSetLightEnabledExecutor, GameSetLightIntensityExecutor, GameSetLightColorExecutor, GameSetLightRangeExecutor, GameSetLightSpotAngleExecutor
+File: Assets/BlueprintSystem/Executors/Game/GameRenderingExecutors.cs
+```
+
+Function:
+
+```text
+Resolve `target` as Light, including from a bound GameObject or Component.
+Set the requested Light property directly with no extra clamping or type policy.
+Return an error when the Light binding cannot be resolved.
+```
+
+Ports and parameters:
+
+| Node | Target | Value | Default |
+| --- | --- | --- | --- |
+| `Game.SetLightEnabled` | `Binding<Light>` | `value: bool` | `true` |
+| `Game.SetLightIntensity` | `Binding<Light>` | `value: float` | `1` |
+| `Game.SetLightColor` | `Binding<Light>` | `value: Color` | `[1, 1, 1, 1]` |
+| `Game.SetLightRange` | `Binding<Light>` | `value: float` | `10` |
+| `Game.SetLightSpotAngle` | `Binding<Light>` | `value: float` | `30` |
+
+All five nodes have `execIn` and `execOut`. `target` is property-only; `value` is property-or-connection.
 
 ## Input Nodes
 

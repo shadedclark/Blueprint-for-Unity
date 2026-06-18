@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetLightSpotAngle",
+  "title": "Set Light Spot Angle",
+  "category": "Game/Lighting",
+  "description": "Sets spotAngle on a bound Light.",
+  "executor": "Game.SetLightSpotAngle",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<Light>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<Light>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "float",
+      "required": false,
+      "defaultValue": 30
+    }
+  ],
+  "tags": [
+    "light",
+    "lighting",
+    "spot"
+  ]
+}

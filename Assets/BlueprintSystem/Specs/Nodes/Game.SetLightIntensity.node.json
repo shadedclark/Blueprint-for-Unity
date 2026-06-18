@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetLightIntensity",
+  "title": "Set Light Intensity",
+  "category": "Game/Lighting",
+  "description": "Sets intensity on a bound Light.",
+  "executor": "Game.SetLightIntensity",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<Light>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<Light>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "float",
+      "required": false,
+      "defaultValue": 1
+    }
+  ],
+  "tags": [
+    "light",
+    "lighting",
+    "intensity"
+  ]
+}

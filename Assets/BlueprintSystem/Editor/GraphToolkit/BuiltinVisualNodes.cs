@@ -549,6 +549,91 @@ namespace BlueprintSystem.Editor
         }
     }
 
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetLightEnabled")]
+    public sealed class GameSetLightEnabledVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetLightEnabled", "Set Light Enabled", "Game/Lighting", "Sets enabled on a bound Light.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Light>", true, "property");
+            AddValueInput("value", "bool", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Light>", true);
+            AddProperty("value", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetLightIntensity")]
+    public sealed class GameSetLightIntensityVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetLightIntensity", "Set Light Intensity", "Game/Lighting", "Sets intensity on a bound Light.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Light>", true, "property");
+            AddValueInput("value", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Light>", true);
+            AddProperty("value", "float", false, 1f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetLightColor")]
+    public sealed class GameSetLightColorVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetLightColor", "Set Light Color", "Game/Lighting", "Sets color on a bound Light.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Light>", true, "property");
+            AddValueInput("value", "Color", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Light>", true);
+            AddProperty("value", "Color", false, new System.Collections.Generic.List<object> { 1f, 1f, 1f, 1f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetLightRange")]
+    public sealed class GameSetLightRangeVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetLightRange", "Set Light Range", "Game/Lighting", "Sets range on a bound Light.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Light>", true, "property");
+            AddValueInput("value", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Light>", true);
+            AddProperty("value", "float", false, 10f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetLightSpotAngle")]
+    public sealed class GameSetLightSpotAngleVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetLightSpotAngle", "Set Light Spot Angle", "Game/Lighting", "Sets spotAngle on a bound Light.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Light>", true, "property");
+            AddValueInput("value", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Light>", true);
+            AddProperty("value", "float", false, 30f);
+        }
+    }
+
     public abstract class InputAxisVisualNode : BlueprintVisualNode
     {
         protected void ConfigureAxisNode(string typeId, string title, string description)

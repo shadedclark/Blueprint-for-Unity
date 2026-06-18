@@ -284,6 +284,11 @@ namespace BlueprintSystem
             registry.Register(new GameSetRendererMaterialExecutor());
             registry.Register(new GameSetRendererMaterialColorExecutor());
             registry.Register(new GameSetRendererTextureExecutor());
+            registry.Register(new GameSetLightEnabledExecutor());
+            registry.Register(new GameSetLightIntensityExecutor());
+            registry.Register(new GameSetLightColorExecutor());
+            registry.Register(new GameSetLightRangeExecutor());
+            registry.Register(new GameSetLightSpotAngleExecutor());
             registry.Register(new GameRaycastExecutor());
             registry.Register(new GameSphereCastExecutor());
             registry.Register(new GameBoxCastExecutor());

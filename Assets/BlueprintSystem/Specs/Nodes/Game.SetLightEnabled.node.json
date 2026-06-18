@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetLightEnabled",
+  "title": "Set Light Enabled",
+  "category": "Game/Lighting",
+  "description": "Sets enabled on a bound Light.",
+  "executor": "Game.SetLightEnabled",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<Light>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "bool",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<Light>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "bool",
+      "required": false,
+      "defaultValue": true
+    }
+  ],
+  "tags": [
+    "light",
+    "lighting",
+    "enabled"
+  ]
+}

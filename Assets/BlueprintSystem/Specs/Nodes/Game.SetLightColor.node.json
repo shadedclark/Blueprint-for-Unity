@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetLightColor",
+  "title": "Set Light Color",
+  "category": "Game/Lighting",
+  "description": "Sets color on a bound Light.",
+  "executor": "Game.SetLightColor",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<Light>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "Color",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<Light>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "Color",
+      "required": false,
+      "defaultValue": [1, 1, 1, 1]
+    }
+  ],
+  "tags": [
+    "light",
+    "lighting",
+    "color"
+  ]
+}

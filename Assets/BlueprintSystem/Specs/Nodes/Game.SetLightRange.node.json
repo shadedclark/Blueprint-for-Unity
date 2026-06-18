@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetLightRange",
+  "title": "Set Light Range",
+  "category": "Game/Lighting",
+  "description": "Sets range on a bound Light.",
+  "executor": "Game.SetLightRange",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<Light>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<Light>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "float",
+      "required": false,
+      "defaultValue": 10
+    }
+  ],
+  "tags": [
+    "light",
+    "lighting",
+    "range"
+  ]
+}

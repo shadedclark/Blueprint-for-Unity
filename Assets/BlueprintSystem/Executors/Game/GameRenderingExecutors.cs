@@ -148,4 +148,109 @@ namespace BlueprintSystem
             return true;
         }
     }
+
+    public sealed class GameSetLightEnabledExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SetLightEnabled"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            Light light = GameExecutorBindingUtility.ResolveBinding<Light>(context, target);
+            if (light == null)
+            {
+                return BlueprintExecResult.Error("Game.SetLightEnabled could not resolve Light binding '" + target + "'.");
+            }
+
+            light.enabled = context.GetInputValue(node, "value", true);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameSetLightIntensityExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SetLightIntensity"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            Light light = GameExecutorBindingUtility.ResolveBinding<Light>(context, target);
+            if (light == null)
+            {
+                return BlueprintExecResult.Error("Game.SetLightIntensity could not resolve Light binding '" + target + "'.");
+            }
+
+            light.intensity = context.GetInputValue(node, "value", 1f);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameSetLightColorExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SetLightColor"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            Light light = GameExecutorBindingUtility.ResolveBinding<Light>(context, target);
+            if (light == null)
+            {
+                return BlueprintExecResult.Error("Game.SetLightColor could not resolve Light binding '" + target + "'.");
+            }
+
+            light.color = GameExecutorValueUtility.GetColorInput(context, node, "value", Color.white);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameSetLightRangeExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SetLightRange"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            Light light = GameExecutorBindingUtility.ResolveBinding<Light>(context, target);
+            if (light == null)
+            {
+                return BlueprintExecResult.Error("Game.SetLightRange could not resolve Light binding '" + target + "'.");
+            }
+
+            light.range = context.GetInputValue(node, "value", 10f);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameSetLightSpotAngleExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SetLightSpotAngle"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            Light light = GameExecutorBindingUtility.ResolveBinding<Light>(context, target);
+            if (light == null)
+            {
+                return BlueprintExecResult.Error("Game.SetLightSpotAngle could not resolve Light binding '" + target + "'.");
+            }
+
+            light.spotAngle = context.GetInputValue(node, "value", 30f);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
 }
