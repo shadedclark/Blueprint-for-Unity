@@ -2419,6 +2419,8 @@ Generated JSON shape:
 
 `tableId` is read-only and derived from the asset file name as `Table.{FileName}`. New Blueprint node JSON stores the generated `.bpdatatable.json` path in `dataTable`; `tablePath` remains the legacy fallback. Graph Toolkit also stores a hidden `tableAssetGuid` so dragged table nodes can refresh to the current asset after editor moves or renames. Runtime row values are normalized through the selected user struct definition and returned as `BlueprintStructValue`.
 
+Double-clicking a `BlueprintDataTableAsset` or `.bpdatatable.json` opens the Data Table editor. The editor shows `rowName` as the first column and the selected row struct fields as editable columns. Double-click a cell to edit it, then use `Save` to write the source asset and sync its `.bpdatatable.json` copy, or to write a JSON-only table directly when no source asset exists. Cell edits are recorded with Unity Undo/Redo. If the row struct type is missing or invalid, the editor falls back to a `Value JSON` column so the raw row values remain visible.
+
 ### DataTable Variables
 
 Blueprint variables support strong typed table references using `DataTable<Struct.RowType>`. The runtime value is the normalized `.bpdatatable.json` path, not a Unity object or in-memory table definition:

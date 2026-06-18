@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BlueprintSystem::BlueprintSystem.BlueprintRuntimeRegistryAsset
   catalogId: BlueprintSystem
   priority: 0
-  generatedHash: 5608ebb144b93f9329a5b0008d691d86c8eb7402c909f5907abbdad3832bfac0
+  generatedHash: 06e6dd9315c55cdf6bbb941d28a7a3b012ec1ba73c4430a9b5ff32ece5b45591
   userStructs:
   - TypeId: Struct.NewUserStruct
     SourcePath: Assets/BlueprintSystem/Specs/Structs/NewUserStruct.asset
@@ -61,9 +61,9 @@ MonoBehaviour:
       \"rowStructTypeId\": \"Struct.SampleItemConfigRow\",\n  \"rows\": [\n    {\n     
       \"rowName\": \"potion_small\",\n      \"value\": {\n        \"itemId\": \"potion_small\",\n       
       \"displayName\": \"Small Potion\",\n        \"category\": \"Consumable\",\n       
-      \"price\": 25\n      }\n    },\n    {\n      \"rowName\": \"iron_sword\",\n     
+      \"price\": 100\n      }\n    },\n    {\n      \"rowName\": \"iron_sword\",\n     
       \"value\": {\n        \"itemId\": \"iron_sword\",\n        \"displayName\":
       \"Iron Sword\",\n        \"category\": \"Equipment\",\n        \"price\": 120\n     
       }\n    },\n    {\n      \"rowName\": \"silver_ore\",\n      \"value\": {\n       
       \"itemId\": \"silver_ore\",\n        \"displayName\": \"Silver Ore\",\n       
-      \"category\": \"Material\",\n        \"price\": 40\n      }\n    }\n  ]\n}\n"
+      \"category\": \"Material\",\n        \"price\": 40\n      }\n    }\n  ]\n}"

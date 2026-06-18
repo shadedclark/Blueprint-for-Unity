@@ -6329,6 +6329,156 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void DataTableEditorWindowOpensAssetAndGeneratedJsonThroughSourceAsset()
+        {
+            WriteUserStructDefinition();
+            string tableAssetPath = "Assets/BlueprintSystem/Specs/Tables/EditorWindowItems.asset";
+            string tableJsonPath = "Assets/BlueprintSystem/Specs/Tables/EditorWindowItems.bpdatatable.json";
+            AssetDatabase.DeleteAsset(tableAssetPath);
+            AssetDatabase.DeleteAsset(tableJsonPath);
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(tableAssetPath));
+                BlueprintDataTableAsset asset = ScriptableObject.CreateInstance<BlueprintDataTableAsset>();
+                asset.RowStructTypeId = "Struct.TestInventoryItem";
+                asset.Rows.Add(new BlueprintDataTableAssetRow
+                {
+                    rowName = "wand_01",
+                    valueJson = "{\"itemId\":\"wand_01\",\"count\":4,\"position\":[5,6]}"
+                });
+                AssetDatabase.CreateAsset(asset, tableAssetPath);
+                AssetDatabase.ImportAsset(tableAssetPath);
+
+                Assert.True(BlueprintDataTableEditorWindow.CanOpenPath(tableAssetPath));
+                Assert.True(BlueprintDataTableEditorWindow.OpenAssetAtPath(tableAssetPath));
+                BlueprintDataTableEditorWindow window = EditorWindow.GetWindow<BlueprintDataTableEditorWindow>("Data Table");
+                Assert.AreEqual(tableAssetPath, window.CurrentAssetPath);
+                Assert.False(window.IsJsonOnly);
+
+                BlueprintDataTableAssetEditor.ExportJson(asset);
+                Assert.True(BlueprintDataTableEditorWindow.IsDataTableJsonPath(tableJsonPath));
+                Assert.True(BlueprintDataTableEditorWindow.TryFindSourceAssetForJsonPath(tableJsonPath, out string sourceAssetPath, out BlueprintDataTableAsset sourceAsset));
+                Assert.AreEqual(tableAssetPath, sourceAssetPath);
+                Assert.AreEqual(asset, sourceAsset);
+
+                Assert.True(BlueprintDataTableEditorWindow.OpenAssetAtPath(tableJsonPath));
+                window = EditorWindow.GetWindow<BlueprintDataTableEditorWindow>("Data Table");
+                Assert.AreEqual(tableAssetPath, window.CurrentAssetPath);
+                Assert.AreEqual(tableJsonPath, window.CurrentJsonPath);
+                Assert.False(window.IsJsonOnly);
+            }
+            finally
+            {
+                BlueprintDataTableEditorWindow window = EditorWindow.GetWindow<BlueprintDataTableEditorWindow>("Data Table");
+                if (window != null)
+                {
+                    window.Close();
+                }
+
+                AssetDatabase.DeleteAsset(tableAssetPath);
+                AssetDatabase.DeleteAsset(tableJsonPath);
+                AssetDatabase.DeleteAsset(tableJsonPath + ".meta");
+                SyncRuntimeRegistries();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableEditorWindowEditsTypedCellsAndSavesJsonOnlyTable()
+        {
+            WriteUserStructDefinition();
+            string tablePath = "Assets/BlueprintSystem/Specs/Tables/EditorWindowJsonOnlyItems.bpdatatable.json";
+            string sourceAssetPath = BlueprintDataTableEditorWindow.GetSourceAssetPathForJsonPath(tablePath);
+            AssetDatabase.DeleteAsset(tablePath);
+            AssetDatabase.DeleteAsset(sourceAssetPath);
+
+            BlueprintDataTableEditorDocument document = null;
+            try
+            {
+                WriteDataTableDefinition(tablePath);
+
+                Assert.True(BlueprintDataTableEditorWindow.TryCreateDocumentForPath(tablePath, out document));
+                Assert.True(document.jsonOnly);
+                Assert.AreEqual(tablePath, document.sourceJsonPath);
+
+                BlueprintUserStructDefinition rowDefinition;
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.TestInventoryItem", out rowDefinition));
+                BlueprintUserStructField countField;
+                BlueprintUserStructField positionField;
+                Assert.True(rowDefinition.TryGetField("count", out countField));
+                Assert.True(rowDefinition.TryGetField("position", out positionField));
+
+                string error;
+                Assert.True(BlueprintDataTableEditorWindow.TryApplyRowNameEdit(document, 1, "shield_big", out error), error);
+                Assert.True(BlueprintDataTableEditorWindow.TryApplyFieldEdit(document, 1, countField, 7, out error), error);
+                Assert.True(BlueprintDataTableEditorWindow.TryApplyFieldEdit(document, 1, positionField, new List<object> { 9f, 10f }, out error), error);
+                Assert.True(document.dirty);
+
+                string message;
+                Assert.True(BlueprintDataTableEditorWindow.SaveDocument(document, out message), message);
+                Assert.False(document.dirty);
+                SyncRuntimeRegistries();
+
+                BlueprintDataTableDefinition savedDefinition;
+                BlueprintDataTableRowDefinition savedRow;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(tablePath, out savedDefinition));
+                Assert.True(savedDefinition.TryGetRow("shield_big", out savedRow));
+
+                Dictionary<string, object> savedValue = savedRow.Value as Dictionary<string, object>;
+                Assert.NotNull(savedValue);
+                Assert.AreEqual(7, System.Convert.ToInt32(savedValue["count"]));
+                IList position = savedValue["position"] as IList;
+                Assert.NotNull(position);
+                Assert.AreEqual(9f, System.Convert.ToSingle(position[0]));
+                Assert.AreEqual(10f, System.Convert.ToSingle(position[1]));
+            }
+            finally
+            {
+                if (document != null)
+                {
+                    Object.DestroyImmediate(document);
+                }
+
+                AssetDatabase.DeleteAsset(tablePath);
+                AssetDatabase.DeleteAsset(tablePath + ".meta");
+                AssetDatabase.DeleteAsset(sourceAssetPath);
+                SyncRuntimeRegistries();
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void DataTableEditorWindowUsesValueJsonColumnWhenRowStructIsInvalid()
+        {
+            BlueprintDataTableDefinition definition = new BlueprintDataTableDefinition();
+            definition.SchemaVersion = "0.1";
+            definition.TableId = "Table.InvalidStructTable";
+            definition.RowStructTypeId = "Struct.Missing";
+            definition.Rows.Add(new BlueprintDataTableRowDefinition
+            {
+                RowName = "row_01",
+                Value = new Dictionary<string, object> { { "value", 1 } }
+            });
+
+            BlueprintDataTableEditorDocument document = BlueprintDataTableEditorWindow.CreateDocumentFromDefinition(
+                definition,
+                "Assets/BlueprintSystem/Specs/Tables/InvalidStructTable.bpdatatable.json");
+
+            try
+            {
+                List<string> columns = BlueprintDataTableEditorWindow.GetVisibleColumnNames(document);
+                Assert.AreEqual(2, columns.Count);
+                Assert.AreEqual("rowName", columns[0]);
+                Assert.AreEqual("Value JSON", columns[1]);
+            }
+            finally
+            {
+                Object.DestroyImmediate(document);
+            }
+        }
+
+        [Test]
         public void DataTableExecutorsReadRowsNamesAndAllRows()
         {
             WriteUserStructDefinition();

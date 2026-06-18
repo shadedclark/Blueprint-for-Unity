@@ -228,7 +228,7 @@ namespace BlueprintSystem.Editor
             }
         }
 
-        private static bool DrawFieldValue(BlueprintUserStructField field, object currentValue, out object editedJsonValue)
+        internal static bool DrawFieldValue(BlueprintUserStructField field, object currentValue, out object editedJsonValue)
         {
             editedJsonValue = currentValue;
             string type = field.Type;
@@ -323,7 +323,7 @@ namespace BlueprintSystem.Editor
             return true;
         }
 
-        private static bool TryNormalizeJsonValue(object rawValue, string type, out object normalizedValue)
+        internal static bool TryNormalizeJsonValue(object rawValue, string type, out object normalizedValue)
         {
             normalizedValue = rawValue;
             object arrayValue;
@@ -349,7 +349,7 @@ namespace BlueprintSystem.Editor
             return false;
         }
 
-        private static Dictionary<string, object> ReadEditableRowValue(string valueJson, string rowStructTypeId, out string error)
+        internal static Dictionary<string, object> ReadEditableRowValue(string valueJson, string rowStructTypeId, out string error)
         {
             error = null;
             Dictionary<string, object> fallback = CreateDefaultRowDictionary(rowStructTypeId);
@@ -387,7 +387,7 @@ namespace BlueprintSystem.Editor
             return values ?? fallback;
         }
 
-        private static Dictionary<string, object> CreateDefaultRowDictionary(string rowStructTypeId)
+        internal static Dictionary<string, object> CreateDefaultRowDictionary(string rowStructTypeId)
         {
             object defaultValue;
             if (BlueprintUserStructUtility.TryCreateDefaultJsonValue(rowStructTypeId, out defaultValue))
@@ -402,12 +402,12 @@ namespace BlueprintSystem.Editor
             return new Dictionary<string, object>();
         }
 
-        private static string CreateDefaultRowJson(string rowStructTypeId)
+        internal static string CreateDefaultRowJson(string rowStructTypeId)
         {
             return BlueprintJson.Serialize(CreateDefaultRowDictionary(rowStructTypeId), false);
         }
 
-        private static Dictionary<string, object> NormalizeDictionary(object value)
+        internal static Dictionary<string, object> NormalizeDictionary(object value)
         {
             Dictionary<string, object> dictionary = value as Dictionary<string, object>;
             if (dictionary != null)
@@ -430,7 +430,7 @@ namespace BlueprintSystem.Editor
             return normalized;
         }
 
-        private static void InitializeRow(SerializedProperty rowProperty, string rowStructTypeId)
+        internal static void InitializeRow(SerializedProperty rowProperty, string rowStructTypeId)
         {
             if (rowProperty == null)
             {
@@ -550,31 +550,44 @@ namespace BlueprintSystem.Editor
 
         internal static List<string> Validate(BlueprintDataTableAsset asset)
         {
-            List<string> errors = new List<string>();
             if (asset == null)
             {
+                List<string> errors = new List<string>();
                 errors.Add("Asset is missing.");
                 return errors;
             }
 
-            if (string.IsNullOrEmpty(asset.TableId))
+            return Validate(asset.TableId, asset.RowStructTypeId, asset.Rows);
+        }
+
+        internal static List<string> Validate(string tableId, string rowStructTypeId, IList<BlueprintDataTableAssetRow> rows)
+        {
+            List<string> errors = new List<string>();
+
+            if (string.IsNullOrEmpty(tableId))
             {
                 errors.Add("Table Id is required.");
             }
 
-            if (string.IsNullOrEmpty(asset.RowStructTypeId))
+            if (string.IsNullOrEmpty(rowStructTypeId))
             {
                 errors.Add("Row Struct Type Id is required.");
             }
-            else if (!BlueprintUserStructRegistry.IsUserStructType(asset.RowStructTypeId))
+            else if (!BlueprintUserStructRegistry.IsUserStructType(rowStructTypeId))
             {
-                errors.Add("Unknown row struct type '" + asset.RowStructTypeId + "'.");
+                errors.Add("Unknown row struct type '" + rowStructTypeId + "'.");
+            }
+
+            if (rows == null)
+            {
+                errors.Add("Rows are missing.");
+                return errors;
             }
 
             HashSet<string> rowNames = new HashSet<string>();
-            for (int i = 0; i < asset.Rows.Count; i++)
+            for (int i = 0; i < rows.Count; i++)
             {
-                BlueprintDataTableAssetRow row = asset.Rows[i];
+                BlueprintDataTableAssetRow row = rows[i];
                 string label = row == null || string.IsNullOrEmpty(row.rowName) ? "Row " + i : row.rowName;
                 if (row == null)
                 {
@@ -591,7 +604,7 @@ namespace BlueprintSystem.Editor
                     errors.Add(label + " duplicates rowName '" + row.rowName + "'.");
                 }
 
-                ValidateRowValue(asset.RowStructTypeId, row, label, errors);
+                ValidateRowValue(rowStructTypeId, row, label, errors);
             }
 
             return errors;
@@ -625,7 +638,7 @@ namespace BlueprintSystem.Editor
             }
         }
 
-        private static void ExportJson(BlueprintDataTableAsset asset)
+        internal static void ExportJson(BlueprintDataTableAsset asset)
         {
             if (asset == null)
             {
@@ -654,7 +667,7 @@ namespace BlueprintSystem.Editor
             BlueprintLog.Log("[Blueprint] Synced data table JSON: " + jsonPath, asset);
         }
 
-        private static string GetJsonPath(string assetPath, BlueprintDataTableAsset asset)
+        internal static string GetJsonPath(string assetPath, BlueprintDataTableAsset asset)
         {
             if (BlueprintAssetDiscovery.IsAssetDatabasePath(assetPath))
             {
