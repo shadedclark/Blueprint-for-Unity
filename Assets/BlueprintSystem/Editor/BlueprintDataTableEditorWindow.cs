@@ -644,6 +644,11 @@ namespace BlueprintSystem.Editor
                 }
             }
 
+            if (GUILayout.Button("Import CSV", EditorStyles.toolbarButton, GUILayout.Width(90f)))
+            {
+                ImportCsv();
+            }
+
             using (new EditorGUI.DisabledScope(_document == null))
             {
                 if (GUILayout.Button("Save", EditorStyles.toolbarButton, GUILayout.Width(70f)))
@@ -997,6 +1002,64 @@ namespace BlueprintSystem.Editor
             {
                 _statusText = "Save failed: " + message;
             }
+        }
+
+        private void ImportCsv()
+        {
+            string csvPath = EditorUtility.OpenFilePanel("Import Blueprint Data Table CSV", string.Empty, "csv");
+            if (string.IsNullOrEmpty(csvPath))
+            {
+                return;
+            }
+
+            string outputFolder = EditorUtility.OpenFolderPanel(
+                "Choose Blueprint Data Table Output Folder",
+                Application.dataPath,
+                string.Empty);
+            if (string.IsNullOrEmpty(outputFolder))
+            {
+                return;
+            }
+
+            List<string> conflicts;
+            string error;
+            if (!BlueprintDataTableCsvImporter.TryGetConflicts(csvPath, outputFolder, out conflicts, out error))
+            {
+                _statusText = "CSV import failed: " + error;
+                EditorUtility.DisplayDialog("Import CSV Failed", _statusText, "OK");
+                return;
+            }
+
+            bool overwrite = false;
+            if (conflicts.Count > 0)
+            {
+                string message = "The import will overwrite these assets:\n\n" +
+                                 string.Join("\n", conflicts.ToArray()) +
+                                 "\n\nContinue?";
+                overwrite = EditorUtility.DisplayDialog("Overwrite CSV Import", message, "Overwrite", "Cancel");
+                if (!overwrite)
+                {
+                    _statusText = "CSV import cancelled.";
+                    return;
+                }
+            }
+
+            BlueprintDataTableCsvImportResult result;
+            if (!BlueprintDataTableCsvImporter.ImportFromCsv(csvPath, outputFolder, overwrite, out result, out error))
+            {
+                _statusText = "CSV import failed: " + error;
+                EditorUtility.DisplayDialog("Import CSV Failed", _statusText, "OK");
+                return;
+            }
+
+            BlueprintDataTableEditorDocument document;
+            if (TryCreateDocumentForPath(result.TableAssetPath, out document))
+            {
+                LoadDocument(document);
+            }
+
+            _statusText = "Imported CSV: " + result.TableJsonPath;
+            Repaint();
         }
     }
 

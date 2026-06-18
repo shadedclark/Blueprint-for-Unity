@@ -164,7 +164,7 @@ namespace BlueprintSystem.Editor
             return true;
         }
 
-        private static void ExportJson(BlueprintUserStructAsset asset)
+        internal static void ExportJson(BlueprintUserStructAsset asset)
         {
             if (asset == null)
             {

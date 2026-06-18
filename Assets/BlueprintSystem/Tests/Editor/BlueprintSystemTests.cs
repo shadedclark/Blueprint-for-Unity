@@ -6479,6 +6479,194 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void DataTableCsvImporterCreatesStructAndTableAssetsFromCsv()
+        {
+            string root = "Assets/BlueprintSystem/Tests/Editor/TempCsvImport";
+            string csvPath = root + "/CsvImportItems.csv";
+            string outputRoot = root + "/Generated";
+            AssetDatabase.DeleteAsset(root);
+
+            try
+            {
+                Directory.CreateDirectory(root);
+                AssetDatabase.ImportAsset(root);
+                File.WriteAllText(csvPath,
+                    "itemId,displayName,count,position,tint,emptyText\n" +
+                    "string,string,int,Vector2,Color,string\n" +
+                    "sword_01,\"Iron, Sword\",3,\"[1,2]\",\"[0.1,0.2,0.3,1]\",\n" +
+                    "shield_01,Shield,0,\"[3,4]\",\"[1,1,1,1]\",\"\"\n");
+
+                BlueprintDataTableCsvImportResult result;
+                string error;
+                Assert.True(BlueprintDataTableCsvImporter.ImportFromCsv(csvPath, outputRoot, false, out result, out error), error);
+                Assert.NotNull(result);
+                Assert.AreEqual(outputRoot + "/Structs/CsvImportItemsRow.asset", result.StructAssetPath);
+                Assert.AreEqual(outputRoot + "/Tables/CsvImportItems.asset", result.TableAssetPath);
+                Assert.NotNull(AssetDatabase.LoadAssetAtPath<BlueprintUserStructAsset>(result.StructAssetPath));
+                Assert.NotNull(AssetDatabase.LoadAssetAtPath<TextAsset>(result.StructJsonPath));
+                Assert.NotNull(AssetDatabase.LoadAssetAtPath<BlueprintDataTableAsset>(result.TableAssetPath));
+                Assert.NotNull(AssetDatabase.LoadAssetAtPath<TextAsset>(result.TableJsonPath));
+
+                SyncRuntimeRegistries();
+
+                BlueprintUserStructDefinition structDefinition;
+                Assert.True(BlueprintUserStructRegistry.TryGet("Struct.CsvImportItemsRow", out structDefinition));
+                Assert.AreEqual(6, structDefinition.Fields.Count);
+                Assert.AreEqual("itemId", structDefinition.Fields[0].Id);
+                Assert.AreEqual("itemId", structDefinition.Fields[0].Name);
+                Assert.AreEqual("string", structDefinition.Fields[0].Type);
+
+                BlueprintDataTableDefinition tableDefinition;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(result.TableJsonPath, out tableDefinition));
+                Assert.AreEqual("Table.CsvImportItems", tableDefinition.TableId);
+                Assert.AreEqual("Struct.CsvImportItemsRow", tableDefinition.RowStructTypeId);
+                Assert.AreEqual(2, tableDefinition.Rows.Count);
+                Assert.AreEqual("sword_01", tableDefinition.Rows[0].RowName);
+
+                Dictionary<string, object> firstValue = tableDefinition.Rows[0].Value as Dictionary<string, object>;
+                Assert.NotNull(firstValue);
+                Assert.AreEqual("sword_01", firstValue["itemId"]);
+                Assert.AreEqual("Iron, Sword", firstValue["displayName"]);
+                Assert.AreEqual(3, System.Convert.ToInt32(firstValue["count"]));
+                Assert.AreEqual(string.Empty, firstValue["emptyText"]);
+                IList position = firstValue["position"] as IList;
+                Assert.NotNull(position);
+                Assert.AreEqual(1f, System.Convert.ToSingle(position[0]));
+                Assert.AreEqual(2f, System.Convert.ToSingle(position[1]));
+                IList tint = firstValue["tint"] as IList;
+                Assert.NotNull(tint);
+                Assert.AreEqual(4, tint.Count);
+                Assert.AreEqual(0.1f, System.Convert.ToSingle(tint[0]), 0.0001f);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(root);
+                SyncRuntimeRegistries();
+            }
+        }
+
+        [Test]
+        public void DataTableCsvImporterRejectsInvalidCsvWithoutCreatingAssets()
+        {
+            string[][] cases = new[]
+            {
+                new[]
+                {
+                    "BadValue",
+                    "itemId,count\n" +
+                    "string,int\n" +
+                    "bad_item,many\n",
+                    "count"
+                },
+                new[]
+                {
+                    "DuplicateField",
+                    "itemId,itemId\n" +
+                    "string,string\n" +
+                    "row_01,row_01\n",
+                    "duplicated"
+                },
+                new[]
+                {
+                    "DuplicateRow",
+                    "itemId,count\n" +
+                    "string,int\n" +
+                    "row_01,1\n" +
+                    "row_01,2\n",
+                    "duplicated"
+                },
+                new[]
+                {
+                    "UnknownType",
+                    "itemId,custom\n" +
+                    "string,MissingType\n" +
+                    "row_01,value\n",
+                    "unsupported type"
+                }
+            };
+
+            for (int i = 0; i < cases.Length; i++)
+            {
+                string root = "Assets/BlueprintSystem/Tests/Editor/TempInvalidCsvImport" + cases[i][0];
+                string csvPath = root + "/" + cases[i][0] + ".csv";
+                string outputRoot = root + "/Generated";
+                AssetDatabase.DeleteAsset(root);
+
+                try
+                {
+                    Directory.CreateDirectory(root);
+                    AssetDatabase.ImportAsset(root);
+                    File.WriteAllText(csvPath, cases[i][1]);
+
+                    BlueprintDataTableCsvImportResult result;
+                    string error;
+                    Assert.False(BlueprintDataTableCsvImporter.ImportFromCsv(csvPath, outputRoot, false, out result, out error));
+                    Assert.Null(result);
+                    Assert.That(error, Does.Contain(cases[i][2]));
+                    Assert.False(Directory.Exists(outputRoot + "/Structs"));
+                    Assert.False(Directory.Exists(outputRoot + "/Tables"));
+                }
+                finally
+                {
+                    AssetDatabase.DeleteAsset(root);
+                    SyncRuntimeRegistries();
+                }
+            }
+        }
+
+        [Test]
+        public void DataTableCsvImporterRequiresOverwriteForExistingTargetsAndPreservesGuids()
+        {
+            string root = "Assets/BlueprintSystem/Tests/Editor/TempOverwriteCsvImport";
+            string csvPath = root + "/OverwriteItems.csv";
+            string outputRoot = root + "/Generated";
+            AssetDatabase.DeleteAsset(root);
+
+            try
+            {
+                Directory.CreateDirectory(root);
+                AssetDatabase.ImportAsset(root);
+                File.WriteAllText(csvPath,
+                    "itemId,count\n" +
+                    "string,int\n" +
+                    "item_01,1\n");
+
+                BlueprintDataTableCsvImportResult firstResult;
+                string error;
+                Assert.True(BlueprintDataTableCsvImporter.ImportFromCsv(csvPath, outputRoot, false, out firstResult, out error), error);
+                string structGuid = AssetDatabase.AssetPathToGUID(firstResult.StructAssetPath);
+                string tableGuid = AssetDatabase.AssetPathToGUID(firstResult.TableAssetPath);
+
+                File.WriteAllText(csvPath,
+                    "itemId,count\n" +
+                    "string,int\n" +
+                    "item_01,5\n");
+
+                BlueprintDataTableCsvImportResult blockedResult;
+                Assert.False(BlueprintDataTableCsvImporter.ImportFromCsv(csvPath, outputRoot, false, out blockedResult, out error));
+                Assert.That(error, Does.Contain("already exists"));
+
+                BlueprintDataTableCsvImportResult overwrittenResult;
+                Assert.True(BlueprintDataTableCsvImporter.ImportFromCsv(csvPath, outputRoot, true, out overwrittenResult, out error), error);
+                Assert.AreEqual(structGuid, AssetDatabase.AssetPathToGUID(overwrittenResult.StructAssetPath));
+                Assert.AreEqual(tableGuid, AssetDatabase.AssetPathToGUID(overwrittenResult.TableAssetPath));
+
+                SyncRuntimeRegistries();
+
+                BlueprintDataTableDefinition tableDefinition;
+                Assert.True(BlueprintDataTableRegistry.TryGetByPath(overwrittenResult.TableJsonPath, out tableDefinition));
+                Dictionary<string, object> value = tableDefinition.Rows[0].Value as Dictionary<string, object>;
+                Assert.NotNull(value);
+                Assert.AreEqual(5, System.Convert.ToInt32(value["count"]));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(root);
+                SyncRuntimeRegistries();
+            }
+        }
+
+        [Test]
         public void DataTableExecutorsReadRowsNamesAndAllRows()
         {
             WriteUserStructDefinition();
