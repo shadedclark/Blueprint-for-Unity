@@ -602,6 +602,23 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SetLightColorTemperature")]
+    public sealed class GameSetLightColorTemperatureVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SetLightColorTemperature", "Set Light Color Temperature", "Game/Lighting", "Enables and sets color temperature in Kelvin on a bound Light.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Light>", true, "property");
+            AddValueInput("value", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Light>", true);
+            AddProperty("value", "float", false, 6500f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("Game.SetLightRange")]
     public sealed class GameSetLightRangeVisualNode : BlueprintVisualNode
     {

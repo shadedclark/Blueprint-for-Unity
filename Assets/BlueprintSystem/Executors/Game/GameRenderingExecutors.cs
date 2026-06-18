@@ -212,6 +212,28 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class GameSetLightColorTemperatureExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SetLightColorTemperature"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            Light light = GameExecutorBindingUtility.ResolveBinding<Light>(context, target);
+            if (light == null)
+            {
+                return BlueprintExecResult.Error("Game.SetLightColorTemperature could not resolve Light binding '" + target + "'.");
+            }
+
+            light.useColorTemperature = true;
+            light.colorTemperature = context.GetInputValue(node, "value", 6500f);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
     public sealed class GameSetLightRangeExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

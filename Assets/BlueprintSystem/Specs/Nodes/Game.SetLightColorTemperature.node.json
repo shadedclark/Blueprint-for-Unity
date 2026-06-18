@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Game.SetLightColorTemperature",
+  "title": "Set Light Color Temperature",
+  "category": "Game/Lighting",
+  "description": "Enables and sets color temperature in Kelvin on a bound Light.",
+  "executor": "Game.SetLightColorTemperature",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<Light>",
+      "required": true,
+      "source": "property"
+    },
+    {
+      "id": "value",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<Light>",
+      "required": true
+    },
+    {
+      "id": "value",
+      "type": "float",
+      "required": false,
+      "defaultValue": 6500
+    }
+  ],
+  "tags": [
+    "light",
+    "lighting",
+    "color",
+    "temperature",
+    "kelvin"
+  ]
+}
