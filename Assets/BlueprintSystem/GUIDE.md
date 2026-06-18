@@ -2193,7 +2193,8 @@ Function:
 Value node.
 Reads `left`, `right`, and `comparison`.
 Returns bool through output `result`.
-For numeric comparisons, values are converted to double; failed conversion becomes 0.
+`Equals` and `NotEquals` normalize all CLR numeric values (`byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, and `decimal`) to double before comparing; nonnumeric values keep normal object equality.
+Ordered numeric comparisons convert operands to double; failed conversion becomes 0.
 ```
 
 Supported `comparison` values:

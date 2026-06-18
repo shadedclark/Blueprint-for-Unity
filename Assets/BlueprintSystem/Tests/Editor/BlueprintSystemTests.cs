@@ -278,6 +278,77 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void RuntimeEqualsNormalizesAllMixedNumericTypes()
+        {
+            VariableCompareExecutor executor = new VariableCompareExecutor();
+            RuntimeBlueprint blueprint = new RuntimeBlueprint();
+            RuntimeNode node = new RuntimeNode
+            {
+                Id = "compare",
+                TypeId = "Variable.Compare",
+                Executor = executor
+            };
+            blueprint.NodesById[node.Id] = node;
+
+            BlueprintExecutionContext context = new BlueprintExecutionContext(
+                blueprint,
+                null,
+                null,
+                new NullBlueprintBindingResolver(),
+                null,
+                null,
+                new RecordingBlueprintLogger());
+
+            object[] numericValues =
+            {
+                (byte)1,
+                (sbyte)1,
+                (short)1,
+                (ushort)1,
+                1,
+                1u,
+                1L,
+                1UL,
+                1f,
+                1d,
+                1m
+            };
+
+            for (int leftIndex = 0; leftIndex < numericValues.Length; leftIndex++)
+            {
+                for (int rightIndex = 0; rightIndex < numericValues.Length; rightIndex++)
+                {
+                    object left = numericValues[leftIndex];
+                    object right = numericValues[rightIndex];
+                    string pair = left.GetType().Name + " and " + right.GetType().Name;
+
+                    node.Properties["left"] = left;
+                    node.Properties["right"] = right;
+                    node.Properties["comparison"] = "Equals";
+                    Assert.True((bool)executor.Evaluate(context, node, "result"), pair + " should be equal.");
+
+                    node.Properties["comparison"] = "NotEquals";
+                    Assert.False((bool)executor.Evaluate(context, node, "result"), pair + " should not be unequal.");
+                }
+            }
+
+            node.Properties["left"] = (byte)1;
+            node.Properties["right"] = 2m;
+            node.Properties["comparison"] = "Equals";
+            Assert.False((bool)executor.Evaluate(context, node, "result"));
+            node.Properties["comparison"] = "NotEquals";
+            Assert.True((bool)executor.Evaluate(context, node, "result"));
+
+            node.Properties["left"] = "1";
+            node.Properties["right"] = 1;
+            node.Properties["comparison"] = "Equals";
+            Assert.False((bool)executor.Evaluate(context, node, "result"));
+            node.Properties["left"] = 1;
+            node.Properties["right"] = "1";
+            Assert.False((bool)executor.Evaluate(context, node, "result"));
+        }
+
+        [Test]
         public void CompilerBuildsRuntimeIndexes()
         {
             RuntimeBlueprint blueprint = CompileInventoryBlueprint();

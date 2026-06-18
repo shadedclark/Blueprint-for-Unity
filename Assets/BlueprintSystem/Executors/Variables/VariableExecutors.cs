@@ -99,12 +99,27 @@ namespace BlueprintSystem
 
         private static object Normalize(object value)
         {
-            if (value is float || value is double || value is decimal)
+            if (IsNumber(value))
             {
                 return ToDouble(value);
             }
 
             return value;
+        }
+
+        private static bool IsNumber(object value)
+        {
+            return value is byte ||
+                   value is sbyte ||
+                   value is short ||
+                   value is ushort ||
+                   value is int ||
+                   value is uint ||
+                   value is long ||
+                   value is ulong ||
+                   value is float ||
+                   value is double ||
+                   value is decimal;
         }
 
         private static double ToDouble(object value)
