@@ -782,6 +782,92 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BehaviorTreeModuleSurfacesAreAvailableByDefault()
+        {
+            BlueprintNodeManifestCollection manifests = LoadManifests();
+            BlueprintNodeManifest manifest;
+            Assert.True(manifests.TryGet("BehaviorTree.GetBlackboardBool", out manifest));
+
+            IBlueprintNodeExecutor blueprintExecutor;
+            Assert.True(BlueprintExecutorRegistry.CreateDefault().TryGet("BehaviorTree.GetBlackboardBool", out blueprintExecutor));
+
+            BehaviorTreeExecutorRegistry behaviorTreeRegistry = BehaviorTreeExecutorRegistry.CreateDefault();
+            Assert.True(behaviorTreeRegistry.HasNode("BT.Root"));
+            Assert.True(behaviorTreeRegistry.HasDecorator("BT.CompareFloat"));
+            Assert.True(behaviorTreeRegistry.HasService("BT.UpdateDistance"));
+
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), BlueprintVisualNodeFactory.Create("BehaviorTree.GetBlackboardBool").GetType());
+            Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.MoveTo").GetType());
+            Assert.AreNotEqual(typeof(BehaviorTreeVisualDecoratorNode), BehaviorTreeVisualNodeMetadata.CreateDecorator("BT.CompareFloat").GetType());
+        }
+
+        [Test]
+        public void BehaviorTreeModuleCanBeDisabledForPublicSurfaces()
+        {
+            using (BlueprintModuleSettings.OverrideBehaviorTreeEnabledForTests(false))
+            {
+                Assert.False(BlueprintNodeManifestAssetUtility.IsManifestPath("Assets/BlueprintSystem/Specs/Nodes/BehaviorTree.GetBlackboardBool.node.json"));
+                Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath("Assets/BlueprintSystem/Specs/Nodes/Game.Log.node.json"));
+
+                BlueprintNodeManifest manifest;
+                Assert.False(LoadManifests().TryGet("BehaviorTree.GetBlackboardBool", out manifest));
+
+                IBlueprintNodeExecutor blueprintExecutor;
+                Assert.False(BlueprintExecutorRegistry.CreateDefault().TryGet("BehaviorTree.GetBlackboardBool", out blueprintExecutor));
+
+                Assert.AreEqual(typeof(BlueprintVisualNode), BlueprintVisualNodeFactory.Create("BehaviorTree.GetBlackboardBool").GetType());
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeModuleCanBeDisabledForRuntimeSurfaces()
+        {
+            using (BlueprintModuleSettings.OverrideBehaviorTreeEnabledForTests(false))
+            {
+                BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+                Assert.False(registry.HasNode("BT.Root"));
+                Assert.False(registry.HasDecorator("BT.CompareFloat"));
+                Assert.False(registry.HasService("BT.UpdateDistance"));
+
+                Assert.AreEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.MoveTo").GetType());
+                Assert.AreEqual(typeof(BehaviorTreeVisualDecoratorNode), BehaviorTreeVisualNodeMetadata.CreateDecorator("BT.CompareFloat").GetType());
+                Assert.False(BehaviorTreeVisualNodeMetadata.IsDecorator("BT.CompareFloat"));
+
+                BehaviorTreeNodeSource task;
+                BehaviorTreeSource source = CreateSingleBehaviorTreeTaskSource("DisabledBehaviorTreeCompile", "BT.Wait", out task);
+                task.Properties["duration"] = 0f;
+                BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+                Assert.False(compileResult.Success);
+                Assert.True(compileResult.Diagnostics.Exists(diagnostic => diagnostic.Code == "BT070"), compileResult.Diagnostics.ToDisplayString());
+            }
+        }
+
+        [Test]
+        public void BehaviorTreeRunnerDoesNotStartWhenModuleIsDisabled()
+        {
+            GameObject gameObject = null;
+            try
+            {
+                using (BlueprintModuleSettings.OverrideBehaviorTreeEnabledForTests(false))
+                {
+                    gameObject = new GameObject("DisabledBehaviorTreeRunnerTest");
+                    BehaviorTreeRunner runner = gameObject.AddComponent<BehaviorTreeRunner>();
+
+                    Assert.False(runner.StartTree());
+                    Assert.False(runner.IsRunning);
+                    Assert.Null(runner.Runtime);
+                }
+            }
+            finally
+            {
+                if (gameObject != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(gameObject);
+                }
+            }
+        }
+
+        [Test]
         public void BehaviorTreeSetRunnerBlackboardMapsDifferentTargetKey()
         {
             GameObject targetObject = null;

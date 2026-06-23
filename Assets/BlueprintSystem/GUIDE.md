@@ -214,9 +214,17 @@ Use `BehaviorTree.SetBlackboardGameObject` for binding-based or runtime-object h
 Do not store direct `GameObject`, `Transform`, `Component`, or other Unity object references as `.blueprint.json` defaults.
 ```
 
+## Behavior Tree Module
+
+Behavior Tree is a core module kept under `Assets/BlueprintSystem/BehaviorTree`. It is default-on with BlueprintSystem and includes the `.btree.json` compiler, `BT.*` executor registry, `BehaviorTreeRunner`, Graph Toolkit bridge, debugger, and the normal Blueprint `BehaviorTree.*` blackboard bridge nodes.
+
+The module can be toggled per active build target in `Project Settings > Blueprint System > Modules`. The setting is default-on; disabling it writes the `BLUEPRINTSYSTEM_DISABLE_BEHAVIOR_TREE` scripting define for the active build target and triggers script recompilation. When disabled, `BehaviorTree.*` manifests are not loaded, their executors are not registered, `BT.*` executors are not registered, Behavior Tree Graph Toolkit/import/export/debugger entry points are disabled, and `BehaviorTreeRunner` components remain serialized but do not start or tick. Existing blueprints or behavior trees that still contain Behavior Tree nodes report normal missing-manifest, missing-executor, or compile errors after they are recompiled while the module is disabled.
+
 ## SmartObject Module
 
 SmartObject is a core module kept under `Assets/BlueprintSystem/SmartObject` rather than the generic node folders. It is default-on with BlueprintSystem, but its runtime, executors, manifests, Graph Toolkit nodes, tests, and detailed guide stay inside that module directory.
+
+The module can be toggled per active build target in `Project Settings > Blueprint System > Modules`. The setting is default-on; disabling it writes the `BLUEPRINTSYSTEM_DISABLE_SMARTOBJECT` scripting define for the active build target and triggers script recompilation. When disabled, SmartObject manifests are not loaded, SmartObject executors are not registered, SmartObject Graph Toolkit visual nodes are hidden, the SmartObject debugger menu is disabled, and `SmartObjectComponent` instances remain serialized but do not register at runtime. Existing blueprints that still contain `SmartObject.*` nodes report normal missing-manifest or missing-executor validation/compile errors after they are recompiled while the module is disabled.
 
 The module exposes `SmartObject.FindBest`, `SmartObject.FindBestActor`, `SmartObject.Reserve`, `SmartObject.BeginUse`, `SmartObject.Release`, `SmartObject.GetReservationInfo`, and `SmartObject.ReleaseByRequester`. `SmartObject.FindBestActor` adds an optional `excludeGameObject: Binding<GameObject>` and `targetGameObject: GameObject` output for actor handshakes that must skip the requester's own SmartObject. `SmartObjectComponent` ids are generated read-only GUID strings; detailed authoring rules, port lists, fail reasons, and duplicate-node guidance live in `Assets/BlueprintSystem/SmartObject/GUIDE.md`.
 

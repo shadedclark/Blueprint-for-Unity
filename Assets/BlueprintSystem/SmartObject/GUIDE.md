@@ -17,6 +17,8 @@ Assets/BlueprintSystem/SmartObject/Tests/Editor
 
 Core loads public node manifests from the BlueprintSystem package root `**/Specs/Nodes` and from project `Assets/**` manifests. `BlueprintExecutorRegistry.CreateDefault()` delegates SmartObject registration through `SmartObjectExecutorRegistrar.Register(registry)`.
 
+SmartObject is default-on. It can be disabled for the active build target in `Project Settings > Blueprint System > Modules`, which writes the `BLUEPRINTSYSTEM_DISABLE_SMARTOBJECT` scripting define and recompiles scripts. When disabled, SmartObject node manifests, executors, Graph Toolkit visual nodes, debugger entry points, and runtime component registration are unavailable; serialized `SmartObjectComponent` data remains in scenes and prefabs so projects can re-enable the module without losing authoring data.
+
 ## Authoring
 
 Add `SmartObjectComponent` to each usable world object.

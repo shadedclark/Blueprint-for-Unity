@@ -39,9 +39,18 @@ namespace BlueprintSystem.Editor
             }
 
             _nextScanTime = EditorApplication.timeSinceStartup + ScanIntervalSeconds;
-            BehaviorTreeRunner runner = ResolveRunner();
-            BehaviorTreeDebugSnapshot snapshot = Application.isPlaying && runner != null ? runner.GetDebugSnapshot() : null;
-            Dictionary<string, BehaviorTreeDebugSnapshot> snapshotsBySourcePath = BuildSnapshotsBySourcePath(snapshot);
+            Dictionary<string, BehaviorTreeDebugSnapshot> snapshotsBySourcePath;
+            if (BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                BehaviorTreeRunner runner = ResolveRunner();
+                BehaviorTreeDebugSnapshot snapshot = Application.isPlaying && runner != null ? runner.GetDebugSnapshot() : null;
+                snapshotsBySourcePath = BuildSnapshotsBySourcePath(snapshot);
+            }
+            else
+            {
+                _pinnedRunner = null;
+                snapshotsBySourcePath = new Dictionary<string, BehaviorTreeDebugSnapshot>(StringComparer.OrdinalIgnoreCase);
+            }
 
             EditorWindow[] windows = Resources.FindObjectsOfTypeAll<EditorWindow>();
             for (int i = 0; i < windows.Length; i++)

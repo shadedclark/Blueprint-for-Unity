@@ -122,6 +122,11 @@ namespace BlueprintSystem
         public static BehaviorTreeExecutorRegistry CreateDefault()
         {
             BehaviorTreeExecutorRegistry registry = new BehaviorTreeExecutorRegistry();
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return registry;
+            }
+
             registry.Register(new BehaviorTreeRootExecutor());
             registry.Register(new BehaviorTreeSelectorExecutor());
             registry.Register(new BehaviorTreeSequenceExecutor());

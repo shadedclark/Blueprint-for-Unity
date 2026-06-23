@@ -56,6 +56,11 @@ namespace BlueprintSystem
 
         private void Start()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return;
+            }
+
             if (playOnStart && !_running)
             {
                 StartTree();
@@ -64,6 +69,11 @@ namespace BlueprintSystem
 
         private void Update()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return;
+            }
+
             if (tickMode == BehaviorTreeTickMode.Update)
             {
                 TickWithMaxRate(Time.deltaTime);
@@ -76,6 +86,11 @@ namespace BlueprintSystem
 
         private void FixedUpdate()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return;
+            }
+
             if (tickMode == BehaviorTreeTickMode.FixedUpdate)
             {
                 TickTree(Time.fixedDeltaTime);
@@ -84,6 +99,11 @@ namespace BlueprintSystem
 
         private void OnEnable()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return;
+            }
+
             if (restartOnEnable && !_running)
             {
                 StartTree();
@@ -97,6 +117,13 @@ namespace BlueprintSystem
 
         public bool StartTree()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                BlueprintLog.Warning("[BehaviorTree] Behavior Tree module is disabled. " + name + " will not start.", this);
+                StopTree();
+                return false;
+            }
+
             if (compiledBehaviorTree == null)
             {
                 if (logMissingAsset)

@@ -46,6 +46,12 @@ namespace BlueprintSystem.Editor
 
         public static void DrawRunnerDebugPanel(BehaviorTreeRunner runner)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                EditorGUILayout.HelpBox("The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.", MessageType.Warning);
+                return;
+            }
+
             if (runner == null)
             {
                 EditorGUILayout.HelpBox("Select or pin a BehaviorTreeRunner to inspect runtime debug state.", MessageType.Info);
@@ -192,6 +198,15 @@ namespace BlueprintSystem.Editor
 
         public static void OpenDebugGraph(BehaviorTreeRunner runner, bool followRunningNode)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                EditorUtility.DisplayDialog(
+                    "Behavior Tree Disabled",
+                    "The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.",
+                    "OK");
+                return;
+            }
+
             if (runner == null || runner.CompiledBehaviorTree == null)
             {
                 return;
@@ -439,6 +454,15 @@ namespace BlueprintSystem.Editor
         [MenuItem("Tools/Blueprint System/Behavior Tree/Debugger")]
         public static void OpenWindow()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                EditorUtility.DisplayDialog(
+                    "Behavior Tree Disabled",
+                    "The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.",
+                    "OK");
+                return;
+            }
+
             BehaviorTreeDebuggerWindow window = GetWindow<BehaviorTreeDebuggerWindow>("BT Debugger");
             if (window.pinnedRunner == null)
             {
@@ -453,8 +477,23 @@ namespace BlueprintSystem.Editor
             window.Show();
         }
 
+        [MenuItem("Tools/Blueprint System/Behavior Tree/Debugger", true)]
+        private static bool CanOpenWindow()
+        {
+            return BlueprintModuleSettings.BehaviorTreeEnabled;
+        }
+
         public static void ShowRunner(BehaviorTreeRunner runner)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                EditorUtility.DisplayDialog(
+                    "Behavior Tree Disabled",
+                    "The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.",
+                    "OK");
+                return;
+            }
+
             BehaviorTreeDebuggerWindow window = GetWindow<BehaviorTreeDebuggerWindow>("BT Debugger");
             window.pinnedRunner = runner;
             BehaviorTreeGraphDebugOverlay.SetPinnedRunner(runner);
@@ -472,6 +511,12 @@ namespace BlueprintSystem.Editor
 
         private void OnGUI()
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                EditorGUILayout.HelpBox("The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.", MessageType.Warning);
+                return;
+            }
+
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 BehaviorTreeRunner selectedRunner = BehaviorTreeRuntimeDebugEditorUtility.FindSelectedRunner();

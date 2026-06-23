@@ -117,7 +117,10 @@ namespace BlueprintSystem
         private void OnEnable()
         {
             EnsureObjectId(true);
-            SmartObjectRegistry.Register(this);
+            if (BlueprintModuleSettings.SmartObjectEnabled)
+            {
+                SmartObjectRegistry.Register(this);
+            }
         }
 
         private void OnDisable()
@@ -127,7 +130,10 @@ namespace BlueprintSystem
 
         private void Update()
         {
-            SmartObjectRegistry.TickTimeouts();
+            if (BlueprintModuleSettings.SmartObjectEnabled)
+            {
+                SmartObjectRegistry.TickTimeouts();
+            }
         }
 
         private void RefreshRegistration()
@@ -138,7 +144,10 @@ namespace BlueprintSystem
             }
 
             SmartObjectRegistry.Unregister(this, null);
-            SmartObjectRegistry.Register(this);
+            if (BlueprintModuleSettings.SmartObjectEnabled)
+            {
+                SmartObjectRegistry.Register(this);
+            }
         }
 
         private void EnsureObjectId(bool refreshRegistration)

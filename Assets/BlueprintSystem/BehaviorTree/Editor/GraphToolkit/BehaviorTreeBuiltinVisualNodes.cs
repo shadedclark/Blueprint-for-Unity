@@ -28,6 +28,11 @@ namespace BlueprintSystem.Editor
 
         public static BehaviorTreeVisualNode Create(string typeId)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return new BehaviorTreeVisualNode();
+            }
+
             switch (typeId)
             {
                 case Root:
@@ -97,6 +102,11 @@ namespace BlueprintSystem.Editor
 
         public static BehaviorTreeVisualDecoratorNode CreateDecorator(string typeId)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return new BehaviorTreeVisualDecoratorNode();
+            }
+
             switch (typeId)
             {
                 case BlackboardCondition:
@@ -120,6 +130,11 @@ namespace BlueprintSystem.Editor
 
         public static bool IsDecorator(string typeId)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return false;
+            }
+
             return typeId == BlackboardCondition ||
                    typeId == CompareFloat ||
                    typeId == CompareBool ||

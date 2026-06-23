@@ -10,6 +10,11 @@ namespace BlueprintSystem.Editor
 
         public static BlueprintVisualNode Create(string typeId)
         {
+            if (!BlueprintModuleSettings.IsNodeTypeEnabled(typeId))
+            {
+                return new BlueprintVisualNode();
+            }
+
             EnsureCache();
             Type nodeType;
             if (!string.IsNullOrEmpty(typeId) && _nodeTypesByTypeId.TryGetValue(typeId, out nodeType))

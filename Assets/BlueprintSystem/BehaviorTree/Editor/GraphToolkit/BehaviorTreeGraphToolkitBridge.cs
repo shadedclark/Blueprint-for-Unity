@@ -19,6 +19,11 @@ namespace BlueprintSystem.Editor
         [MenuItem(ImportMenu)]
         public static void ImportSelectedBehaviorTreeJson()
         {
+            if (!EnsureBehaviorTreeModuleEnabled(true))
+            {
+                return;
+            }
+
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string graphPath = ImportBehaviorTreeAtPath(path, true);
             BlueprintLog.Log("[BehaviorTree] Imported visual graph: " + graphPath);
@@ -27,12 +32,18 @@ namespace BlueprintSystem.Editor
         [MenuItem(ImportMenu, true)]
         private static bool CanImportSelectedBehaviorTreeJson()
         {
-            return BehaviorTreeCompiledAssetCompiler.IsBehaviorTreeJsonPath(AssetDatabase.GetAssetPath(Selection.activeObject));
+            return BlueprintModuleSettings.BehaviorTreeEnabled &&
+                   BehaviorTreeCompiledAssetCompiler.IsBehaviorTreeJsonPath(AssetDatabase.GetAssetPath(Selection.activeObject));
         }
 
         [MenuItem(ExportMenu)]
         public static void ExportSelectedBehaviorTreeGraph()
         {
+            if (!EnsureBehaviorTreeModuleEnabled(true))
+            {
+                return;
+            }
+
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             string outputPath = ExportGraphAtPath(path, null);
             BlueprintLog.Log("[BehaviorTree] Exported behavior tree JSON: " + outputPath);
@@ -41,22 +52,38 @@ namespace BlueprintSystem.Editor
         [MenuItem(ExportMenu, true)]
         private static bool CanExportSelectedBehaviorTreeGraph()
         {
-            return IsBehaviorTreeGraphAssetPath(AssetDatabase.GetAssetPath(Selection.activeObject));
+            return BlueprintModuleSettings.BehaviorTreeEnabled &&
+                   IsBehaviorTreeGraphAssetPath(AssetDatabase.GetAssetPath(Selection.activeObject));
         }
 
         [OnOpenAsset(0)]
         public static bool OnOpenAsset(int instanceId, int line)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return false;
+            }
+
             return OpenAssetAtPath(GetAssetPathFromOpenAssetId(instanceId));
         }
 
         public static string ImportBehaviorTreeAtPath(string behaviorTreeAssetPath, bool openAsset)
         {
+            if (!EnsureBehaviorTreeModuleEnabled(false))
+            {
+                throw new InvalidOperationException("Behavior Tree module is disabled.");
+            }
+
             return ImportBehaviorTreeAtPath(behaviorTreeAssetPath, GetDefaultGraphPath(behaviorTreeAssetPath), openAsset);
         }
 
         public static bool OpenAssetAtPath(string assetPath)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return false;
+            }
+
             if (string.IsNullOrEmpty(assetPath))
             {
                 return false;
@@ -72,6 +99,11 @@ namespace BlueprintSystem.Editor
 
         public static bool OpenCompiledAssetAtPath(string assetPath)
         {
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return false;
+            }
+
             BehaviorTreeCompiledAsset compiledAsset = AssetDatabase.LoadAssetAtPath<BehaviorTreeCompiledAsset>(assetPath);
             if (compiledAsset == null)
             {
@@ -98,6 +130,11 @@ namespace BlueprintSystem.Editor
 
         public static string ImportBehaviorTreeAtPath(string behaviorTreeAssetPath, string graphAssetPath, bool openAsset)
         {
+            if (!EnsureBehaviorTreeModuleEnabled(false))
+            {
+                throw new InvalidOperationException("Behavior Tree module is disabled.");
+            }
+
             if (!BehaviorTreeCompiledAssetCompiler.IsBehaviorTreeJsonPath(behaviorTreeAssetPath))
             {
                 throw new ArgumentException("Expected a .btree.json or .btree asset path.", "behaviorTreeAssetPath");
@@ -168,6 +205,11 @@ namespace BlueprintSystem.Editor
 
         public static string ExportGraphAtPath(string graphAssetPath, string outputBehaviorTreePath)
         {
+            if (!EnsureBehaviorTreeModuleEnabled(false))
+            {
+                throw new InvalidOperationException("Behavior Tree module is disabled.");
+            }
+
             if (!IsBehaviorTreeGraphAssetPath(graphAssetPath))
             {
                 throw new ArgumentException("Expected a ." + BehaviorTreeVisualGraph.AssetExtension + " asset path.", "graphAssetPath");
@@ -197,6 +239,24 @@ namespace BlueprintSystem.Editor
             }
 
             return outputBehaviorTreePath;
+        }
+
+        private static bool EnsureBehaviorTreeModuleEnabled(bool showDialog)
+        {
+            if (BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return true;
+            }
+
+            if (showDialog)
+            {
+                EditorUtility.DisplayDialog(
+                    "Behavior Tree Disabled",
+                    "The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.",
+                    "OK");
+            }
+
+            return false;
         }
 
         public static BehaviorTreeSource ToBehaviorTreeSource(BehaviorTreeVisualGraph graph)

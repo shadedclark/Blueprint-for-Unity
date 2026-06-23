@@ -31,6 +31,14 @@ namespace BlueprintSystem.Editor
             DrawPropertiesExcluding(serializedObject, "blackboardOverrides");
             serializedObject.ApplyModifiedProperties();
 
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                EditorGUILayout.HelpBox(
+                    "The Behavior Tree module is disabled in Project Settings > Blueprint System > Modules. Existing BehaviorTreeRunner components stay serialized, but they will not start or tick until the module is enabled.",
+                    MessageType.Warning);
+                return;
+            }
+
             SyncBlackboardOverridesForTargets();
 
             serializedObject.Update();

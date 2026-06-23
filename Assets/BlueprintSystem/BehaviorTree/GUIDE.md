@@ -24,6 +24,12 @@ A user-facing Behavior Tree node needs a Behavior Tree executor, default registr
 and Graph Toolkit metadata or a dedicated visual node when it is edited visually.
 ```
 
+## Module Requirement
+
+The Behavior Tree module is default-on. It can be toggled for the active build target in `Project Settings > Blueprint System > Modules`. Disabling it writes the `BLUEPRINTSYSTEM_DISABLE_BEHAVIOR_TREE` scripting define and triggers Unity script recompilation.
+
+When the module is disabled, `BT.*` executors are not registered, `.btree.json` editor compilation fails, Graph Toolkit import/export/open/debug surfaces are disabled, and `BehaviorTreeRunner` components stay serialized but do not start or tick. The normal Blueprint `BehaviorTree.*` Blackboard bridge nodes are also filtered from manifests and executor registration. Existing assets must be recompiled after toggling the module to surface missing-node or missing-executor errors.
+
 ## Runtime Model
 
 Behavior Trees are tick-based AI graphs. Each node returns `Success`, `Failure`, or `Running`.

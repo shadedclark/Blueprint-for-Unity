@@ -18,6 +18,11 @@ namespace BlueprintSystem.Editor
         [MenuItem("Tools/Blueprint System/Behavior Tree/Compile Selected Behavior Tree")]
         public static void CompileSelectedBehaviorTree()
         {
+            if (!EnsureBehaviorTreeModuleEnabled(true))
+            {
+                return;
+            }
+
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);
             BehaviorTreeCompiledAsset compiledAsset;
             if (CompileBehaviorTreeAtPath(path, true, out compiledAsset))
@@ -29,7 +34,8 @@ namespace BlueprintSystem.Editor
         [MenuItem("Tools/Blueprint System/Behavior Tree/Compile Selected Behavior Tree", true)]
         private static bool CanCompileSelectedBehaviorTree()
         {
-            return IsBehaviorTreeJsonPath(AssetDatabase.GetAssetPath(Selection.activeObject));
+            return BlueprintModuleSettings.BehaviorTreeEnabled &&
+                   IsBehaviorTreeJsonPath(AssetDatabase.GetAssetPath(Selection.activeObject));
         }
 
         [MenuItem("Assets/Blueprint System/Compile Behavior Tree", false, 2125)]
@@ -56,6 +62,11 @@ namespace BlueprintSystem.Editor
             HashSet<string> compilationStack)
         {
             compiledAsset = null;
+            if (!EnsureBehaviorTreeModuleEnabled(log))
+            {
+                return false;
+            }
+
             sourcePath = NormalizeAssetPath(sourcePath);
             if (!IsBehaviorTreeJsonPath(sourcePath))
             {
@@ -93,6 +104,11 @@ namespace BlueprintSystem.Editor
             HashSet<string> compilationStack)
         {
             compiledAsset = null;
+            if (!EnsureBehaviorTreeModuleEnabled(log))
+            {
+                return false;
+            }
+
             if (sourceAsset == null)
             {
                 return false;
@@ -171,6 +187,12 @@ namespace BlueprintSystem.Editor
         public static bool IsCompiledAssetCurrent(BehaviorTreeCompiledAsset compiledAsset, TextAsset sourceAsset, out string reason)
         {
             reason = null;
+            if (!BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                reason = "Behavior Tree module is disabled.";
+                return false;
+            }
+
             if (compiledAsset == null)
             {
                 reason = "Missing compiled behavior tree asset.";
@@ -244,6 +266,21 @@ namespace BlueprintSystem.Editor
             return !string.IsNullOrEmpty(path) &&
                    (path.EndsWith(BehaviorTreeJsonAssetSuffix, StringComparison.OrdinalIgnoreCase) ||
                     path.EndsWith(BehaviorTreeAssetSuffix, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static bool EnsureBehaviorTreeModuleEnabled(bool log)
+        {
+            if (BlueprintModuleSettings.BehaviorTreeEnabled)
+            {
+                return true;
+            }
+
+            if (log)
+            {
+                BlueprintLog.Error("[BehaviorTree] Behavior Tree module is disabled in Project Settings > Blueprint System > Modules.");
+            }
+
+            return false;
         }
 
         private static bool TryBuildCompilationData(

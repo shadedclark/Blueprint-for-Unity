@@ -144,9 +144,24 @@ namespace BlueprintSystem.Editor
         [MenuItem("Tools/Blueprint System/SmartObject/Debugger")]
         public static void OpenWindow()
         {
+            if (!BlueprintModuleSettings.SmartObjectEnabled)
+            {
+                EditorUtility.DisplayDialog(
+                    "SmartObject Disabled",
+                    "The SmartObject module is disabled in Project Settings > Blueprint System > Modules.",
+                    "OK");
+                return;
+            }
+
             SmartObjectDebuggerWindow window = GetWindow<SmartObjectDebuggerWindow>("SmartObject Debugger");
             window.Show();
             window.RefreshSnapshots();
+        }
+
+        [MenuItem("Tools/Blueprint System/SmartObject/Debugger", true)]
+        private static bool CanOpenWindow()
+        {
+            return BlueprintModuleSettings.SmartObjectEnabled;
         }
 
         private void OnEnable()
@@ -664,7 +679,10 @@ namespace BlueprintSystem.Editor
 
         private static void DrawSceneGizmos(SceneView sceneView)
         {
-            if (!GizmosEnabled || Event.current == null || Event.current.type != EventType.Repaint)
+            if (!BlueprintModuleSettings.SmartObjectEnabled ||
+                !GizmosEnabled ||
+                Event.current == null ||
+                Event.current.type != EventType.Repaint)
             {
                 return;
             }

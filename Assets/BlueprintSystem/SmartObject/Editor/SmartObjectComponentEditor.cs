@@ -18,6 +18,14 @@ namespace BlueprintSystem.Editor
         {
             serializedObject.Update();
 
+            if (!BlueprintModuleSettings.SmartObjectEnabled)
+            {
+                EditorGUILayout.HelpBox(
+                    "The SmartObject module is disabled in Project Settings > Blueprint System > Modules. This component remains serialized, but it will not register at runtime until the module is enabled.",
+                    MessageType.Warning);
+                EditorGUILayout.Space();
+            }
+
             using (new EditorGUI.DisabledScope(true))
             {
                 EditorGUILayout.PropertyField(objectIdProperty, new GUIContent("Object Id"));

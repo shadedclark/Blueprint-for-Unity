@@ -775,7 +775,9 @@ namespace BlueprintSystem.Editor
                 try
                 {
                     BlueprintNodeManifest manifest = BlueprintNodeManifest.FromJson(manifestAsset.text);
-                    if (manifest != null && !string.IsNullOrEmpty(manifest.TypeId))
+                    if (manifest != null &&
+                        !string.IsNullOrEmpty(manifest.TypeId) &&
+                        BlueprintModuleSettings.IsNodeTypeEnabled(manifest.TypeId))
                     {
                         manifests.Add(manifest);
                         manifestTextsByTypeId[manifest.TypeId] = manifestAsset.text;
@@ -794,6 +796,11 @@ namespace BlueprintSystem.Editor
         {
             path = BlueprintAssetDiscovery.NormalizeAssetPath(path);
             if (string.IsNullOrEmpty(path) || !path.EndsWith(".node.json", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!BlueprintModuleSettings.IsAssetPathEnabled(path))
             {
                 return false;
             }

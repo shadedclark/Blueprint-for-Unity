@@ -46,6 +46,50 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void SmartObjectModuleCanBeDisabledForPublicNodeSurfaces()
+        {
+            using (BlueprintModuleSettings.OverrideSmartObjectEnabledForTests(false))
+            {
+                Assert.False(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.shadedclark.blueprint-system/SmartObject/Specs/Nodes/SmartObject.Reserve.node.json"));
+                Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.shadedclark.blueprint-system/Specs/Nodes/Game.Log.node.json"));
+
+                BlueprintNodeManifestCollection manifests = LoadManifests();
+                BlueprintNodeManifest manifest;
+                Assert.False(manifests.TryGet("SmartObject.Reserve", out manifest));
+
+                IBlueprintNodeExecutor executor;
+                Assert.False(BlueprintExecutorRegistry.CreateDefault().TryGet("SmartObject.Reserve", out executor));
+
+                BlueprintVisualNode visualNode = BlueprintVisualNodeFactory.Create("SmartObject.Reserve");
+                Assert.AreEqual(typeof(BlueprintVisualNode), visualNode.GetType());
+            }
+        }
+
+        [Test]
+        public void SmartObjectModuleDisabledComponentDoesNotRegister()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                using (BlueprintModuleSettings.OverrideSmartObjectEnabledForTests(false))
+                {
+                    GameObject gameObject = new GameObject("disabled_module_smart_object");
+                    objects.Add(gameObject);
+                    SmartObjectComponent component = gameObject.AddComponent<SmartObjectComponent>();
+
+                    SmartObjectDebugSnapshot snapshot = SmartObjectRegistry.CreateDebugSnapshot(component);
+                    Assert.AreEqual(SmartObjectRegistrationState.NotRegistered, snapshot.RegistrationState);
+                }
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
         public void SmartObjectPackageManifestPathIsRecognized()
         {
             Assert.True(BlueprintNodeManifestAssetUtility.IsManifestPath("Packages/com.shadedclark.blueprint-system/SmartObject/Specs/Nodes/SmartObject.Reserve.node.json"));
