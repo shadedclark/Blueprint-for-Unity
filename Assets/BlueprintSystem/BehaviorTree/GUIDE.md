@@ -187,9 +187,21 @@ Transform
 NavMeshPath
 Blueprint
 BlueprintRef
+Array<string>
+RoadAgentMask
+RoadLaneAdjacentSide
+RoadElementKind
+RoadAgentState
+RoadRouteState
+RoadQueryFailureReason
+VehicleRoadStopReason
+VehicleRoadPassageStatus
+VehicleRoadSignalState
+VehicleRoadLaneChangeStatus
+VehicleLaneRecoveryMode
 ```
 
-Default values may store primitives, strings, vectors, and `Blueprint` asset paths. `GameObject`, `Transform`, `NavMeshPath`, and `BlueprintRef` values are runtime-only object values and must use `null` JSON defaults.
+Default values may store primitives, strings, vectors, `Array<string>`, enum names, and `Blueprint` asset paths. `GameObject`, `Transform`, `NavMeshPath`, and `BlueprintRef` values are runtime-only object values and must use `null` JSON defaults.
 
 `BehaviorTreeRunner` exposes Blackboard overrides in the Inspector for compiled keys. `GameObject` and `Transform` overrides use `ObjectValue`; other keys use JSON text where possible, with plain string fallback for `string` and `Blueprint`. `NavMeshPath` keys are not exposed as Runner overrides because paths are runtime query results.
 
@@ -204,9 +216,9 @@ Runner Blackboard task nodes can read or write another `BehaviorTreeRunner` Blac
 | Family | Type IDs | Purpose |
 | --- | --- | --- |
 | Composites | `BT.Root`, `BT.Selector`, `BT.Sequence`, `BT.Parallel`, `BT.RandomSelector`, `BT.PrioritySelector`, `BT.WeightedSelector` | Root entry, ordered child evaluation, parallel child polling, randomized selection, priority re-evaluation, and weighted selection. |
-| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, `BT.SetNavigationPath`, `BT.WaitForNavigation`, `BT.PauseNavigation`, `BT.ResumeNavigation`, `BT.SampleNavMeshPosition`, `BT.WarpNavigation`, `BT.TraverseOffMeshLink`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log` | Basic actions, Blackboard mutation, subtree execution, navigation, rotation, Blueprint event bridging, and async task polling. |
+| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, `BT.SetNavigationPath`, `BT.WaitForNavigation`, `BT.PauseNavigation`, `BT.ResumeNavigation`, `BT.SampleNavMeshPosition`, `BT.WarpNavigation`, `BT.TraverseOffMeshLink`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log`, `BT.VehicleRoad.FindNearestLane`, `BT.VehicleRoad.FindLaneRoute`, `BT.VehicleRoad.ComputeFollowerControl` | Basic actions, Blackboard mutation, subtree execution, navigation, rotation, Blueprint event bridging, async task polling, and VehicleRoads decision/control-output publication. |
 | Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown`, `BT.NavigationCondition` | Branch guards evaluated before ticking the attached node. |
-| Services | `BT.UpdateDistance`, `BT.UpdateNavigationState`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService` | Periodic updates while the owning node is active. |
+| Services | `BT.UpdateDistance`, `BT.UpdateNavigationState`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService`, `BT.VehicleRoad.UpdateRoadAgent` | Periodic updates while the owning node is active. |
 
 ## Composite Nodes
 
@@ -535,6 +547,16 @@ Logs a message through the Blueprint logger and returns `Success`.
 | --- | --- | --- | --- | --- |
 | `message` | input/property | string | node id | Log text after the `[BehaviorTree]` prefix. |
 
+### VehicleRoad Tasks
+
+VehicleRoad tasks are decision/control-output nodes only. They write Blackboard keys and never move the owner `Transform`.
+
+`BT.VehicleRoad.FindNearestLane` resolves `subsystem` from a Blackboard input, reads `position`, `heading`, `agentMask`, `maxDistance`, and `maxHeightDifference`, then writes `foundKey`, `laneIdKey`, `positionKey`, `forwardKey`, `upKey`, `distanceAlongLaneKey`, and `distanceToLaneKey`. It returns `Success` only when a lane is found.
+
+`BT.VehicleRoad.FindLaneRoute` resolves `subsystem`, reads `startLaneId`, `destinationLaneId`, and `agentMask`, then writes `successKey`, `routeLaneIdsKey: Array<string>`, and `totalCostKey`. It returns `Success` only when a same-network route exists.
+
+`BT.VehicleRoad.ComputeFollowerControl` resolves a `VehicleLaneFollower` from the `follower` Blackboard input or from the owner GameObject. It reads vehicle pose/control inputs and writes `validKey`, lane pose, target steering/speed, recovery, stop/signal/queue, and lane-change result keys. It returns `Success` only when the follower output is valid. Movement remains owned by an external vehicle executor.
+
 ## Decorator Nodes
 
 Decorators are evaluated before the attached tree node ticks. If any decorator returns false, the node returns `Failure`.
@@ -698,6 +720,29 @@ Writes selected `NavMeshAgent` state values to declared Blackboard keys. Every d
 
 The service also accepts `acceptableRadius` with default `0.25` and `velocityThreshold` with default `0.05`.
 
+### `BT.VehicleRoad.UpdateRoadAgent`
+
+Evaluates a `RoadAgent` service and writes target, recovery, arrival, and failure state to Blackboard. It resolves the agent from `agentKey` or from the owner GameObject, reads `positionKey`, `forwardKey`, `speedKey`, and `deltaTimeKey` when configured, and falls back to owner transform plus `context.DeltaTime`.
+
+| Property | Blackboard Type |
+| --- | --- |
+| `validKey` | bool |
+| `agentStateKey` | RoadAgentState |
+| `routeStateKey` | RoadRouteState |
+| `failureReasonKey` | RoadQueryFailureReason |
+| `currentElementKindKey` | RoadElementKind |
+| `currentElementIdKey` | string |
+| `routeSegmentIndexKey` | int |
+| `targetPositionKey` | Vector3 |
+| `targetForwardKey` | Vector3 |
+| `targetUpKey` | Vector3 |
+| `targetSpeedKey` | float |
+| `remainingDistanceKey` | float |
+| `distanceToBoundaryKey` | float |
+| `arrivedKey` | bool |
+| `shouldRecoverKey` | bool |
+| `recoveryPositionKey` | Vector3 |
+
 ### `BT.PerceptionSphere`
 
 Finds the first non-owner collider inside a sphere around the owner.
@@ -779,6 +824,9 @@ BTTaskRotateToNode
 BTTaskTriggerBlueprintEventNode
 BTTaskRunBlueprintTaskNode
 BTTaskLogNode
+BTTaskVehicleRoadFindNearestLaneNode
+BTTaskVehicleRoadFindLaneRouteNode
+BTTaskVehicleRoadComputeFollowerControlNode
 ```
 
 Behavior Tree Graph Toolkit also exposes dedicated visual nodes for built-in condition Decorators:
@@ -822,6 +870,7 @@ The validator enforces:
 - `BT.CalculateNavigationPath.pathKey` and `BT.SetNavigationPath.path` / `pathKey` must reference `NavMeshPath` Blackboard keys.
 - `BT.SampleNavMeshPosition` needs a `Vector3` `positionKey`; optional `areaMaskKey` must be `int`.
 - `BT.UpdateNavigationState` validates every configured output key against its documented Blackboard type.
+- `BT.VehicleRoad.*` task and service output keys validate against their documented Blackboard types, including `Array<string>` route keys and VehicleRoads enum keys.
 - `BT.SetBlackboard` and `BT.ClearBlackboard` need `key`.
 - `BT.*RunnerBlackboard` task nodes need a `target` input and their required `sourceKey`/`targetKey` properties. Remote key properties are not validated against the current tree, except `BT.GetRunnerBlackboard.targetKey`, which writes back into the current tree.
 - `BT.RunSubtree` needs `behaviorTree`, accepts only `Shared` or `Isolated` `blackboardMode`, and validates parent-side isolated mapping keys in the source validator. The editor compiler also validates subtree paths, child-side mapping keys, shared Blackboard type compatibility, and subtree cycles.

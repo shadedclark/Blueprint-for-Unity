@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.UnregisterVehicle",
+  "title": "VehicleRoad Unregister Vehicle",
+  "category": "VehicleRoads",
+  "description": "Removes a vehicle from the traffic runtime.",
+  "executor": "VehicleRoad.UnregisterVehicle",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "vehicleId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" },
+    { "id": "removed", "kind": "value", "type": "bool" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "vehicleId", "required": false, "type": "string", "defaultValue": "" }
+  ]
+}

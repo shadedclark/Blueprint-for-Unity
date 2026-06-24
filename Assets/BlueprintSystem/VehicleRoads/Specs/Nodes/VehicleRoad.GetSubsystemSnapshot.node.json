@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.GetSubsystemSnapshot",
+  "title": "VehicleRoad Get Subsystem Snapshot",
+  "category": "VehicleRoads",
+  "description": "Reads flat diagnostic counters from a VehicleRoadSubsystem.",
+  "executor": "VehicleRoad.GetSubsystemSnapshot",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "registeredNetworkCount", "kind": "value", "type": "int" },
+    { "id": "laneCount", "kind": "value", "type": "int" },
+    { "id": "connectionCount", "kind": "value", "type": "int" },
+    { "id": "adjacentLinkCount", "kind": "value", "type": "int" },
+    { "id": "polygonCount", "kind": "value", "type": "int" },
+    { "id": "portalCount", "kind": "value", "type": "int" },
+    { "id": "closedLaneCount", "kind": "value", "type": "int" },
+    { "id": "congestionCostCount", "kind": "value", "type": "int" },
+    { "id": "signalCostCount", "kind": "value", "type": "int" },
+    { "id": "registeredVehicleCount", "kind": "value", "type": "int" },
+    { "id": "queuedVehicleCount", "kind": "value", "type": "int" },
+    { "id": "activeTokenCount", "kind": "value", "type": "int" },
+    { "id": "laneChangeReservationCount", "kind": "value", "type": "int" },
+    { "id": "signalPhaseCount", "kind": "value", "type": "int" },
+    { "id": "registeredRoadAgentCount", "kind": "value", "type": "int" },
+    { "id": "queriesThisFrame", "kind": "value", "type": "int" },
+    { "id": "routesThisFrame", "kind": "value", "type": "int" },
+    { "id": "replansThisFrame", "kind": "value", "type": "int" },
+    { "id": "failuresThisFrame", "kind": "value", "type": "int" },
+    { "id": "lastCandidateCount", "kind": "value", "type": "int" },
+    { "id": "peakCandidateCount", "kind": "value", "type": "int" },
+    { "id": "lastVisitedNodeCount", "kind": "value", "type": "int" },
+    { "id": "peakVisitedNodeCount", "kind": "value", "type": "int" },
+    { "id": "lastRouteSegmentCount", "kind": "value", "type": "int" },
+    { "id": "peakRouteSegmentCount", "kind": "value", "type": "int" },
+    { "id": "diagnosticHistoryCount", "kind": "value", "type": "int" },
+    { "id": "diagnosticHistoryCapacity", "kind": "value", "type": "int" },
+    { "id": "diagnosticDroppedCount", "kind": "value", "type": "int" },
+    { "id": "lastTrafficFailureReason", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" }
+  ]
+}

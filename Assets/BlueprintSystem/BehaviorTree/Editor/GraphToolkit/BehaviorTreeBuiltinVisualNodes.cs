@@ -25,6 +25,10 @@ namespace BlueprintSystem.Editor
         public const string ClearRunnerBlackboard = "BT.ClearRunnerBlackboard";
         public const string CopyRunnerBlackboard = "BT.CopyRunnerBlackboard";
         public const string RunSubtree = "BT.RunSubtree";
+        public const string VehicleRoadFindNearestLane = "BT.VehicleRoad.FindNearestLane";
+        public const string VehicleRoadFindLaneRoute = "BT.VehicleRoad.FindLaneRoute";
+        public const string VehicleRoadComputeFollowerControl = "BT.VehicleRoad.ComputeFollowerControl";
+        public const string VehicleRoadUpdateRoadAgent = "BT.VehicleRoad.UpdateRoadAgent";
 
         public static BehaviorTreeVisualNode Create(string typeId)
         {
@@ -95,6 +99,18 @@ namespace BlueprintSystem.Editor
                     return new BTTaskRunBlueprintTaskNode();
                 case "BT.Log":
                     return new BTTaskLogNode();
+                case VehicleRoadFindNearestLane:
+                    return BlueprintModuleSettings.VehicleRoadsEnabled
+                        ? new BTTaskVehicleRoadFindNearestLaneNode()
+                        : new BehaviorTreeVisualNode();
+                case VehicleRoadFindLaneRoute:
+                    return BlueprintModuleSettings.VehicleRoadsEnabled
+                        ? new BTTaskVehicleRoadFindLaneRouteNode()
+                        : new BehaviorTreeVisualNode();
+                case VehicleRoadComputeFollowerControl:
+                    return BlueprintModuleSettings.VehicleRoadsEnabled
+                        ? new BTTaskVehicleRoadComputeFollowerControlNode()
+                        : new BehaviorTreeVisualNode();
                 default:
                     return new BehaviorTreeVisualNode();
             }
@@ -146,6 +162,11 @@ namespace BlueprintSystem.Editor
 
         public static string CreateTitle(string typeId)
         {
+            if (IsVehicleRoadsBehaviorTreeNodeType(typeId) && !BlueprintModuleSettings.VehicleRoadsEnabled)
+            {
+                return CreateFallbackTitle(typeId);
+            }
+
             switch (typeId)
             {
                 case Root:
@@ -208,6 +229,12 @@ namespace BlueprintSystem.Editor
                     return "Task: Run Blueprint Task";
                 case "BT.Log":
                     return "Task: Log";
+                case VehicleRoadFindNearestLane:
+                    return "Task: VehicleRoad Find Nearest Lane";
+                case VehicleRoadFindLaneRoute:
+                    return "Task: VehicleRoad Find Lane Route";
+                case VehicleRoadComputeFollowerControl:
+                    return "Task: VehicleRoad Compute Follower Control";
                 case BlackboardCondition:
                     return "Decorator: Blackboard Condition";
                 case CompareFloat:
@@ -234,6 +261,8 @@ namespace BlueprintSystem.Editor
                     return "Service: Set Blackboard From Blueprint";
                 case "BT.TriggerBlueprintService":
                     return "Service: Trigger Blueprint Service";
+                case VehicleRoadUpdateRoadAgent:
+                    return "Service: VehicleRoad Update Road Agent";
                 default:
                     return CreateFallbackTitle(typeId);
             }
@@ -327,6 +356,11 @@ namespace BlueprintSystem.Editor
         public static bool TryGetDefaultInputValue(string typeId, string inputId, out object value)
         {
             value = null;
+            if (IsVehicleRoadsBehaviorTreeNodeType(typeId) && !BlueprintModuleSettings.VehicleRoadsEnabled)
+            {
+                return false;
+            }
+
             switch (typeId)
             {
                 case "BT.Wait":
@@ -503,6 +537,98 @@ namespace BlueprintSystem.Editor
                     }
 
                     break;
+                case VehicleRoadFindNearestLane:
+                    if (inputId == "position")
+                    {
+                        value = new UnityEngine.Vector3(0f, 0f, 0f);
+                        return true;
+                    }
+
+                    if (inputId == "heading")
+                    {
+                        value = new UnityEngine.Vector3(0f, 0f, 1f);
+                        return true;
+                    }
+
+                    if (inputId == "agentMask")
+                    {
+                        value = VehicleRoads.RoadAgentMask.MotorVehicles;
+                        return true;
+                    }
+
+                    if (inputId == "maxDistance" || inputId == "maxHeightDifference")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    break;
+                case VehicleRoadFindLaneRoute:
+                    if (inputId == "startLaneId" || inputId == "destinationLaneId")
+                    {
+                        value = string.Empty;
+                        return true;
+                    }
+
+                    if (inputId == "agentMask")
+                    {
+                        value = VehicleRoads.RoadAgentMask.MotorVehicles;
+                        return true;
+                    }
+
+                    break;
+                case VehicleRoadComputeFollowerControl:
+                    if (inputId == "position")
+                    {
+                        value = new UnityEngine.Vector3(0f, 0f, 0f);
+                        return true;
+                    }
+
+                    if (inputId == "forward")
+                    {
+                        value = new UnityEngine.Vector3(0f, 0f, 1f);
+                        return true;
+                    }
+
+                    if (inputId == "speed" ||
+                        inputId == "leadVehicleDistance" ||
+                        inputId == "leadVehicleSpeed")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    if (inputId == "wheelBase")
+                    {
+                        value = 2.7f;
+                        return true;
+                    }
+
+                    if (inputId == "vehicleLength")
+                    {
+                        value = 4.5f;
+                        return true;
+                    }
+
+                    if (inputId == "agentMask")
+                    {
+                        value = VehicleRoads.RoadAgentMask.MotorVehicles;
+                        return true;
+                    }
+
+                    if (inputId == "requestLaneChange")
+                    {
+                        value = false;
+                        return true;
+                    }
+
+                    if (inputId == "requestedLaneChangeSide")
+                    {
+                        value = VehicleRoads.RoadLaneAdjacentSide.Right;
+                        return true;
+                    }
+
+                    break;
                 case BlackboardCondition:
                     if (inputId == "operator")
                     {
@@ -606,6 +732,14 @@ namespace BlueprintSystem.Editor
             }
 
             return false;
+        }
+
+        private static bool IsVehicleRoadsBehaviorTreeNodeType(string typeId)
+        {
+            return typeId == VehicleRoadFindNearestLane ||
+                   typeId == VehicleRoadFindLaneRoute ||
+                   typeId == VehicleRoadComputeFollowerControl ||
+                   typeId == VehicleRoadUpdateRoadAgent;
         }
 
         private static string CreateFallbackTitle(string typeId)
@@ -1163,6 +1297,73 @@ namespace BlueprintSystem.Editor
         protected override void ApplyDefaultMetadata()
         {
             AddBlackboardInput("message", "string", "Message", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskVehicleRoadFindNearestLaneNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadFindNearestLane, "Task: VehicleRoad Find Nearest Lane", 0);
+            PropertiesJson = "{\"foundKey\":\"\",\"laneIdKey\":\"\",\"positionKey\":\"\",\"forwardKey\":\"\",\"upKey\":\"\",\"distanceAlongLaneKey\":\"\",\"distanceToLaneKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("subsystem", null, "Subsystem", false);
+            AddBlackboardInput("position", "Vector3", "Position", true);
+            AddBlackboardInput("heading", "Vector3", "Heading", true);
+            AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
+            AddBlackboardInput("maxDistance", "float", "Max Distance", true);
+            AddBlackboardInput("maxHeightDifference", "float", "Max Height Difference", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskVehicleRoadFindLaneRouteNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadFindLaneRoute, "Task: VehicleRoad Find Lane Route", 0);
+            PropertiesJson = "{\"routeLaneIdsKey\":\"\",\"totalCostKey\":\"\",\"successKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("subsystem", null, "Subsystem", false);
+            AddBlackboardInput("startLaneId", "string", "Start Lane", true);
+            AddBlackboardInput("destinationLaneId", "string", "Destination Lane", true);
+            AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskVehicleRoadComputeFollowerControlNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadComputeFollowerControl, "Task: VehicleRoad Compute Follower Control", 0);
+            PropertiesJson = "{\"validKey\":\"\",\"currentLaneIdKey\":\"\",\"distanceAlongLaneKey\":\"\",\"targetSteeringAngleKey\":\"\",\"targetSpeedKey\":\"\",\"lookAheadPointKey\":\"\",\"recoveryModeKey\":\"\",\"recoveryPositionKey\":\"\",\"lateralErrorKey\":\"\",\"stopReasonKey\":\"\",\"passageStatusKey\":\"\",\"signalStateKey\":\"\",\"hasStopPointKey\":\"\",\"stopPointKey\":\"\",\"distanceToStopLineKey\":\"\",\"queueIndexKey\":\"\",\"junctionIdKey\":\"\",\"connectorLaneIdKey\":\"\",\"laneChangeStatusKey\":\"\",\"laneChangeTargetLaneIdKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("follower", null, "Follower", false);
+            AddBlackboardInput("vehicleId", "string", "Vehicle Id", true);
+            AddBlackboardInput("position", "Vector3", "Position", true);
+            AddBlackboardInput("forward", "Vector3", "Forward", true);
+            AddBlackboardInput("speed", "float", "Speed", true);
+            AddBlackboardInput("wheelBase", "float", "Wheel Base", true);
+            AddBlackboardInput("vehicleLength", "float", "Vehicle Length", true);
+            AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
+            AddBlackboardInput("leadVehicleDistance", "float", "Lead Distance", true);
+            AddBlackboardInput("leadVehicleSpeed", "float", "Lead Speed", true);
+            AddBlackboardInput("requestLaneChange", "bool", "Request Lane Change", true);
+            AddBlackboardInput("requestedLaneChangeSide", "RoadLaneAdjacentSide", "Lane Change Side", true);
         }
     }
 

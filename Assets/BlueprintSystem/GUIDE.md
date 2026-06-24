@@ -220,6 +220,16 @@ Behavior Tree is a core module kept under `Assets/BlueprintSystem/BehaviorTree`.
 
 The module can be toggled per active build target in `Project Settings > Blueprint System > Modules`. The setting is default-on; disabling it writes the `BLUEPRINTSYSTEM_DISABLE_BEHAVIOR_TREE` scripting define for the active build target and triggers script recompilation. When disabled, `BehaviorTree.*` manifests are not loaded, their executors are not registered, `BT.*` executors are not registered, Behavior Tree Graph Toolkit/import/export/debugger entry points are disabled, and `BehaviorTreeRunner` components remain serialized but do not start or tick. Existing blueprints or behavior trees that still contain Behavior Tree nodes report normal missing-manifest, missing-executor, or compile errors after they are recompiled while the module is disabled.
 
+## VehicleRoads Module
+
+VehicleRoads is a SmartObject-style optional plugin module kept under `Assets/BlueprintSystem/VehicleRoads` rather than the generic node folders. It is default-on with BlueprintSystem, but its runtime, executors, manifests, Graph Toolkit nodes, tests, settings, and docs stay inside that module directory.
+
+The module can be toggled per active build target in `Project Settings > Blueprint System > Modules`. The setting is default-on; disabling it writes the `BLUEPRINTSYSTEM_DISABLE_VEHICLE_ROADS` scripting define for the active build target and triggers script recompilation. When disabled, `VehicleRoad.*` manifests are not loaded, VehicleRoad executors are not registered, VehicleRoad Graph Toolkit visual nodes fall back to generic nodes, and `BT.VehicleRoad.*` Behavior Tree executors are unavailable. Existing blueprints or behavior trees that still contain VehicleRoad nodes report normal missing-manifest, missing-executor, or compile errors after they are recompiled while the module is disabled.
+
+Blueprint nodes expose runtime-only calls: `VehicleRoad.FindNearestLane`, `VehicleRoad.FindLaneRoute`, `VehicleRoad.SetLaneClosed`, `VehicleRoad.UpdateVehicle`, `VehicleRoad.UnregisterVehicle`, `VehicleRoad.EvaluateTrafficControl`, `VehicleRoad.RequestLaneChange`, `VehicleRoad.CompleteLaneChange`, `VehicleRoad.SetFollowerRoute`, `VehicleRoad.ComputeFollowerControl`, and `VehicleRoad.GetSubsystemSnapshot`. Nodes resolve scene objects through binding names or connected runtime objects, never serialized Unity references in JSON. Side-effectful nodes are exec nodes and cache their last result for output ports.
+
+Behavior Tree-native road nodes live in the Behavior Tree registry, not in `.node.json` manifests: `BT.VehicleRoad.FindNearestLane`, `BT.VehicleRoad.FindLaneRoute`, `BT.VehicleRoad.ComputeFollowerControl`, and `BT.VehicleRoad.UpdateRoadAgent`. They write Blackboard keys and do not move GameObjects. Detailed authoring rules, port lists, and runtime ownership boundaries live in `Assets/BlueprintSystem/VehicleRoads/Docs/VehicleRoadUsageGuide.md` and `Assets/BlueprintSystem/BehaviorTree/GUIDE.md`.
+
 ## SmartObject Module
 
 SmartObject is a core module kept under `Assets/BlueprintSystem/SmartObject` rather than the generic node folders. It is default-on with BlueprintSystem, but its runtime, executors, manifests, Graph Toolkit nodes, tests, and detailed guide stay inside that module directory.

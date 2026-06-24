@@ -6,6 +6,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using VehicleRoads;
 
 namespace BlueprintSystem
 {
@@ -60,7 +61,18 @@ namespace BlueprintSystem
             { "ComparisonMode", typeof(ComparisonMode) },
             { "TickPhase", typeof(TickPhase) },
             { "BlueprintResourceScope", typeof(BlueprintResourceScope) },
-            { "BlueprintResourceLoadState", typeof(BlueprintResourceLoadState) }
+            { "BlueprintResourceLoadState", typeof(BlueprintResourceLoadState) },
+            { "RoadAgentMask", typeof(RoadAgentMask) },
+            { "RoadLaneAdjacentSide", typeof(RoadLaneAdjacentSide) },
+            { "RoadElementKind", typeof(RoadElementKind) },
+            { "RoadAgentState", typeof(RoadAgentState) },
+            { "RoadRouteState", typeof(RoadRouteState) },
+            { "RoadQueryFailureReason", typeof(RoadQueryFailureReason) },
+            { "VehicleRoadStopReason", typeof(VehicleRoadStopReason) },
+            { "VehicleRoadPassageStatus", typeof(VehicleRoadPassageStatus) },
+            { "VehicleRoadSignalState", typeof(VehicleRoadSignalState) },
+            { "VehicleRoadLaneChangeStatus", typeof(VehicleRoadLaneChangeStatus) },
+            { "VehicleLaneRecoveryMode", typeof(VehicleLaneRecoveryMode) }
         };
 
         private static readonly Dictionary<Type, string> BuiltinIdsByType = new Dictionary<Type, string>
@@ -81,7 +93,18 @@ namespace BlueprintSystem
             { typeof(ComparisonMode), "ComparisonMode" },
             { typeof(TickPhase), "TickPhase" },
             { typeof(BlueprintResourceScope), "BlueprintResourceScope" },
-            { typeof(BlueprintResourceLoadState), "BlueprintResourceLoadState" }
+            { typeof(BlueprintResourceLoadState), "BlueprintResourceLoadState" },
+            { typeof(RoadAgentMask), "RoadAgentMask" },
+            { typeof(RoadLaneAdjacentSide), "RoadLaneAdjacentSide" },
+            { typeof(RoadElementKind), "RoadElementKind" },
+            { typeof(RoadAgentState), "RoadAgentState" },
+            { typeof(RoadRouteState), "RoadRouteState" },
+            { typeof(RoadQueryFailureReason), "RoadQueryFailureReason" },
+            { typeof(VehicleRoadStopReason), "VehicleRoadStopReason" },
+            { typeof(VehicleRoadPassageStatus), "VehicleRoadPassageStatus" },
+            { typeof(VehicleRoadSignalState), "VehicleRoadSignalState" },
+            { typeof(VehicleRoadLaneChangeStatus), "VehicleRoadLaneChangeStatus" },
+            { typeof(VehicleLaneRecoveryMode), "VehicleLaneRecoveryMode" }
         };
 
         private static readonly object CacheLock = new object();

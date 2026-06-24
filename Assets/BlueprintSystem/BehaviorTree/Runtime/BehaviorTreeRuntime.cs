@@ -833,7 +833,7 @@ namespace BlueprintSystem
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                     return true;
                 default:
-                    return false;
+                    return BlueprintVariableTypeRegistry.IsKnownType(type);
             }
         }
 
@@ -868,6 +868,19 @@ namespace BlueprintSystem
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                     return value is BlueprintRef ? value : null;
                 default:
+                    object runtimeArray;
+                    if (BlueprintArrayUtility.TryConvertToRuntimeArray(value, type, out runtimeArray))
+                    {
+                        return runtimeArray;
+                    }
+
+                    Type clrType;
+                    if (BlueprintVariableTypeRegistry.TryGetClrType(type, out clrType) && clrType.IsEnum)
+                    {
+                        object defaultEnum = Activator.CreateInstance(clrType);
+                        return BlueprintTypeUtility.ConvertValue(value, clrType, defaultEnum);
+                    }
+
                     return value;
             }
         }

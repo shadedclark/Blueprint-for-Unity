@@ -277,7 +277,53 @@ namespace BlueprintSystem
             "isMovingKey",
             "hasArrivedKey",
             "isPathStaleKey",
-            "isOnOffMeshLinkKey"
+            "isOnOffMeshLinkKey",
+            "agentKey",
+            "followerKey",
+            "subsystemKey",
+            "headingKey",
+            "forwardKey",
+            "upKey",
+            "speedKey",
+            "deltaTimeKey",
+            "laneIdKey",
+            "foundKey",
+            "distanceAlongLaneKey",
+            "distanceToLaneKey",
+            "routeLaneIdsKey",
+            "totalCostKey",
+            "successKey",
+            "validKey",
+            "currentLaneIdKey",
+            "targetSteeringAngleKey",
+            "targetSpeedKey",
+            "lookAheadPointKey",
+            "recoveryModeKey",
+            "recoveryPositionKey",
+            "lateralErrorKey",
+            "stopReasonKey",
+            "passageStatusKey",
+            "signalStateKey",
+            "hasStopPointKey",
+            "stopPointKey",
+            "distanceToStopLineKey",
+            "queueIndexKey",
+            "junctionIdKey",
+            "connectorLaneIdKey",
+            "laneChangeStatusKey",
+            "laneChangeTargetLaneIdKey",
+            "agentStateKey",
+            "routeStateKey",
+            "failureReasonKey",
+            "currentElementKindKey",
+            "currentElementIdKey",
+            "routeSegmentIndexKey",
+            "targetPositionKey",
+            "targetForwardKey",
+            "targetUpKey",
+            "distanceToBoundaryKey",
+            "arrivedKey",
+            "shouldRecoverKey"
         };
 
         public BlueprintDiagnosticList Validate(BehaviorTreeSource source, BehaviorTreeExecutorRegistry registry = null)
@@ -810,6 +856,48 @@ namespace BlueprintSystem
                     node.Properties, "areaMaskKey", "int",
                     blackboard, diagnostics, node.Id);
             }
+            else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
+                     node.TypeId == "BT.VehicleRoad.FindNearestLane")
+            {
+                ValidatePropertyKeyType(node.Properties, "foundKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "laneIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "positionKey", "Vector3", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "forwardKey", "Vector3", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "upKey", "Vector3", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "distanceAlongLaneKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "distanceToLaneKey", "float", blackboard, diagnostics, node.Id);
+            }
+            else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
+                     node.TypeId == "BT.VehicleRoad.FindLaneRoute")
+            {
+                ValidatePropertyKeyType(node.Properties, "routeLaneIdsKey", "Array<string>", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "totalCostKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "successKey", "bool", blackboard, diagnostics, node.Id);
+            }
+            else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
+                     node.TypeId == "BT.VehicleRoad.ComputeFollowerControl")
+            {
+                ValidatePropertyKeyType(node.Properties, "validKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "currentLaneIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "distanceAlongLaneKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "targetSteeringAngleKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "targetSpeedKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "lookAheadPointKey", "Vector3", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "recoveryModeKey", "VehicleLaneRecoveryMode", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "recoveryPositionKey", "Vector3", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "lateralErrorKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "stopReasonKey", "VehicleRoadStopReason", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "passageStatusKey", "VehicleRoadPassageStatus", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "signalStateKey", "VehicleRoadSignalState", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "hasStopPointKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "stopPointKey", "Vector3", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "distanceToStopLineKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "queueIndexKey", "int", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "junctionIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "connectorLaneIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "laneChangeStatusKey", "VehicleRoadLaneChangeStatus", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "laneChangeTargetLaneIdKey", "string", blackboard, diagnostics, node.Id);
+            }
         }
 
         private static void ValidateServiceBlackboardTypes(
@@ -817,24 +905,51 @@ namespace BlueprintSystem
             Dictionary<string, BehaviorTreeBlackboardKey> blackboard,
             BlueprintDiagnosticList diagnostics)
         {
-            if (service == null || service.TypeId != "BT.UpdateNavigationState")
+            if (service == null)
             {
                 return;
             }
 
-            ValidatePropertyKeyType(service.Properties, "agentAvailableKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "isOnNavMeshKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "hasPathKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "pathPendingKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "pathStatusKey", "string", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "remainingDistanceKey", "float", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "velocityKey", "Vector3", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "destinationKey", "Vector3", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "isStoppedKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "isMovingKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "hasArrivedKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "isPathStaleKey", "bool", blackboard, diagnostics, service.Id);
-            ValidatePropertyKeyType(service.Properties, "isOnOffMeshLinkKey", "bool", blackboard, diagnostics, service.Id);
+            if (service.TypeId == "BT.UpdateNavigationState")
+            {
+                ValidatePropertyKeyType(service.Properties, "agentAvailableKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "isOnNavMeshKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "hasPathKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "pathPendingKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "pathStatusKey", "string", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "remainingDistanceKey", "float", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "velocityKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "destinationKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "isStoppedKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "isMovingKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "hasArrivedKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "isPathStaleKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "isOnOffMeshLinkKey", "bool", blackboard, diagnostics, service.Id);
+            }
+            else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
+                     service.TypeId == "BT.VehicleRoad.UpdateRoadAgent")
+            {
+                ValidatePropertyKeyType(service.Properties, "positionKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "forwardKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "speedKey", "float", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "deltaTimeKey", "float", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "validKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "agentStateKey", "RoadAgentState", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "routeStateKey", "RoadRouteState", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "failureReasonKey", "RoadQueryFailureReason", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "currentElementKindKey", "RoadElementKind", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "currentElementIdKey", "string", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "routeSegmentIndexKey", "int", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "targetPositionKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "targetForwardKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "targetUpKey", "Vector3", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "targetSpeedKey", "float", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "remainingDistanceKey", "float", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "distanceToBoundaryKey", "float", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "arrivedKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "shouldRecoverKey", "bool", blackboard, diagnostics, service.Id);
+                ValidatePropertyKeyType(service.Properties, "recoveryPositionKey", "Vector3", blackboard, diagnostics, service.Id);
+            }
         }
 
         private static void ValidatePropertyKeyType(

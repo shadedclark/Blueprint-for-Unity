@@ -1,0 +1,21 @@
+{
+    "name": "BlueprintSystem.VehicleRoads.Editor",
+    "rootNamespace": "VehicleRoads.Editor",
+    "references": [
+        "BlueprintSystem",
+        "Unity.Mathematics",
+        "Unity.Splines",
+        "Unity.Splines.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

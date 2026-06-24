@@ -17,7 +17,7 @@ namespace BlueprintSystem.Editor
             {
                 label = "Modules",
                 guiHandler = DrawSettings,
-                keywords = new HashSet<string>(new[] { "Blueprint", "SmartObject", "BehaviorTree", "Behavior Tree", "Modules" })
+                keywords = new HashSet<string>(new[] { "Blueprint", "SmartObject", "BehaviorTree", "Behavior Tree", "VehicleRoads", "Vehicle Roads", "Modules" })
             };
         }
 
@@ -33,6 +33,8 @@ namespace BlueprintSystem.Editor
                 BlueprintModuleSettings.DisableSmartObjectDefine +
                 " / " +
                 BlueprintModuleSettings.DisableBehaviorTreeDefine +
+                " / " +
+                BlueprintModuleSettings.DisableVehicleRoadsDefine +
                 " and triggers a script recompile. Existing blueprints or behavior trees that still use a disabled module report compile or validation errors after they are recompiled.",
                 MessageType.Info);
 
@@ -49,6 +51,12 @@ namespace BlueprintSystem.Editor
                 "AI decision module for .btree.json assets, BT.* executors, BehaviorTreeRunner, Behavior Tree Graph Toolkit, debugger, and BehaviorTree.* Blackboard bridge nodes.",
                 "When disabled, BehaviorTree.* Blueprint nodes are filtered out, BT.* executors are not registered, editor compile/open/debug entry points are unavailable, and existing runners do not start or tick.",
                 BlueprintModuleSettings.DisableBehaviorTreeDefine);
+            DrawModuleCard(
+                buildTarget,
+                "Vehicle Roads",
+                "Road, route, traffic-control, lane-change, and follower-control module for VehicleRoad.* Blueprint nodes and BT.VehicleRoad.* Behavior Tree nodes.",
+                "When disabled, VehicleRoad manifests are not loaded, VehicleRoad executors are not registered, VehicleRoad Graph Toolkit nodes fall back to generic nodes, and BT.VehicleRoad.* executors are unavailable.",
+                BlueprintModuleSettings.DisableVehicleRoadsDefine);
             EditorGUI.EndDisabledGroup();
         }
 

@@ -1,0 +1,28 @@
+{
+    "name": "BlueprintSystem.VehicleRoads.Editor.Tests",
+    "rootNamespace": "VehicleRoads.Editor.Tests",
+    "references": [
+        "BlueprintSystem",
+        "BlueprintSystem.VehicleRoads.Editor",
+        "Unity.Mathematics",
+        "Unity.Splines",
+        "Unity.Splines.Editor",
+        "UnityEditor.TestRunner",
+        "UnityEngine.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

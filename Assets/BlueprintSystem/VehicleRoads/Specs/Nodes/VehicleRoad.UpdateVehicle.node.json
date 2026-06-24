@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.UpdateVehicle",
+  "title": "VehicleRoad Update Vehicle",
+  "category": "VehicleRoads",
+  "description": "Publishes a vehicle lane state to the traffic runtime.",
+  "executor": "VehicleRoad.UpdateVehicle",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "vehicleId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "laneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "distanceAlongLane", "kind": "value", "type": "float", "required": true, "source": "propertyOrConnection" },
+    { "id": "speed", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "length", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "routeLaneIds", "kind": "value", "type": "Array<string>", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "vehicleId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "laneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "MotorVehicles" },
+    { "id": "distanceAlongLane", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "speed", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "length", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "routeLaneIds", "required": false, "type": "Array<string>", "defaultValue": [] }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.SetFollowerRoute",
+  "title": "VehicleRoad Set Follower Route",
+  "category": "VehicleRoads",
+  "description": "Assigns a lane route to a VehicleLaneFollower.",
+  "executor": "VehicleRoad.SetFollowerRoute",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<VehicleLaneFollower>", "required": true, "source": "propertyOrConnection" },
+    { "id": "laneIds", "kind": "value", "type": "Array<string>", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleLaneFollower>" },
+    { "id": "laneIds", "required": false, "type": "Array<string>", "defaultValue": [] }
+  ]
+}

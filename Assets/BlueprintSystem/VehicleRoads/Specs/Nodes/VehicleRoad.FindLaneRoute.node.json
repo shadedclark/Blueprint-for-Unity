@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.FindLaneRoute",
+  "title": "VehicleRoad Find Lane Route",
+  "category": "VehicleRoads",
+  "description": "Finds a same-network route between two lane ids.",
+  "executor": "VehicleRoad.FindLaneRoute",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "startLaneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "destinationLaneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "success", "kind": "value", "type": "bool" },
+    { "id": "laneIds", "kind": "value", "type": "Array<string>" },
+    { "id": "totalCost", "kind": "value", "type": "float" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "startLaneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "destinationLaneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "MotorVehicles" }
+  ]
+}

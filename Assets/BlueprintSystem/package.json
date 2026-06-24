@@ -1,6 +1,6 @@
 {
   "name": "com.shadedclark.blueprint-system",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "displayName": "Blueprint System",
   "description": "A JSON-first Unity blueprint runtime and editor toolset.",
   "unity": "6000.0",
@@ -13,7 +13,9 @@
     "com.unity.ai.assistant": "2.9.0-pre.1",
     "com.unity.graphtoolkit": "0.4.0-exp.2",
     "com.unity.inputsystem": "1.19.0",
+    "com.unity.mathematics": "1.3.2",
     "com.unity.nuget.newtonsoft-json": "3.2.2",
+    "com.unity.splines": "2.8.4",
     "com.unity.test-framework": "1.6.0",
     "com.unity.ugui": "2.0.0"
   },

@@ -4,7 +4,9 @@
     "references": [
         "Unity.Addressables",
         "Unity.InputSystem",
+        "Unity.Mathematics",
         "Unity.ResourceManager",
+        "Unity.Splines",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],

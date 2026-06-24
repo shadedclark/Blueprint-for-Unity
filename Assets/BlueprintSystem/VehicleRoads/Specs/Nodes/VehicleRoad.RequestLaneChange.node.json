@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.RequestLaneChange",
+  "title": "VehicleRoad Request Lane Change",
+  "category": "VehicleRoads",
+  "description": "Requests an adjacent lane-change reservation.",
+  "executor": "VehicleRoad.RequestLaneChange",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "vehicleId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "side", "kind": "value", "type": "RoadLaneAdjacentSide", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" },
+    { "id": "status", "kind": "value", "type": "VehicleRoadLaneChangeStatus" },
+    { "id": "fromLaneId", "kind": "value", "type": "string" },
+    { "id": "targetLaneId", "kind": "value", "type": "string" },
+    { "id": "reservedDistanceAlongLane", "kind": "value", "type": "float" },
+    { "id": "failureReason", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "vehicleId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "side", "required": false, "type": "RoadLaneAdjacentSide", "defaultValue": "Right" }
+  ]
+}

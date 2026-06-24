@@ -247,6 +247,10 @@ namespace BlueprintSystem
             {
                 SmartObjectExecutorRegistrar.Register(registry);
             }
+            if (BlueprintModuleSettings.VehicleRoadsEnabled)
+            {
+                VehicleRoadExecutorRegistrar.Register(registry);
+            }
             registry.Register(new GameLogExecutor());
             registry.Register(new GameSendEventExecutor());
             registry.Register(new GameLoadSceneExecutor());

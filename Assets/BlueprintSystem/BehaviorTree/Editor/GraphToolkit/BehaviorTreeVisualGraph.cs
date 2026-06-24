@@ -1206,6 +1206,12 @@ namespace BlueprintSystem.Editor
                 case BlueprintVariableTypeRegistry.BlueprintAssetTypeId:
                 case BlueprintVariableTypeRegistry.BlueprintRefTypeId:
                 default:
+                    Type clrType;
+                    if (BlueprintVariableTypeRegistry.TryGetClrType(behaviorType, out clrType) && clrType.IsEnum)
+                    {
+                        return clrType;
+                    }
+
                     return typeof(string);
             }
         }
