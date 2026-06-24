@@ -147,7 +147,7 @@ namespace VehicleRoads.Editor.Tests
             Assert.AreEqual("two_way_rev", network.Lanes[1].laneId);
             Assert.That(network.Samples[0].forward.z, Is.GreaterThan(0.99f));
             Assert.That(network.Samples[network.Lanes[1].firstSampleIndex].forward.z, Is.LessThan(-0.99f));
-            Assert.AreEqual("3.1", network.SchemaVersion);
+            Assert.AreEqual("3.2", network.SchemaVersion);
             Assert.That(
                 Vector3.Distance(network.Samples[0].leftBoundary, network.Samples[0].rightBoundary),
                 Is.EqualTo(3.5f).Within(0.05f));
@@ -561,6 +561,135 @@ namespace VehicleRoads.Editor.Tests
             Assert.True(network.TryGetConnectorTraffic(network.ConnectorTraffic[0].connectorLaneId, out BakedConnectorTrafficRecord connectorTraffic));
             Assert.AreEqual("signal_junction", connectorTraffic.junctionId);
             Assert.AreEqual(-1.5f, connectorTraffic.stopLineDistance);
+        }
+
+        [Test]
+        public void BakeDoesNotConflictSeparatedConnectorsInSameJunction()
+        {
+            RoadLaneNetwork authoringNetwork = CreateNetwork();
+            CreateLane("source_a", new[] { new Vector3(-2f, 0f, 0f), Vector3.zero }, authoringNetwork.transform);
+            CreateLane("target_a", new[] { new Vector3(10f, 0f, 0f), new Vector3(12f, 0f, 0f) }, authoringNetwork.transform);
+            CreateLane("source_b", new[] { new Vector3(-2f, 0f, 10f), new Vector3(0f, 0f, 10f) }, authoringNetwork.transform);
+            CreateLane("target_b", new[] { new Vector3(10f, 0f, 10f), new Vector3(12f, 0f, 10f) }, authoringNetwork.transform);
+            CreateConfiguredConnector(
+                "connector_a",
+                "source_a",
+                "target_a",
+                "junction",
+                RoadLaneTurn.Straight,
+                new[] { Vector3.zero, new Vector3(10f, 0f, 0f) },
+                authoringNetwork.transform,
+                1f);
+            CreateConfiguredConnector(
+                "connector_b",
+                "source_b",
+                "target_b",
+                "junction",
+                RoadLaneTurn.Straight,
+                new[] { new Vector3(0f, 0f, 10f), new Vector3(10f, 0f, 10f) },
+                authoringNetwork.transform,
+                1f);
+            GameObject junctionObject = Track(new GameObject("junction"));
+            junctionObject.transform.SetParent(authoringNetwork.transform);
+            RoadJunction junction = junctionObject.AddComponent<RoadJunction>();
+            junction.JunctionId = "junction";
+            junction.ConnectorConflictSafetyMargin = 0.5f;
+
+            BakedLaneNetwork network = Track(authoringNetwork.BakeNetwork());
+
+            BakedConnectorTrafficRecord connectorA = GetConnectorTraffic(network, "connector_a");
+            BakedConnectorTrafficRecord connectorB = GetConnectorTraffic(network, "connector_b");
+            Assert.AreEqual(0, connectorA.conflicts.Count);
+            Assert.AreEqual(0, connectorB.conflicts.Count);
+            Assert.That(connectorA.conflictConnectorLaneIds, Is.Empty);
+            Assert.That(connectorB.conflictConnectorLaneIds, Is.Empty);
+        }
+
+        [Test]
+        public void BakeLimitsSameSourceConnectorConflictToEntryInterval()
+        {
+            RoadLaneNetwork authoringNetwork = CreateNetwork();
+            CreateLane("source", new[] { new Vector3(-2f, 0f, 0f), Vector3.zero }, authoringNetwork.transform);
+            CreateLane("straight_target", new[] { new Vector3(10f, 0f, 0f), new Vector3(12f, 0f, 0f) }, authoringNetwork.transform);
+            CreateLane("right_target", new[] { new Vector3(4f, 0f, 8f), new Vector3(4f, 0f, 10f) }, authoringNetwork.transform);
+            CreateConfiguredConnector(
+                "straight_connector",
+                "source",
+                "straight_target",
+                "junction",
+                RoadLaneTurn.Straight,
+                new[] { Vector3.zero, new Vector3(10f, 0f, 0f) },
+                authoringNetwork.transform,
+                1f);
+            CreateConfiguredConnector(
+                "right_connector",
+                "source",
+                "right_target",
+                "junction",
+                RoadLaneTurn.Right,
+                new[] { Vector3.zero, new Vector3(1f, 0f, 0f), new Vector3(4f, 0f, 8f) },
+                authoringNetwork.transform,
+                1f);
+            GameObject junctionObject = Track(new GameObject("junction"));
+            junctionObject.transform.SetParent(authoringNetwork.transform);
+            RoadJunction junction = junctionObject.AddComponent<RoadJunction>();
+            junction.JunctionId = "junction";
+            junction.ConnectorConflictSafetyMargin = 0.5f;
+
+            BakedLaneNetwork network = Track(authoringNetwork.BakeNetwork());
+            BakedConnectorTrafficRecord straight = GetConnectorTraffic(network, "straight_connector");
+            BakedLaneRecord straightLane = network.Lanes.Single(lane => lane.laneId == "straight_connector");
+
+            Assert.True(straight.TryGetConflict("right_connector", out BakedConnectorConflictRecord conflict));
+            Assert.AreEqual(BakedConnectorConflictReason.SameSource, conflict.reason);
+            Assert.That(conflict.selfStartDistance, Is.EqualTo(0f).Within(0.001f));
+            Assert.That(conflict.selfEndDistance, Is.GreaterThan(0f));
+            Assert.That(conflict.selfEndDistance, Is.LessThan(straightLane.length));
+            Assert.True(straight.ConflictsWith("right_connector"));
+        }
+
+        [Test]
+        public void BakeLimitsCrossingConnectorConflictToCrossingInterval()
+        {
+            RoadLaneNetwork authoringNetwork = CreateNetwork();
+            CreateLane("west_source", new[] { new Vector3(-7f, 0f, 0f), new Vector3(-5f, 0f, 0f) }, authoringNetwork.transform);
+            CreateLane("east_target", new[] { new Vector3(5f, 0f, 0f), new Vector3(7f, 0f, 0f) }, authoringNetwork.transform);
+            CreateLane("south_source", new[] { new Vector3(0f, 0f, -7f), new Vector3(0f, 0f, -5f) }, authoringNetwork.transform);
+            CreateLane("north_target", new[] { new Vector3(0f, 0f, 5f), new Vector3(0f, 0f, 7f) }, authoringNetwork.transform);
+            CreateConfiguredConnector(
+                "east_connector",
+                "west_source",
+                "east_target",
+                "junction",
+                RoadLaneTurn.Straight,
+                new[] { new Vector3(-5f, 0f, 0f), new Vector3(5f, 0f, 0f) },
+                authoringNetwork.transform,
+                1f);
+            CreateConfiguredConnector(
+                "north_connector",
+                "south_source",
+                "north_target",
+                "junction",
+                RoadLaneTurn.Straight,
+                new[] { new Vector3(0f, 0f, -5f), new Vector3(0f, 0f, 5f) },
+                authoringNetwork.transform,
+                1f);
+            GameObject junctionObject = Track(new GameObject("junction"));
+            junctionObject.transform.SetParent(authoringNetwork.transform);
+            RoadJunction junction = junctionObject.AddComponent<RoadJunction>();
+            junction.JunctionId = "junction";
+            junction.ConnectorConflictSafetyMargin = 0.25f;
+
+            BakedLaneNetwork network = Track(authoringNetwork.BakeNetwork());
+            BakedConnectorTrafficRecord east = GetConnectorTraffic(network, "east_connector");
+            BakedLaneRecord eastLane = network.Lanes.Single(lane => lane.laneId == "east_connector");
+
+            Assert.True(east.TryGetConflict("north_connector", out BakedConnectorConflictRecord conflict));
+            Assert.AreEqual(BakedConnectorConflictReason.Crossing, conflict.reason);
+            Assert.That(conflict.selfStartDistance, Is.GreaterThan(0f));
+            Assert.That(conflict.selfEndDistance, Is.LessThan(eastLane.length));
+            Assert.That(conflict.selfEndDistance - conflict.selfStartDistance, Is.LessThan(eastLane.length * 0.75f));
+            Assert.True(east.ConflictsWith("north_connector"));
         }
 
         [Test]
@@ -1052,6 +1181,179 @@ namespace VehicleRoads.Editor.Tests
                 routeLaneIds = new[] { "start", "connector", "goal" }
             });
             Assert.AreEqual(VehicleRoadPassageStatus.Granted, released.passageStatus);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemReleasesSameSourceConnectorConflictAfterEntryInterval()
+        {
+            BakedLaneNetwork network = Track(CreateSameSourceConflictRuntimeNetwork(false));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            VehicleRoadTrafficControlResult straight = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "straight_car",
+                laneId = "start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "start", "straight_connector", "straight_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Granted, straight.passageStatus);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "straight_car",
+                laneId = "straight_connector",
+                distanceAlongLane = 1f,
+                speed = 1f,
+                length = 4f,
+                routeLaneIds = new[] { "start", "straight_connector", "straight_goal" }
+            });
+
+            VehicleRoadTrafficControlResult blocked = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "right_car",
+                laneId = "start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "start", "right_connector", "right_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Waiting, blocked.passageStatus);
+            Assert.AreEqual(VehicleRoadStopReason.JunctionConflict, blocked.stopReason);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "straight_car",
+                laneId = "straight_connector",
+                distanceAlongLane = 4f,
+                speed = 1f,
+                length = 4f,
+                routeLaneIds = new[] { "start", "straight_connector", "straight_goal" }
+            });
+
+            VehicleRoadTrafficControlResult released = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "right_car",
+                laneId = "start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "start", "right_connector", "right_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Granted, released.passageStatus);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemBlocksCrossingConnectorOnlyInsideConflictInterval()
+        {
+            BakedLaneNetwork network = Track(CreateCrossingConflictRuntimeNetwork(false));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            VehicleRoadTrafficControlResult east = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "east_car",
+                laneId = "west_start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "west_start", "east_connector", "east_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Granted, east.passageStatus);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "east_car",
+                laneId = "east_connector",
+                distanceAlongLane = 5f,
+                speed = 1f,
+                length = 4f,
+                routeLaneIds = new[] { "west_start", "east_connector", "east_goal" }
+            });
+
+            VehicleRoadTrafficControlResult blocked = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "north_car",
+                laneId = "south_start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "south_start", "north_connector", "north_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Waiting, blocked.passageStatus);
+            Assert.AreEqual(VehicleRoadStopReason.JunctionConflict, blocked.stopReason);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "east_car",
+                laneId = "east_connector",
+                distanceAlongLane = 8f,
+                speed = 1f,
+                length = 4f,
+                routeLaneIds = new[] { "west_start", "east_connector", "east_goal" }
+            });
+
+            VehicleRoadTrafficControlResult released = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "north_car",
+                laneId = "south_start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "south_start", "north_connector", "north_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Granted, released.passageStatus);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemUsesLegacyFullConnectorConflictWhenStructuredConflictsAreMissing()
+        {
+            BakedLaneNetwork network = Track(CreateCrossingConflictRuntimeNetwork(true));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            VehicleRoadTrafficControlResult east = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "east_car",
+                laneId = "west_start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "west_start", "east_connector", "east_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Granted, east.passageStatus);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "east_car",
+                laneId = "east_connector",
+                distanceAlongLane = 8f,
+                speed = 1f,
+                length = 4f,
+                routeLaneIds = new[] { "west_start", "east_connector", "east_goal" }
+            });
+
+            VehicleRoadTrafficControlResult blocked = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "north_car",
+                laneId = "south_start",
+                distanceAlongLane = 8f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "south_start", "north_connector", "north_goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Waiting, blocked.passageStatus);
+            Assert.AreEqual(VehicleRoadStopReason.JunctionConflict, blocked.stopReason);
         }
 
         [Test]
@@ -1655,7 +1957,7 @@ namespace VehicleRoads.Editor.Tests
         {
             string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
             List<string> files = Directory.GetFiles(
-                    Path.Combine(projectRoot, "Assets/VehicleRoads/Scripts"),
+                    Path.Combine(projectRoot, "Assets/BlueprintSystem/VehicleRoads/Scripts"),
                     "*.cs",
                     SearchOption.AllDirectories)
                 .Where(path => !path.Replace('\\', '/').Contains("/Editor/Tests/", StringComparison.Ordinal))
@@ -1709,6 +2011,36 @@ namespace VehicleRoads.Editor.Tests
             RoadLane lane = gameObject.AddComponent<RoadLane>();
             lane.LaneId = id;
             return lane;
+        }
+
+        private RoadLane CreateConfiguredConnector(
+            string id,
+            string sourceLaneId,
+            string targetLaneId,
+            string junctionId,
+            RoadLaneTurn turn,
+            IReadOnlyList<Vector3> points,
+            Transform parent,
+            float width)
+        {
+            RoadLane connector = CreateLane(id, points, parent);
+            connector.ConfigureConnector(
+                id + "_key",
+                id,
+                sourceLaneId,
+                targetLaneId,
+                turn,
+                8f,
+                1f,
+                junctionId);
+            connector.Width = width;
+            return connector;
+        }
+
+        private static BakedConnectorTrafficRecord GetConnectorTraffic(BakedLaneNetwork network, string connectorLaneId)
+        {
+            Assert.True(network.TryGetConnectorTraffic(connectorLaneId, out BakedConnectorTrafficRecord connectorTraffic));
+            return connectorTraffic;
         }
 
         private T Track<T>(T value) where T : UnityEngine.Object
@@ -1964,6 +2296,220 @@ namespace VehicleRoads.Editor.Tests
                 new List<BakedLaneAdjacentLinkRecord>(),
                 junctions,
                 connectors);
+        }
+
+        private static BakedLaneNetwork CreateSameSourceConflictRuntimeNetwork(bool legacyOnly)
+        {
+            List<BakedLaneRecord> lanes = new List<BakedLaneRecord>
+            {
+                Lane("start", 0, 2, 10f),
+                Lane("straight_connector", 2, 2, 10f),
+                Lane("straight_goal", 4, 2, 10f),
+                Lane("right_connector", 6, 2, 10f),
+                Lane("right_goal", 8, 2, 10f)
+            };
+            lanes[1].kind = RoadLaneKind.Connector;
+            lanes[1].turnType = RoadLaneTurn.Straight;
+            lanes[1].connectorSourceLaneId = "start";
+            lanes[1].connectorTargetLaneId = "straight_goal";
+            lanes[1].connectorJunctionId = "junction";
+            lanes[3].kind = RoadLaneKind.Connector;
+            lanes[3].turnType = RoadLaneTurn.Right;
+            lanes[3].connectorSourceLaneId = "start";
+            lanes[3].connectorTargetLaneId = "right_goal";
+            lanes[3].connectorJunctionId = "junction";
+
+            List<BakedLaneSampleRecord> samples = new List<BakedLaneSampleRecord>();
+            AddStraightSamples(samples, "start", Vector3.zero, Vector3.forward, 10f);
+            AddStraightSamples(samples, "straight_connector", Vector3.forward * 10f, Vector3.right, 10f);
+            AddStraightSamples(samples, "straight_goal", Vector3.forward * 10f + Vector3.right * 10f, Vector3.right, 10f);
+            AddStraightSamples(samples, "right_connector", Vector3.forward * 10f, Vector3.forward, 10f);
+            AddStraightSamples(samples, "right_goal", Vector3.forward * 20f, Vector3.forward, 10f);
+            List<BakedLaneConnectionRecord> connections = new List<BakedLaneConnectionRecord>
+            {
+                Connection("start", "straight_connector"),
+                Connection("straight_connector", "straight_goal"),
+                Connection("start", "right_connector"),
+                Connection("right_connector", "right_goal")
+            };
+            List<BakedConnectorConflictRecord> straightConflicts = legacyOnly
+                ? new List<BakedConnectorConflictRecord>()
+                : new List<BakedConnectorConflictRecord>
+                {
+                    new BakedConnectorConflictRecord
+                    {
+                        otherConnectorLaneId = "right_connector",
+                        selfStartDistance = 0f,
+                        selfEndDistance = 2f,
+                        otherStartDistance = 0f,
+                        otherEndDistance = 2f,
+                        reason = BakedConnectorConflictReason.SameSource
+                    }
+                };
+            List<BakedConnectorConflictRecord> rightConflicts = legacyOnly
+                ? new List<BakedConnectorConflictRecord>()
+                : new List<BakedConnectorConflictRecord>
+                {
+                    new BakedConnectorConflictRecord
+                    {
+                        otherConnectorLaneId = "straight_connector",
+                        selfStartDistance = 0f,
+                        selfEndDistance = 2f,
+                        otherStartDistance = 0f,
+                        otherEndDistance = 2f,
+                        reason = BakedConnectorConflictReason.SameSource
+                    }
+                };
+            return Network(
+                lanes,
+                samples,
+                connections,
+                new List<BakedLaneAdjacentLinkRecord>(),
+                CreateUncontrolledJunctions(),
+                new List<BakedConnectorTrafficRecord>
+                {
+                    new BakedConnectorTrafficRecord
+                    {
+                        junctionId = "junction",
+                        connectorLaneId = "straight_connector",
+                        connectionId = "start_to_straight_connector",
+                        fromLaneId = "start",
+                        toLaneId = "straight_goal",
+                        turnType = RoadLaneTurn.Straight,
+                        stopLineDistance = 0f,
+                        conflictConnectorLaneIds = "right_connector",
+                        conflicts = straightConflicts
+                    },
+                    new BakedConnectorTrafficRecord
+                    {
+                        junctionId = "junction",
+                        connectorLaneId = "right_connector",
+                        connectionId = "start_to_right_connector",
+                        fromLaneId = "start",
+                        toLaneId = "right_goal",
+                        turnType = RoadLaneTurn.Right,
+                        stopLineDistance = 0f,
+                        conflictConnectorLaneIds = "straight_connector",
+                        conflicts = rightConflicts
+                    }
+                });
+        }
+
+        private static BakedLaneNetwork CreateCrossingConflictRuntimeNetwork(bool legacyOnly)
+        {
+            List<BakedLaneRecord> lanes = new List<BakedLaneRecord>
+            {
+                Lane("west_start", 0, 2, 10f),
+                Lane("east_connector", 2, 2, 10f),
+                Lane("east_goal", 4, 2, 10f),
+                Lane("south_start", 6, 2, 10f),
+                Lane("north_connector", 8, 2, 10f),
+                Lane("north_goal", 10, 2, 10f)
+            };
+            lanes[1].kind = RoadLaneKind.Connector;
+            lanes[1].turnType = RoadLaneTurn.Straight;
+            lanes[1].connectorSourceLaneId = "west_start";
+            lanes[1].connectorTargetLaneId = "east_goal";
+            lanes[1].connectorJunctionId = "junction";
+            lanes[4].kind = RoadLaneKind.Connector;
+            lanes[4].turnType = RoadLaneTurn.Straight;
+            lanes[4].connectorSourceLaneId = "south_start";
+            lanes[4].connectorTargetLaneId = "north_goal";
+            lanes[4].connectorJunctionId = "junction";
+
+            List<BakedLaneSampleRecord> samples = new List<BakedLaneSampleRecord>();
+            AddStraightSamples(samples, "west_start", new Vector3(-15f, 0f, 0f), Vector3.right, 10f);
+            AddStraightSamples(samples, "east_connector", new Vector3(-5f, 0f, 0f), Vector3.right, 10f);
+            AddStraightSamples(samples, "east_goal", new Vector3(5f, 0f, 0f), Vector3.right, 10f);
+            AddStraightSamples(samples, "south_start", new Vector3(0f, 0f, -15f), Vector3.forward, 10f);
+            AddStraightSamples(samples, "north_connector", new Vector3(0f, 0f, -5f), Vector3.forward, 10f);
+            AddStraightSamples(samples, "north_goal", new Vector3(0f, 0f, 5f), Vector3.forward, 10f);
+            List<BakedLaneConnectionRecord> connections = new List<BakedLaneConnectionRecord>
+            {
+                Connection("west_start", "east_connector"),
+                Connection("east_connector", "east_goal"),
+                Connection("south_start", "north_connector"),
+                Connection("north_connector", "north_goal")
+            };
+            List<BakedConnectorConflictRecord> eastConflicts = legacyOnly
+                ? new List<BakedConnectorConflictRecord>()
+                : new List<BakedConnectorConflictRecord>
+                {
+                    new BakedConnectorConflictRecord
+                    {
+                        otherConnectorLaneId = "north_connector",
+                        selfStartDistance = 4f,
+                        selfEndDistance = 6f,
+                        otherStartDistance = 4f,
+                        otherEndDistance = 6f,
+                        reason = BakedConnectorConflictReason.Crossing
+                    }
+                };
+            List<BakedConnectorConflictRecord> northConflicts = legacyOnly
+                ? new List<BakedConnectorConflictRecord>()
+                : new List<BakedConnectorConflictRecord>
+                {
+                    new BakedConnectorConflictRecord
+                    {
+                        otherConnectorLaneId = "east_connector",
+                        selfStartDistance = 4f,
+                        selfEndDistance = 6f,
+                        otherStartDistance = 4f,
+                        otherEndDistance = 6f,
+                        reason = BakedConnectorConflictReason.Crossing
+                    }
+                };
+            return Network(
+                lanes,
+                samples,
+                connections,
+                new List<BakedLaneAdjacentLinkRecord>(),
+                CreateUncontrolledJunctions(),
+                new List<BakedConnectorTrafficRecord>
+                {
+                    new BakedConnectorTrafficRecord
+                    {
+                        junctionId = "junction",
+                        connectorLaneId = "east_connector",
+                        connectionId = "west_start_to_east_connector",
+                        fromLaneId = "west_start",
+                        toLaneId = "east_goal",
+                        turnType = RoadLaneTurn.Straight,
+                        stopLineDistance = 0f,
+                        conflictConnectorLaneIds = "north_connector",
+                        conflicts = eastConflicts
+                    },
+                    new BakedConnectorTrafficRecord
+                    {
+                        junctionId = "junction",
+                        connectorLaneId = "north_connector",
+                        connectionId = "south_start_to_north_connector",
+                        fromLaneId = "south_start",
+                        toLaneId = "north_goal",
+                        turnType = RoadLaneTurn.Straight,
+                        stopLineDistance = 0f,
+                        conflictConnectorLaneIds = "east_connector",
+                        conflicts = northConflicts
+                    }
+                });
+        }
+
+        private static List<BakedJunctionTrafficRecord> CreateUncontrolledJunctions()
+        {
+            return new List<BakedJunctionTrafficRecord>
+            {
+                new BakedJunctionTrafficRecord
+                {
+                    junctionId = "junction",
+                    controlMode = RoadJunctionTrafficControlMode.Uncontrolled,
+                    defaultStopLineDistance = 0f,
+                    queueSpacing = 0.5f,
+                    approachDetectionDistance = 8f,
+                    passageTokenDuration = 5f,
+                    releaseDistance = 2f,
+                    connectorConflictSafetyMargin = 0.5f
+                }
+            };
         }
 
         private static BakedLaneNetwork CreateAdjacentRuntimeNetwork()

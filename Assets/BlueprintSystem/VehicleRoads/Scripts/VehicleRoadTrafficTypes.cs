@@ -49,6 +49,14 @@ namespace VehicleRoads
         Cancelled
     }
 
+    public enum BakedConnectorConflictReason
+    {
+        Overlap,
+        SameSource,
+        Merge,
+        Crossing
+    }
+
     [Serializable]
     public sealed class RoadJunctionSignalPhase
     {
@@ -82,11 +90,23 @@ namespace VehicleRoads
         public float approachDetectionDistance = 18f;
         public float passageTokenDuration = 8f;
         public float releaseDistance = 2f;
+        public float connectorConflictSafetyMargin = 0.5f;
         public float straightPriority = 4f;
         public float rightPriority = 4f;
         public float leftPriority = 2f;
         public float uTurnPriority = 1f;
         public List<BakedJunctionSignalPhaseRecord> signalPhases = new List<BakedJunctionSignalPhaseRecord>();
+    }
+
+    [Serializable]
+    public sealed class BakedConnectorConflictRecord
+    {
+        public string otherConnectorLaneId = string.Empty;
+        public float selfStartDistance;
+        public float selfEndDistance;
+        public float otherStartDistance;
+        public float otherEndDistance;
+        public BakedConnectorConflictReason reason;
     }
 
     [Serializable]
@@ -100,6 +120,33 @@ namespace VehicleRoads
         public RoadLaneTurn turnType;
         public float stopLineDistance = 2f;
         public string conflictConnectorLaneIds = string.Empty;
+        public List<BakedConnectorConflictRecord> conflicts = new List<BakedConnectorConflictRecord>();
+
+        public bool HasStructuredConflicts => conflicts != null && conflicts.Count > 0;
+
+        public bool TryGetConflict(
+            string otherConnectorLaneId,
+            out BakedConnectorConflictRecord conflict)
+        {
+            conflict = null;
+            if (string.IsNullOrWhiteSpace(otherConnectorLaneId) || conflicts == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < conflicts.Count; i++)
+            {
+                BakedConnectorConflictRecord candidate = conflicts[i];
+                if (candidate != null &&
+                    string.Equals(candidate.otherConnectorLaneId, otherConnectorLaneId, StringComparison.Ordinal))
+                {
+                    conflict = candidate;
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public bool ConflictsWith(string otherConnectorLaneId)
         {

@@ -20,6 +20,8 @@ namespace VehicleRoads
         private const float MaximumPreviewLineWidth = 20f;
         private const float MinimumAdjacentLateralDistance = 0.1f;
         private const float MinimumAdjacentOverlapLength = 0.1f;
+        private const float ConnectorConflictProbeStepMin = 0.25f;
+        private const float ConnectorConflictProbeStepMax = 1f;
 
         [SerializeField, Min(MinimumSpacing)] private float sampleSpacing = 1f;
         [SerializeField, Min(0f)] private float connectionRadius = 0.25f;
@@ -1054,6 +1056,8 @@ namespace VehicleRoads
                 .Where(state => state.record.kind == RoadLaneKind.Connector &&
                                 !string.IsNullOrWhiteSpace(state.record.connectorJunctionId))
                 .ToList();
+            Dictionary<string, List<BakedConnectorConflictRecord>> conflictsByConnectorLaneId =
+                BuildConnectorConflictRecords(connectors, junctionById);
             for (int i = 0; i < connectors.Count; i++)
             {
                 DirectedLaneBuildState connector = connectors[i];
@@ -1065,11 +1069,14 @@ namespace VehicleRoads
                 incomingConnectionByConnector.TryGetValue(
                     connector.record.laneId,
                     out BakedLaneConnectionRecord incomingConnection);
+                conflictsByConnectorLaneId.TryGetValue(
+                    connector.record.laneId,
+                    out List<BakedConnectorConflictRecord> connectorConflicts);
                 connectorOutput.Add(CreateConnectorTrafficRecord(
                     connector.record,
                     junction,
                     incomingConnection,
-                    connectors));
+                    connectorConflicts));
             }
         }
 
@@ -1086,6 +1093,7 @@ namespace VehicleRoads
                 approachDetectionDistance = junction.ApproachDetectionDistance,
                 passageTokenDuration = junction.PassageTokenDuration,
                 releaseDistance = junction.ReleaseDistance,
+                connectorConflictSafetyMargin = junction.ConnectorConflictSafetyMargin,
                 straightPriority = junction.StraightPriority,
                 rightPriority = junction.RightPriority,
                 leftPriority = junction.LeftPriority,
@@ -1136,22 +1144,8 @@ namespace VehicleRoads
             BakedLaneRecord connector,
             RoadJunction junction,
             BakedLaneConnectionRecord incomingConnection,
-            List<DirectedLaneBuildState> connectors)
+            IReadOnlyList<BakedConnectorConflictRecord> conflicts)
         {
-            List<string> conflicts = new List<string>();
-            for (int i = 0; i < connectors.Count; i++)
-            {
-                BakedLaneRecord other = connectors[i].record;
-                if (other == null ||
-                    string.Equals(other.laneId, connector.laneId, StringComparison.Ordinal) ||
-                    !string.Equals(other.connectorJunctionId, connector.connectorJunctionId, StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                conflicts.Add(other.laneId);
-            }
-
             return new BakedConnectorTrafficRecord
             {
                 junctionId = connector.connectorJunctionId,
@@ -1161,8 +1155,628 @@ namespace VehicleRoads
                 toLaneId = connector.connectorTargetLaneId,
                 turnType = connector.turnType,
                 stopLineDistance = junction.DefaultStopLineDistance,
-                conflictConnectorLaneIds = string.Join(",", conflicts)
+                conflictConnectorLaneIds = BuildLegacyConflictString(conflicts),
+                conflicts = CloneConnectorConflicts(conflicts)
             };
+        }
+
+        private Dictionary<string, List<BakedConnectorConflictRecord>> BuildConnectorConflictRecords(
+            List<DirectedLaneBuildState> connectors,
+            Dictionary<string, RoadJunction> junctionById)
+        {
+            Dictionary<string, List<BakedConnectorConflictRecord>> output =
+                new Dictionary<string, List<BakedConnectorConflictRecord>>(StringComparer.Ordinal);
+            if (connectors == null || connectors.Count < 2 || bakedScratchSamples == null)
+            {
+                return output;
+            }
+
+            float probeStep = Mathf.Clamp(SampleSpacing, ConnectorConflictProbeStepMin, ConnectorConflictProbeStepMax);
+            Dictionary<string, ConnectorConflictGeometry> geometryByLaneId =
+                new Dictionary<string, ConnectorConflictGeometry>(StringComparer.Ordinal);
+            for (int i = 0; i < connectors.Count; i++)
+            {
+                DirectedLaneBuildState state = connectors[i];
+                if (state == null ||
+                    state.record == null ||
+                    !TryBuildConnectorConflictGeometry(state.record, probeStep, out ConnectorConflictGeometry geometry))
+                {
+                    continue;
+                }
+
+                geometryByLaneId[state.record.laneId] = geometry;
+            }
+
+            for (int i = 0; i < connectors.Count; i++)
+            {
+                BakedLaneRecord self = connectors[i].record;
+                if (self == null || !geometryByLaneId.TryGetValue(self.laneId, out ConnectorConflictGeometry selfGeometry))
+                {
+                    continue;
+                }
+
+                for (int j = i + 1; j < connectors.Count; j++)
+                {
+                    BakedLaneRecord other = connectors[j].record;
+                    if (other == null ||
+                        !string.Equals(self.connectorJunctionId, other.connectorJunctionId, StringComparison.Ordinal) ||
+                        !geometryByLaneId.TryGetValue(other.laneId, out ConnectorConflictGeometry otherGeometry))
+                    {
+                        continue;
+                    }
+
+                    float margin = 0.5f;
+                    if (junctionById != null &&
+                        junctionById.TryGetValue(self.connectorJunctionId, out RoadJunction junction))
+                    {
+                        margin = junction.ConnectorConflictSafetyMargin;
+                    }
+
+                    if (!TryBuildConnectorConflictPair(
+                            selfGeometry,
+                            otherGeometry,
+                            margin,
+                            probeStep,
+                            out BakedConnectorConflictRecord selfConflict,
+                            out BakedConnectorConflictRecord otherConflict))
+                    {
+                        continue;
+                    }
+
+                    AddConnectorConflict(output, self.laneId, selfConflict);
+                    AddConnectorConflict(output, other.laneId, otherConflict);
+                }
+            }
+
+            foreach (List<BakedConnectorConflictRecord> conflicts in output.Values)
+            {
+                conflicts.Sort((left, right) =>
+                    string.Compare(left.otherConnectorLaneId, right.otherConnectorLaneId, StringComparison.Ordinal));
+            }
+
+            return output;
+        }
+
+        private bool TryBuildConnectorConflictGeometry(
+            BakedLaneRecord lane,
+            float probeStep,
+            out ConnectorConflictGeometry geometry)
+        {
+            geometry = null;
+            if (lane == null || lane.sampleCount < 2 || lane.length <= 0.0001f)
+            {
+                return false;
+            }
+
+            List<ConnectorConflictProbe> probes = new List<ConnectorConflictProbe>();
+            for (float distance = 0f; distance < lane.length; distance += probeStep)
+            {
+                if (TryGetConnectorConflictProbe(lane, distance, out ConnectorConflictProbe probe))
+                {
+                    probes.Add(probe);
+                }
+            }
+
+            if (probes.Count == 0 || probes[probes.Count - 1].distance < lane.length - 0.001f)
+            {
+                if (TryGetConnectorConflictProbe(lane, lane.length, out ConnectorConflictProbe probe))
+                {
+                    probes.Add(probe);
+                }
+            }
+
+            if (probes.Count < 2)
+            {
+                return false;
+            }
+
+            geometry = new ConnectorConflictGeometry
+            {
+                lane = lane,
+                probes = probes
+            };
+            return true;
+        }
+
+        private bool TryGetConnectorConflictProbe(
+            BakedLaneRecord lane,
+            float distance,
+            out ConnectorConflictProbe probe)
+        {
+            probe = default;
+            if (lane == null || bakedScratchSamples == null || lane.sampleCount <= 0)
+            {
+                return false;
+            }
+
+            distance = Mathf.Clamp(distance, 0f, lane.length);
+            int first = lane.firstSampleIndex;
+            int last = first + lane.sampleCount - 1;
+            int right = last;
+            for (int i = first + 1; i <= last; i++)
+            {
+                if (bakedScratchSamples[i].distanceAlongLane >= distance)
+                {
+                    right = i;
+                    break;
+                }
+            }
+
+            int left = Mathf.Max(first, right - 1);
+            if (left < 0 || right < 0 || left >= bakedScratchSamples.Count || right >= bakedScratchSamples.Count)
+            {
+                return false;
+            }
+
+            BakedLaneSampleRecord a = bakedScratchSamples[left];
+            BakedLaneSampleRecord b = bakedScratchSamples[right];
+            float range = b.distanceAlongLane - a.distanceAlongLane;
+            float t = range <= 0.0001f ? 0f : Mathf.Clamp01((distance - a.distanceAlongLane) / range);
+            Vector3 position = Vector3.Lerp(a.finalPosition, b.finalPosition, t);
+            float width = Mathf.Lerp(Mathf.Max(0.1f, a.width), Mathf.Max(0.1f, b.width), t);
+            probe = new ConnectorConflictProbe
+            {
+                position = new Vector2(position.x, position.z),
+                distance = distance,
+                halfWidth = width * 0.5f
+            };
+            return true;
+        }
+
+        private static bool TryBuildConnectorConflictPair(
+            ConnectorConflictGeometry self,
+            ConnectorConflictGeometry other,
+            float safetyMargin,
+            float probeStep,
+            out BakedConnectorConflictRecord selfConflict,
+            out BakedConnectorConflictRecord otherConflict)
+        {
+            selfConflict = null;
+            otherConflict = null;
+            List<ConnectorConflictCandidate> candidates = CollectConnectorConflictCandidates(
+                self,
+                other,
+                safetyMargin);
+            if (candidates.Count == 0)
+            {
+                return false;
+            }
+
+            BakedConnectorConflictReason reason = ClassifyConnectorConflict(self.lane, other.lane, candidates);
+            CollapseConnectorConflictInterval(
+                reason,
+                self.lane.length,
+                other.lane.length,
+                probeStep,
+                candidates,
+                out float selfStart,
+                out float selfEnd,
+                out float otherStart,
+                out float otherEnd);
+
+            if (selfEnd < selfStart || otherEnd < otherStart)
+            {
+                return false;
+            }
+
+            selfConflict = new BakedConnectorConflictRecord
+            {
+                otherConnectorLaneId = other.lane.laneId,
+                selfStartDistance = selfStart,
+                selfEndDistance = selfEnd,
+                otherStartDistance = otherStart,
+                otherEndDistance = otherEnd,
+                reason = reason
+            };
+            otherConflict = new BakedConnectorConflictRecord
+            {
+                otherConnectorLaneId = self.lane.laneId,
+                selfStartDistance = otherStart,
+                selfEndDistance = otherEnd,
+                otherStartDistance = selfStart,
+                otherEndDistance = selfEnd,
+                reason = reason
+            };
+            return true;
+        }
+
+        private static List<ConnectorConflictCandidate> CollectConnectorConflictCandidates(
+            ConnectorConflictGeometry self,
+            ConnectorConflictGeometry other,
+            float safetyMargin)
+        {
+            List<ConnectorConflictCandidate> candidates = new List<ConnectorConflictCandidate>();
+            for (int selfIndex = 0; selfIndex + 1 < self.probes.Count; selfIndex++)
+            {
+                ConnectorConflictProbe selfStart = self.probes[selfIndex];
+                ConnectorConflictProbe selfEnd = self.probes[selfIndex + 1];
+                for (int otherIndex = 0; otherIndex + 1 < other.probes.Count; otherIndex++)
+                {
+                    ConnectorConflictProbe otherStart = other.probes[otherIndex];
+                    ConnectorConflictProbe otherEnd = other.probes[otherIndex + 1];
+                    SegmentClosestPointXZ(
+                        selfStart.position,
+                        selfEnd.position,
+                        otherStart.position,
+                        otherEnd.position,
+                        out float selfT,
+                        out float otherT,
+                        out float distance);
+                    float selfDistance = Mathf.Lerp(selfStart.distance, selfEnd.distance, selfT);
+                    float otherDistance = Mathf.Lerp(otherStart.distance, otherEnd.distance, otherT);
+                    float selfRadius = Mathf.Lerp(selfStart.halfWidth, selfEnd.halfWidth, selfT) + safetyMargin;
+                    float otherRadius = Mathf.Lerp(otherStart.halfWidth, otherEnd.halfWidth, otherT) + safetyMargin;
+                    if (distance > selfRadius + otherRadius)
+                    {
+                        continue;
+                    }
+
+                    Vector2 selfSegment = selfEnd.position - selfStart.position;
+                    Vector2 otherSegment = otherEnd.position - otherStart.position;
+                    float directionDot = 1f;
+                    if (selfSegment.sqrMagnitude > 0.000001f && otherSegment.sqrMagnitude > 0.000001f)
+                    {
+                        directionDot = Mathf.Abs(Vector2.Dot(selfSegment.normalized, otherSegment.normalized));
+                    }
+
+                    bool crosses = TryGetSegmentIntersectionParameters(
+                        selfStart.position,
+                        selfEnd.position,
+                        otherStart.position,
+                        otherEnd.position,
+                        out float crossingSelfT,
+                        out float crossingOtherT) &&
+                                   crossingSelfT > 0.001f &&
+                                   crossingSelfT < 0.999f &&
+                                   crossingOtherT > 0.001f &&
+                                   crossingOtherT < 0.999f;
+                    bool interiorNonParallelProximity =
+                        directionDot < 0.85f &&
+                        selfDistance > 0.001f &&
+                        selfDistance < self.lane.length - 0.001f &&
+                        otherDistance > 0.001f &&
+                        otherDistance < other.lane.length - 0.001f;
+                    candidates.Add(new ConnectorConflictCandidate
+                    {
+                        selfDistance = selfDistance,
+                        otherDistance = otherDistance,
+                        crosses = crosses,
+                        interiorNonParallelProximity = interiorNonParallelProximity
+                    });
+                }
+            }
+
+            return candidates;
+        }
+
+        private static BakedConnectorConflictReason ClassifyConnectorConflict(
+            BakedLaneRecord self,
+            BakedLaneRecord other,
+            List<ConnectorConflictCandidate> candidates)
+        {
+            if (!string.IsNullOrWhiteSpace(self.connectorSourceLaneId) &&
+                string.Equals(self.connectorSourceLaneId, other.connectorSourceLaneId, StringComparison.Ordinal))
+            {
+                return BakedConnectorConflictReason.SameSource;
+            }
+
+            if (!string.IsNullOrWhiteSpace(self.connectorTargetLaneId) &&
+                string.Equals(self.connectorTargetLaneId, other.connectorTargetLaneId, StringComparison.Ordinal))
+            {
+                return BakedConnectorConflictReason.Merge;
+            }
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (candidates[i].crosses || candidates[i].interiorNonParallelProximity)
+                {
+                    return BakedConnectorConflictReason.Crossing;
+                }
+            }
+
+            return BakedConnectorConflictReason.Overlap;
+        }
+
+        private static void CollapseConnectorConflictInterval(
+            BakedConnectorConflictReason reason,
+            float selfLength,
+            float otherLength,
+            float probeStep,
+            List<ConnectorConflictCandidate> candidates,
+            out float selfStart,
+            out float selfEnd,
+            out float otherStart,
+            out float otherEnd)
+        {
+            float padding = Mathf.Max(0.1f, probeStep * 0.5f);
+            List<ConnectorConflictCandidate> selected = candidates;
+            if (reason == BakedConnectorConflictReason.SameSource)
+            {
+                selected = SelectEntryConflictCandidates(candidates, probeStep);
+            }
+            else if (reason == BakedConnectorConflictReason.Merge)
+            {
+                selected = SelectExitConflictCandidates(candidates, selfLength, otherLength, probeStep);
+            }
+            else if (reason == BakedConnectorConflictReason.Crossing)
+            {
+                selected = candidates
+                    .Where(candidate => candidate.crosses || candidate.interiorNonParallelProximity)
+                    .ToList();
+                if (selected.Count == 0)
+                {
+                    selected = candidates;
+                }
+            }
+
+            GetConflictCandidateBounds(
+                selected.Count == 0 ? candidates : selected,
+                out selfStart,
+                out selfEnd,
+                out otherStart,
+                out otherEnd);
+            if (reason == BakedConnectorConflictReason.SameSource)
+            {
+                selfStart = 0f;
+                otherStart = 0f;
+                selfEnd = Mathf.Clamp(selfEnd + padding, 0f, selfLength);
+                otherEnd = Mathf.Clamp(otherEnd + padding, 0f, otherLength);
+                return;
+            }
+
+            if (reason == BakedConnectorConflictReason.Merge)
+            {
+                selfStart = Mathf.Clamp(selfStart - padding, 0f, selfLength);
+                otherStart = Mathf.Clamp(otherStart - padding, 0f, otherLength);
+                selfEnd = selfLength;
+                otherEnd = otherLength;
+                return;
+            }
+
+            selfStart = Mathf.Clamp(selfStart - padding, 0f, selfLength);
+            selfEnd = Mathf.Clamp(selfEnd + padding, 0f, selfLength);
+            otherStart = Mathf.Clamp(otherStart - padding, 0f, otherLength);
+            otherEnd = Mathf.Clamp(otherEnd + padding, 0f, otherLength);
+        }
+
+        private static List<ConnectorConflictCandidate> SelectEntryConflictCandidates(
+            List<ConnectorConflictCandidate> candidates,
+            float probeStep)
+        {
+            List<ConnectorConflictCandidate> sorted = candidates
+                .OrderBy(candidate => Mathf.Max(candidate.selfDistance, candidate.otherDistance))
+                .ToList();
+            List<ConnectorConflictCandidate> selected = new List<ConnectorConflictCandidate>();
+            float allowedGap = Mathf.Max(0.5f, probeStep * 1.5f);
+            float lastDistance = 0f;
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                ConnectorConflictCandidate candidate = sorted[i];
+                float distance = Mathf.Max(candidate.selfDistance, candidate.otherDistance);
+                if (selected.Count > 0 && distance - lastDistance > allowedGap)
+                {
+                    break;
+                }
+
+                selected.Add(candidate);
+                lastDistance = distance;
+            }
+
+            return selected;
+        }
+
+        private static List<ConnectorConflictCandidate> SelectExitConflictCandidates(
+            List<ConnectorConflictCandidate> candidates,
+            float selfLength,
+            float otherLength,
+            float probeStep)
+        {
+            List<ConnectorConflictCandidate> sorted = candidates
+                .OrderBy(candidate => Mathf.Max(selfLength - candidate.selfDistance, otherLength - candidate.otherDistance))
+                .ToList();
+            List<ConnectorConflictCandidate> selected = new List<ConnectorConflictCandidate>();
+            float allowedGap = Mathf.Max(0.5f, probeStep * 1.5f);
+            float lastDistanceFromEnd = 0f;
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                ConnectorConflictCandidate candidate = sorted[i];
+                float distanceFromEnd = Mathf.Max(
+                    selfLength - candidate.selfDistance,
+                    otherLength - candidate.otherDistance);
+                if (selected.Count > 0 && distanceFromEnd - lastDistanceFromEnd > allowedGap)
+                {
+                    break;
+                }
+
+                selected.Add(candidate);
+                lastDistanceFromEnd = distanceFromEnd;
+            }
+
+            return selected;
+        }
+
+        private static void GetConflictCandidateBounds(
+            List<ConnectorConflictCandidate> candidates,
+            out float selfStart,
+            out float selfEnd,
+            out float otherStart,
+            out float otherEnd)
+        {
+            selfStart = float.PositiveInfinity;
+            selfEnd = float.NegativeInfinity;
+            otherStart = float.PositiveInfinity;
+            otherEnd = float.NegativeInfinity;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                ConnectorConflictCandidate candidate = candidates[i];
+                selfStart = Mathf.Min(selfStart, candidate.selfDistance);
+                selfEnd = Mathf.Max(selfEnd, candidate.selfDistance);
+                otherStart = Mathf.Min(otherStart, candidate.otherDistance);
+                otherEnd = Mathf.Max(otherEnd, candidate.otherDistance);
+            }
+
+            if (selfStart == float.PositiveInfinity)
+            {
+                selfStart = 0f;
+                selfEnd = 0f;
+                otherStart = 0f;
+                otherEnd = 0f;
+            }
+        }
+
+        private static void AddConnectorConflict(
+            Dictionary<string, List<BakedConnectorConflictRecord>> output,
+            string connectorLaneId,
+            BakedConnectorConflictRecord conflict)
+        {
+            if (string.IsNullOrWhiteSpace(connectorLaneId) || conflict == null)
+            {
+                return;
+            }
+
+            if (!output.TryGetValue(connectorLaneId, out List<BakedConnectorConflictRecord> list))
+            {
+                list = new List<BakedConnectorConflictRecord>();
+                output.Add(connectorLaneId, list);
+            }
+
+            list.Add(conflict);
+        }
+
+        private static List<BakedConnectorConflictRecord> CloneConnectorConflicts(
+            IReadOnlyList<BakedConnectorConflictRecord> conflicts)
+        {
+            List<BakedConnectorConflictRecord> output = new List<BakedConnectorConflictRecord>();
+            if (conflicts == null)
+            {
+                return output;
+            }
+
+            for (int i = 0; i < conflicts.Count; i++)
+            {
+                BakedConnectorConflictRecord conflict = conflicts[i];
+                if (conflict == null)
+                {
+                    continue;
+                }
+
+                output.Add(new BakedConnectorConflictRecord
+                {
+                    otherConnectorLaneId = conflict.otherConnectorLaneId,
+                    selfStartDistance = conflict.selfStartDistance,
+                    selfEndDistance = conflict.selfEndDistance,
+                    otherStartDistance = conflict.otherStartDistance,
+                    otherEndDistance = conflict.otherEndDistance,
+                    reason = conflict.reason
+                });
+            }
+
+            return output;
+        }
+
+        private static string BuildLegacyConflictString(IReadOnlyList<BakedConnectorConflictRecord> conflicts)
+        {
+            if (conflicts == null || conflicts.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(
+                ",",
+                conflicts
+                    .Where(conflict => conflict != null && !string.IsNullOrWhiteSpace(conflict.otherConnectorLaneId))
+                    .Select(conflict => conflict.otherConnectorLaneId)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(id => id, StringComparer.Ordinal));
+        }
+
+        private static void SegmentClosestPointXZ(
+            Vector2 p1,
+            Vector2 q1,
+            Vector2 p2,
+            Vector2 q2,
+            out float s,
+            out float t,
+            out float distance)
+        {
+            Vector2 d1 = q1 - p1;
+            Vector2 d2 = q2 - p2;
+            Vector2 r = p1 - p2;
+            float a = Vector2.Dot(d1, d1);
+            float e = Vector2.Dot(d2, d2);
+            float f = Vector2.Dot(d2, r);
+            if (a <= 0.000001f && e <= 0.000001f)
+            {
+                s = 0f;
+                t = 0f;
+                distance = Vector2.Distance(p1, p2);
+                return;
+            }
+
+            if (a <= 0.000001f)
+            {
+                s = 0f;
+                t = Mathf.Clamp01(f / e);
+            }
+            else
+            {
+                float c = Vector2.Dot(d1, r);
+                if (e <= 0.000001f)
+                {
+                    t = 0f;
+                    s = Mathf.Clamp01(-c / a);
+                }
+                else
+                {
+                    float b = Vector2.Dot(d1, d2);
+                    float denominator = a * e - b * b;
+                    s = denominator == 0f ? 0f : Mathf.Clamp01((b * f - c * e) / denominator);
+                    t = (b * s + f) / e;
+                    if (t < 0f)
+                    {
+                        t = 0f;
+                        s = Mathf.Clamp01(-c / a);
+                    }
+                    else if (t > 1f)
+                    {
+                        t = 1f;
+                        s = Mathf.Clamp01((b - c) / a);
+                    }
+                }
+            }
+
+            Vector2 closestSelf = p1 + d1 * s;
+            Vector2 closestOther = p2 + d2 * t;
+            distance = Vector2.Distance(closestSelf, closestOther);
+        }
+
+        private static bool TryGetSegmentIntersectionParameters(
+            Vector2 p,
+            Vector2 p2,
+            Vector2 q,
+            Vector2 q2,
+            out float selfT,
+            out float otherT)
+        {
+            selfT = 0f;
+            otherT = 0f;
+            Vector2 r = p2 - p;
+            Vector2 s = q2 - q;
+            float denominator = Cross(r, s);
+            if (Mathf.Abs(denominator) <= 0.000001f)
+            {
+                return false;
+            }
+
+            Vector2 qp = q - p;
+            selfT = Cross(qp, s) / denominator;
+            otherT = Cross(qp, r) / denominator;
+            return selfT >= 0f && selfT <= 1f && otherT >= 0f && otherT <= 1f;
+        }
+
+        private static float Cross(Vector2 a, Vector2 b)
+        {
+            return a.x * b.y - a.y * b.x;
         }
 
         private void BuildConnections(
@@ -1785,6 +2399,27 @@ namespace VehicleRoads
                 this.record = record;
                 this.reverse = reverse;
             }
+        }
+
+        private sealed class ConnectorConflictGeometry
+        {
+            public BakedLaneRecord lane;
+            public List<ConnectorConflictProbe> probes;
+        }
+
+        private struct ConnectorConflictProbe
+        {
+            public Vector2 position;
+            public float distance;
+            public float halfWidth;
+        }
+
+        private struct ConnectorConflictCandidate
+        {
+            public float selfDistance;
+            public float otherDistance;
+            public bool crosses;
+            public bool interiorNonParallelProximity;
         }
 
         private readonly struct DirectedEndpoint

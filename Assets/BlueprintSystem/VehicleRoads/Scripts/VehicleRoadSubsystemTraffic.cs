@@ -925,13 +925,135 @@ namespace VehicleRoads
                     continue;
                 }
 
-                if (string.Equals(token.connectorLaneId, connector.connectorLaneId, StringComparison.Ordinal) ||
-                    connector.ConflictsWith(token.connectorLaneId) ||
-                    trafficConnectorsByLaneId.TryGetValue(token.connectorLaneId, out BakedConnectorTrafficRecord activeConnector) &&
+                if (string.Equals(token.connectorLaneId, connector.connectorLaneId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                if (!trafficConnectorsByLaneId.TryGetValue(
+                        token.connectorLaneId,
+                        out BakedConnectorTrafficRecord activeConnector))
+                {
+                    if (connector.TryGetConflict(
+                            token.connectorLaneId,
+                            out BakedConnectorConflictRecord requestConflict))
+                    {
+                        if (IsActivePassageInsideConflictInterval(
+                                token,
+                                null,
+                                requestConflict.otherStartDistance,
+                                requestConflict.otherEndDistance))
+                        {
+                            return true;
+                        }
+
+                        continue;
+                    }
+
+                    if (!connector.HasStructuredConflicts && connector.ConflictsWith(token.connectorLaneId))
+                    {
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (TryGetStructuredConnectorConflict(
+                        connector,
+                        activeConnector,
+                        out float activeStartDistance,
+                        out float activeEndDistance))
+                {
+                    if (IsActivePassageInsideConflictInterval(
+                            token,
+                            activeConnector,
+                            activeStartDistance,
+                            activeEndDistance))
+                    {
+                        return true;
+                    }
+
+                    continue;
+                }
+
+                if (connector.HasStructuredConflicts || activeConnector.HasStructuredConflicts)
+                {
+                    continue;
+                }
+
+                if (connector.ConflictsWith(token.connectorLaneId) ||
                     activeConnector.ConflictsWith(connector.connectorLaneId))
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private static bool TryGetStructuredConnectorConflict(
+            BakedConnectorTrafficRecord requestingConnector,
+            BakedConnectorTrafficRecord activeConnector,
+            out float activeStartDistance,
+            out float activeEndDistance)
+        {
+            activeStartDistance = 0f;
+            activeEndDistance = 0f;
+            if (requestingConnector == null || activeConnector == null)
+            {
+                return false;
+            }
+
+            if (requestingConnector.TryGetConflict(
+                    activeConnector.connectorLaneId,
+                    out BakedConnectorConflictRecord requestConflict))
+            {
+                activeStartDistance = requestConflict.otherStartDistance;
+                activeEndDistance = requestConflict.otherEndDistance;
+                return true;
+            }
+
+            if (activeConnector.TryGetConflict(
+                    requestingConnector.connectorLaneId,
+                    out BakedConnectorConflictRecord activeConflict))
+            {
+                activeStartDistance = activeConflict.selfStartDistance;
+                activeEndDistance = activeConflict.selfEndDistance;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsActivePassageInsideConflictInterval(
+            PassageToken token,
+            BakedConnectorTrafficRecord activeConnector,
+            float activeStartDistance,
+            float activeEndDistance)
+        {
+            if (token == null)
+            {
+                return false;
+            }
+
+            if (!vehiclesById.TryGetValue(token.vehicleId, out VehicleTrafficState vehicle))
+            {
+                return true;
+            }
+
+            if (string.Equals(vehicle.laneId, token.connectorLaneId, StringComparison.Ordinal))
+            {
+                float min = Mathf.Min(activeStartDistance, activeEndDistance);
+                float max = Mathf.Max(activeStartDistance, activeEndDistance);
+                return vehicle.distanceAlongLane + 0.001f >= min &&
+                       vehicle.distanceAlongLane - 0.001f <= max;
+            }
+
+            if (!token.enteredConnector ||
+                activeConnector != null &&
+                string.Equals(vehicle.laneId, activeConnector.fromLaneId, StringComparison.Ordinal))
+            {
+                return true;
             }
 
             return false;

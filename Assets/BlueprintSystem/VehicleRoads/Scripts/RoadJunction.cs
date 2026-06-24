@@ -27,6 +27,7 @@ namespace VehicleRoads
         [SerializeField, Min(1f)] private float approachDetectionDistance = 18f;
         [SerializeField, Min(0.1f)] private float passageTokenDuration = 8f;
         [SerializeField, Min(0f)] private float releaseDistance = 2f;
+        [SerializeField, Min(0f)] private float connectorConflictSafetyMargin = 0.5f;
         [SerializeField, Min(0f)] private float straightPriority = 4f;
         [SerializeField, Min(0f)] private float rightPriority = 4f;
         [SerializeField, Min(0f)] private float leftPriority = 2f;
@@ -89,6 +90,12 @@ namespace VehicleRoads
             set => releaseDistance = Mathf.Max(0f, value);
         }
 
+        public float ConnectorConflictSafetyMargin
+        {
+            get => Mathf.Max(0f, connectorConflictSafetyMargin);
+            set => connectorConflictSafetyMargin = Mathf.Max(0f, value);
+        }
+
         public float StraightPriority
         {
             get => Mathf.Max(0f, straightPriority);
@@ -135,6 +142,7 @@ namespace VehicleRoads
             approachDetectionDistance = Mathf.Max(1f, approachDetectionDistance);
             passageTokenDuration = Mathf.Max(0.1f, passageTokenDuration);
             releaseDistance = Mathf.Max(0f, releaseDistance);
+            connectorConflictSafetyMargin = Mathf.Max(0f, connectorConflictSafetyMargin);
             straightPriority = Mathf.Max(0f, straightPriority);
             rightPriority = Mathf.Max(0f, rightPriority);
             leftPriority = Mathf.Max(0f, leftPriority);

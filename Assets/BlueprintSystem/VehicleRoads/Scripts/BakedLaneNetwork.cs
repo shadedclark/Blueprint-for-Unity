@@ -187,7 +187,7 @@ namespace VehicleRoads
     [CreateAssetMenu(menuName = "Vehicle Road/Road Network/Baked Lane Network")]
     public sealed partial class BakedLaneNetwork : ScriptableObject, ISerializationCallbackReceiver
     {
-        public const string CurrentSchemaVersion = "3.1";
+        public const string CurrentSchemaVersion = "3.2";
 
         [SerializeField] private string schemaVersion = CurrentSchemaVersion;
         [SerializeField] private string scenePath = string.Empty;
