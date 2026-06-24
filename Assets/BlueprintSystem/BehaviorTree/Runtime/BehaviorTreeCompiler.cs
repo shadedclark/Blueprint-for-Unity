@@ -312,6 +312,8 @@ namespace BlueprintSystem
             "connectorLaneIdKey",
             "laneChangeStatusKey",
             "laneChangeTargetLaneIdKey",
+            "currentSpeedKey",
+            "loopResetKey",
             "agentStateKey",
             "routeStateKey",
             "failureReasonKey",
@@ -875,7 +877,8 @@ namespace BlueprintSystem
                 ValidatePropertyKeyType(node.Properties, "successKey", "bool", blackboard, diagnostics, node.Id);
             }
             else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
-                     node.TypeId == "BT.VehicleRoad.ComputeFollowerControl")
+                     (node.TypeId == "BT.VehicleRoad.ComputeFollowerControl" ||
+                      node.TypeId == "BT.VehicleRoad.DriveFollower"))
             {
                 ValidatePropertyKeyType(node.Properties, "validKey", "bool", blackboard, diagnostics, node.Id);
                 ValidatePropertyKeyType(node.Properties, "currentLaneIdKey", "string", blackboard, diagnostics, node.Id);
@@ -897,6 +900,12 @@ namespace BlueprintSystem
                 ValidatePropertyKeyType(node.Properties, "connectorLaneIdKey", "string", blackboard, diagnostics, node.Id);
                 ValidatePropertyKeyType(node.Properties, "laneChangeStatusKey", "VehicleRoadLaneChangeStatus", blackboard, diagnostics, node.Id);
                 ValidatePropertyKeyType(node.Properties, "laneChangeTargetLaneIdKey", "string", blackboard, diagnostics, node.Id);
+                if (node.TypeId == "BT.VehicleRoad.DriveFollower")
+                {
+                    ValidatePropertyKeyType(node.Properties, "currentSpeedKey", "float", blackboard, diagnostics, node.Id);
+                    ValidatePropertyKeyType(node.Properties, "arrivedKey", "bool", blackboard, diagnostics, node.Id);
+                    ValidatePropertyKeyType(node.Properties, "loopResetKey", "bool", blackboard, diagnostics, node.Id);
+                }
             }
         }
 

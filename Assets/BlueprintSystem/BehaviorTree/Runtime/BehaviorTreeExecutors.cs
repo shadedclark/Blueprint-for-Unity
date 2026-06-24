@@ -176,6 +176,7 @@ namespace BlueprintSystem
                 registry.Register(new BehaviorTreeVehicleRoadFindNearestLaneExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadFindLaneRouteExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadComputeFollowerControlExecutor());
+                registry.Register(new BehaviorTreeVehicleRoadDriveFollowerExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadUpdateRoadAgentService());
             }
             return registry;
@@ -2258,6 +2259,345 @@ namespace BlueprintSystem
             VehicleLaneFollowerOutput output = follower.ComputeControl(input);
             BehaviorTreeVehicleRoadUtility.WriteFollowerOutput(context, node, output);
             return output.valid ? BehaviorTreeStatus.Success : BehaviorTreeStatus.Failure;
+        }
+    }
+
+    internal sealed class BehaviorTreeVehicleRoadDriveFollowerExecutor : BehaviorTreeNodeExecutor
+    {
+        private const string CurrentSpeedStateKey = "currentSpeed";
+        private const string InvalidOutputDurationStateKey = "invalidOutputDuration";
+        private const string LoopStartPositionStateKey = "loopStartPosition";
+        private const string LoopStartRotationStateKey = "loopStartRotation";
+        private const string AutoVehicleIdStateKey = "autoVehicleId";
+
+        public override string TypeId
+        {
+            get { return "BT.VehicleRoad.DriveFollower"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            VehicleLaneFollower follower = BehaviorTreeVehicleRoadUtility.ResolveInputOrOwnerComponent<VehicleLaneFollower>(
+                context,
+                node,
+                "follower");
+            if (follower == null)
+            {
+                context.Runtime.MarkFailure(TypeId + " requires a VehicleLaneFollower input or owner component.");
+                BehaviorTreeVehicleRoadUtility.WriteBool(context, node, "validKey", false);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            if (context.Owner == null)
+            {
+                context.Runtime.MarkFailure(TypeId + " requires an owner GameObject to move.");
+                BehaviorTreeVehicleRoadUtility.WriteBool(context, node, "validKey", false);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            BehaviorTreeNodeRuntimeState state = context.GetNodeState(node);
+            Transform transform = context.Owner.transform;
+            CaptureLoopStart(state, transform);
+
+            float deltaTime = Mathf.Max(0f, context.DeltaTime);
+            float acceleration = Mathf.Max(0f, BehaviorTreePropertyUtility.ResolveFloat(context, node, "acceleration", "acceleration", 6f));
+            float vehicleLength = Mathf.Max(0.1f, BehaviorTreePropertyUtility.ResolveFloat(context, node, "vehicleLength", "vehicleLength", 4.5f));
+            float wheelBase = BehaviorTreePropertyUtility.ResolveFloat(context, node, "wheelBase", "wheelBase", 0f);
+            if (wheelBase <= 0.0001f)
+            {
+                wheelBase = vehicleLength * 0.55f;
+            }
+
+            float currentSpeed = GetStateFloat(state, CurrentSpeedStateKey, 0f);
+            string vehicleId = ResolveVehicleId(context, node, state, true);
+            VehicleLaneFollowerOutput output = follower.ComputeControl(new VehicleLaneFollowerInput
+            {
+                vehicleId = vehicleId,
+                position = transform.position,
+                forward = transform.forward,
+                speed = currentSpeed,
+                wheelBase = Mathf.Max(0.1f, wheelBase),
+                vehicleLength = vehicleLength,
+                agentMask = ResolveAgentMask(context, node),
+                leadVehicleDistance = BehaviorTreePropertyUtility.ResolveFloat(context, node, "leadVehicleDistance", "leadVehicleDistance", 0f),
+                leadVehicleSpeed = BehaviorTreePropertyUtility.ResolveFloat(context, node, "leadVehicleSpeed", "leadVehicleSpeed", 0f),
+                requestLaneChange = BehaviorTreePropertyUtility.ResolveBool(context, node, "requestLaneChange", "requestLaneChange", false),
+                requestedLaneChangeSide = ResolveLaneChangeSide(context, node)
+            });
+
+            BehaviorTreeVehicleRoadUtility.WriteFollowerOutput(context, node, output);
+            WriteDriveOutput(context, node, "arrivedKey", false);
+            WriteDriveOutput(context, node, "loopResetKey", false);
+
+            bool loopRoute = BehaviorTreePropertyUtility.ResolveBool(context, node, "loopRoute", "loopRoute", false);
+            float loopResetDelay = Mathf.Max(0.1f, BehaviorTreePropertyUtility.ResolveFloat(context, node, "loopResetDelay", "loopResetDelay", 2f));
+            if (!output.valid)
+            {
+                currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, acceleration * deltaTime);
+                SetCurrentSpeed(context, node, state, currentSpeed);
+                if (!loopRoute)
+                {
+                    context.Runtime.MarkFailure(TypeId + " follower output was invalid.");
+                    return BehaviorTreeStatus.Failure;
+                }
+
+                return TickLoopResetDelay(context, node, state, follower, transform, vehicleId, loopResetDelay);
+            }
+
+            currentSpeed = Mathf.MoveTowards(
+                currentSpeed,
+                Mathf.Max(0f, output.targetSpeed),
+                acceleration * deltaTime);
+
+            bool followBakedLanePose = BehaviorTreePropertyUtility.ResolveBool(context, node, "followBakedLanePose", "followBakedLanePose", false);
+            if (followBakedLanePose && follower.IsAtRouteEnd(output.currentLaneId, output.distanceAlongLane))
+            {
+                currentSpeed = Mathf.MoveTowards(currentSpeed, 0f, acceleration * deltaTime);
+                SetCurrentSpeed(context, node, state, currentSpeed);
+                WriteDriveOutput(context, node, "arrivedKey", true);
+                if (loopRoute)
+                {
+                    return TickLoopResetDelay(context, node, state, follower, transform, vehicleId, loopResetDelay);
+                }
+
+                return BehaviorTreeStatus.Success;
+            }
+
+            state.Data[InvalidOutputDurationStateKey] = 0f;
+            float requestedTravelDistance = currentSpeed * deltaTime;
+            float travelDistance = requestedTravelDistance;
+            bool reachedExplicitStopPoint = false;
+            if (output.hasStopPoint && float.IsFinite(output.distanceToStopLine))
+            {
+                float distanceToStop = Mathf.Max(0f, output.distanceToStopLine);
+                if (output.targetSpeed <= 0.01f && distanceToStop > 0.001f)
+                {
+                    requestedTravelDistance = Mathf.Max(
+                        requestedTravelDistance,
+                        Mathf.Max(0.1f, BehaviorTreePropertyUtility.ResolveFloat(context, node, "stopPointApproachSpeed", "stopPointApproachSpeed", 2f)) * deltaTime);
+                    travelDistance = Mathf.Max(travelDistance, requestedTravelDistance);
+                }
+
+                reachedExplicitStopPoint = output.targetSpeed <= 0.01f &&
+                                           distanceToStop <= requestedTravelDistance + 0.001f;
+                travelDistance = Mathf.Min(travelDistance, distanceToStop);
+            }
+
+            if (reachedExplicitStopPoint)
+            {
+                transform.position = output.stopPoint;
+                currentSpeed = 0f;
+                SetCurrentSpeed(context, node, state, currentSpeed);
+                return BehaviorTreeStatus.Running;
+            }
+
+            if (followBakedLanePose && TryMoveAlongBakedRoute(follower, transform, output, travelDistance))
+            {
+                SetCurrentSpeed(context, node, state, currentSpeed);
+                return BehaviorTreeStatus.Running;
+            }
+
+            Vector3 toTarget = output.lookAheadPoint - transform.position;
+            if (toTarget.sqrMagnitude > 0.0001f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(toTarget.normalized, Vector3.up);
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    targetRotation,
+                    Mathf.Max(0f, BehaviorTreePropertyUtility.ResolveFloat(context, node, "turnSpeed", "turnSpeed", 180f)) * deltaTime);
+            }
+
+            transform.position += transform.forward * travelDistance;
+            SetCurrentSpeed(context, node, state, currentSpeed);
+            return BehaviorTreeStatus.Running;
+        }
+
+        public override void Abort(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            BehaviorTreeNodeRuntimeState state = context.GetNodeState(node);
+            if (BehaviorTreePropertyUtility.ResolveBool(context, node, "unregisterOnAbort", "unregisterOnAbort", true))
+            {
+                VehicleLaneFollower follower = BehaviorTreeVehicleRoadUtility.ResolveInputOrOwnerComponent<VehicleLaneFollower>(
+                    context,
+                    node,
+                    "follower");
+                UnregisterVehicle(follower, ResolveVehicleId(context, node, state, false));
+            }
+
+            state.Data.Clear();
+        }
+
+        private BehaviorTreeStatus TickLoopResetDelay(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            BehaviorTreeNodeRuntimeState state,
+            VehicleLaneFollower follower,
+            Transform transform,
+            string vehicleId,
+            float loopResetDelay)
+        {
+            float invalidOutputDuration = GetStateFloat(state, InvalidOutputDurationStateKey, 0f) + Mathf.Max(0f, context.DeltaTime);
+            state.Data[InvalidOutputDurationStateKey] = invalidOutputDuration;
+            if (invalidOutputDuration >= loopResetDelay)
+            {
+                ResetLoop(context, node, state, follower, transform, vehicleId);
+            }
+
+            return BehaviorTreeStatus.Running;
+        }
+
+        private static void CaptureLoopStart(BehaviorTreeNodeRuntimeState state, Transform transform)
+        {
+            if (state.Data.ContainsKey(LoopStartPositionStateKey))
+            {
+                return;
+            }
+
+            state.Data[LoopStartPositionStateKey] = transform.position;
+            state.Data[LoopStartRotationStateKey] = transform.rotation;
+        }
+
+        private static void ResetLoop(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            BehaviorTreeNodeRuntimeState state,
+            VehicleLaneFollower follower,
+            Transform transform,
+            string vehicleId)
+        {
+            UnregisterVehicle(follower, vehicleId);
+            Vector3 position = state.Data.ContainsKey(LoopStartPositionStateKey)
+                ? (Vector3)state.Data[LoopStartPositionStateKey]
+                : transform.position;
+            Quaternion rotation = state.Data.ContainsKey(LoopStartRotationStateKey)
+                ? (Quaternion)state.Data[LoopStartRotationStateKey]
+                : transform.rotation;
+            transform.SetPositionAndRotation(position, rotation);
+            state.Data[CurrentSpeedStateKey] = 0f;
+            state.Data[InvalidOutputDurationStateKey] = 0f;
+            WriteDriveOutput(context, node, "currentSpeedKey", 0f);
+            WriteDriveOutput(context, node, "loopResetKey", true);
+        }
+
+        private static void UnregisterVehicle(VehicleLaneFollower follower, string vehicleId)
+        {
+            if (follower != null &&
+                follower.RoadSubsystem != null &&
+                !string.IsNullOrWhiteSpace(vehicleId))
+            {
+                follower.RoadSubsystem.UnregisterVehicle(vehicleId);
+            }
+        }
+
+        private static bool TryMoveAlongBakedRoute(
+            VehicleLaneFollower follower,
+            Transform transform,
+            VehicleLaneFollowerOutput output,
+            float travelDistance)
+        {
+            RoadLanePose pose;
+            string laneId;
+            if (follower == null ||
+                !follower.TryEvaluateRoutePose(
+                    output.currentLaneId,
+                    output.distanceAlongLane + Mathf.Max(0f, travelDistance),
+                    out laneId,
+                    out pose))
+            {
+                return false;
+            }
+
+            Vector3 forward = pose.forward.sqrMagnitude > 0.0001f ? pose.forward.normalized : transform.forward;
+            Vector3 up = pose.up.sqrMagnitude > 0.0001f ? pose.up.normalized : Vector3.up;
+            transform.SetPositionAndRotation(pose.position, Quaternion.LookRotation(forward, up));
+            return true;
+        }
+
+        private static string ResolveVehicleId(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            BehaviorTreeNodeRuntimeState state,
+            bool createIfMissing)
+        {
+            string vehicleId = BehaviorTreePropertyUtility.ResolveString(context, node, "vehicleId", "vehicleId", string.Empty);
+            if (!string.IsNullOrWhiteSpace(vehicleId))
+            {
+                return vehicleId;
+            }
+
+            object stored;
+            if (state.Data.TryGetValue(AutoVehicleIdStateKey, out stored) && stored != null)
+            {
+                return Convert.ToString(stored, CultureInfo.InvariantCulture);
+            }
+
+            if (!createIfMissing)
+            {
+                return string.Empty;
+            }
+
+            vehicleId = "bt_vehicle_" + (context.Owner == null ? node.Id : context.Owner.GetInstanceID().ToString(CultureInfo.InvariantCulture));
+            state.Data[AutoVehicleIdStateKey] = vehicleId;
+            return vehicleId;
+        }
+
+        private static RoadAgentMask ResolveAgentMask(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            RoadAgentMask mask = ResolveEnum(context, node, "agentMask", "agentMask", RoadAgentMask.Car);
+            return mask == RoadAgentMask.None ? RoadAgentMask.Car : mask;
+        }
+
+        private static RoadLaneAdjacentSide ResolveLaneChangeSide(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            return ResolveEnum(context, node, "requestedLaneChangeSide", "requestedLaneChangeSide", RoadLaneAdjacentSide.Right);
+        }
+
+        private static T ResolveEnum<T>(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            string inputId,
+            string propertyKey,
+            T defaultValue) where T : struct
+        {
+            object value;
+            if (BehaviorTreePropertyUtility.TryResolveValue(context, node, inputId, propertyKey, out value) && value != null)
+            {
+                if (value is T)
+                {
+                    return (T)value;
+                }
+
+                return BlueprintTypeUtility.ConvertValue(value, defaultValue);
+            }
+
+            return defaultValue;
+        }
+
+        private static float GetStateFloat(BehaviorTreeNodeRuntimeState state, string key, float defaultValue)
+        {
+            object value;
+            return state.Data.TryGetValue(key, out value) && value != null
+                ? Convert.ToSingle(value, CultureInfo.InvariantCulture)
+                : defaultValue;
+        }
+
+        private static void SetCurrentSpeed(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            BehaviorTreeNodeRuntimeState state,
+            float currentSpeed)
+        {
+            state.Data[CurrentSpeedStateKey] = currentSpeed;
+            WriteDriveOutput(context, node, "currentSpeedKey", currentSpeed);
+        }
+
+        private static void WriteDriveOutput(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            string keyProperty,
+            object value)
+        {
+            BehaviorTreeVehicleRoadUtility.WriteValue(context, node, keyProperty, value);
         }
     }
 

@@ -216,7 +216,7 @@ Runner Blackboard task nodes can read or write another `BehaviorTreeRunner` Blac
 | Family | Type IDs | Purpose |
 | --- | --- | --- |
 | Composites | `BT.Root`, `BT.Selector`, `BT.Sequence`, `BT.Parallel`, `BT.RandomSelector`, `BT.PrioritySelector`, `BT.WeightedSelector` | Root entry, ordered child evaluation, parallel child polling, randomized selection, priority re-evaluation, and weighted selection. |
-| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, `BT.SetNavigationPath`, `BT.WaitForNavigation`, `BT.PauseNavigation`, `BT.ResumeNavigation`, `BT.SampleNavMeshPosition`, `BT.WarpNavigation`, `BT.TraverseOffMeshLink`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log`, `BT.VehicleRoad.FindNearestLane`, `BT.VehicleRoad.FindLaneRoute`, `BT.VehicleRoad.ComputeFollowerControl` | Basic actions, Blackboard mutation, subtree execution, navigation, rotation, Blueprint event bridging, async task polling, and VehicleRoads decision/control-output publication. |
+| Tasks | `BT.Wait`, `BT.SetBlackboard`, `BT.ClearBlackboard`, `BT.SetRunnerBlackboard`, `BT.GetRunnerBlackboard`, `BT.ClearRunnerBlackboard`, `BT.CopyRunnerBlackboard`, `BT.RunSubtree`, `BT.MoveTo`, `BT.StopNavigation`, `BT.SetNavigationDestination`, `BT.CalculateNavigationPath`, `BT.SetNavigationPath`, `BT.WaitForNavigation`, `BT.PauseNavigation`, `BT.ResumeNavigation`, `BT.SampleNavMeshPosition`, `BT.WarpNavigation`, `BT.TraverseOffMeshLink`, `BT.RotateTo`, `BT.TriggerBlueprintEvent`, `BT.RunBlueprintTask`, `BT.Log`, `BT.VehicleRoad.FindNearestLane`, `BT.VehicleRoad.FindLaneRoute`, `BT.VehicleRoad.ComputeFollowerControl`, `BT.VehicleRoad.DriveFollower` | Basic actions, Blackboard mutation, subtree execution, navigation, rotation, Blueprint event bridging, async task polling, VehicleRoads decision/control-output publication, and optional kinematic VehicleRoad movement. |
 | Decorators | `BT.BlackboardCondition`, `BT.CompareFloat`, `BT.CompareBool`, `BT.ObjectIsSet`, `BT.DistanceLessThan`, `BT.Cooldown`, `BT.NavigationCondition` | Branch guards evaluated before ticking the attached node. |
 | Services | `BT.UpdateDistance`, `BT.UpdateNavigationState`, `BT.PerceptionSphere`, `BT.PerceptionRaycast`, `BT.SetBlackboardFromBlueprint`, `BT.TriggerBlueprintService`, `BT.VehicleRoad.UpdateRoadAgent` | Periodic updates while the owning node is active. |
 
@@ -549,13 +549,41 @@ Logs a message through the Blueprint logger and returns `Success`.
 
 ### VehicleRoad Tasks
 
-VehicleRoad tasks are decision/control-output nodes only. They write Blackboard keys and never move the owner `Transform`.
+Most VehicleRoad tasks are decision/control-output nodes only. They write Blackboard keys and never move the owner `Transform`. `BT.VehicleRoad.DriveFollower` is the explicit kinematic exception for demo/AI vehicles that should consume a `VehicleLaneFollower` output and move the owner directly.
 
 `BT.VehicleRoad.FindNearestLane` resolves `subsystem` from a Blackboard input, reads `position`, `heading`, `agentMask`, `maxDistance`, and `maxHeightDifference`, then writes `foundKey`, `laneIdKey`, `positionKey`, `forwardKey`, `upKey`, `distanceAlongLaneKey`, and `distanceToLaneKey`. It returns `Success` only when a lane is found.
 
 `BT.VehicleRoad.FindLaneRoute` resolves `subsystem`, reads `startLaneId`, `destinationLaneId`, and `agentMask`, then writes `successKey`, `routeLaneIdsKey: Array<string>`, and `totalCostKey`. It returns `Success` only when a same-network route exists.
 
 `BT.VehicleRoad.ComputeFollowerControl` resolves a `VehicleLaneFollower` from the `follower` Blackboard input or from the owner GameObject. It reads vehicle pose/control inputs and writes `validKey`, lane pose, target steering/speed, recovery, stop/signal/queue, and lane-change result keys. It returns `Success` only when the follower output is valid. Movement remains owned by an external vehicle executor.
+
+`BT.VehicleRoad.DriveFollower` resolves a `VehicleLaneFollower` from the `follower` Blackboard input or from the owner GameObject, computes follower control using the owner pose and an internal `currentSpeed`, writes the same output keys as `BT.VehicleRoad.ComputeFollowerControl`, and moves the owner `Transform` kinematically. It returns `Failure` if no follower exists or if the follower output is invalid while `loopRoute` is false, returns `Success` when `followBakedLanePose` reaches the end of a non-loop route, and returns `Running` while driving, waiting at an explicit stop point, or performing loop reset delay.
+
+| Parameter | Source | Type | Default | Notes |
+| --- | --- | --- | --- | --- |
+| `follower` | input | VehicleLaneFollower-compatible object | owner component | Optional Blackboard input; owner fallback is used when omitted. |
+| `vehicleId` | input/property | string | auto id | Stable id for traffic control; an empty value becomes a per-owner runtime id. |
+| `vehicleLength` | input/property | float | `4.5` | Clamped to at least `0.1`. |
+| `wheelBase` | input/property | float | `0` | `0` derives `vehicleLength * 0.55`; positive values are clamped to at least `0.1`. |
+| `acceleration` | input/property | float | `6` | Speed change rate in units per second. |
+| `turnSpeed` | input/property | float | `180` | Degrees per second for fallback look-at steering. |
+| `agentMask` | input/property | RoadAgentMask | `Car` | `None` normalizes to `Car`. |
+| `followBakedLanePose` | input/property | bool | `false` | When true, samples route pose from `VehicleLaneFollower.TryEvaluateRoutePose`; otherwise rotates toward `lookAheadPoint` and moves forward. |
+| `stopPointApproachSpeed` | input/property | float | `2` | Minimum approach speed while clamping to an explicit stop point. |
+| `loopRoute` | input/property | bool | `false` | Invalid output or route end waits for `loopResetDelay`, unregisters the vehicle, and restores the first tick pose. |
+| `loopResetDelay` | input/property | float | `2` | Minimum reset delay is `0.1`. |
+| `leadVehicleDistance` / `leadVehicleSpeed` | input/property | float | `0` | Optional follower speed limiting inputs. |
+| `requestLaneChange` | input/property | bool | `false` | Requests a lane change through the follower's subsystem-backed traffic layer. |
+| `requestedLaneChangeSide` | input/property | RoadLaneAdjacentSide | `Right` | Side used when `requestLaneChange` is true. |
+| `unregisterOnAbort` | input/property | bool | `true` | Calls `VehicleRoadSubsystem.UnregisterVehicle` through the follower on abort when a vehicle id is known. |
+
+Additional output key properties:
+
+| Property | Blackboard Type | Notes |
+| --- | --- | --- |
+| `currentSpeedKey` | float | Current internal speed after acceleration/deceleration. |
+| `arrivedKey` | bool | True when a baked-pose route end is reached. |
+| `loopResetKey` | bool | True only on the tick that performs loop reset. |
 
 ## Decorator Nodes
 
@@ -827,6 +855,7 @@ BTTaskLogNode
 BTTaskVehicleRoadFindNearestLaneNode
 BTTaskVehicleRoadFindLaneRouteNode
 BTTaskVehicleRoadComputeFollowerControlNode
+BTTaskVehicleRoadDriveFollowerNode
 ```
 
 Behavior Tree Graph Toolkit also exposes dedicated visual nodes for built-in condition Decorators:

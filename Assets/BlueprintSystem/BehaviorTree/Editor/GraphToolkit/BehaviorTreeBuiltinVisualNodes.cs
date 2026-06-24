@@ -28,6 +28,7 @@ namespace BlueprintSystem.Editor
         public const string VehicleRoadFindNearestLane = "BT.VehicleRoad.FindNearestLane";
         public const string VehicleRoadFindLaneRoute = "BT.VehicleRoad.FindLaneRoute";
         public const string VehicleRoadComputeFollowerControl = "BT.VehicleRoad.ComputeFollowerControl";
+        public const string VehicleRoadDriveFollower = "BT.VehicleRoad.DriveFollower";
         public const string VehicleRoadUpdateRoadAgent = "BT.VehicleRoad.UpdateRoadAgent";
 
         public static BehaviorTreeVisualNode Create(string typeId)
@@ -110,6 +111,10 @@ namespace BlueprintSystem.Editor
                 case VehicleRoadComputeFollowerControl:
                     return BlueprintModuleSettings.VehicleRoadsEnabled
                         ? new BTTaskVehicleRoadComputeFollowerControlNode()
+                        : new BehaviorTreeVisualNode();
+                case VehicleRoadDriveFollower:
+                    return BlueprintModuleSettings.VehicleRoadsEnabled
+                        ? new BTTaskVehicleRoadDriveFollowerNode()
                         : new BehaviorTreeVisualNode();
                 default:
                     return new BehaviorTreeVisualNode();
@@ -235,6 +240,8 @@ namespace BlueprintSystem.Editor
                     return "Task: VehicleRoad Find Lane Route";
                 case VehicleRoadComputeFollowerControl:
                     return "Task: VehicleRoad Compute Follower Control";
+                case VehicleRoadDriveFollower:
+                    return "Task: VehicleRoad Drive Follower";
                 case BlackboardCondition:
                     return "Decorator: Blackboard Condition";
                 case CompareFloat:
@@ -629,6 +636,77 @@ namespace BlueprintSystem.Editor
                     }
 
                     break;
+                case VehicleRoadDriveFollower:
+                    if (inputId == "vehicleId")
+                    {
+                        value = string.Empty;
+                        return true;
+                    }
+
+                    if (inputId == "vehicleLength")
+                    {
+                        value = 4.5f;
+                        return true;
+                    }
+
+                    if (inputId == "wheelBase")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    if (inputId == "acceleration")
+                    {
+                        value = 6f;
+                        return true;
+                    }
+
+                    if (inputId == "turnSpeed")
+                    {
+                        value = 180f;
+                        return true;
+                    }
+
+                    if (inputId == "agentMask")
+                    {
+                        value = VehicleRoads.RoadAgentMask.Car;
+                        return true;
+                    }
+
+                    if (inputId == "followBakedLanePose" ||
+                        inputId == "loopRoute" ||
+                        inputId == "requestLaneChange")
+                    {
+                        value = false;
+                        return true;
+                    }
+
+                    if (inputId == "stopPointApproachSpeed" ||
+                        inputId == "loopResetDelay")
+                    {
+                        value = 2f;
+                        return true;
+                    }
+
+                    if (inputId == "leadVehicleDistance" || inputId == "leadVehicleSpeed")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    if (inputId == "requestedLaneChangeSide")
+                    {
+                        value = VehicleRoads.RoadLaneAdjacentSide.Right;
+                        return true;
+                    }
+
+                    if (inputId == "unregisterOnAbort")
+                    {
+                        value = true;
+                        return true;
+                    }
+
+                    break;
                 case BlackboardCondition:
                     if (inputId == "operator")
                     {
@@ -739,6 +817,7 @@ namespace BlueprintSystem.Editor
             return typeId == VehicleRoadFindNearestLane ||
                    typeId == VehicleRoadFindLaneRoute ||
                    typeId == VehicleRoadComputeFollowerControl ||
+                   typeId == VehicleRoadDriveFollower ||
                    typeId == VehicleRoadUpdateRoadAgent;
         }
 
@@ -1364,6 +1443,37 @@ namespace BlueprintSystem.Editor
             AddBlackboardInput("leadVehicleSpeed", "float", "Lead Speed", true);
             AddBlackboardInput("requestLaneChange", "bool", "Request Lane Change", true);
             AddBlackboardInput("requestedLaneChangeSide", "RoadLaneAdjacentSide", "Lane Change Side", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskVehicleRoadDriveFollowerNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadDriveFollower, "Task: VehicleRoad Drive Follower", 0);
+            PropertiesJson = "{\"validKey\":\"\",\"currentLaneIdKey\":\"\",\"distanceAlongLaneKey\":\"\",\"targetSteeringAngleKey\":\"\",\"targetSpeedKey\":\"\",\"lookAheadPointKey\":\"\",\"recoveryModeKey\":\"\",\"recoveryPositionKey\":\"\",\"lateralErrorKey\":\"\",\"stopReasonKey\":\"\",\"passageStatusKey\":\"\",\"signalStateKey\":\"\",\"hasStopPointKey\":\"\",\"stopPointKey\":\"\",\"distanceToStopLineKey\":\"\",\"queueIndexKey\":\"\",\"junctionIdKey\":\"\",\"connectorLaneIdKey\":\"\",\"laneChangeStatusKey\":\"\",\"laneChangeTargetLaneIdKey\":\"\",\"currentSpeedKey\":\"\",\"arrivedKey\":\"\",\"loopResetKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("follower", null, "Follower", false);
+            AddBlackboardInput("vehicleId", "string", "Vehicle Id", true);
+            AddBlackboardInput("vehicleLength", "float", "Vehicle Length", true);
+            AddBlackboardInput("wheelBase", "float", "Wheel Base", true);
+            AddBlackboardInput("acceleration", "float", "Acceleration", true);
+            AddBlackboardInput("turnSpeed", "float", "Turn Speed", true);
+            AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
+            AddBlackboardInput("followBakedLanePose", "bool", "Follow Baked Pose", true);
+            AddBlackboardInput("stopPointApproachSpeed", "float", "Stop Approach Speed", true);
+            AddBlackboardInput("loopRoute", "bool", "Loop Route", true);
+            AddBlackboardInput("loopResetDelay", "float", "Loop Reset Delay", true);
+            AddBlackboardInput("leadVehicleDistance", "float", "Lead Distance", true);
+            AddBlackboardInput("leadVehicleSpeed", "float", "Lead Speed", true);
+            AddBlackboardInput("requestLaneChange", "bool", "Request Lane Change", true);
+            AddBlackboardInput("requestedLaneChangeSide", "RoadLaneAdjacentSide", "Lane Change Side", true);
+            AddBlackboardInput("unregisterOnAbort", "bool", "Unregister On Abort", true);
         }
     }
 

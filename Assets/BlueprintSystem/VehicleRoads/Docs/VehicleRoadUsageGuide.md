@@ -182,14 +182,15 @@ VehicleRoads 节点只覆盖运行时，不包含道路制作、Validate、Bake 
 
 这些 Blueprint 节点只通过 binding 名或连接的运行时对象解析 `VehicleRoadSubsystem`、`VehicleLaneFollower` 等组件；`.blueprint.json` 中不要存 Unity 对象引用。带副作用的节点都是 exec 节点，并缓存最后一次执行结果供输出端口读取。
 
-Behavior Tree 节点位于 `BT.VehicleRoad.*`，只写 Blackboard，不直接移动对象：
+Behavior Tree 节点位于 `BT.VehicleRoad.*`。查询/控制输出节点只写 Blackboard，不直接移动对象；`BT.VehicleRoad.DriveFollower` 是专门给 demo/AI 车辆使用的 kinematic 执行节点，会消费 `VehicleLaneFollower` 输出并移动 owner `Transform`：
 
 - `BT.VehicleRoad.FindNearestLane`：写 `foundKey`、`laneIdKey`、pose 和距离 key，找到 Lane 才返回 `Success`。
 - `BT.VehicleRoad.FindLaneRoute`：写 `successKey`、`routeLaneIdsKey: Array<string>` 和 `totalCostKey`，路线存在才返回 `Success`。
 - `BT.VehicleRoad.ComputeFollowerControl`：从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，写 steering/speed/stop/lane-change 输出，`output.valid` 为真才返回 `Success`。
+- `BT.VehicleRoad.DriveFollower`：从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，维护内部当前速度，按 `VehicleRoadTestVehicle` 的加减速、停止点夹紧、baked route pose 和 loop reset 逻辑移动 owner，额外写 `currentSpeedKey`、`arrivedKey` 和 `loopResetKey`。
 - `BT.VehicleRoad.UpdateRoadAgent`：作为 service 周期性评估 `RoadAgent`，写目标点、恢复点、到达、失败原因和路线状态 key。
 
-BT 节点的目标 key 是显式字符串属性，例如 `laneIdKey`、`targetSpeedKey`、`routeLaneIdsKey`。复杂结果对象不会写入 Blackboard；只写稳定的 primitive、Vector、`Array<string>` 和 enum 字段。车辆移动仍由外部车辆执行器消费这些输出。
+BT 节点的目标 key 是显式字符串属性，例如 `laneIdKey`、`targetSpeedKey`、`routeLaneIdsKey`。复杂结果对象不会写入 Blackboard；只写稳定的 primitive、Vector、`Array<string>` 和 enum 字段。除 `BT.VehicleRoad.DriveFollower` 外，车辆移动仍由外部车辆执行器消费这些输出。
 
 ## 5. 使用 Lane Profile 批量生成车道
 
