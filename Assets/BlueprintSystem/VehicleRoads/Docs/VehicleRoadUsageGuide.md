@@ -182,15 +182,20 @@ VehicleRoads 节点只覆盖运行时，不包含道路制作、Validate、Bake 
 
 这些 Blueprint 节点只通过 binding 名或连接的运行时对象解析 `VehicleRoadSubsystem`、`VehicleLaneFollower` 等组件；`.blueprint.json` 中不要存 Unity 对象引用。带副作用的节点都是 exec 节点，并缓存最后一次执行结果供输出端口读取。
 
-Behavior Tree 节点位于 `BT.VehicleRoad.*`。查询/控制输出节点只写 Blackboard，不直接移动对象；`BT.VehicleRoad.DriveFollower` 是专门给 demo/AI 车辆使用的 kinematic 执行节点，会消费 `VehicleLaneFollower` 输出并移动 owner `Transform`：
+Behavior Tree 节点位于 `BT.VehicleRoad.*`。查询/控制输出节点只写 Blackboard，不直接移动对象；`BT.VehicleRoad.DriveFollower` 是专门给 demo/AI 车辆使用的 kinematic 封装节点，会消费 `VehicleLaneFollower` 输出并移动 owner `Transform`。需要自定义流程时，可以改用函数级拆分节点组合：
 
 - `BT.VehicleRoad.FindNearestLane`：写 `foundKey`、`laneIdKey`、pose 和距离 key，找到 Lane 才返回 `Success`。
 - `BT.VehicleRoad.FindLaneRoute`：写 `successKey`、`routeLaneIdsKey: Array<string>` 和 `totalCostKey`，路线存在才返回 `Success`。
+- `BT.VehicleRoad.SetFollowerRoute` / `SelectNextRouteTarget`：把 `Array<string>` 路线写入 `VehicleLaneFollower`，或从候选目的 Lane 中按 `First` / `Cycle` / `Random` 找到可达路线并写 `destinationLaneIdKey`、`selectedIndexKey`、`routeLaneIdsKey` 和 `totalCostKey`。
 - `BT.VehicleRoad.ComputeFollowerControl`：从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，写 steering/speed/stop/lane-change 输出，`output.valid` 为真才返回 `Success`。
-- `BT.VehicleRoad.DriveFollower`：从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，维护内部当前速度，按 `VehicleRoadTestVehicle` 的加减速、停止点夹紧、baked route pose 和 loop reset 逻辑移动 owner，额外写 `currentSpeedKey`、`arrivedKey` 和 `loopResetKey`。
+- `BT.VehicleRoad.DriveFollower`：便捷封装节点；从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，维护内部当前速度，按 `VehicleRoadTestVehicle` 的加减速、停止点夹紧、baked route pose 和 loop reset 逻辑移动 owner，额外写 `currentSpeedKey`、`arrivedKey` 和 `loopResetKey`。
+- `BT.VehicleRoad.UpdateTrafficState` / `DecideLaneChange` / `RequestLaneChange` / `CompleteLaneChange`：发布车辆交通状态、读取前车信息、根据前车/停止点/恢复状态生成换道请求，并显式请求或完成换道。
+- `BT.VehicleRoad.UpdateFollowerSpeed` / `EvaluateStopPointTravel` / `ApplyStopPoint`：拆分 `VehicleRoadTestVehicle.Update` 中的速度更新、停止点行驶距离计算和停止点吸附。
+- `BT.VehicleRoad.CheckFollowerRouteEnd` / `MoveAlongBakedRoute` / `MoveTowardLookAhead`：拆分 baked route 终点判断、baked pose 移动和 look-ahead fallback 移动。
+- `BT.VehicleRoad.CaptureLoopStart` / `TickLoopReset` / `UnregisterVehicle`：拆分 loop 起点捕获、延迟复位和车辆注销清理；`UnregisterVehicle` 可直接解析 `subsystem`，也可通过 follower 的 `RoadSubsystem` 解析。
 - `BT.VehicleRoad.UpdateRoadAgent`：作为 service 周期性评估 `RoadAgent`，写目标点、恢复点、到达、失败原因和路线状态 key。
 
-BT 节点的目标 key 是显式字符串属性，例如 `laneIdKey`、`targetSpeedKey`、`routeLaneIdsKey`。复杂结果对象不会写入 Blackboard；只写稳定的 primitive、Vector、`Array<string>` 和 enum 字段。除 `BT.VehicleRoad.DriveFollower` 外，车辆移动仍由外部车辆执行器消费这些输出。
+BT 节点的目标 key 是显式字符串属性，例如 `laneIdKey`、`targetSpeedKey`、`routeLaneIdsKey`。复杂结果对象不会写入 Blackboard；只写稳定的 primitive、Vector、`Array<string>` 和 enum 字段。推荐自定义车辆树使用 `SelectNextRouteTarget -> SetFollowerRoute -> ComputeFollowerControl -> UpdateTrafficState -> DecideLaneChange -> UpdateFollowerSpeed -> EvaluateStopPointTravel -> ApplyStopPoint/MoveAlongBakedRoute/MoveTowardLookAhead`，loop 分支配合 `CaptureLoopStart` 和 `TickLoopReset`。
 
 ## 5. 使用 Lane Profile 批量生成车道
 

@@ -68,12 +68,33 @@ namespace BlueprintSystem.Tests
                 Assert.False(behaviorTreeRegistry.HasNode("BT.VehicleRoad.FindLaneRoute"));
                 Assert.False(behaviorTreeRegistry.HasNode("BT.VehicleRoad.ComputeFollowerControl"));
                 Assert.False(behaviorTreeRegistry.HasNode("BT.VehicleRoad.DriveFollower"));
+                string[] splitTypeIds = GetSplitFollowerTypeIds();
+                for (int i = 0; i < splitTypeIds.Length; i++)
+                {
+                    Assert.False(behaviorTreeRegistry.HasNode(splitTypeIds[i]), splitTypeIds[i]);
+                }
+
+                string[] strategyTypeIds = GetStrategyTypeIds();
+                for (int i = 0; i < strategyTypeIds.Length; i++)
+                {
+                    Assert.False(behaviorTreeRegistry.HasNode(strategyTypeIds[i]), strategyTypeIds[i]);
+                }
+
                 Assert.False(behaviorTreeRegistry.HasService("BT.VehicleRoad.UpdateRoadAgent"));
 
                 BlueprintVisualNode visualNode = BlueprintVisualNodeFactory.Create("VehicleRoad.FindNearestLane");
                 Assert.AreEqual(typeof(BlueprintVisualNode), visualNode.GetType());
                 Assert.AreEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.VehicleRoad.FindNearestLane").GetType());
                 Assert.AreEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.VehicleRoad.DriveFollower").GetType());
+                for (int i = 0; i < splitTypeIds.Length; i++)
+                {
+                    Assert.AreEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create(splitTypeIds[i]).GetType(), splitTypeIds[i]);
+                }
+
+                for (int i = 0; i < strategyTypeIds.Length; i++)
+                {
+                    Assert.AreEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create(strategyTypeIds[i]).GetType(), strategyTypeIds[i]);
+                }
             }
         }
 
@@ -86,6 +107,9 @@ namespace BlueprintSystem.Tests
 
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("Array<string>"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadStopReason"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneChangeStatus"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleLaneRecoveryMode"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("RoadLaneAdjacentSide"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("RoadAgentState"));
 
             BehaviorTreeBlackboard blackboard = new BehaviorTreeBlackboard(new[]
@@ -112,12 +136,33 @@ namespace BlueprintSystem.Tests
             Assert.True(registry.HasNode("BT.VehicleRoad.FindLaneRoute"));
             Assert.True(registry.HasNode("BT.VehicleRoad.ComputeFollowerControl"));
             Assert.True(registry.HasNode("BT.VehicleRoad.DriveFollower"));
+            string[] splitTypeIds = GetSplitFollowerTypeIds();
+            for (int i = 0; i < splitTypeIds.Length; i++)
+            {
+                Assert.True(registry.HasNode(splitTypeIds[i]), splitTypeIds[i]);
+            }
+
+            string[] strategyTypeIds = GetStrategyTypeIds();
+            for (int i = 0; i < strategyTypeIds.Length; i++)
+            {
+                Assert.True(registry.HasNode(strategyTypeIds[i]), strategyTypeIds[i]);
+            }
+
             Assert.True(registry.HasService("BT.VehicleRoad.UpdateRoadAgent"));
 
             Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.VehicleRoad.FindNearestLane").GetType());
             Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.VehicleRoad.FindLaneRoute").GetType());
             Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.VehicleRoad.ComputeFollowerControl").GetType());
             Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create("BT.VehicleRoad.DriveFollower").GetType());
+            for (int i = 0; i < splitTypeIds.Length; i++)
+            {
+                Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create(splitTypeIds[i]).GetType(), splitTypeIds[i]);
+            }
+
+            for (int i = 0; i < strategyTypeIds.Length; i++)
+            {
+                Assert.AreNotEqual(typeof(BehaviorTreeVisualNode), BehaviorTreeVisualNodeMetadata.Create(strategyTypeIds[i]).GetType(), strategyTypeIds[i]);
+            }
 
             BehaviorTreeSource source = new BehaviorTreeSource
             {
@@ -260,6 +305,405 @@ namespace BlueprintSystem.Tests
             }
         }
 
+        [Test]
+        public void VehicleRoadSplitFollowerNodesCompileWithOutputKeys()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateDriveFollowerSource();
+            BehaviorTreeNodeSource root = source.Nodes[0];
+            BehaviorTreeNodeSource sequence = AddNode(source, "split_sequence", "BT.Sequence");
+            root.Children.Add(sequence.Id);
+
+            BehaviorTreeNodeSource updateSpeed = AddNode(source, "update_speed", "BT.VehicleRoad.UpdateFollowerSpeed");
+            updateSpeed.Properties["currentSpeedKey"] = "CurrentSpeed";
+            sequence.Children.Add(updateSpeed.Id);
+
+            BehaviorTreeNodeSource evaluateStop = AddNode(source, "evaluate_stop", "BT.VehicleRoad.EvaluateStopPointTravel");
+            evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
+            evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
+            evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+            sequence.Children.Add(evaluateStop.Id);
+
+            BehaviorTreeNodeSource applyStop = AddNode(source, "apply_stop", "BT.VehicleRoad.ApplyStopPoint");
+            applyStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+            sequence.Children.Add(applyStop.Id);
+
+            BehaviorTreeNodeSource checkEnd = AddNode(source, "check_end", "BT.VehicleRoad.CheckFollowerRouteEnd");
+            checkEnd.Properties["arrivedKey"] = "Arrived";
+            sequence.Children.Add(checkEnd.Id);
+
+            sequence.Children.Add(AddNode(source, "move_baked", "BT.VehicleRoad.MoveAlongBakedRoute").Id);
+            sequence.Children.Add(AddNode(source, "move_fallback", "BT.VehicleRoad.MoveTowardLookAhead").Id);
+
+            BehaviorTreeNodeSource captureLoop = AddNode(source, "capture_loop", "BT.VehicleRoad.CaptureLoopStart");
+            captureLoop.Properties["loopStartPositionKey"] = "LoopStartPosition";
+            captureLoop.Properties["loopStartEulerAnglesKey"] = "LoopStartEulerAngles";
+            captureLoop.Properties["loopStartCapturedKey"] = "LoopStartCaptured";
+            sequence.Children.Add(captureLoop.Id);
+
+            BehaviorTreeNodeSource tickReset = AddNode(source, "tick_reset", "BT.VehicleRoad.TickLoopReset");
+            tickReset.Properties["loopResetDurationKey"] = "LoopResetDuration";
+            tickReset.Properties["loopResetKey"] = "LoopReset";
+            tickReset.Properties["currentSpeedKey"] = "CurrentSpeed";
+            sequence.Children.Add(tickReset.Id);
+            sequence.Children.Add(AddNode(source, "unregister", "BT.VehicleRoad.UnregisterVehicle").Id);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void VehicleRoadStrategyNodesCompileWithOutputKeys()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateDriveFollowerSource();
+            BehaviorTreeNodeSource root = source.Nodes[0];
+            BehaviorTreeNodeSource sequence = AddNode(source, "strategy_sequence", "BT.Sequence");
+            root.Children.Add(sequence.Id);
+
+            BehaviorTreeNodeSource setRoute = AddNode(source, "set_route", "BT.VehicleRoad.SetFollowerRoute");
+            setRoute.Properties["successKey"] = "Valid";
+            sequence.Children.Add(setRoute.Id);
+
+            BehaviorTreeNodeSource selectTarget = AddNode(source, "select_target", "BT.VehicleRoad.SelectNextRouteTarget");
+            selectTarget.Properties["successKey"] = "Valid";
+            selectTarget.Properties["destinationLaneIdKey"] = "DestinationLaneId";
+            selectTarget.Properties["selectedIndexKey"] = "SelectedIndex";
+            selectTarget.Properties["routeLaneIdsKey"] = "RouteLaneIds";
+            selectTarget.Properties["totalCostKey"] = "TotalCost";
+            sequence.Children.Add(selectTarget.Id);
+
+            BehaviorTreeNodeSource updateTraffic = AddNode(source, "update_traffic", "BT.VehicleRoad.UpdateTrafficState");
+            updateTraffic.Properties["updatedKey"] = "Updated";
+            updateTraffic.Properties["leadVehicleFoundKey"] = "LeadVehicleFound";
+            updateTraffic.Properties["leadVehicleIdKey"] = "LeadVehicleId";
+            updateTraffic.Properties["leadVehicleLaneIdKey"] = "LeadVehicleLaneId";
+            updateTraffic.Properties["leadVehicleDistanceKey"] = "LeadVehicleDistance";
+            updateTraffic.Properties["leadVehicleSpeedKey"] = "LeadVehicleSpeed";
+            updateTraffic.Properties["leadVehicleLengthKey"] = "LeadVehicleLength";
+            sequence.Children.Add(updateTraffic.Id);
+
+            BehaviorTreeNodeSource decideLaneChange = AddNode(source, "decide_lane_change", "BT.VehicleRoad.DecideLaneChange");
+            decideLaneChange.Properties["requestLaneChangeKey"] = "RequestLaneChange";
+            decideLaneChange.Properties["requestedLaneChangeSideKey"] = "RequestedLaneChangeSide";
+            decideLaneChange.Properties["laneChangeDecisionReasonKey"] = "LaneChangeDecisionReason";
+            sequence.Children.Add(decideLaneChange.Id);
+
+            BehaviorTreeNodeSource requestLaneChange = AddNode(source, "request_lane_change", "BT.VehicleRoad.RequestLaneChange");
+            requestLaneChange.Properties["laneChangeStatusKey"] = "LaneChangeStatus";
+            requestLaneChange.Properties["laneChangeTargetLaneIdKey"] = "LaneChangeTargetLaneId";
+            requestLaneChange.Properties["laneChangeReservedDistanceKey"] = "LaneChangeReservedDistance";
+            requestLaneChange.Properties["laneChangeFailureReasonKey"] = "LaneChangeFailureReason";
+            sequence.Children.Add(requestLaneChange.Id);
+
+            BehaviorTreeNodeSource completeLaneChange = AddNode(source, "complete_lane_change", "BT.VehicleRoad.CompleteLaneChange");
+            completeLaneChange.Properties["completedKey"] = "Completed";
+            sequence.Children.Add(completeLaneChange.Id);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+        }
+
+        [Test]
+        public void VehicleRoadSetFollowerRouteWritesRouteToFollower()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.SetFollowerRoute");
+            BehaviorTreeNodeSource setRoute = source.Nodes[1];
+            Bind(setRoute, "laneIds", "RouteLaneIds");
+            setRoute.Properties["successKey"] = "Valid";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtSetFollowerRouteOwner");
+            try
+            {
+                VehicleLaneFollower follower = owner.AddComponent<VehicleLaneFollower>();
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("RouteLaneIds", new List<string> { "lane_a", "lane_b" });
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+                CollectionAssert.AreEqual(new[] { "lane_a", "lane_b" }, follower.RouteLaneIds);
+                Assert.AreEqual(true, runtime.Blackboard.GetValue("Valid"));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadDecideLaneChangeWritesRequestWhenLeadVehicleBlocks()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.DecideLaneChange");
+            BehaviorTreeNodeSource decideLaneChange = source.Nodes[1];
+            Bind(decideLaneChange, "leadVehicleFound", "LeadVehicleFound");
+            Bind(decideLaneChange, "leadVehicleDistance", "LeadVehicleDistance");
+            Bind(decideLaneChange, "leadVehicleSpeed", "LeadVehicleSpeed");
+            Bind(decideLaneChange, "currentSpeed", "CurrentSpeed");
+            Bind(decideLaneChange, "hasStopPoint", "HasStopPoint");
+            Bind(decideLaneChange, "distanceToStopLine", "DistanceToStopLine");
+            Bind(decideLaneChange, "recoveryMode", "RecoveryMode");
+            Bind(decideLaneChange, "laneChangeStatus", "LaneChangeStatus");
+            decideLaneChange.Properties["minLeadDistance"] = 20f;
+            decideLaneChange.Properties["minSpeedAdvantage"] = 0.5f;
+            decideLaneChange.Properties["requestLaneChangeKey"] = "RequestLaneChange";
+            decideLaneChange.Properties["requestedLaneChangeSideKey"] = "RequestedLaneChangeSide";
+            decideLaneChange.Properties["laneChangeDecisionReasonKey"] = "LaneChangeDecisionReason";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtDecideLaneChangeOwner");
+            try
+            {
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("LeadVehicleFound", true);
+                runtime.Blackboard.SetValue("LeadVehicleDistance", 8f);
+                runtime.Blackboard.SetValue("LeadVehicleSpeed", 2f);
+                runtime.Blackboard.SetValue("CurrentSpeed", 6f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+                Assert.AreEqual(true, runtime.Blackboard.GetValue("RequestLaneChange"));
+                Assert.AreEqual(RoadLaneAdjacentSide.Right, runtime.Blackboard.GetValue("RequestedLaneChangeSide"));
+                Assert.AreEqual("LeadVehicleBlocked", runtime.Blackboard.GetValue("LaneChangeDecisionReason"));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadSplitFollowerSpeedStopPointAndApplyNodesUpdateOwner()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateDriveFollowerSource();
+            BehaviorTreeNodeSource root = source.Nodes[0];
+            BehaviorTreeNodeSource sequence = AddNode(source, "split_sequence", "BT.Sequence");
+            root.Children.Add(sequence.Id);
+
+            BehaviorTreeNodeSource updateSpeed = AddNode(source, "update_speed", "BT.VehicleRoad.UpdateFollowerSpeed");
+            Bind(updateSpeed, "valid", "Valid");
+            Bind(updateSpeed, "currentSpeed", "CurrentSpeed");
+            updateSpeed.Properties["targetSpeed"] = 4f;
+            updateSpeed.Properties["acceleration"] = 1f;
+            updateSpeed.Properties["deltaTime"] = 1f;
+            updateSpeed.Properties["currentSpeedKey"] = "CurrentSpeed";
+            sequence.Children.Add(updateSpeed.Id);
+
+            BehaviorTreeNodeSource evaluateStop = AddNode(source, "evaluate_stop", "BT.VehicleRoad.EvaluateStopPointTravel");
+            Bind(evaluateStop, "hasStopPoint", "HasStopPoint");
+            Bind(evaluateStop, "distanceToStopLine", "DistanceToStopLine");
+            Bind(evaluateStop, "currentSpeed", "CurrentSpeed");
+            evaluateStop.Properties["targetSpeed"] = 0f;
+            evaluateStop.Properties["deltaTime"] = 1f;
+            evaluateStop.Properties["stopPointApproachSpeed"] = 2f;
+            evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
+            evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
+            evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+            sequence.Children.Add(evaluateStop.Id);
+
+            BehaviorTreeNodeSource applyStop = AddNode(source, "apply_stop", "BT.VehicleRoad.ApplyStopPoint");
+            Bind(applyStop, "reachedStopPoint", "ReachedStopPoint");
+            Bind(applyStop, "stopPoint", "StopPoint");
+            applyStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+            sequence.Children.Add(applyStop.Id);
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtSplitStopOwner");
+            try
+            {
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("Valid", true);
+                runtime.Blackboard.SetValue("HasStopPoint", true);
+                runtime.Blackboard.SetValue("DistanceToStopLine", 0.5f);
+                runtime.Blackboard.SetValue("StopPoint", new Vector3(0f, 0f, 0.5f));
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(1f));
+                Assert.AreEqual(true, runtime.Blackboard.GetValue("ReachedStopPoint"));
+                Assert.AreEqual(0f, (float)runtime.Blackboard.GetValue("CurrentSpeed"));
+                Assert.That((float)runtime.Blackboard.GetValue("TravelDistance"), Is.EqualTo(0.5f).Within(0.001f));
+                Assert.AreEqual(new Vector3(0f, 0f, 0.5f), owner.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadSplitFollowerMovementNodesMoveOwner()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource bakedSource = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.MoveAlongBakedRoute");
+            BehaviorTreeNodeSource bakedMove = bakedSource.Nodes[1];
+            Bind(bakedMove, "currentLaneId", "CurrentLaneId");
+            Bind(bakedMove, "distanceAlongLane", "DistanceAlongLane");
+            Bind(bakedMove, "travelDistance", "TravelDistance");
+            bakedMove.Properties["followBakedLanePose"] = true;
+
+            BehaviorTreeCompileResult bakedCompile = new BehaviorTreeCompiler().Compile(bakedSource, registry);
+            Assert.True(bakedCompile.Success, bakedCompile.Diagnostics.ToDisplayString());
+
+            BakedLaneNetwork network = CreateStraightLaneNetwork();
+            GameObject bakedOwner = new GameObject("VehicleRoadBtSplitBakedOwner");
+            try
+            {
+                VehicleLaneFollower follower = bakedOwner.AddComponent<VehicleLaneFollower>();
+                follower.LaneNetwork = network;
+                follower.SetRoute(new[] { "lane" });
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(bakedCompile.Tree, bakedOwner, null);
+                runtime.Blackboard.SetValue("CurrentLaneId", "lane");
+                runtime.Blackboard.SetValue("DistanceAlongLane", 0f);
+                runtime.Blackboard.SetValue("TravelDistance", 5f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(1f));
+                Assert.That(bakedOwner.transform.position.z, Is.EqualTo(5f).Within(0.01f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(bakedOwner);
+                Object.DestroyImmediate(network);
+            }
+
+            BehaviorTreeSource fallbackSource = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.MoveTowardLookAhead");
+            BehaviorTreeNodeSource fallbackMove = fallbackSource.Nodes[1];
+            Bind(fallbackMove, "lookAheadPoint", "LookAheadPoint");
+            Bind(fallbackMove, "travelDistance", "TravelDistance");
+            fallbackMove.Properties["turnSpeed"] = 360f;
+            fallbackMove.Properties["deltaTime"] = 1f;
+            BehaviorTreeCompileResult fallbackCompile = new BehaviorTreeCompiler().Compile(fallbackSource, registry);
+            Assert.True(fallbackCompile.Success, fallbackCompile.Diagnostics.ToDisplayString());
+
+            GameObject fallbackOwner = new GameObject("VehicleRoadBtSplitFallbackOwner");
+            try
+            {
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(fallbackCompile.Tree, fallbackOwner, null);
+                runtime.Blackboard.SetValue("LookAheadPoint", new Vector3(0f, 0f, 10f));
+                runtime.Blackboard.SetValue("TravelDistance", 3f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(1f));
+                Assert.That(fallbackOwner.transform.position.z, Is.GreaterThan(2.9f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(fallbackOwner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadSplitFollowerLoopResetRestoresOwner()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.TickLoopReset");
+            BehaviorTreeNodeSource reset = source.Nodes[1];
+            reset.Properties["loopRoute"] = true;
+            reset.Properties["resetRequested"] = true;
+            reset.Properties["loopResetDuration"] = 1f;
+            reset.Properties["loopResetDelay"] = 1f;
+            reset.Properties["unregisterOnReset"] = false;
+            Bind(reset, "loopStartPosition", "LoopStartPosition");
+            Bind(reset, "loopStartEulerAngles", "LoopStartEulerAngles");
+            reset.Properties["loopResetDurationKey"] = "LoopResetDuration";
+            reset.Properties["loopResetKey"] = "LoopReset";
+            reset.Properties["currentSpeedKey"] = "CurrentSpeed";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtSplitLoopResetOwner");
+            try
+            {
+                owner.transform.position = new Vector3(9f, 0f, 9f);
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("LoopStartPosition", new Vector3(1f, 0f, 2f));
+                runtime.Blackboard.SetValue("LoopStartEulerAngles", new Vector3(0f, 90f, 0f));
+                runtime.Blackboard.SetValue("CurrentSpeed", 3f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(1f));
+                Assert.AreEqual(new Vector3(1f, 0f, 2f), owner.transform.position);
+                Assert.AreEqual(true, runtime.Blackboard.GetValue("LoopReset"));
+                Assert.AreEqual(0f, (float)runtime.Blackboard.GetValue("CurrentSpeed"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadSplitFollowerUnregisterFailsWithoutFollowerAndDoesNotMoveOwner()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.UnregisterVehicle");
+            source.Nodes[1].Properties["vehicleId"] = "missing";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtSplitUnregisterOwner");
+            try
+            {
+                owner.transform.position = new Vector3(3f, 0f, 2f);
+                Vector3 before = owner.transform.position;
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+
+                Assert.AreEqual(BehaviorTreeStatus.Failure, runtime.Tick(0.1f));
+                Assert.AreEqual(before, owner.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        private static string[] GetSplitFollowerTypeIds()
+        {
+            return new[]
+            {
+                "BT.VehicleRoad.UpdateFollowerSpeed",
+                "BT.VehicleRoad.EvaluateStopPointTravel",
+                "BT.VehicleRoad.ApplyStopPoint",
+                "BT.VehicleRoad.CheckFollowerRouteEnd",
+                "BT.VehicleRoad.MoveAlongBakedRoute",
+                "BT.VehicleRoad.MoveTowardLookAhead",
+                "BT.VehicleRoad.CaptureLoopStart",
+                "BT.VehicleRoad.TickLoopReset",
+                "BT.VehicleRoad.UnregisterVehicle"
+            };
+        }
+
+        private static string[] GetStrategyTypeIds()
+        {
+            return new[]
+            {
+                "BT.VehicleRoad.SetFollowerRoute",
+                "BT.VehicleRoad.SelectNextRouteTarget",
+                "BT.VehicleRoad.UpdateTrafficState",
+                "BT.VehicleRoad.DecideLaneChange",
+                "BT.VehicleRoad.RequestLaneChange",
+                "BT.VehicleRoad.CompleteLaneChange"
+            };
+        }
+
+        private static BehaviorTreeSource CreateSingleVehicleRoadNodeSource(string typeId)
+        {
+            BehaviorTreeSource source = CreateDriveFollowerSource();
+            BehaviorTreeNodeSource node = AddNode(source, "vehicle_road_task", typeId);
+            source.Nodes[0].Children.Add(node.Id);
+            return source;
+        }
+
+        private static void Bind(BehaviorTreeNodeSource node, string inputId, string blackboardKey)
+        {
+            node.Inputs[inputId] = blackboardKey;
+        }
+
         private static BehaviorTreeNodeSource AddNode(BehaviorTreeSource source, string id, string typeId)
         {
             BehaviorTreeNodeSource node = new BehaviorTreeNodeSource
@@ -306,9 +750,34 @@ namespace BlueprintSystem.Tests
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "ConnectorLaneId", Type = "string", DefaultValue = string.Empty });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneChangeStatus", Type = "VehicleRoadLaneChangeStatus", DefaultValue = "None" });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneChangeTargetLaneId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneChangeReservedDistance", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneChangeFailureReason", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RequestLaneChange", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RequestedLaneChangeSide", Type = "RoadLaneAdjacentSide", DefaultValue = "Right" });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneChangeDecisionReason", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "Completed", Type = "bool", DefaultValue = false });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CurrentSpeed", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "DestinationLaneId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "SelectedIndex", Type = "int", DefaultValue = -1 });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RouteLaneIds", Type = "Array<string>", DefaultValue = new List<object>() });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CandidateLaneIds", Type = "Array<string>", DefaultValue = new List<object>() });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "TotalCost", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "Updated", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LeadVehicleFound", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LeadVehicleId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LeadVehicleLaneId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LeadVehicleDistance", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LeadVehicleSpeed", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LeadVehicleLength", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RequestedTravelDistance", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "TravelDistance", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "ReachedStopPoint", Type = "bool", DefaultValue = false });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "Arrived", Type = "bool", DefaultValue = false });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LoopReset", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LoopStartPosition", Type = "Vector3", DefaultValue = new List<object> { 0f, 0f, 0f } });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LoopStartEulerAngles", Type = "Vector3", DefaultValue = new List<object> { 0f, 0f, 0f } });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LoopStartCaptured", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LoopResetDuration", Type = "float", DefaultValue = 0f });
         }
 
         private static void ConfigureDriveFollowerOutputKeys(BehaviorTreeNodeSource node)
