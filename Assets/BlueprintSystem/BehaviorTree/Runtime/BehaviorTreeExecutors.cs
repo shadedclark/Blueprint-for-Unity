@@ -181,6 +181,8 @@ namespace BlueprintSystem
                 registry.Register(new BehaviorTreeVehicleRoadDriveFollowerExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadUpdateTrafficStateExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadDecideLaneChangeExecutor());
+                registry.Register(new BehaviorTreeVehicleRoadEvaluateLaneOccupancyExecutor());
+                registry.Register(new BehaviorTreeVehicleRoadEvaluateLaneChangeRouteExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadRequestLaneChangeExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadCompleteLaneChangeExecutor());
                 registry.Register(new BehaviorTreeVehicleRoadUpdateFollowerSpeedExecutor());
@@ -2802,6 +2804,221 @@ namespace BlueprintSystem
         }
     }
 
+    internal sealed class BehaviorTreeVehicleRoadEvaluateLaneOccupancyExecutor : BehaviorTreeNodeExecutor
+    {
+        public override string TypeId
+        {
+            get { return "BT.VehicleRoad.EvaluateLaneOccupancy"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            VehicleRoadSubsystem subsystem = BehaviorTreeVehicleRoadUtility.ResolveSubsystemOrFollower(context, node);
+            string laneId = BehaviorTreePropertyUtility.ResolveString(context, node, "laneId", "laneId", string.Empty);
+            if (subsystem == null || string.IsNullOrWhiteSpace(laneId))
+            {
+                VehicleRoadLaneOccupancyResult missing = new VehicleRoadLaneOccupancyResult
+                {
+                    status = VehicleRoadLaneOccupancyStatus.InvalidInput,
+                    failureReason = subsystem == null
+                        ? TypeId + " requires a VehicleRoadSubsystem input, follower, or owner component."
+                        : TypeId + " requires a non-empty laneId."
+                };
+                BehaviorTreeVehicleRoadUtility.WriteLaneOccupancyOutput(context, node, missing);
+                context.Runtime.MarkFailure(missing.failureReason);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            VehicleRoadLaneOccupancyResult result = subsystem.EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+            {
+                vehicleId = BehaviorTreePropertyUtility.ResolveString(context, node, "vehicleId", "vehicleId", string.Empty),
+                laneId = laneId,
+                distanceAlongLane = BehaviorTreePropertyUtility.ResolveFloat(context, node, "distanceAlongLane", "distanceAlongLane", 0f),
+                agentMask = BehaviorTreeVehicleRoadUtility.ResolveAgentMask(context, node),
+                vehicleLength = BehaviorTreePropertyUtility.ResolveFloat(context, node, "vehicleLength", "vehicleLength", 0f),
+                lookAheadDistance = BehaviorTreePropertyUtility.ResolveFloat(context, node, "lookAheadDistance", "lookAheadDistance", 0f),
+                requiredGap = BehaviorTreePropertyUtility.ResolveFloat(context, node, "requiredGap", "requiredGap", 0f),
+                maxOccupancyRatio = BehaviorTreePropertyUtility.ResolveFloat(context, node, "maxOccupancyRatio", "maxOccupancyRatio", 0f)
+            });
+            BehaviorTreeVehicleRoadUtility.WriteLaneOccupancyOutput(context, node, result);
+            if (!result.valid)
+            {
+                context.Runtime.MarkFailure(result.failureReason);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            return BehaviorTreeStatus.Success;
+        }
+    }
+
+    internal sealed class BehaviorTreeVehicleRoadEvaluateLaneChangeRouteExecutor : BehaviorTreeNodeExecutor
+    {
+        private const float DefaultStopPointBlockDistance = 14f;
+
+        public override string TypeId
+        {
+            get { return "BT.VehicleRoad.EvaluateLaneChangeRoute"; }
+        }
+
+        public override BehaviorTreeStatus Tick(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node)
+        {
+            VehicleLaneFollower follower = BehaviorTreeVehicleRoadUtility.ResolveInputOrOwnerComponent<VehicleLaneFollower>(
+                context,
+                node,
+                "follower");
+            VehicleRoadSubsystem subsystem = BehaviorTreeVehicleRoadUtility.ResolveSubsystemOrFollower(context, node, follower);
+            List<string> routeLaneIds = BehaviorTreeVehicleRoadUtility.ResolveStringList(
+                context,
+                node,
+                "currentRouteLaneIds",
+                "currentRouteLaneIds");
+            if (routeLaneIds.Count == 0 && follower != null && follower.RouteLaneIds != null)
+            {
+                routeLaneIds = new List<string>(follower.RouteLaneIds);
+            }
+
+            string currentLaneId = BehaviorTreePropertyUtility.ResolveString(context, node, "currentLaneId", "currentLaneId", string.Empty);
+            string destinationLaneId = BehaviorTreePropertyUtility.ResolveString(context, node, "destinationLaneId", "destinationLaneId", string.Empty);
+            if (string.IsNullOrWhiteSpace(destinationLaneId) && routeLaneIds.Count > 0)
+            {
+                destinationLaneId = routeLaneIds[routeLaneIds.Count - 1];
+            }
+
+            RoadLaneAdjacentSide preferredSide = BehaviorTreeVehicleRoadUtility.ResolveEnumValue(
+                context,
+                node,
+                "preferredSide",
+                "preferredSide",
+                RoadLaneAdjacentSide.Right);
+
+            if (subsystem == null ||
+                string.IsNullOrWhiteSpace(currentLaneId) ||
+                string.IsNullOrWhiteSpace(destinationLaneId))
+            {
+                VehicleRoadLaneChangeRouteResult missing = CreateBlockedRouteResult(
+                    preferredSide,
+                    VehicleRoadLaneChangeDecisionReason.NoCurrentRoute,
+                    subsystem == null
+                        ? TypeId + " requires a VehicleRoadSubsystem input, follower, or owner component."
+                        : TypeId + " requires currentLaneId and destinationLaneId.");
+                BehaviorTreeVehicleRoadUtility.WriteLaneChangeRouteOutput(context, node, missing);
+                context.Runtime.MarkFailure(missing.failureReason);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            VehicleRoadLaneChangeStatus laneChangeStatus = BehaviorTreeVehicleRoadUtility.ResolveEnumValue(
+                context,
+                node,
+                "laneChangeStatus",
+                "laneChangeStatus",
+                VehicleRoadLaneChangeStatus.None);
+            if (!BehaviorTreePropertyUtility.ResolveBool(context, node, "allowActiveRequest", "allowActiveRequest", false) &&
+                IsLaneChangeActive(laneChangeStatus))
+            {
+                BehaviorTreeVehicleRoadUtility.WriteLaneChangeRouteOutput(
+                    context,
+                    node,
+                    CreateBlockedRouteResult(
+                        preferredSide,
+                        VehicleRoadLaneChangeDecisionReason.AlreadyChanging,
+                        "Lane-change request is already active."));
+                return BehaviorTreeStatus.Success;
+            }
+
+            VehicleLaneRecoveryMode recoveryMode = BehaviorTreeVehicleRoadUtility.ResolveEnumValue(
+                context,
+                node,
+                "recoveryMode",
+                "recoveryMode",
+                VehicleLaneRecoveryMode.None);
+            if (!BehaviorTreePropertyUtility.ResolveBool(context, node, "allowDuringRecovery", "allowDuringRecovery", false) &&
+                recoveryMode != VehicleLaneRecoveryMode.None)
+            {
+                BehaviorTreeVehicleRoadUtility.WriteLaneChangeRouteOutput(
+                    context,
+                    node,
+                    CreateBlockedRouteResult(
+                        preferredSide,
+                        VehicleRoadLaneChangeDecisionReason.RecoveryMode,
+                        "Follower recovery mode is active."));
+                return BehaviorTreeStatus.Success;
+            }
+
+            bool hasStopPoint = BehaviorTreePropertyUtility.ResolveBool(context, node, "hasStopPoint", "hasStopPoint", false);
+            float distanceToStopLine = BehaviorTreePropertyUtility.ResolveFloat(
+                context,
+                node,
+                "distanceToStopLine",
+                "distanceToStopLine",
+                float.PositiveInfinity);
+            float stopPointBlockDistance = Mathf.Max(
+                0f,
+                BehaviorTreePropertyUtility.ResolveFloat(
+                    context,
+                    node,
+                    "stopPointBlockDistance",
+                    "stopPointBlockDistance",
+                    DefaultStopPointBlockDistance));
+            if (!BehaviorTreePropertyUtility.ResolveBool(context, node, "allowNearStopPoint", "allowNearStopPoint", false) &&
+                hasStopPoint &&
+                distanceToStopLine <= stopPointBlockDistance)
+            {
+                BehaviorTreeVehicleRoadUtility.WriteLaneChangeRouteOutput(
+                    context,
+                    node,
+                    CreateBlockedRouteResult(
+                        preferredSide,
+                        VehicleRoadLaneChangeDecisionReason.ApproachingStopPoint,
+                        "Vehicle is approaching a stop point."));
+                return BehaviorTreeStatus.Success;
+            }
+
+            VehicleRoadLaneChangeRouteResult result = subsystem.EvaluateLaneChangeRoute(new VehicleRoadLaneChangeRouteQuery
+            {
+                vehicleId = BehaviorTreePropertyUtility.ResolveString(context, node, "vehicleId", "vehicleId", string.Empty),
+                currentLaneId = currentLaneId,
+                destinationLaneId = destinationLaneId,
+                currentRouteLaneIds = routeLaneIds,
+                distanceAlongLane = BehaviorTreePropertyUtility.ResolveFloat(context, node, "distanceAlongLane", "distanceAlongLane", 0f),
+                agentMask = BehaviorTreeVehicleRoadUtility.ResolveAgentMask(context, node),
+                vehicleLength = BehaviorTreePropertyUtility.ResolveFloat(context, node, "vehicleLength", "vehicleLength", 0f),
+                preferredSide = preferredSide,
+                allowOppositeSide = BehaviorTreePropertyUtility.ResolveBool(context, node, "allowOppositeSide", "allowOppositeSide", true),
+                lookAheadDistance = BehaviorTreePropertyUtility.ResolveFloat(context, node, "lookAheadDistance", "lookAheadDistance", 0f),
+                requiredGap = BehaviorTreePropertyUtility.ResolveFloat(context, node, "requiredGap", "requiredGap", 0f),
+                maxOccupancyRatio = BehaviorTreePropertyUtility.ResolveFloat(context, node, "maxOccupancyRatio", "maxOccupancyRatio", 0f)
+            });
+            BehaviorTreeVehicleRoadUtility.WriteLaneChangeRouteOutput(context, node, result);
+            return BehaviorTreeStatus.Success;
+        }
+
+        private static bool IsLaneChangeActive(VehicleRoadLaneChangeStatus status)
+        {
+            return status != VehicleRoadLaneChangeStatus.None &&
+                   status != VehicleRoadLaneChangeStatus.Denied &&
+                   status != VehicleRoadLaneChangeStatus.Completed &&
+                   status != VehicleRoadLaneChangeStatus.Cancelled;
+        }
+
+        private static VehicleRoadLaneChangeRouteResult CreateBlockedRouteResult(
+            RoadLaneAdjacentSide preferredSide,
+            VehicleRoadLaneChangeDecisionReason reason,
+            string failureReason)
+        {
+            return new VehicleRoadLaneChangeRouteResult
+            {
+                shouldRequestLaneChange = false,
+                side = preferredSide,
+                routeLaneIds = new List<string>(),
+                currentNextLaneId = string.Empty,
+                currentOccupancyStatus = VehicleRoadLaneOccupancyStatus.Unknown,
+                targetOccupancyStatus = VehicleRoadLaneOccupancyStatus.Unknown,
+                reason = reason,
+                failureReason = failureReason ?? string.Empty
+            };
+        }
+    }
+
     internal sealed class BehaviorTreeVehicleRoadRequestLaneChangeExecutor : BehaviorTreeNodeExecutor
     {
         public override string TypeId
@@ -3421,6 +3638,45 @@ namespace BlueprintSystem
             WriteValue(context, node, "connectorLaneIdKey", output.connectorLaneId ?? string.Empty);
             WriteValue(context, node, "laneChangeStatusKey", output.laneChangeStatus);
             WriteValue(context, node, "laneChangeTargetLaneIdKey", output.laneChangeTargetLaneId ?? string.Empty);
+        }
+
+        public static void WriteLaneOccupancyOutput(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            VehicleRoadLaneOccupancyResult result)
+        {
+            WriteBool(context, node, "validKey", result.valid);
+            WriteValue(context, node, "statusKey", result.status);
+            WriteBool(context, node, "isEnterableKey", result.isEnterable);
+            WriteValue(context, node, "vehicleCountKey", result.vehicleCount);
+            WriteValue(context, node, "reservationCountKey", result.reservationCount);
+            WriteValue(context, node, "occupancyRatioKey", result.occupancyRatio);
+            WriteValue(context, node, "nearestForwardVehicleIdKey", result.nearestForwardVehicleId ?? string.Empty);
+            WriteValue(context, node, "nearestForwardDistanceKey", result.nearestForwardDistance);
+            WriteValue(context, node, "nearestRearVehicleIdKey", result.nearestRearVehicleId ?? string.Empty);
+            WriteValue(context, node, "nearestRearDistanceKey", result.nearestRearDistance);
+            WriteValue(context, node, "availableForwardGapKey", result.availableForwardGap);
+            WriteValue(context, node, "availableRearGapKey", result.availableRearGap);
+            WriteValue(context, node, "failureReasonKey", result.failureReason ?? string.Empty);
+        }
+
+        public static void WriteLaneChangeRouteOutput(
+            BehaviorTreeExecutionContext context,
+            RuntimeBehaviorTreeNode node,
+            VehicleRoadLaneChangeRouteResult result)
+        {
+            WriteBool(context, node, "requestLaneChangeKey", result.shouldRequestLaneChange);
+            WriteValue(context, node, "requestedLaneChangeSideKey", result.side);
+            WriteValue(context, node, "targetLaneIdKey", result.targetLaneId ?? string.Empty);
+            WriteValue(context, node, "targetDistanceAlongLaneKey", result.targetDistanceAlongLane);
+            WriteValue(context, node, "targetRouteLaneIdsKey", result.routeLaneIds == null ? new List<string>() : new List<string>(result.routeLaneIds));
+            WriteValue(context, node, "totalCostKey", result.totalCost);
+            WriteBool(context, node, "currentRouteFoundKey", result.currentRouteFound);
+            WriteValue(context, node, "currentNextLaneIdKey", result.currentNextLaneId ?? string.Empty);
+            WriteValue(context, node, "decisionReasonKey", result.reason);
+            WriteValue(context, node, "failureReasonKey", result.failureReason ?? string.Empty);
+            WriteValue(context, node, "currentOccupancyStatusKey", result.currentOccupancyStatus);
+            WriteValue(context, node, "targetOccupancyStatusKey", result.targetOccupancyStatus);
         }
 
         public static void WriteRoadAgentOutput(BehaviorTreeExecutionContext context, Dictionary<string, object> properties, RoadAgentControlOutput output)

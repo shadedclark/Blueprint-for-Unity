@@ -74,6 +74,39 @@ namespace BlueprintSystem.Editor
             AddValueOutput("failureReason", "string");
         }
 
+        protected void AddLaneOccupancyOutputs()
+        {
+            AddValueOutput("valid", "bool");
+            AddValueOutput("status", "VehicleRoadLaneOccupancyStatus");
+            AddValueOutput("isEnterable", "bool");
+            AddValueOutput("vehicleCount", "int");
+            AddValueOutput("reservationCount", "int");
+            AddValueOutput("occupancyRatio", "float");
+            AddValueOutput("nearestForwardVehicleId", "string");
+            AddValueOutput("nearestForwardDistance", "float");
+            AddValueOutput("nearestRearVehicleId", "string");
+            AddValueOutput("nearestRearDistance", "float");
+            AddValueOutput("availableForwardGap", "float");
+            AddValueOutput("availableRearGap", "float");
+            AddValueOutput("failureReason", "string");
+        }
+
+        protected void AddLaneChangeRouteOutputs()
+        {
+            AddValueOutput("shouldRequestLaneChange", "bool");
+            AddValueOutput("side", "RoadLaneAdjacentSide");
+            AddValueOutput("targetLaneId", "string");
+            AddValueOutput("targetDistanceAlongLane", "float");
+            AddValueOutput("routeLaneIds", "Array<string>");
+            AddValueOutput("totalCost", "float");
+            AddValueOutput("currentRouteFound", "bool");
+            AddValueOutput("currentNextLaneId", "string");
+            AddValueOutput("currentOccupancyStatus", "VehicleRoadLaneOccupancyStatus");
+            AddValueOutput("targetOccupancyStatus", "VehicleRoadLaneOccupancyStatus");
+            AddValueOutput("reason", "VehicleRoadLaneChangeDecisionReason");
+            AddValueOutput("failureReason", "string");
+        }
+
         protected void AddFollowerOutputs()
         {
             AddValueOutput("valid", "bool");
@@ -96,6 +129,72 @@ namespace BlueprintSystem.Editor
             AddValueOutput("connectorLaneId", "string");
             AddValueOutput("laneChangeStatus", "VehicleRoadLaneChangeStatus");
             AddValueOutput("laneChangeTargetLaneId", "string");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.EvaluateLaneOccupancy")]
+    public sealed class VehicleRoadEvaluateLaneOccupancyVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.EvaluateLaneOccupancy", "VehicleRoad Evaluate Lane Occupancy", "VehicleRoads", "Reads target lane gap and density occupancy.");
+            AddSubsystemInput();
+            AddValueInput("vehicleId", "string", false, "propertyOrConnection");
+            AddValueInput("laneId", "string", true, "propertyOrConnection");
+            AddValueInput("distanceAlongLane", "float", true, "propertyOrConnection");
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("vehicleLength", "float", false, "propertyOrConnection");
+            AddValueInput("lookAheadDistance", "float", false, "propertyOrConnection");
+            AddValueInput("requiredGap", "float", false, "propertyOrConnection");
+            AddValueInput("maxOccupancyRatio", "float", false, "propertyOrConnection");
+            AddLaneOccupancyOutputs();
+            AddProperty("vehicleId", "string", false, "");
+            AddProperty("laneId", "string", false, "");
+            AddProperty("distanceAlongLane", "float", false, 0f);
+            AddAgentMaskProperty();
+            AddProperty("vehicleLength", "float", false, 0f);
+            AddProperty("lookAheadDistance", "float", false, 30f);
+            AddProperty("requiredGap", "float", false, 0f);
+            AddProperty("maxOccupancyRatio", "float", false, 0.85f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.EvaluateLaneChangeRoute")]
+    public sealed class VehicleRoadEvaluateLaneChangeRouteVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.EvaluateLaneChangeRoute", "VehicleRoad Evaluate Lane Change Route", "VehicleRoads", "Evaluates route-level adjacent-lane recovery.");
+            AddSubsystemInput();
+            AddValueInput("vehicleId", "string", false, "propertyOrConnection");
+            AddValueInput("currentLaneId", "string", true, "propertyOrConnection");
+            AddValueInput("destinationLaneId", "string", true, "propertyOrConnection");
+            AddValueInput("currentRouteLaneIds", "Array<string>", false, "propertyOrConnection");
+            AddValueInput("distanceAlongLane", "float", true, "propertyOrConnection");
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("vehicleLength", "float", false, "propertyOrConnection");
+            AddValueInput("preferredSide", "RoadLaneAdjacentSide", false, "propertyOrConnection");
+            AddValueInput("allowOppositeSide", "bool", false, "propertyOrConnection");
+            AddValueInput("lookAheadDistance", "float", false, "propertyOrConnection");
+            AddValueInput("requiredGap", "float", false, "propertyOrConnection");
+            AddValueInput("maxOccupancyRatio", "float", false, "propertyOrConnection");
+            AddLaneChangeRouteOutputs();
+            AddProperty("vehicleId", "string", false, "");
+            AddProperty("currentLaneId", "string", false, "");
+            AddProperty("destinationLaneId", "string", false, "");
+            AddProperty("currentRouteLaneIds", "Array<string>", false, new List<object>());
+            AddProperty("distanceAlongLane", "float", false, 0f);
+            AddAgentMaskProperty();
+            AddProperty("vehicleLength", "float", false, 0f);
+            AddProperty("preferredSide", "RoadLaneAdjacentSide", false, "Right");
+            AddProperty("allowOppositeSide", "bool", false, true);
+            AddProperty("lookAheadDistance", "float", false, 30f);
+            AddProperty("requiredGap", "float", false, 0f);
+            AddProperty("maxOccupancyRatio", "float", false, 0.85f);
         }
     }
 
@@ -164,6 +263,24 @@ namespace BlueprintSystem.Editor
             AddExecOutput("execOut");
             AddProperty("laneId", "string", false, "");
             AddProperty("closed", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.SetLaneCongestionCost")]
+    public sealed class VehicleRoadSetLaneCongestionCostVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.SetLaneCongestionCost", "VehicleRoad Set Lane Congestion Cost", "VehicleRoads", "Writes a runtime route-cost penalty for a lane.");
+            AddExecInput("execIn");
+            AddSubsystemInput();
+            AddValueInput("laneId", "string", true, "propertyOrConnection");
+            AddValueInput("cost", "float", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("laneId", "string", false, "");
+            AddProperty("cost", "float", false, 0f);
         }
     }
 

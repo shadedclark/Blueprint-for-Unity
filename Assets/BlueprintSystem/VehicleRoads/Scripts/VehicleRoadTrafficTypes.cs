@@ -49,6 +49,39 @@ namespace VehicleRoads
         Cancelled
     }
 
+    public enum VehicleRoadLaneOccupancyStatus
+    {
+        Unknown,
+        Open,
+        UnsafeGap,
+        Congested,
+        Full,
+        Closed,
+        RouteUnavailable,
+        InvalidInput
+    }
+
+    public enum VehicleRoadLaneChangeDecisionReason
+    {
+        None,
+        CurrentRouteValid,
+        NoCurrentRoute,
+        RouteEnd,
+        NextLaneMissing,
+        NextLaneClosed,
+        NextLaneUnsafe,
+        NextLaneCongested,
+        NextLaneFull,
+        LeadVehicleBlocked,
+        AlreadyChanging,
+        ApproachingStopPoint,
+        RecoveryMode,
+        NoAdjacentLane,
+        AdjacentUnsafe,
+        AdjacentRouteUnavailable,
+        Selected
+    }
+
     public enum BakedConnectorConflictReason
     {
         Overlap,
@@ -228,6 +261,67 @@ namespace VehicleRoads
         public string targetLaneId;
         public RoadLaneAdjacentSide side;
         public float reservedDistanceAlongLane;
+        public string failureReason;
+    }
+
+    public struct VehicleRoadLaneOccupancyQuery
+    {
+        public string vehicleId;
+        public string laneId;
+        public float distanceAlongLane;
+        public RoadAgentMask agentMask;
+        public float vehicleLength;
+        public float lookAheadDistance;
+        public float requiredGap;
+        public float maxOccupancyRatio;
+    }
+
+    public struct VehicleRoadLaneOccupancyResult
+    {
+        public bool valid;
+        public VehicleRoadLaneOccupancyStatus status;
+        public bool isEnterable;
+        public int vehicleCount;
+        public int reservationCount;
+        public float occupancyRatio;
+        public string nearestForwardVehicleId;
+        public float nearestForwardDistance;
+        public string nearestRearVehicleId;
+        public float nearestRearDistance;
+        public float availableForwardGap;
+        public float availableRearGap;
+        public string failureReason;
+    }
+
+    public struct VehicleRoadLaneChangeRouteQuery
+    {
+        public string vehicleId;
+        public string currentLaneId;
+        public string destinationLaneId;
+        public IReadOnlyList<string> currentRouteLaneIds;
+        public float distanceAlongLane;
+        public RoadAgentMask agentMask;
+        public float vehicleLength;
+        public RoadLaneAdjacentSide preferredSide;
+        public bool allowOppositeSide;
+        public float lookAheadDistance;
+        public float requiredGap;
+        public float maxOccupancyRatio;
+    }
+
+    public struct VehicleRoadLaneChangeRouteResult
+    {
+        public bool shouldRequestLaneChange;
+        public RoadLaneAdjacentSide side;
+        public string targetLaneId;
+        public float targetDistanceAlongLane;
+        public List<string> routeLaneIds;
+        public float totalCost;
+        public bool currentRouteFound;
+        public string currentNextLaneId;
+        public VehicleRoadLaneOccupancyStatus currentOccupancyStatus;
+        public VehicleRoadLaneOccupancyStatus targetOccupancyStatus;
+        public VehicleRoadLaneChangeDecisionReason reason;
         public string failureReason;
     }
 }

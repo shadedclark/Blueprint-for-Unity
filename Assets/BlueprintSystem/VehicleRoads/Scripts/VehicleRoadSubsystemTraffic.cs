@@ -7,6 +7,9 @@ namespace VehicleRoads
     public sealed partial class VehicleRoadSubsystem
     {
         private const float PassageGrantDistance = 0.25f;
+        private const float DefaultLaneOccupancyLookAheadDistance = 30f;
+        private const float DefaultLaneOccupancyRatio = 0.85f;
+        private const float CongestedOccupancyRatioFactor = 0.7f;
 
         [Header("Traffic Runtime")]
         [SerializeField, Min(0.1f)] private float defaultVehicleLength = 4.5f;
@@ -331,6 +334,353 @@ namespace VehicleRoads
             }
 
             ApplyLaneChangeStatus(query, ref result);
+            return result;
+        }
+
+        public VehicleRoadLaneOccupancyResult EvaluateLaneOccupancy(VehicleRoadLaneOccupancyQuery query)
+        {
+            using RoadNetworkProfiler.Scope ignored =
+                RoadNetworkProfiler.Sample(RoadNetworkProfiler.LaneChangeQuery);
+
+            VehicleRoadLaneOccupancyResult result = new VehicleRoadLaneOccupancyResult
+            {
+                status = VehicleRoadLaneOccupancyStatus.Unknown,
+                nearestForwardVehicleId = string.Empty,
+                nearestForwardDistance = float.PositiveInfinity,
+                nearestRearVehicleId = string.Empty,
+                nearestRearDistance = float.PositiveInfinity,
+                availableForwardGap = float.PositiveInfinity,
+                availableRearGap = float.PositiveInfinity,
+                failureReason = string.Empty
+            };
+
+            string laneId = query.laneId ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(laneId))
+            {
+                return MarkLaneOccupancyFailure(
+                    ref result,
+                    VehicleRoadLaneOccupancyStatus.InvalidInput,
+                    "Lane occupancy query requires a non-empty laneId.");
+            }
+
+            if (!TryGetRawLane(laneId, out BakedLaneRecord lane))
+            {
+                return MarkLaneOccupancyFailure(
+                    ref result,
+                    VehicleRoadLaneOccupancyStatus.RouteUnavailable,
+                    "Lane occupancy query lane is not registered: " + laneId);
+            }
+
+            if (trafficCostProvider.IsLaneClosed(laneId) || !lane.open)
+            {
+                return MarkLaneOccupancyFailure(
+                    ref result,
+                    VehicleRoadLaneOccupancyStatus.Closed,
+                    "Lane is closed: " + laneId);
+            }
+
+            RoadAgentMask agentMask = NormalizeAgentMask(query.agentMask);
+            if (lane.orphaned || !lane.AllowsAgent(agentMask))
+            {
+                return MarkLaneOccupancyFailure(
+                    ref result,
+                    VehicleRoadLaneOccupancyStatus.RouteUnavailable,
+                    "Lane is not reachable by the requested agent mask: " + laneId);
+            }
+
+            float vehicleLength = Mathf.Max(0.1f, query.vehicleLength > 0f ? query.vehicleLength : defaultVehicleLength);
+            float requiredGap = query.requiredGap > 0f
+                ? query.requiredGap
+                : laneChangeSafetyGap + vehicleLength;
+            float lookAheadDistance = query.lookAheadDistance > 0f
+                ? query.lookAheadDistance
+                : DefaultLaneOccupancyLookAheadDistance;
+            float maxOccupancyRatio = query.maxOccupancyRatio > 0f
+                ? query.maxOccupancyRatio
+                : DefaultLaneOccupancyRatio;
+            float targetDistance = Mathf.Clamp(query.distanceAlongLane, 0f, Mathf.Max(0f, lane.length));
+            float windowStart = Mathf.Max(0f, targetDistance - lookAheadDistance);
+            float windowEnd = Mathf.Min(Mathf.Max(0f, lane.length), targetDistance + lookAheadDistance);
+            string vehicleId = query.vehicleId ?? string.Empty;
+            bool unsafeGap = false;
+
+            if (vehiclesByLane.TryGetValue(laneId, out List<VehicleTrafficState> laneVehicles))
+            {
+                for (int i = 0; i < laneVehicles.Count; i++)
+                {
+                    VehicleTrafficState other = laneVehicles[i];
+                    if (other == null ||
+                        string.Equals(other.vehicleId, vehicleId, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    if (other.distanceAlongLane >= windowStart && other.distanceAlongLane <= windowEnd)
+                    {
+                        result.vehicleCount++;
+                    }
+
+                    float signedDistance = other.distanceAlongLane - targetDistance;
+                    if (signedDistance >= 0f && signedDistance < result.nearestForwardDistance)
+                    {
+                        result.nearestForwardDistance = signedDistance;
+                        result.nearestForwardVehicleId = other.vehicleId ?? string.Empty;
+                        result.availableForwardGap = signedDistance;
+                    }
+                    else if (signedDistance < 0f)
+                    {
+                        float rearDistance = -signedDistance;
+                        if (rearDistance < result.nearestRearDistance)
+                        {
+                            result.nearestRearDistance = rearDistance;
+                            result.nearestRearVehicleId = other.vehicleId ?? string.Empty;
+                            result.availableRearGap = rearDistance;
+                        }
+                    }
+
+                    if (Mathf.Abs(signedDistance) < requiredGap)
+                    {
+                        unsafeGap = true;
+                    }
+                }
+            }
+
+            foreach (LaneChangeReservation reservation in laneChangeReservationsByVehicleId.Values)
+            {
+                if (reservation == null ||
+                    string.Equals(reservation.vehicleId, vehicleId, StringComparison.Ordinal) ||
+                    !string.Equals(reservation.targetLaneId, laneId, StringComparison.Ordinal) ||
+                    reservation.expireTime < trafficClock)
+                {
+                    continue;
+                }
+
+                if (reservation.reservedDistanceAlongLane >= windowStart &&
+                    reservation.reservedDistanceAlongLane <= windowEnd)
+                {
+                    result.reservationCount++;
+                }
+
+                float signedDistance = reservation.reservedDistanceAlongLane - targetDistance;
+                if (signedDistance >= 0f)
+                {
+                    result.availableForwardGap = Mathf.Min(result.availableForwardGap, signedDistance);
+                }
+                else
+                {
+                    result.availableRearGap = Mathf.Min(result.availableRearGap, -signedDistance);
+                }
+
+                if (Mathf.Abs(signedDistance) < requiredGap)
+                {
+                    unsafeGap = true;
+                }
+            }
+
+            float windowLength = Mathf.Max(requiredGap, windowEnd - windowStart);
+            float capacity = Mathf.Max(1f, Mathf.Floor(windowLength / Mathf.Max(0.1f, requiredGap)));
+            result.occupancyRatio = Mathf.Clamp01((result.vehicleCount + result.reservationCount) / capacity);
+            result.valid = true;
+
+            if (unsafeGap)
+            {
+                result.status = VehicleRoadLaneOccupancyStatus.UnsafeGap;
+                result.failureReason = "Target lane entry gap is occupied or reserved.";
+                return result;
+            }
+
+            if (result.occupancyRatio >= maxOccupancyRatio)
+            {
+                result.status = VehicleRoadLaneOccupancyStatus.Full;
+                result.failureReason = "Lane occupancy ratio exceeds the configured full threshold.";
+                return result;
+            }
+
+            if (result.occupancyRatio >= maxOccupancyRatio * CongestedOccupancyRatioFactor)
+            {
+                result.status = VehicleRoadLaneOccupancyStatus.Congested;
+                result.isEnterable = true;
+                result.failureReason = "Lane is enterable but congested.";
+                return result;
+            }
+
+            result.status = VehicleRoadLaneOccupancyStatus.Open;
+            result.isEnterable = true;
+            return result;
+        }
+
+        public VehicleRoadLaneChangeRouteResult EvaluateLaneChangeRoute(VehicleRoadLaneChangeRouteQuery query)
+        {
+            using RoadNetworkProfiler.Scope ignored =
+                RoadNetworkProfiler.Sample(RoadNetworkProfiler.LaneChangeQuery);
+
+            VehicleRoadLaneChangeRouteResult result = new VehicleRoadLaneChangeRouteResult
+            {
+                side = query.preferredSide,
+                routeLaneIds = new List<string>(),
+                currentNextLaneId = string.Empty,
+                currentOccupancyStatus = VehicleRoadLaneOccupancyStatus.Unknown,
+                targetOccupancyStatus = VehicleRoadLaneOccupancyStatus.Unknown,
+                reason = VehicleRoadLaneChangeDecisionReason.None,
+                failureReason = string.Empty
+            };
+
+            string currentLaneId = query.currentLaneId ?? string.Empty;
+            string destinationLaneId = query.destinationLaneId ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(currentLaneId) || string.IsNullOrWhiteSpace(destinationLaneId))
+            {
+                result.reason = VehicleRoadLaneChangeDecisionReason.NoCurrentRoute;
+                result.failureReason = "Lane-change route query requires currentLaneId and destinationLaneId.";
+                return result;
+            }
+
+            RoadAgentMask agentMask = NormalizeAgentMask(query.agentMask);
+            if (!TryGetRawLane(currentLaneId, out BakedLaneRecord currentLane))
+            {
+                result.reason = VehicleRoadLaneChangeDecisionReason.NoCurrentRoute;
+                result.failureReason = "Current lane is not registered: " + currentLaneId;
+                return result;
+            }
+
+            float currentDistance = Mathf.Clamp(query.distanceAlongLane, 0f, Mathf.Max(0f, currentLane.length));
+            VehicleRoadLaneChangeDecisionReason currentReason =
+                EvaluateCurrentRouteForLaneChange(
+                    query,
+                    currentLaneId,
+                    destinationLaneId,
+                    currentDistance,
+                    agentMask,
+                    ref result);
+
+            if (currentReason == VehicleRoadLaneChangeDecisionReason.CurrentRouteValid ||
+                currentReason == VehicleRoadLaneChangeDecisionReason.RouteEnd)
+            {
+                result.reason = currentReason;
+                return result;
+            }
+
+            result.reason = currentReason;
+            string currentFailure = CurrentRouteReasonToFailure(currentReason, result.currentNextLaneId);
+
+            List<BakedLaneAdjacentLinkRecord> links = GetLaneChangeLinks(currentLaneId, agentMask);
+            bool sawAdjacent = false;
+            bool sawUnsafe = false;
+            bool sawRouteUnavailable = false;
+            VehicleRoadLaneChangeRouteResult congestedCandidate = default;
+            bool hasCongestedCandidate = false;
+
+            for (int sideIndex = 0; sideIndex < 2; sideIndex++)
+            {
+                if (sideIndex > 0 && !query.allowOppositeSide)
+                {
+                    break;
+                }
+
+                RoadLaneAdjacentSide side = sideIndex == 0
+                    ? query.preferredSide
+                    : OppositeSide(query.preferredSide);
+                BakedLaneAdjacentLinkRecord selected = FindLaneChangeLink(links, side);
+                if (selected == null)
+                {
+                    continue;
+                }
+
+                sawAdjacent = true;
+                if (!TryGetRawLane(selected.toLaneId, out BakedLaneRecord targetLane))
+                {
+                    sawRouteUnavailable = true;
+                    continue;
+                }
+
+                float targetDistance = CalculateLaneChangeTargetDistance(
+                    currentDistance,
+                    selected,
+                    targetLane);
+                VehicleRoadLaneOccupancyResult occupancy = EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+                {
+                    vehicleId = query.vehicleId,
+                    laneId = targetLane.laneId,
+                    distanceAlongLane = targetDistance,
+                    agentMask = agentMask,
+                    vehicleLength = query.vehicleLength,
+                    lookAheadDistance = query.lookAheadDistance,
+                    requiredGap = query.requiredGap,
+                    maxOccupancyRatio = query.maxOccupancyRatio
+                });
+                result.targetOccupancyStatus = occupancy.status;
+                if (!occupancy.valid || !occupancy.isEnterable)
+                {
+                    if (occupancy.status == VehicleRoadLaneOccupancyStatus.UnsafeGap ||
+                        occupancy.status == VehicleRoadLaneOccupancyStatus.Full ||
+                        occupancy.status == VehicleRoadLaneOccupancyStatus.Congested)
+                    {
+                        sawUnsafe = true;
+                    }
+                    else
+                    {
+                        sawRouteUnavailable = true;
+                    }
+
+                    continue;
+                }
+
+                if (!TryFindRouteWithoutTrafficAdvance(
+                        targetLane.laneId,
+                        destinationLaneId,
+                        agentMask,
+                        out VehicleRoadRouteResult route))
+                {
+                    sawRouteUnavailable = true;
+                    continue;
+                }
+
+                VehicleRoadLaneChangeRouteResult candidate = CreateSelectedLaneChangeRouteResult(
+                    result,
+                    side,
+                    targetLane.laneId,
+                    targetDistance,
+                    occupancy.status,
+                    route,
+                    currentFailure);
+                if (occupancy.status == VehicleRoadLaneOccupancyStatus.Open)
+                {
+                    return candidate;
+                }
+
+                if (!hasCongestedCandidate)
+                {
+                    congestedCandidate = candidate;
+                    hasCongestedCandidate = true;
+                }
+            }
+
+            if (hasCongestedCandidate)
+            {
+                return congestedCandidate;
+            }
+
+            if (!sawAdjacent)
+            {
+                result.reason = VehicleRoadLaneChangeDecisionReason.NoAdjacentLane;
+                result.failureReason = string.IsNullOrEmpty(currentFailure)
+                    ? "No adjacent lane-change link is available."
+                    : currentFailure + " No adjacent lane-change link is available.";
+            }
+            else if (sawUnsafe)
+            {
+                result.reason = VehicleRoadLaneChangeDecisionReason.AdjacentUnsafe;
+                result.failureReason = string.IsNullOrEmpty(currentFailure)
+                    ? "Adjacent lane target gap is unsafe or full."
+                    : currentFailure + " Adjacent lane target gap is unsafe or full.";
+            }
+            else if (sawRouteUnavailable)
+            {
+                result.reason = VehicleRoadLaneChangeDecisionReason.AdjacentRouteUnavailable;
+                result.failureReason = string.IsNullOrEmpty(currentFailure)
+                    ? "Adjacent lane cannot route to the destination."
+                    : currentFailure + " Adjacent lane cannot route to the destination.";
+            }
+
             return result;
         }
 
@@ -1471,6 +1821,327 @@ namespace VehicleRoads
                    trafficJunctionsById.TryGetValue(connector.junctionId, out BakedJunctionTrafficRecord junction)
                 ? Mathf.Max(1f, junction.approachDetectionDistance)
                 : 0f;
+        }
+
+        private VehicleRoadLaneOccupancyResult MarkLaneOccupancyFailure(
+            ref VehicleRoadLaneOccupancyResult result,
+            VehicleRoadLaneOccupancyStatus status,
+            string reason)
+        {
+            result.valid = false;
+            result.isEnterable = false;
+            result.status = status;
+            result.failureReason = reason ?? string.Empty;
+            return result;
+        }
+
+        private VehicleRoadLaneChangeDecisionReason EvaluateCurrentRouteForLaneChange(
+            VehicleRoadLaneChangeRouteQuery query,
+            string currentLaneId,
+            string destinationLaneId,
+            float currentDistance,
+            RoadAgentMask agentMask,
+            ref VehicleRoadLaneChangeRouteResult result)
+        {
+            if (string.Equals(currentLaneId, destinationLaneId, StringComparison.Ordinal))
+            {
+                result.currentRouteFound = true;
+                result.routeLaneIds = new List<string> { currentLaneId };
+                return VehicleRoadLaneChangeDecisionReason.RouteEnd;
+            }
+
+            if (!TryBuildCurrentRouteForLaneChange(
+                    query.currentRouteLaneIds,
+                    currentLaneId,
+                    destinationLaneId,
+                    agentMask,
+                    out List<string> routeLaneIds,
+                    out float totalCost))
+            {
+                result.currentRouteFound = false;
+                return VehicleRoadLaneChangeDecisionReason.NoCurrentRoute;
+            }
+
+            result.currentRouteFound = true;
+            result.routeLaneIds = routeLaneIds;
+            result.totalCost = totalCost;
+            result.currentNextLaneId = GetNextRouteLaneId(routeLaneIds, currentLaneId);
+            if (string.IsNullOrWhiteSpace(result.currentNextLaneId))
+            {
+                return VehicleRoadLaneChangeDecisionReason.NextLaneMissing;
+            }
+
+            if (!TryGetRawLane(result.currentNextLaneId, out BakedLaneRecord nextLane))
+            {
+                result.currentOccupancyStatus = VehicleRoadLaneOccupancyStatus.RouteUnavailable;
+                return VehicleRoadLaneChangeDecisionReason.NextLaneMissing;
+            }
+
+            if (trafficCostProvider.IsLaneClosed(nextLane.laneId) || !nextLane.open)
+            {
+                result.currentOccupancyStatus = VehicleRoadLaneOccupancyStatus.Closed;
+                return VehicleRoadLaneChangeDecisionReason.NextLaneClosed;
+            }
+
+            if (nextLane.orphaned || !nextLane.AllowsAgent(agentMask))
+            {
+                result.currentOccupancyStatus = VehicleRoadLaneOccupancyStatus.RouteUnavailable;
+                return VehicleRoadLaneChangeDecisionReason.NextLaneMissing;
+            }
+
+            float nextDistance = string.Equals(result.currentNextLaneId, currentLaneId, StringComparison.Ordinal)
+                ? currentDistance
+                : 0f;
+            VehicleRoadLaneOccupancyResult occupancy = EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+            {
+                vehicleId = query.vehicleId,
+                laneId = result.currentNextLaneId,
+                distanceAlongLane = nextDistance,
+                agentMask = agentMask,
+                vehicleLength = query.vehicleLength,
+                lookAheadDistance = query.lookAheadDistance,
+                requiredGap = query.requiredGap,
+                maxOccupancyRatio = query.maxOccupancyRatio
+            });
+            result.currentOccupancyStatus = occupancy.status;
+            return NextLaneOccupancyToDecisionReason(occupancy.status);
+        }
+
+        private bool TryBuildCurrentRouteForLaneChange(
+            IReadOnlyList<string> providedRoute,
+            string currentLaneId,
+            string destinationLaneId,
+            RoadAgentMask agentMask,
+            out List<string> routeLaneIds,
+            out float totalCost)
+        {
+            routeLaneIds = new List<string>();
+            totalCost = 0f;
+
+            if (TryBuildProvidedRouteForLaneChange(
+                    providedRoute,
+                    currentLaneId,
+                    destinationLaneId,
+                    out routeLaneIds))
+            {
+                return true;
+            }
+
+            if (!TryFindRouteWithoutTrafficAdvance(
+                    currentLaneId,
+                    destinationLaneId,
+                    agentMask,
+                    out VehicleRoadRouteResult route))
+            {
+                return false;
+            }
+
+            routeLaneIds = route.laneIds == null ? new List<string>() : new List<string>(route.laneIds);
+            totalCost = route.totalCost;
+            return routeLaneIds.Count > 0;
+        }
+
+        private static bool TryBuildProvidedRouteForLaneChange(
+            IReadOnlyList<string> providedRoute,
+            string currentLaneId,
+            string destinationLaneId,
+            out List<string> routeLaneIds)
+        {
+            routeLaneIds = new List<string>();
+            if (providedRoute == null || providedRoute.Count == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < providedRoute.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(providedRoute[i]))
+                {
+                    routeLaneIds.Add(providedRoute[i]);
+                }
+            }
+
+            int currentIndex = routeLaneIds.FindIndex(
+                id => string.Equals(id, currentLaneId, StringComparison.Ordinal));
+            if (currentIndex < 0)
+            {
+                return false;
+            }
+
+            if (currentIndex > 0)
+            {
+                routeLaneIds.RemoveRange(0, currentIndex);
+            }
+
+            return routeLaneIds.Exists(id => string.Equals(id, destinationLaneId, StringComparison.Ordinal));
+        }
+
+        private bool TryFindRouteWithoutTrafficAdvance(
+            string startLaneId,
+            string destinationLaneId,
+            RoadAgentMask agentMask,
+            out VehicleRoadRouteResult result)
+        {
+            result = null;
+            startLaneId ??= string.Empty;
+            destinationLaneId ??= string.Empty;
+            if (!networkByLaneId.TryGetValue(startLaneId, out BakedLaneNetwork startNetwork) ||
+                !networkByLaneId.TryGetValue(destinationLaneId, out BakedLaneNetwork destinationNetwork) ||
+                startNetwork != destinationNetwork ||
+                !graphByNetwork.TryGetValue(startNetwork, out LaneGraph graph) ||
+                !graph.TryFindRoute(
+                    new LaneRouteQuery(startLaneId, destinationLaneId, agentMask),
+                    out List<string> laneIds,
+                    out float totalCost))
+            {
+                return false;
+            }
+
+            result = new VehicleRoadRouteResult
+            {
+                network = startNetwork,
+                laneIds = laneIds,
+                totalCost = totalCost
+            };
+            return true;
+        }
+
+        private bool TryGetRawLane(string laneId, out BakedLaneRecord lane)
+        {
+            lane = null;
+            return networkByLaneId.TryGetValue(laneId ?? string.Empty, out BakedLaneNetwork network) &&
+                   network.TryGetLane(laneId, out lane);
+        }
+
+        private static string GetNextRouteLaneId(IReadOnlyList<string> routeLaneIds, string currentLaneId)
+        {
+            if (routeLaneIds == null || routeLaneIds.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            for (int i = 0; i < routeLaneIds.Count; i++)
+            {
+                if (string.Equals(routeLaneIds[i], currentLaneId, StringComparison.Ordinal))
+                {
+                    return i + 1 < routeLaneIds.Count ? routeLaneIds[i + 1] ?? string.Empty : string.Empty;
+                }
+            }
+
+            return routeLaneIds.Count > 1 ? routeLaneIds[1] ?? string.Empty : string.Empty;
+        }
+
+        private static VehicleRoadLaneChangeDecisionReason NextLaneOccupancyToDecisionReason(
+            VehicleRoadLaneOccupancyStatus status)
+        {
+            switch (status)
+            {
+                case VehicleRoadLaneOccupancyStatus.Open:
+                    return VehicleRoadLaneChangeDecisionReason.CurrentRouteValid;
+                case VehicleRoadLaneOccupancyStatus.Congested:
+                    return VehicleRoadLaneChangeDecisionReason.NextLaneCongested;
+                case VehicleRoadLaneOccupancyStatus.Full:
+                    return VehicleRoadLaneChangeDecisionReason.NextLaneFull;
+                case VehicleRoadLaneOccupancyStatus.UnsafeGap:
+                    return VehicleRoadLaneChangeDecisionReason.NextLaneUnsafe;
+                case VehicleRoadLaneOccupancyStatus.Closed:
+                    return VehicleRoadLaneChangeDecisionReason.NextLaneClosed;
+                case VehicleRoadLaneOccupancyStatus.RouteUnavailable:
+                case VehicleRoadLaneOccupancyStatus.InvalidInput:
+                    return VehicleRoadLaneChangeDecisionReason.NextLaneMissing;
+                default:
+                    return VehicleRoadLaneChangeDecisionReason.NextLaneMissing;
+            }
+        }
+
+        private static string CurrentRouteReasonToFailure(
+            VehicleRoadLaneChangeDecisionReason reason,
+            string nextLaneId)
+        {
+            switch (reason)
+            {
+                case VehicleRoadLaneChangeDecisionReason.NoCurrentRoute:
+                    return "Current lane has no route to the destination.";
+                case VehicleRoadLaneChangeDecisionReason.NextLaneMissing:
+                    return "Current route next lane is missing.";
+                case VehicleRoadLaneChangeDecisionReason.NextLaneClosed:
+                    return "Current route next lane is closed: " + (nextLaneId ?? string.Empty) + ".";
+                case VehicleRoadLaneChangeDecisionReason.NextLaneUnsafe:
+                    return "Current route next lane has an unsafe entry gap: " + (nextLaneId ?? string.Empty) + ".";
+                case VehicleRoadLaneChangeDecisionReason.NextLaneCongested:
+                    return "Current route next lane is congested: " + (nextLaneId ?? string.Empty) + ".";
+                case VehicleRoadLaneChangeDecisionReason.NextLaneFull:
+                    return "Current route next lane is full: " + (nextLaneId ?? string.Empty) + ".";
+                default:
+                    return string.Empty;
+            }
+        }
+
+        private static RoadLaneAdjacentSide OppositeSide(RoadLaneAdjacentSide side)
+        {
+            return side == RoadLaneAdjacentSide.Left
+                ? RoadLaneAdjacentSide.Right
+                : RoadLaneAdjacentSide.Left;
+        }
+
+        private static BakedLaneAdjacentLinkRecord FindLaneChangeLink(
+            List<BakedLaneAdjacentLinkRecord> links,
+            RoadLaneAdjacentSide side)
+        {
+            if (links == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < links.Count; i++)
+            {
+                BakedLaneAdjacentLinkRecord link = links[i];
+                if (link != null && link.side == side)
+                {
+                    return link;
+                }
+            }
+
+            return null;
+        }
+
+        private static float CalculateLaneChangeTargetDistance(
+            float currentDistance,
+            BakedLaneAdjacentLinkRecord link,
+            BakedLaneRecord targetLane)
+        {
+            float laneLength = targetLane == null ? 0f : Mathf.Max(0f, targetLane.length);
+            float overlapStart = link == null ? 0f : Mathf.Clamp(link.overlapStartDistance, 0f, laneLength);
+            float rawOverlapEnd = link == null ? laneLength : link.overlapEndDistance;
+            float overlapEnd = rawOverlapEnd > overlapStart
+                ? Mathf.Clamp(rawOverlapEnd, overlapStart, laneLength)
+                : laneLength;
+            return Mathf.Clamp(currentDistance, overlapStart, overlapEnd);
+        }
+
+        private static VehicleRoadLaneChangeRouteResult CreateSelectedLaneChangeRouteResult(
+            VehicleRoadLaneChangeRouteResult baseResult,
+            RoadLaneAdjacentSide side,
+            string targetLaneId,
+            float targetDistance,
+            VehicleRoadLaneOccupancyStatus targetStatus,
+            VehicleRoadRouteResult route,
+            string currentFailure)
+        {
+            baseResult.shouldRequestLaneChange = true;
+            baseResult.side = side;
+            baseResult.targetLaneId = targetLaneId ?? string.Empty;
+            baseResult.targetDistanceAlongLane = targetDistance;
+            baseResult.targetOccupancyStatus = targetStatus;
+            baseResult.routeLaneIds = route == null || route.laneIds == null
+                ? new List<string>()
+                : new List<string>(route.laneIds);
+            baseResult.totalCost = route == null ? 0f : route.totalCost;
+            baseResult.reason = VehicleRoadLaneChangeDecisionReason.Selected;
+            baseResult.failureReason = string.IsNullOrEmpty(currentFailure)
+                ? "Selected adjacent lane " + baseResult.side + ": " + baseResult.targetLaneId + "."
+                : currentFailure + " Selected adjacent lane " + baseResult.side + ": " + baseResult.targetLaneId + ".";
+            return baseResult;
         }
 
         private List<string> BuildRoute(string laneId, IReadOnlyList<string> routeLaneIds)

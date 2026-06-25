@@ -962,6 +962,39 @@ namespace BlueprintSystem
                 ValidatePropertyKeyType(node.Properties, "laneChangeDecisionReasonKey", "string", blackboard, diagnostics, node.Id);
             }
             else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
+                     node.TypeId == "BT.VehicleRoad.EvaluateLaneOccupancy")
+            {
+                ValidatePropertyKeyType(node.Properties, "validKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "statusKey", "VehicleRoadLaneOccupancyStatus", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "isEnterableKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "vehicleCountKey", "int", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "reservationCountKey", "int", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "occupancyRatioKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "nearestForwardVehicleIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "nearestForwardDistanceKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "nearestRearVehicleIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "nearestRearDistanceKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "availableForwardGapKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "availableRearGapKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "failureReasonKey", "string", blackboard, diagnostics, node.Id);
+            }
+            else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
+                     node.TypeId == "BT.VehicleRoad.EvaluateLaneChangeRoute")
+            {
+                ValidatePropertyKeyType(node.Properties, "requestLaneChangeKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "requestedLaneChangeSideKey", "RoadLaneAdjacentSide", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "targetLaneIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "targetDistanceAlongLaneKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "targetRouteLaneIdsKey", "Array<string>", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "totalCostKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "currentRouteFoundKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "currentNextLaneIdKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "decisionReasonKey", "VehicleRoadLaneChangeDecisionReason", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "failureReasonKey", "string", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "currentOccupancyStatusKey", "VehicleRoadLaneOccupancyStatus", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "targetOccupancyStatusKey", "VehicleRoadLaneOccupancyStatus", blackboard, diagnostics, node.Id);
+            }
+            else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
                      node.TypeId == "BT.VehicleRoad.RequestLaneChange")
             {
                 ValidatePropertyKeyType(node.Properties, "laneChangeStatusKey", "VehicleRoadLaneChangeStatus", blackboard, diagnostics, node.Id);

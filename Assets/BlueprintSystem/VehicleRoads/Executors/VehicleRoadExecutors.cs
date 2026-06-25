@@ -19,9 +19,12 @@ namespace BlueprintSystem
             registry.Register(new VehicleRoadFindNearestLaneExecutor());
             registry.Register(new VehicleRoadFindLaneRouteExecutor());
             registry.Register(new VehicleRoadSetLaneClosedExecutor());
+            registry.Register(new VehicleRoadSetLaneCongestionCostExecutor());
             registry.Register(new VehicleRoadUpdateVehicleExecutor());
             registry.Register(new VehicleRoadUnregisterVehicleExecutor());
             registry.Register(new VehicleRoadEvaluateTrafficControlExecutor());
+            registry.Register(new VehicleRoadEvaluateLaneOccupancyExecutor());
+            registry.Register(new VehicleRoadEvaluateLaneChangeRouteExecutor());
             registry.Register(new VehicleRoadRequestLaneChangeExecutor());
             registry.Register(new VehicleRoadCompleteLaneChangeExecutor());
             registry.Register(new VehicleRoadSetFollowerRouteExecutor());
@@ -83,6 +86,73 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class VehicleRoadEvaluateLaneOccupancyExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.EvaluateLaneOccupancy"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            VehicleRoadLaneOccupancyResult result = subsystem == null
+                ? new VehicleRoadLaneOccupancyResult
+                {
+                    status = VehicleRoadLaneOccupancyStatus.InvalidInput,
+                    failureReason = "VehicleRoad.EvaluateLaneOccupancy requires a VehicleRoadSubsystem target."
+                }
+                : subsystem.EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+                {
+                    vehicleId = context.GetInputValue(node, "vehicleId", string.Empty),
+                    laneId = context.GetInputValue(node, "laneId", string.Empty),
+                    distanceAlongLane = context.GetInputValue(node, "distanceAlongLane", 0f),
+                    agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node),
+                    vehicleLength = context.GetInputValue(node, "vehicleLength", 0f),
+                    lookAheadDistance = context.GetInputValue(node, "lookAheadDistance", 0f),
+                    requiredGap = context.GetInputValue(node, "requiredGap", 0f),
+                    maxOccupancyRatio = context.GetInputValue(node, "maxOccupancyRatio", 0f)
+                });
+            return VehicleRoadExecutorUtility.ReadLaneOccupancyResult(result, outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadEvaluateLaneChangeRouteExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.EvaluateLaneChangeRoute"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            VehicleRoadLaneChangeRouteResult result = subsystem == null
+                ? new VehicleRoadLaneChangeRouteResult
+                {
+                    routeLaneIds = new List<string>(),
+                    reason = VehicleRoadLaneChangeDecisionReason.NoCurrentRoute,
+                    failureReason = "VehicleRoad.EvaluateLaneChangeRoute requires a VehicleRoadSubsystem target."
+                }
+                : subsystem.EvaluateLaneChangeRoute(new VehicleRoadLaneChangeRouteQuery
+                {
+                    vehicleId = context.GetInputValue(node, "vehicleId", string.Empty),
+                    currentLaneId = context.GetInputValue(node, "currentLaneId", string.Empty),
+                    destinationLaneId = context.GetInputValue(node, "destinationLaneId", string.Empty),
+                    currentRouteLaneIds = VehicleRoadExecutorUtility.GetStringListInput(context, node, "currentRouteLaneIds"),
+                    distanceAlongLane = context.GetInputValue(node, "distanceAlongLane", 0f),
+                    agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node),
+                    vehicleLength = context.GetInputValue(node, "vehicleLength", 0f),
+                    preferredSide = context.GetInputValue(node, "preferredSide", RoadLaneAdjacentSide.Right),
+                    allowOppositeSide = context.GetInputValue(node, "allowOppositeSide", true),
+                    lookAheadDistance = context.GetInputValue(node, "lookAheadDistance", 0f),
+                    requiredGap = context.GetInputValue(node, "requiredGap", 0f),
+                    maxOccupancyRatio = context.GetInputValue(node, "maxOccupancyRatio", 0f)
+                });
+            return VehicleRoadExecutorUtility.ReadLaneChangeRouteResult(result, outputPortId);
+        }
+    }
+
     public sealed class VehicleRoadSetLaneClosedExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId
@@ -105,6 +175,32 @@ namespace BlueprintSystem
             }
 
             subsystem.SetLaneClosed(laneId, context.GetInputValue(node, "closed", false));
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class VehicleRoadSetLaneCongestionCostExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.SetLaneCongestionCost"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            if (subsystem == null)
+            {
+                return BlueprintExecResult.Error("VehicleRoad.SetLaneCongestionCost requires a VehicleRoadSubsystem target.");
+            }
+
+            string laneId = context.GetInputValue(node, "laneId", string.Empty);
+            if (string.IsNullOrWhiteSpace(laneId))
+            {
+                return BlueprintExecResult.Error("VehicleRoad.SetLaneCongestionCost requires a non-empty laneId.");
+            }
+
+            subsystem.SetLaneCongestionCost(laneId, context.GetInputValue(node, "cost", 0f));
             return BlueprintExecResult.Continue("execOut");
         }
     }
@@ -517,6 +613,74 @@ namespace BlueprintSystem
                     return result.targetLaneId ?? string.Empty;
                 case "reservedDistanceAlongLane":
                     return result.reservedDistanceAlongLane;
+                case "failureReason":
+                    return result.failureReason ?? string.Empty;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadLaneOccupancyResult(VehicleRoadLaneOccupancyResult result, string outputPortId)
+        {
+            switch (outputPortId)
+            {
+                case "valid":
+                    return result.valid;
+                case "status":
+                    return result.status;
+                case "isEnterable":
+                    return result.isEnterable;
+                case "vehicleCount":
+                    return result.vehicleCount;
+                case "reservationCount":
+                    return result.reservationCount;
+                case "occupancyRatio":
+                    return result.occupancyRatio;
+                case "nearestForwardVehicleId":
+                    return result.nearestForwardVehicleId ?? string.Empty;
+                case "nearestForwardDistance":
+                    return result.nearestForwardDistance;
+                case "nearestRearVehicleId":
+                    return result.nearestRearVehicleId ?? string.Empty;
+                case "nearestRearDistance":
+                    return result.nearestRearDistance;
+                case "availableForwardGap":
+                    return result.availableForwardGap;
+                case "availableRearGap":
+                    return result.availableRearGap;
+                case "failureReason":
+                    return result.failureReason ?? string.Empty;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadLaneChangeRouteResult(VehicleRoadLaneChangeRouteResult result, string outputPortId)
+        {
+            switch (outputPortId)
+            {
+                case "shouldRequestLaneChange":
+                    return result.shouldRequestLaneChange;
+                case "side":
+                    return result.side;
+                case "targetLaneId":
+                    return result.targetLaneId ?? string.Empty;
+                case "targetDistanceAlongLane":
+                    return result.targetDistanceAlongLane;
+                case "routeLaneIds":
+                    return result.routeLaneIds == null ? new List<string>() : new List<string>(result.routeLaneIds);
+                case "totalCost":
+                    return result.totalCost;
+                case "currentRouteFound":
+                    return result.currentRouteFound;
+                case "currentNextLaneId":
+                    return result.currentNextLaneId ?? string.Empty;
+                case "currentOccupancyStatus":
+                    return result.currentOccupancyStatus;
+                case "targetOccupancyStatus":
+                    return result.targetOccupancyStatus;
+                case "reason":
+                    return result.reason;
                 case "failureReason":
                     return result.failureReason ?? string.Empty;
                 default:

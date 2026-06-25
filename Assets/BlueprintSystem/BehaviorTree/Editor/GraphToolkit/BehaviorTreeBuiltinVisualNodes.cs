@@ -33,6 +33,8 @@ namespace BlueprintSystem.Editor
         public const string VehicleRoadDriveFollower = "BT.VehicleRoad.DriveFollower";
         public const string VehicleRoadUpdateTrafficState = "BT.VehicleRoad.UpdateTrafficState";
         public const string VehicleRoadDecideLaneChange = "BT.VehicleRoad.DecideLaneChange";
+        public const string VehicleRoadEvaluateLaneOccupancy = "BT.VehicleRoad.EvaluateLaneOccupancy";
+        public const string VehicleRoadEvaluateLaneChangeRoute = "BT.VehicleRoad.EvaluateLaneChangeRoute";
         public const string VehicleRoadRequestLaneChange = "BT.VehicleRoad.RequestLaneChange";
         public const string VehicleRoadCompleteLaneChange = "BT.VehicleRoad.CompleteLaneChange";
         public const string VehicleRoadUpdateFollowerSpeed = "BT.VehicleRoad.UpdateFollowerSpeed";
@@ -146,6 +148,14 @@ namespace BlueprintSystem.Editor
                 case VehicleRoadDecideLaneChange:
                     return BlueprintModuleSettings.VehicleRoadsEnabled
                         ? new BTTaskVehicleRoadDecideLaneChangeNode()
+                        : new BehaviorTreeVisualNode();
+                case VehicleRoadEvaluateLaneOccupancy:
+                    return BlueprintModuleSettings.VehicleRoadsEnabled
+                        ? new BTTaskVehicleRoadEvaluateLaneOccupancyNode()
+                        : new BehaviorTreeVisualNode();
+                case VehicleRoadEvaluateLaneChangeRoute:
+                    return BlueprintModuleSettings.VehicleRoadsEnabled
+                        ? new BTTaskVehicleRoadEvaluateLaneChangeRouteNode()
                         : new BehaviorTreeVisualNode();
                 case VehicleRoadRequestLaneChange:
                     return BlueprintModuleSettings.VehicleRoadsEnabled
@@ -325,6 +335,10 @@ namespace BlueprintSystem.Editor
                     return "Task: VehicleRoad Update Traffic State";
                 case VehicleRoadDecideLaneChange:
                     return "Task: VehicleRoad Decide Lane Change";
+                case VehicleRoadEvaluateLaneOccupancy:
+                    return "Task: VehicleRoad Evaluate Lane Occupancy";
+                case VehicleRoadEvaluateLaneChangeRoute:
+                    return "Task: VehicleRoad Evaluate Lane Change Route";
                 case VehicleRoadRequestLaneChange:
                     return "Task: VehicleRoad Request Lane Change";
                 case VehicleRoadCompleteLaneChange:
@@ -941,6 +955,122 @@ namespace BlueprintSystem.Editor
                     }
 
                     break;
+                case VehicleRoadEvaluateLaneOccupancy:
+                    if (inputId == "vehicleId" || inputId == "laneId")
+                    {
+                        value = string.Empty;
+                        return true;
+                    }
+
+                    if (inputId == "agentMask")
+                    {
+                        value = VehicleRoads.RoadAgentMask.MotorVehicles;
+                        return true;
+                    }
+
+                    if (inputId == "distanceAlongLane" ||
+                        inputId == "vehicleLength" ||
+                        inputId == "requiredGap")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    if (inputId == "lookAheadDistance")
+                    {
+                        value = 30f;
+                        return true;
+                    }
+
+                    if (inputId == "maxOccupancyRatio")
+                    {
+                        value = 0.85f;
+                        return true;
+                    }
+
+                    break;
+                case VehicleRoadEvaluateLaneChangeRoute:
+                    if (inputId == "vehicleId" ||
+                        inputId == "currentLaneId" ||
+                        inputId == "destinationLaneId")
+                    {
+                        value = string.Empty;
+                        return true;
+                    }
+
+                    if (inputId == "currentRouteLaneIds")
+                    {
+                        value = new List<object>();
+                        return true;
+                    }
+
+                    if (inputId == "agentMask")
+                    {
+                        value = VehicleRoads.RoadAgentMask.MotorVehicles;
+                        return true;
+                    }
+
+                    if (inputId == "preferredSide")
+                    {
+                        value = VehicleRoads.RoadLaneAdjacentSide.Right;
+                        return true;
+                    }
+
+                    if (inputId == "laneChangeStatus")
+                    {
+                        value = VehicleRoads.VehicleRoadLaneChangeStatus.None;
+                        return true;
+                    }
+
+                    if (inputId == "recoveryMode")
+                    {
+                        value = VehicleRoads.VehicleLaneRecoveryMode.None;
+                        return true;
+                    }
+
+                    if (inputId == "allowOppositeSide")
+                    {
+                        value = true;
+                        return true;
+                    }
+
+                    if (inputId == "allowActiveRequest" ||
+                        inputId == "allowDuringRecovery" ||
+                        inputId == "allowNearStopPoint" ||
+                        inputId == "hasStopPoint")
+                    {
+                        value = false;
+                        return true;
+                    }
+
+                    if (inputId == "distanceAlongLane" ||
+                        inputId == "vehicleLength" ||
+                        inputId == "requiredGap" ||
+                        inputId == "distanceToStopLine")
+                    {
+                        value = 0f;
+                        return true;
+                    }
+
+                    if (inputId == "lookAheadDistance")
+                    {
+                        value = 30f;
+                        return true;
+                    }
+
+                    if (inputId == "maxOccupancyRatio")
+                    {
+                        value = 0.85f;
+                        return true;
+                    }
+
+                    if (inputId == "stopPointBlockDistance")
+                    {
+                        value = 14f;
+                        return true;
+                    }
+
+                    break;
                 case VehicleRoadRequestLaneChange:
                     if (inputId == "vehicleId")
                     {
@@ -1237,6 +1367,8 @@ namespace BlueprintSystem.Editor
                    typeId == VehicleRoadDriveFollower ||
                    typeId == VehicleRoadUpdateTrafficState ||
                    typeId == VehicleRoadDecideLaneChange ||
+                   typeId == VehicleRoadEvaluateLaneOccupancy ||
+                   typeId == VehicleRoadEvaluateLaneChangeRoute ||
                    typeId == VehicleRoadRequestLaneChange ||
                    typeId == VehicleRoadCompleteLaneChange ||
                    typeId == VehicleRoadUpdateFollowerSpeed ||
@@ -1996,6 +2128,68 @@ namespace BlueprintSystem.Editor
             AddBlackboardInput("blockWhenStopping", "bool", "Block When Stopping", true);
             AddBlackboardInput("preferredSide", "RoadLaneAdjacentSide", "Preferred Side", true);
             AddBlackboardInput("allowActiveRequest", "bool", "Allow Active Request", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskVehicleRoadEvaluateLaneOccupancyNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadEvaluateLaneOccupancy, "Task: VehicleRoad Evaluate Lane Occupancy", 0);
+            PropertiesJson = "{\"validKey\":\"\",\"statusKey\":\"\",\"isEnterableKey\":\"\",\"vehicleCountKey\":\"\",\"reservationCountKey\":\"\",\"occupancyRatioKey\":\"\",\"nearestForwardVehicleIdKey\":\"\",\"nearestForwardDistanceKey\":\"\",\"nearestRearVehicleIdKey\":\"\",\"nearestRearDistanceKey\":\"\",\"availableForwardGapKey\":\"\",\"availableRearGapKey\":\"\",\"failureReasonKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("subsystem", null, "Subsystem", false);
+            AddBlackboardInput("follower", null, "Follower", false);
+            AddBlackboardInput("vehicleId", "string", "Vehicle Id", true);
+            AddBlackboardInput("laneId", "string", "Lane Id", true);
+            AddBlackboardInput("distanceAlongLane", "float", "Distance Along Lane", true);
+            AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
+            AddBlackboardInput("vehicleLength", "float", "Vehicle Length", true);
+            AddBlackboardInput("lookAheadDistance", "float", "Look Ahead Distance", true);
+            AddBlackboardInput("requiredGap", "float", "Required Gap", true);
+            AddBlackboardInput("maxOccupancyRatio", "float", "Max Occupancy Ratio", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BehaviorTreeVisualGraph))]
+    public sealed class BTTaskVehicleRoadEvaluateLaneChangeRouteNode : BehaviorTreeVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadEvaluateLaneChangeRoute, "Task: VehicleRoad Evaluate Lane Change Route", 0);
+            PropertiesJson = "{\"requestLaneChangeKey\":\"\",\"requestedLaneChangeSideKey\":\"\",\"targetLaneIdKey\":\"\",\"targetDistanceAlongLaneKey\":\"\",\"targetRouteLaneIdsKey\":\"\",\"totalCostKey\":\"\",\"currentRouteFoundKey\":\"\",\"currentNextLaneIdKey\":\"\",\"decisionReasonKey\":\"\",\"failureReasonKey\":\"\",\"currentOccupancyStatusKey\":\"\",\"targetOccupancyStatusKey\":\"\"}";
+        }
+
+        protected override void ApplyDefaultMetadata()
+        {
+            AddBlackboardInput("subsystem", null, "Subsystem", false);
+            AddBlackboardInput("follower", null, "Follower", false);
+            AddBlackboardInput("vehicleId", "string", "Vehicle Id", true);
+            AddBlackboardInput("currentLaneId", "string", "Current Lane Id", true);
+            AddBlackboardInput("destinationLaneId", "string", "Destination Lane Id", true);
+            AddBlackboardInput("currentRouteLaneIds", "Array<string>", "Current Route", true);
+            AddBlackboardInput("distanceAlongLane", "float", "Distance Along Lane", true);
+            AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
+            AddBlackboardInput("vehicleLength", "float", "Vehicle Length", true);
+            AddBlackboardInput("preferredSide", "RoadLaneAdjacentSide", "Preferred Side", true);
+            AddBlackboardInput("allowOppositeSide", "bool", "Allow Opposite Side", true);
+            AddBlackboardInput("laneChangeStatus", "VehicleRoadLaneChangeStatus", "Lane Change Status", true);
+            AddBlackboardInput("recoveryMode", "VehicleLaneRecoveryMode", "Recovery Mode", true);
+            AddBlackboardInput("hasStopPoint", "bool", "Has Stop Point", true);
+            AddBlackboardInput("distanceToStopLine", "float", "Distance To Stop", true);
+            AddBlackboardInput("allowActiveRequest", "bool", "Allow Active Request", true);
+            AddBlackboardInput("allowDuringRecovery", "bool", "Allow During Recovery", true);
+            AddBlackboardInput("allowNearStopPoint", "bool", "Allow Near Stop Point", true);
+            AddBlackboardInput("stopPointBlockDistance", "float", "Stop Block Distance", true);
+            AddBlackboardInput("lookAheadDistance", "float", "Look Ahead Distance", true);
+            AddBlackboardInput("requiredGap", "float", "Required Gap", true);
+            AddBlackboardInput("maxOccupancyRatio", "float", "Max Occupancy Ratio", true);
         }
     }
 

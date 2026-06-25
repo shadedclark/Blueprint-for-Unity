@@ -72,6 +72,8 @@ namespace BlueprintSystem
             { "VehicleRoadPassageStatus", typeof(VehicleRoadPassageStatus) },
             { "VehicleRoadSignalState", typeof(VehicleRoadSignalState) },
             { "VehicleRoadLaneChangeStatus", typeof(VehicleRoadLaneChangeStatus) },
+            { "VehicleRoadLaneOccupancyStatus", typeof(VehicleRoadLaneOccupancyStatus) },
+            { "VehicleRoadLaneChangeDecisionReason", typeof(VehicleRoadLaneChangeDecisionReason) },
             { "VehicleLaneRecoveryMode", typeof(VehicleLaneRecoveryMode) }
         };
 
@@ -104,6 +106,8 @@ namespace BlueprintSystem
             { typeof(VehicleRoadPassageStatus), "VehicleRoadPassageStatus" },
             { typeof(VehicleRoadSignalState), "VehicleRoadSignalState" },
             { typeof(VehicleRoadLaneChangeStatus), "VehicleRoadLaneChangeStatus" },
+            { typeof(VehicleRoadLaneOccupancyStatus), "VehicleRoadLaneOccupancyStatus" },
+            { typeof(VehicleRoadLaneChangeDecisionReason), "VehicleRoadLaneChangeDecisionReason" },
             { typeof(VehicleLaneRecoveryMode), "VehicleLaneRecoveryMode" }
         };
 

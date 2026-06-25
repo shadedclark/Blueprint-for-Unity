@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.SetLaneCongestionCost",
+  "title": "VehicleRoad Set Lane Congestion Cost",
+  "category": "VehicleRoads",
+  "description": "Writes a runtime congestion route cost for a lane. Values less than or equal to zero clear the lane cost.",
+  "executor": "VehicleRoad.SetLaneCongestionCost",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "laneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "cost", "kind": "value", "type": "float", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "laneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "cost", "required": false, "type": "float", "defaultValue": 0 }
+  ]
+}

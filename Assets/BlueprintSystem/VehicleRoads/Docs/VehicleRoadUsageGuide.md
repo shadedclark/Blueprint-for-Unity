@@ -174,13 +174,16 @@ VehicleRoads 节点只覆盖运行时，不包含道路制作、Validate、Bake 
 - `VehicleRoad.FindNearestLane`：从 `Binding<VehicleRoadSubsystem>`、世界位置、朝向和 `RoadAgentMask` 查询最近开放 Lane，输出 lane id、位姿和距离。
 - `VehicleRoad.FindLaneRoute`：从起点/终点 Lane ID 查询同一 `BakedLaneNetwork` 内的 `Array<string>` 路线和总成本。
 - `VehicleRoad.SetLaneClosed`：运行时关闭或重新开放 Lane。
+- `VehicleRoad.SetLaneCongestionCost`：把外部世界模拟得到的拥堵成本写入 Lane；`cost <= 0` 清除该 Lane 的拥堵成本。
 - `VehicleRoad.UpdateVehicle` / `VehicleRoad.UnregisterVehicle`：向交通层发布或移除车辆状态。
 - `VehicleRoad.EvaluateTrafficControl`：输出停车原因、信号、队列、停止点、前车和换道约束。
+- `VehicleRoad.EvaluateLaneOccupancy`：只读判断目标 Lane 在某个距离附近是否可进入，输出 `VehicleRoadLaneOccupancyStatus`、车辆/预约数量、安全 gap 和失败原因。
+- `VehicleRoad.EvaluateLaneChangeRoute`：只读评估当前路线是否需要换到相邻 Lane，输出是否应请求换道、目标 side/lane、换道后的 `Array<string>` 路线、当前/目标占用状态和 `VehicleRoadLaneChangeDecisionReason`。
 - `VehicleRoad.RequestLaneChange` / `VehicleRoad.CompleteLaneChange`：申请和完成相邻车道预约。
 - `VehicleRoad.SetFollowerRoute` / `VehicleRoad.ComputeFollowerControl`：设置 `VehicleLaneFollower` 路线并计算转向、目标速度、恢复、停止和换道输出。节点不移动对象。
 - `VehicleRoad.GetSubsystemSnapshot`：读取扁平诊断计数，适合 HUD、日志和测试断言。
 
-这些 Blueprint 节点只通过 binding 名或连接的运行时对象解析 `VehicleRoadSubsystem`、`VehicleLaneFollower` 等组件；`.blueprint.json` 中不要存 Unity 对象引用。带副作用的节点都是 exec 节点，并缓存最后一次执行结果供输出端口读取。
+这些 Blueprint 节点只通过 binding 名或连接的运行时对象解析 `VehicleRoadSubsystem`、`VehicleLaneFollower` 等组件；`.blueprint.json` 中不要存 Unity 对象引用。带副作用的节点都是 exec 节点，并缓存最后一次执行结果供输出端口读取。`EvaluateLaneOccupancy` 和 `EvaluateLaneChangeRoute` 不会创建换道预约；真正占用目标 Lane 的动作仍由 `RequestLaneChange` 执行。
 
 Behavior Tree 节点位于 `BT.VehicleRoad.*`。查询/控制输出节点只写 Blackboard，不直接移动对象；`BT.VehicleRoad.DriveFollower` 是专门给 demo/AI 车辆使用的 kinematic 封装节点，会消费 `VehicleLaneFollower` 输出并移动 owner `Transform`。需要自定义流程时，可以改用函数级拆分节点组合：
 
@@ -189,13 +192,24 @@ Behavior Tree 节点位于 `BT.VehicleRoad.*`。查询/控制输出节点只写 
 - `BT.VehicleRoad.SetFollowerRoute` / `SelectNextRouteTarget`：把 `Array<string>` 路线写入 `VehicleLaneFollower`，或从候选目的 Lane 中按 `First` / `Cycle` / `Random` 找到可达路线并写 `destinationLaneIdKey`、`selectedIndexKey`、`routeLaneIdsKey` 和 `totalCostKey`。
 - `BT.VehicleRoad.ComputeFollowerControl`：从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，写 steering/speed/stop/lane-change 输出，`output.valid` 为真才返回 `Success`。
 - `BT.VehicleRoad.DriveFollower`：便捷封装节点；从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，维护内部当前速度，按 `VehicleRoadTestVehicle` 的加减速、停止点夹紧、baked route pose 和 loop reset 逻辑移动 owner，额外写 `currentSpeedKey`、`arrivedKey` 和 `loopResetKey`。
-- `BT.VehicleRoad.UpdateTrafficState` / `DecideLaneChange` / `RequestLaneChange` / `CompleteLaneChange`：发布车辆交通状态、读取前车信息、根据前车/停止点/恢复状态生成换道请求，并显式请求或完成换道。
+- `BT.VehicleRoad.UpdateTrafficState` / `DecideLaneChange` / `EvaluateLaneOccupancy` / `EvaluateLaneChangeRoute` / `RequestLaneChange` / `CompleteLaneChange`：发布车辆交通状态、读取前车信息、判断单条 Lane 占用、做路线级相邻 Lane 决策，并显式请求或完成换道。`DecideLaneChange` 适合前车阻挡策略；`EvaluateLaneChangeRoute` 适合当前路线缺失、下一 Lane 关闭/不可达/不安全/拥堵/满载时的路线级换道。
 - `BT.VehicleRoad.UpdateFollowerSpeed` / `EvaluateStopPointTravel` / `ApplyStopPoint`：拆分 `VehicleRoadTestVehicle.Update` 中的速度更新、停止点行驶距离计算和停止点吸附。
 - `BT.VehicleRoad.CheckFollowerRouteEnd` / `MoveAlongBakedRoute` / `MoveTowardLookAhead`：拆分 baked route 终点判断、baked pose 移动和 look-ahead fallback 移动。
 - `BT.VehicleRoad.CaptureLoopStart` / `TickLoopReset` / `UnregisterVehicle`：拆分 loop 起点捕获、延迟复位和车辆注销清理；`UnregisterVehicle` 可直接解析 `subsystem`，也可通过 follower 的 `RoadSubsystem` 解析。
 - `BT.VehicleRoad.UpdateRoadAgent`：作为 service 周期性评估 `RoadAgent`，写目标点、恢复点、到达、失败原因和路线状态 key。
 
-BT 节点的目标 key 是显式字符串属性，例如 `laneIdKey`、`targetSpeedKey`、`routeLaneIdsKey`。复杂结果对象不会写入 Blackboard；只写稳定的 primitive、Vector、`Array<string>` 和 enum 字段。推荐自定义车辆树使用 `SelectNextRouteTarget -> SetFollowerRoute -> ComputeFollowerControl -> UpdateTrafficState -> DecideLaneChange -> UpdateFollowerSpeed -> EvaluateStopPointTravel -> ApplyStopPoint/MoveAlongBakedRoute/MoveTowardLookAhead`，loop 分支配合 `CaptureLoopStart` 和 `TickLoopReset`。
+BT 节点的目标 key 是显式字符串属性，例如 `laneIdKey`、`targetSpeedKey`、`routeLaneIdsKey`。复杂结果对象不会写入 Blackboard；只写稳定的 primitive、Vector、`Array<string>` 和 enum 字段。推荐自定义车辆树使用 `SelectNextRouteTarget -> SetFollowerRoute -> ComputeFollowerControl -> UpdateTrafficState -> EvaluateLaneChangeRoute -> RequestLaneChange(仅当 requestLaneChangeKey 为真) -> UpdateFollowerSpeed -> EvaluateStopPointTravel -> ApplyStopPoint/MoveAlongBakedRoute/MoveTowardLookAhead`，loop 分支配合 `CaptureLoopStart` 和 `TickLoopReset`。
+
+路线级换道推荐时序：
+
+1. `ComputeFollowerControl` 得到当前 `currentLaneId`、`distanceAlongLane`、stop point、recovery 和 lane-change 状态。
+2. `UpdateTrafficState` 发布当前车辆状态，让前车、队列和预约数据进入交通层。
+3. `EvaluateLaneChangeRoute` 检查当前 route 的下一 Lane；如果 route 缺失、下一 Lane 关闭/不可达、不安全、拥堵或满载，则按 `preferredSide` 优先检查相邻 Lane，必要时再检查另一侧。
+4. 当 `requestLaneChangeKey == true` 时调用 `RequestLaneChange`，让交通层创建目标 Lane 预约。
+5. 下一次 `ComputeFollowerControl` 传入 `requestLaneChange=true` 和 `requestedLaneChangeSide`，Follower 会从交通层读取 lane-change target point。
+6. 车辆实际进入目标 Lane 后，用 `targetRouteLaneIdsKey` 调 `SetFollowerRoute`，再调用 `CompleteLaneChange` 清理预约。
+
+占用模型是混合模型：Lane 不存在、关闭、Agent 不匹配或无法到达是结构性失败；目标距离前后小于安全 gap 的车辆或未过期预约是硬阻塞；`lookAheadDistance` 范围内车辆和预约的密度超过阈值会给出 `Congested` 或 `Full`。默认 `lookAheadDistance=30m`、`maxOccupancyRatio=0.85`；`requiredGap <= 0` 时使用运行时的换道安全间隔加车辆长度。
 
 ## 5. 使用 Lane Profile 批量生成车道
 

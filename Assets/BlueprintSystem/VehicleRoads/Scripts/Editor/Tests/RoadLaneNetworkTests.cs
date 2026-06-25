@@ -1751,6 +1751,280 @@ namespace VehicleRoads.Editor.Tests
         }
 
         [Test]
+        public void VehicleRoadSubsystemEvaluatesLaneOccupancyVehiclesAndReservations()
+        {
+            BakedLaneNetwork network = Track(CreateAdjacentRuntimeNetwork());
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "target_car",
+                laneId = "right",
+                distanceAlongLane = 10f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+
+            VehicleRoadLaneOccupancyResult occupied = subsystem.EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+            {
+                vehicleId = "ego",
+                laneId = "right",
+                distanceAlongLane = 10f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                requiredGap = 10f
+            });
+
+            Assert.True(occupied.valid);
+            Assert.False(occupied.isEnterable);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.UnsafeGap, occupied.status);
+            Assert.AreEqual("target_car", occupied.nearestForwardVehicleId);
+            Assert.AreEqual(1, occupied.vehicleCount);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "reserved",
+                laneId = "left",
+                distanceAlongLane = 30f,
+                speed = 5f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+            Assert.AreEqual(
+                VehicleRoadLaneChangeStatus.Granted,
+                subsystem.RequestLaneChange("reserved", RoadLaneAdjacentSide.Right).status);
+
+            VehicleRoadLaneOccupancyResult reserved = subsystem.EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+            {
+                vehicleId = "other",
+                laneId = "right",
+                distanceAlongLane = 30f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                requiredGap = 10f
+            });
+
+            Assert.True(reserved.valid);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.UnsafeGap, reserved.status);
+            Assert.AreEqual(1, reserved.reservationCount);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemEvaluatesLaneOccupancyDensity()
+        {
+            BakedLaneNetwork network = Track(CreateAdjacentRuntimeNetwork());
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "dense_a",
+                laneId = "right",
+                distanceAlongLane = 0f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "dense_b",
+                laneId = "right",
+                distanceAlongLane = 10f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "dense_c",
+                laneId = "right",
+                distanceAlongLane = 40f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+
+            VehicleRoadLaneOccupancyResult congested = subsystem.EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+            {
+                vehicleId = "ego",
+                laneId = "right",
+                distanceAlongLane = 25f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                lookAheadDistance = 25f,
+                requiredGap = 10f,
+                maxOccupancyRatio = 0.85f
+            });
+
+            Assert.True(congested.valid);
+            Assert.True(congested.isEnterable);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.Congested, congested.status);
+            Assert.AreEqual(3, congested.vehicleCount);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "dense_d",
+                laneId = "right",
+                distanceAlongLane = 50f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+
+            VehicleRoadLaneOccupancyResult full = subsystem.EvaluateLaneOccupancy(new VehicleRoadLaneOccupancyQuery
+            {
+                vehicleId = "ego",
+                laneId = "right",
+                distanceAlongLane = 25f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                lookAheadDistance = 25f,
+                requiredGap = 10f,
+                maxOccupancyRatio = 0.6f
+            });
+
+            Assert.True(full.valid);
+            Assert.False(full.isEnterable);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.Full, full.status);
+            Assert.AreEqual(4, full.vehicleCount);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemEvaluatesLaneChangeRouteWhenCurrentRouteUnavailable()
+        {
+            BakedLaneNetwork network = Track(CreateLaneChangeRouteNetwork(false));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            VehicleRoadLaneChangeRouteResult result = subsystem.EvaluateLaneChangeRoute(new VehicleRoadLaneChangeRouteQuery
+            {
+                vehicleId = "ego",
+                currentLaneId = "current",
+                destinationLaneId = "goal",
+                distanceAlongLane = 20f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                preferredSide = RoadLaneAdjacentSide.Right,
+                allowOppositeSide = true
+            });
+
+            Assert.True(result.shouldRequestLaneChange);
+            Assert.False(result.currentRouteFound);
+            Assert.AreEqual(RoadLaneAdjacentSide.Right, result.side);
+            Assert.AreEqual("adjacent", result.targetLaneId);
+            Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.Selected, result.reason);
+            CollectionAssert.AreEqual(new[] { "adjacent", "goal" }, result.routeLaneIds);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemEvaluatesLaneChangeRouteWhenNextLaneUnsafe()
+        {
+            BakedLaneNetwork network = Track(CreateLaneChangeRouteNetwork(true));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "blocked_next_car",
+                laneId = "blocked_next",
+                distanceAlongLane = 0f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+
+            VehicleRoadLaneChangeRouteResult result = subsystem.EvaluateLaneChangeRoute(new VehicleRoadLaneChangeRouteQuery
+            {
+                vehicleId = "ego",
+                currentLaneId = "current",
+                destinationLaneId = "goal",
+                currentRouteLaneIds = new[] { "current", "blocked_next", "goal" },
+                distanceAlongLane = 20f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                preferredSide = RoadLaneAdjacentSide.Right,
+                allowOppositeSide = true,
+                requiredGap = 10f
+            });
+
+            Assert.True(result.shouldRequestLaneChange);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.UnsafeGap, result.currentOccupancyStatus);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.Open, result.targetOccupancyStatus);
+            Assert.AreEqual(RoadLaneAdjacentSide.Right, result.side);
+            Assert.AreEqual("adjacent", result.targetLaneId);
+            Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.Selected, result.reason);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemEvaluatesLaneChangeRouteTriesOppositeSideWhenPreferredCannotRoute()
+        {
+            BakedLaneNetwork network = Track(CreateLaneChangeRouteNetworkWithOppositeSide());
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+            subsystem.SetLaneClosed("blocked_next", true);
+
+            VehicleRoadLaneChangeRouteResult result = subsystem.EvaluateLaneChangeRoute(new VehicleRoadLaneChangeRouteQuery
+            {
+                vehicleId = "ego",
+                currentLaneId = "current",
+                destinationLaneId = "goal",
+                currentRouteLaneIds = new[] { "current", "blocked_next", "goal" },
+                distanceAlongLane = 20f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                preferredSide = RoadLaneAdjacentSide.Right,
+                allowOppositeSide = true,
+                requiredGap = 10f
+            });
+
+            Assert.True(result.shouldRequestLaneChange);
+            Assert.True(result.currentRouteFound);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.Closed, result.currentOccupancyStatus);
+            Assert.AreEqual(RoadLaneAdjacentSide.Left, result.side);
+            Assert.AreEqual("left_adjacent", result.targetLaneId);
+            CollectionAssert.AreEqual(new[] { "left_adjacent", "goal" }, result.routeLaneIds);
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemEvaluatesLaneChangeRouteClosedNextLaneAndUnsafeAdjacentGap()
+        {
+            BakedLaneNetwork network = Track(CreateLaneChangeRouteNetwork(true));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+            subsystem.SetLaneClosed("blocked_next", true);
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "adjacent_car",
+                laneId = "adjacent",
+                distanceAlongLane = 20f,
+                speed = 0f,
+                length = 4f,
+                agentMask = RoadAgentMask.Car
+            });
+
+            VehicleRoadLaneChangeRouteResult result = subsystem.EvaluateLaneChangeRoute(new VehicleRoadLaneChangeRouteQuery
+            {
+                vehicleId = "ego",
+                currentLaneId = "current",
+                destinationLaneId = "goal",
+                currentRouteLaneIds = new[] { "current", "blocked_next", "goal" },
+                distanceAlongLane = 20f,
+                agentMask = RoadAgentMask.Car,
+                vehicleLength = 4f,
+                preferredSide = RoadLaneAdjacentSide.Right,
+                allowOppositeSide = false,
+                requiredGap = 10f
+            });
+
+            Assert.False(result.shouldRequestLaneChange);
+            Assert.True(result.currentRouteFound);
+            Assert.AreEqual("blocked_next", result.currentNextLaneId);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.Closed, result.currentOccupancyStatus);
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.UnsafeGap, result.targetOccupancyStatus);
+            Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.AdjacentUnsafe, result.reason);
+        }
+
+        [Test]
         public void VehicleFollowerOutputsTrafficSignalStopState()
         {
             BakedLaneNetwork network = Track(CreateSignalRouteNetwork(false));
@@ -2542,6 +2816,117 @@ namespace VehicleRoads.Editor.Tests
                 lanes,
                 samples,
                 new List<BakedLaneConnectionRecord>(),
+                adjacent,
+                new List<BakedJunctionTrafficRecord>(),
+                new List<BakedConnectorTrafficRecord>());
+        }
+
+        private static BakedLaneNetwork CreateLaneChangeRouteNetwork(bool includeCurrentRoute)
+        {
+            List<BakedLaneRecord> lanes = new List<BakedLaneRecord>
+            {
+                Lane("current", 0, 2, 50f),
+                Lane("blocked_next", 2, 2, 20f),
+                Lane("adjacent", 4, 2, 50f),
+                Lane("goal", 6, 2, 20f)
+            };
+            List<BakedLaneSampleRecord> samples = new List<BakedLaneSampleRecord>();
+            AddStraightSamples(samples, "current", Vector3.zero, Vector3.forward, 50f);
+            AddStraightSamples(samples, "blocked_next", Vector3.forward * 50f, Vector3.forward, 20f);
+            AddStraightSamples(samples, "adjacent", Vector3.right * 3f, Vector3.forward, 50f);
+            AddStraightSamples(samples, "goal", Vector3.right * 3f + Vector3.forward * 50f, Vector3.forward, 20f);
+
+            List<BakedLaneConnectionRecord> connections = new List<BakedLaneConnectionRecord>
+            {
+                Connection("adjacent", "goal")
+            };
+            if (includeCurrentRoute)
+            {
+                connections.Add(Connection("current", "blocked_next"));
+                connections.Add(Connection("blocked_next", "goal"));
+            }
+
+            List<BakedLaneAdjacentLinkRecord> adjacent = new List<BakedLaneAdjacentLinkRecord>
+            {
+                new BakedLaneAdjacentLinkRecord
+                {
+                    linkId = "current_to_adjacent",
+                    fromLaneId = "current",
+                    toLaneId = "adjacent",
+                    side = RoadLaneAdjacentSide.Right,
+                    flags = RoadLaneAdjacentFlags.LaneChangeAllowed,
+                    open = true,
+                    overlapStartDistance = 0f,
+                    overlapEndDistance = 50f,
+                    minLateralDistance = 3f,
+                    maxLateralDistance = 3f
+                }
+            };
+            return Network(
+                lanes,
+                samples,
+                connections,
+                adjacent,
+                new List<BakedJunctionTrafficRecord>(),
+                new List<BakedConnectorTrafficRecord>());
+        }
+
+        private static BakedLaneNetwork CreateLaneChangeRouteNetworkWithOppositeSide()
+        {
+            List<BakedLaneRecord> lanes = new List<BakedLaneRecord>
+            {
+                Lane("current", 0, 2, 50f),
+                Lane("blocked_next", 2, 2, 20f),
+                Lane("right_adjacent", 4, 2, 50f),
+                Lane("left_adjacent", 6, 2, 50f),
+                Lane("goal", 8, 2, 20f)
+            };
+            List<BakedLaneSampleRecord> samples = new List<BakedLaneSampleRecord>();
+            AddStraightSamples(samples, "current", Vector3.zero, Vector3.forward, 50f);
+            AddStraightSamples(samples, "blocked_next", Vector3.forward * 50f, Vector3.forward, 20f);
+            AddStraightSamples(samples, "right_adjacent", Vector3.right * 3f, Vector3.forward, 50f);
+            AddStraightSamples(samples, "left_adjacent", Vector3.left * 3f, Vector3.forward, 50f);
+            AddStraightSamples(samples, "goal", Vector3.left * 3f + Vector3.forward * 50f, Vector3.forward, 20f);
+
+            List<BakedLaneConnectionRecord> connections = new List<BakedLaneConnectionRecord>
+            {
+                Connection("current", "blocked_next"),
+                Connection("blocked_next", "goal"),
+                Connection("left_adjacent", "goal")
+            };
+            List<BakedLaneAdjacentLinkRecord> adjacent = new List<BakedLaneAdjacentLinkRecord>
+            {
+                new BakedLaneAdjacentLinkRecord
+                {
+                    linkId = "current_to_right_adjacent",
+                    fromLaneId = "current",
+                    toLaneId = "right_adjacent",
+                    side = RoadLaneAdjacentSide.Right,
+                    flags = RoadLaneAdjacentFlags.LaneChangeAllowed,
+                    open = true,
+                    overlapStartDistance = 0f,
+                    overlapEndDistance = 50f,
+                    minLateralDistance = 3f,
+                    maxLateralDistance = 3f
+                },
+                new BakedLaneAdjacentLinkRecord
+                {
+                    linkId = "current_to_left_adjacent",
+                    fromLaneId = "current",
+                    toLaneId = "left_adjacent",
+                    side = RoadLaneAdjacentSide.Left,
+                    flags = RoadLaneAdjacentFlags.LaneChangeAllowed,
+                    open = true,
+                    overlapStartDistance = 0f,
+                    overlapEndDistance = 50f,
+                    minLateralDistance = 3f,
+                    maxLateralDistance = 3f
+                }
+            };
+            return Network(
+                lanes,
+                samples,
+                connections,
                 adjacent,
                 new List<BakedJunctionTrafficRecord>(),
                 new List<BakedConnectorTrafficRecord>());

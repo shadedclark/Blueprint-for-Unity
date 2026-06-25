@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.EvaluateLaneChangeRoute",
+  "title": "VehicleRoad Evaluate Lane Change Route",
+  "category": "VehicleRoads",
+  "description": "Evaluates whether the current route should request an adjacent lane and returns the replacement lane route.",
+  "executor": "VehicleRoad.EvaluateLaneChangeRoute",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "vehicleId", "kind": "value", "type": "string", "required": false, "source": "propertyOrConnection" },
+    { "id": "currentLaneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "destinationLaneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "currentRouteLaneIds", "kind": "value", "type": "Array<string>", "required": false, "source": "propertyOrConnection" },
+    { "id": "distanceAlongLane", "kind": "value", "type": "float", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "vehicleLength", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "preferredSide", "kind": "value", "type": "RoadLaneAdjacentSide", "required": false, "source": "propertyOrConnection" },
+    { "id": "allowOppositeSide", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "lookAheadDistance", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "requiredGap", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "maxOccupancyRatio", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "shouldRequestLaneChange", "kind": "value", "type": "bool" },
+    { "id": "side", "kind": "value", "type": "RoadLaneAdjacentSide" },
+    { "id": "targetLaneId", "kind": "value", "type": "string" },
+    { "id": "targetDistanceAlongLane", "kind": "value", "type": "float" },
+    { "id": "routeLaneIds", "kind": "value", "type": "Array<string>" },
+    { "id": "totalCost", "kind": "value", "type": "float" },
+    { "id": "currentRouteFound", "kind": "value", "type": "bool" },
+    { "id": "currentNextLaneId", "kind": "value", "type": "string" },
+    { "id": "currentOccupancyStatus", "kind": "value", "type": "VehicleRoadLaneOccupancyStatus" },
+    { "id": "targetOccupancyStatus", "kind": "value", "type": "VehicleRoadLaneOccupancyStatus" },
+    { "id": "reason", "kind": "value", "type": "VehicleRoadLaneChangeDecisionReason" },
+    { "id": "failureReason", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "vehicleId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "currentLaneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "destinationLaneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "currentRouteLaneIds", "required": false, "type": "Array<string>", "defaultValue": [] },
+    { "id": "distanceAlongLane", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "MotorVehicles" },
+    { "id": "vehicleLength", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "preferredSide", "required": false, "type": "RoadLaneAdjacentSide", "defaultValue": "Right" },
+    { "id": "allowOppositeSide", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "lookAheadDistance", "required": false, "type": "float", "defaultValue": 30 },
+    { "id": "requiredGap", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "maxOccupancyRatio", "required": false, "type": "float", "defaultValue": 0.85 }
+  ]
+}

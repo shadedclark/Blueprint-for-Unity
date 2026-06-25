@@ -17,9 +17,12 @@ namespace BlueprintSystem.Tests
                 "VehicleRoad.FindNearestLane",
                 "VehicleRoad.FindLaneRoute",
                 "VehicleRoad.SetLaneClosed",
+                "VehicleRoad.SetLaneCongestionCost",
                 "VehicleRoad.UpdateVehicle",
                 "VehicleRoad.UnregisterVehicle",
                 "VehicleRoad.EvaluateTrafficControl",
+                "VehicleRoad.EvaluateLaneOccupancy",
+                "VehicleRoad.EvaluateLaneChangeRoute",
                 "VehicleRoad.RequestLaneChange",
                 "VehicleRoad.CompleteLaneChange",
                 "VehicleRoad.SetFollowerRoute",
@@ -108,6 +111,8 @@ namespace BlueprintSystem.Tests
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("Array<string>"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadStopReason"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneChangeStatus"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneOccupancyStatus"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneChangeDecisionReason"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleLaneRecoveryMode"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("RoadLaneAdjacentSide"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("RoadAgentState"));
@@ -115,7 +120,9 @@ namespace BlueprintSystem.Tests
             BehaviorTreeBlackboard blackboard = new BehaviorTreeBlackboard(new[]
             {
                 new BehaviorTreeBlackboardKey { Name = "Route", Type = "Array<string>", DefaultValue = new List<object>() },
-                new BehaviorTreeBlackboardKey { Name = "StopReason", Type = "VehicleRoadStopReason", DefaultValue = "None" }
+                new BehaviorTreeBlackboardKey { Name = "StopReason", Type = "VehicleRoadStopReason", DefaultValue = "None" },
+                new BehaviorTreeBlackboardKey { Name = "OccupancyStatus", Type = "VehicleRoadLaneOccupancyStatus", DefaultValue = "Unknown" },
+                new BehaviorTreeBlackboardKey { Name = "DecisionReason", Type = "VehicleRoadLaneChangeDecisionReason", DefaultValue = "None" }
             });
 
             blackboard.SetValue("Route", new List<string> { "lane_a", "lane_b" });
@@ -126,6 +133,10 @@ namespace BlueprintSystem.Tests
 
             blackboard.SetValue("StopReason", "Queue");
             Assert.AreEqual(VehicleRoadStopReason.Queue, blackboard.GetValue("StopReason"));
+            blackboard.SetValue("OccupancyStatus", "UnsafeGap");
+            blackboard.SetValue("DecisionReason", "Selected");
+            Assert.AreEqual(VehicleRoadLaneOccupancyStatus.UnsafeGap, blackboard.GetValue("OccupancyStatus"));
+            Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.Selected, blackboard.GetValue("DecisionReason"));
         }
 
         [Test]
@@ -389,6 +400,37 @@ namespace BlueprintSystem.Tests
             decideLaneChange.Properties["laneChangeDecisionReasonKey"] = "LaneChangeDecisionReason";
             sequence.Children.Add(decideLaneChange.Id);
 
+            BehaviorTreeNodeSource evaluateLaneOccupancy = AddNode(source, "evaluate_lane_occupancy", "BT.VehicleRoad.EvaluateLaneOccupancy");
+            evaluateLaneOccupancy.Properties["validKey"] = "Valid";
+            evaluateLaneOccupancy.Properties["statusKey"] = "LaneOccupancyStatus";
+            evaluateLaneOccupancy.Properties["isEnterableKey"] = "IsLaneEnterable";
+            evaluateLaneOccupancy.Properties["vehicleCountKey"] = "VehicleCount";
+            evaluateLaneOccupancy.Properties["reservationCountKey"] = "ReservationCount";
+            evaluateLaneOccupancy.Properties["occupancyRatioKey"] = "OccupancyRatio";
+            evaluateLaneOccupancy.Properties["nearestForwardVehicleIdKey"] = "NearestForwardVehicleId";
+            evaluateLaneOccupancy.Properties["nearestForwardDistanceKey"] = "NearestForwardDistance";
+            evaluateLaneOccupancy.Properties["nearestRearVehicleIdKey"] = "NearestRearVehicleId";
+            evaluateLaneOccupancy.Properties["nearestRearDistanceKey"] = "NearestRearDistance";
+            evaluateLaneOccupancy.Properties["availableForwardGapKey"] = "AvailableForwardGap";
+            evaluateLaneOccupancy.Properties["availableRearGapKey"] = "AvailableRearGap";
+            evaluateLaneOccupancy.Properties["failureReasonKey"] = "LaneOccupancyFailureReason";
+            sequence.Children.Add(evaluateLaneOccupancy.Id);
+
+            BehaviorTreeNodeSource evaluateLaneChangeRoute = AddNode(source, "evaluate_lane_change_route", "BT.VehicleRoad.EvaluateLaneChangeRoute");
+            evaluateLaneChangeRoute.Properties["requestLaneChangeKey"] = "RequestLaneChange";
+            evaluateLaneChangeRoute.Properties["requestedLaneChangeSideKey"] = "RequestedLaneChangeSide";
+            evaluateLaneChangeRoute.Properties["targetLaneIdKey"] = "TargetLaneId";
+            evaluateLaneChangeRoute.Properties["targetDistanceAlongLaneKey"] = "TargetDistanceAlongLane";
+            evaluateLaneChangeRoute.Properties["targetRouteLaneIdsKey"] = "TargetRouteLaneIds";
+            evaluateLaneChangeRoute.Properties["totalCostKey"] = "TotalCost";
+            evaluateLaneChangeRoute.Properties["currentRouteFoundKey"] = "CurrentRouteFound";
+            evaluateLaneChangeRoute.Properties["currentNextLaneIdKey"] = "CurrentNextLaneId";
+            evaluateLaneChangeRoute.Properties["decisionReasonKey"] = "RouteLaneChangeDecisionReason";
+            evaluateLaneChangeRoute.Properties["failureReasonKey"] = "RouteLaneChangeFailureReason";
+            evaluateLaneChangeRoute.Properties["currentOccupancyStatusKey"] = "CurrentOccupancyStatus";
+            evaluateLaneChangeRoute.Properties["targetOccupancyStatusKey"] = "TargetOccupancyStatus";
+            sequence.Children.Add(evaluateLaneChangeRoute.Id);
+
             BehaviorTreeNodeSource requestLaneChange = AddNode(source, "request_lane_change", "BT.VehicleRoad.RequestLaneChange");
             requestLaneChange.Properties["laneChangeStatusKey"] = "LaneChangeStatus";
             requestLaneChange.Properties["laneChangeTargetLaneIdKey"] = "LaneChangeTargetLaneId";
@@ -469,6 +511,58 @@ namespace BlueprintSystem.Tests
                 Assert.AreEqual(true, runtime.Blackboard.GetValue("RequestLaneChange"));
                 Assert.AreEqual(RoadLaneAdjacentSide.Right, runtime.Blackboard.GetValue("RequestedLaneChangeSide"));
                 Assert.AreEqual("LeadVehicleBlocked", runtime.Blackboard.GetValue("LaneChangeDecisionReason"));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadEvaluateLaneChangeRouteBlocksDuplicateRecoveryAndStopPointRequests()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.EvaluateLaneChangeRoute");
+            BehaviorTreeNodeSource evaluateRoute = source.Nodes[1];
+            Bind(evaluateRoute, "currentLaneId", "CurrentLaneId");
+            Bind(evaluateRoute, "destinationLaneId", "DestinationLaneId");
+            Bind(evaluateRoute, "laneChangeStatus", "LaneChangeStatus");
+            Bind(evaluateRoute, "recoveryMode", "RecoveryMode");
+            Bind(evaluateRoute, "hasStopPoint", "HasStopPoint");
+            Bind(evaluateRoute, "distanceToStopLine", "DistanceToStopLine");
+            evaluateRoute.Properties["requestLaneChangeKey"] = "RequestLaneChange";
+            evaluateRoute.Properties["requestedLaneChangeSideKey"] = "RequestedLaneChangeSide";
+            evaluateRoute.Properties["decisionReasonKey"] = "RouteLaneChangeDecisionReason";
+            evaluateRoute.Properties["failureReasonKey"] = "RouteLaneChangeFailureReason";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtEvaluateLaneChangeRouteGuardOwner");
+            try
+            {
+                owner.AddComponent<VehicleRoadSubsystem>();
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("CurrentLaneId", "current");
+                runtime.Blackboard.SetValue("DestinationLaneId", "goal");
+
+                runtime.Blackboard.SetValue("LaneChangeStatus", VehicleRoadLaneChangeStatus.Active);
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+                Assert.AreEqual(false, runtime.Blackboard.GetValue("RequestLaneChange"));
+                Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.AlreadyChanging, runtime.Blackboard.GetValue("RouteLaneChangeDecisionReason"));
+
+                runtime.Blackboard.SetValue("LaneChangeStatus", VehicleRoadLaneChangeStatus.None);
+                runtime.Blackboard.SetValue("RecoveryMode", VehicleLaneRecoveryMode.Reset);
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+                Assert.AreEqual(false, runtime.Blackboard.GetValue("RequestLaneChange"));
+                Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.RecoveryMode, runtime.Blackboard.GetValue("RouteLaneChangeDecisionReason"));
+
+                runtime.Blackboard.SetValue("RecoveryMode", VehicleLaneRecoveryMode.None);
+                runtime.Blackboard.SetValue("HasStopPoint", true);
+                runtime.Blackboard.SetValue("DistanceToStopLine", 5f);
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(0.1f));
+                Assert.AreEqual(false, runtime.Blackboard.GetValue("RequestLaneChange"));
+                Assert.AreEqual(VehicleRoadLaneChangeDecisionReason.ApproachingStopPoint, runtime.Blackboard.GetValue("RouteLaneChangeDecisionReason"));
             }
             finally
             {
@@ -686,6 +780,8 @@ namespace BlueprintSystem.Tests
                 "BT.VehicleRoad.SelectNextRouteTarget",
                 "BT.VehicleRoad.UpdateTrafficState",
                 "BT.VehicleRoad.DecideLaneChange",
+                "BT.VehicleRoad.EvaluateLaneOccupancy",
+                "BT.VehicleRoad.EvaluateLaneChangeRoute",
                 "BT.VehicleRoad.RequestLaneChange",
                 "BT.VehicleRoad.CompleteLaneChange"
             };
@@ -755,6 +851,27 @@ namespace BlueprintSystem.Tests
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RequestLaneChange", Type = "bool", DefaultValue = false });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RequestedLaneChangeSide", Type = "RoadLaneAdjacentSide", DefaultValue = "Right" });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneChangeDecisionReason", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RouteLaneChangeDecisionReason", Type = "VehicleRoadLaneChangeDecisionReason", DefaultValue = "None" });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneOccupancyStatus", Type = "VehicleRoadLaneOccupancyStatus", DefaultValue = "Unknown" });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CurrentOccupancyStatus", Type = "VehicleRoadLaneOccupancyStatus", DefaultValue = "Unknown" });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "TargetOccupancyStatus", Type = "VehicleRoadLaneOccupancyStatus", DefaultValue = "Unknown" });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "IsLaneEnterable", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "VehicleCount", Type = "int", DefaultValue = 0 });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "ReservationCount", Type = "int", DefaultValue = 0 });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "OccupancyRatio", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "NearestForwardVehicleId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "NearestForwardDistance", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "NearestRearVehicleId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "NearestRearDistance", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "AvailableForwardGap", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "AvailableRearGap", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "LaneOccupancyFailureReason", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "TargetLaneId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "TargetDistanceAlongLane", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "TargetRouteLaneIds", Type = "Array<string>", DefaultValue = new List<object>() });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CurrentRouteFound", Type = "bool", DefaultValue = false });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CurrentNextLaneId", Type = "string", DefaultValue = string.Empty });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RouteLaneChangeFailureReason", Type = "string", DefaultValue = string.Empty });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "Completed", Type = "bool", DefaultValue = false });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CurrentSpeed", Type = "float", DefaultValue = 0f });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "DestinationLaneId", Type = "string", DefaultValue = string.Empty });

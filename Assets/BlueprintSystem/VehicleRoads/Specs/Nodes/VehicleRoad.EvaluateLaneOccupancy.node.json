@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.EvaluateLaneOccupancy",
+  "title": "VehicleRoad Evaluate Lane Occupancy",
+  "category": "VehicleRoads",
+  "description": "Reads whether a lane is enterable near a target distance using vehicles, reservations, and occupancy density.",
+  "executor": "VehicleRoad.EvaluateLaneOccupancy",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "vehicleId", "kind": "value", "type": "string", "required": false, "source": "propertyOrConnection" },
+    { "id": "laneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" },
+    { "id": "distanceAlongLane", "kind": "value", "type": "float", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "vehicleLength", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "lookAheadDistance", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "requiredGap", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "maxOccupancyRatio", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "valid", "kind": "value", "type": "bool" },
+    { "id": "status", "kind": "value", "type": "VehicleRoadLaneOccupancyStatus" },
+    { "id": "isEnterable", "kind": "value", "type": "bool" },
+    { "id": "vehicleCount", "kind": "value", "type": "int" },
+    { "id": "reservationCount", "kind": "value", "type": "int" },
+    { "id": "occupancyRatio", "kind": "value", "type": "float" },
+    { "id": "nearestForwardVehicleId", "kind": "value", "type": "string" },
+    { "id": "nearestForwardDistance", "kind": "value", "type": "float" },
+    { "id": "nearestRearVehicleId", "kind": "value", "type": "string" },
+    { "id": "nearestRearDistance", "kind": "value", "type": "float" },
+    { "id": "availableForwardGap", "kind": "value", "type": "float" },
+    { "id": "availableRearGap", "kind": "value", "type": "float" },
+    { "id": "failureReason", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "vehicleId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "laneId", "required": false, "type": "string", "defaultValue": "" },
+    { "id": "distanceAlongLane", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "MotorVehicles" },
+    { "id": "vehicleLength", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "lookAheadDistance", "required": false, "type": "float", "defaultValue": 30 },
+    { "id": "requiredGap", "required": false, "type": "float", "defaultValue": 0 },
+    { "id": "maxOccupancyRatio", "required": false, "type": "float", "defaultValue": 0.85 }
+  ]
+}
