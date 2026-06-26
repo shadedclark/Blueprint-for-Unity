@@ -7,6 +7,7 @@ namespace VehicleRoads
     public sealed partial class VehicleRoadSubsystem
     {
         private const float PassageGrantDistance = 0.25f;
+        private const float StopDistanceEpsilon = 0.001f;
         private const float DefaultLaneOccupancyLookAheadDistance = 30f;
         private const float DefaultLaneOccupancyRatio = 0.85f;
         private const float CongestedOccupancyRatioFactor = 0.7f;
@@ -276,29 +277,33 @@ namespace VehicleRoads
                 float vehicleFrontOffset = GetVehicleFrontOffset(vehicleLength);
                 string stopLaneId = approachLane.laneId;
                 float stopLineDistanceAlongLane = approachLane.length - stopLineDistance;
-                float distanceToStopLine = stopLineDistanceAlongLane - (query.distanceAlongLane + vehicleFrontOffset);
+                float rawDistanceToStopLine = stopLineDistanceAlongLane - (query.distanceAlongLane + vehicleFrontOffset);
                 if (isCurrentConnectorLane)
                 {
                     stopLaneId = laneId;
                     if (stopLineDistance < 0f)
                     {
                         stopLineDistanceAlongLane = -stopLineDistance;
-                        distanceToStopLine = stopLineDistanceAlongLane - (query.distanceAlongLane + vehicleFrontOffset);
+                        rawDistanceToStopLine = stopLineDistanceAlongLane - (query.distanceAlongLane + vehicleFrontOffset);
                     }
                     else
                     {
                         stopLineDistanceAlongLane = query.distanceAlongLane + vehicleFrontOffset;
-                        distanceToStopLine = 0f;
+                        rawDistanceToStopLine = 0f;
                     }
                 }
 
-                if (distanceToStopLine <= GetApproachDetectionDistance(connectorTraffic))
+                if (rawDistanceToStopLine <= 0f)
+                {
+                    RemoveVehicleFromQueue(connectorTraffic, vehicleId);
+                }
+                else if (rawDistanceToStopLine <= GetApproachDetectionDistance(connectorTraffic))
                 {
                     VehicleRoadTrafficControlResult passage = RequestConnectorPassage(
                         vehicleId,
                         connectorTraffic,
                         connection,
-                        Mathf.Max(0f, distanceToStopLine));
+                        rawDistanceToStopLine);
                     if (passage.passageStatus != VehicleRoadPassageStatus.Granted &&
                         passage.passageStatus != VehicleRoadPassageStatus.NotRequired)
                     {
@@ -307,19 +312,26 @@ namespace VehicleRoads
                             passage.queueIndex,
                             vehicleLength,
                             stopLineDistanceAlongLane);
-                        ApplyStopConstraint(
-                            ref result,
-                            passage.stopReason,
-                            passage.passageStatus,
-                            passage.signalState,
-                            passage.junctionId,
-                            passage.connectorLaneId,
-                            passage.connectionId,
-                            passage.queueIndex,
-                            Mathf.Max(0f, queueStopDistanceAlongLane - query.distanceAlongLane),
-                            0f,
-                            stopLaneId,
-                            queueStopDistanceAlongLane);
+                        if (queueStopDistanceAlongLane <= query.distanceAlongLane + StopDistanceEpsilon)
+                        {
+                            RemoveVehicleFromQueue(connectorTraffic, vehicleId);
+                        }
+                        else
+                        {
+                            ApplyStopConstraint(
+                                ref result,
+                                passage.stopReason,
+                                passage.passageStatus,
+                                passage.signalState,
+                                passage.junctionId,
+                                passage.connectorLaneId,
+                                passage.connectionId,
+                                passage.queueIndex,
+                                Mathf.Max(0f, queueStopDistanceAlongLane - query.distanceAlongLane),
+                                0f,
+                                stopLaneId,
+                                queueStopDistanceAlongLane);
+                        }
                     }
                     else
                     {

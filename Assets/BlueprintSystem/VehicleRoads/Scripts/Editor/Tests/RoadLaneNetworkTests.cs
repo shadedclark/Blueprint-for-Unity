@@ -1074,6 +1074,32 @@ namespace VehicleRoads.Editor.Tests
         }
 
         [Test]
+        public void VehicleRoadSubsystemSkipsStopLineConstraintWhenVehicleFrontHasPassedLine()
+        {
+            BakedLaneNetwork network = Track(CreateSignalRouteNetwork(false));
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            VehicleRoadTrafficControlResult result = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "passed_stop_line_car",
+                laneId = "start",
+                distanceAlongLane = 16f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "start", "connector", "goal" }
+            });
+
+            Assert.False(result.hasConstraint);
+            Assert.AreEqual(VehicleRoadPassageStatus.NotRequired, result.passageStatus);
+            Assert.AreEqual(VehicleRoadStopReason.None, result.stopReason);
+            Assert.False(result.hasStopPosition);
+            Assert.That(result.targetSpeedLimit, Is.EqualTo(float.PositiveInfinity));
+            Assert.AreEqual(0, subsystem.GetSnapshot().queuedVehicleCount);
+        }
+
+        [Test]
         public void VehicleRoadSubsystemRevokesApproachTokenWhenSignalTurnsRedBeforeConnector()
         {
             BakedLaneNetwork network = Track(CreateSignalRouteNetwork(true));
@@ -1088,7 +1114,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "slow_green_car",
                 laneId = "start",
-                distanceAlongLane = 18f,
+                distanceAlongLane = 15.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1101,7 +1127,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "slow_green_car",
                 laneId = "start",
-                distanceAlongLane = 18f,
+                distanceAlongLane = 15.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1125,7 +1151,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "car_a",
                 laneId = "start",
-                distanceAlongLane = 18f,
+                distanceAlongLane = 15.8f,
                 speed = 4f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1137,7 +1163,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "car_a",
                 laneId = "connector",
-                distanceAlongLane = 1f,
+                distanceAlongLane = 5f,
                 speed = 3f,
                 length = 4f,
                 routeLaneIds = new[] { "start", "connector", "goal" }
@@ -1147,9 +1173,9 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "car_b",
                 laneId = "start",
-                distanceAlongLane = 18f,
+                distanceAlongLane = 17.7f,
                 speed = 0f,
-                vehicleLength = 4f,
+                vehicleLength = 0.2f,
                 agentMask = RoadAgentMask.Car,
                 routeLaneIds = new[] { "start", "connector", "goal" }
             });
@@ -1174,9 +1200,9 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "car_b",
                 laneId = "start",
-                distanceAlongLane = 18f,
+                distanceAlongLane = 17.7f,
                 speed = 4f,
-                vehicleLength = 4f,
+                vehicleLength = 0.2f,
                 agentMask = RoadAgentMask.Car,
                 routeLaneIds = new[] { "start", "connector", "goal" }
             });
@@ -1194,7 +1220,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "straight_car",
                 laneId = "start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1216,7 +1242,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "right_car",
                 laneId = "start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1239,7 +1265,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "right_car",
                 laneId = "start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1259,7 +1285,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "east_car",
                 laneId = "west_start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1281,7 +1307,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "north_car",
                 laneId = "south_start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1304,7 +1330,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "north_car",
                 laneId = "south_start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1324,7 +1350,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "east_car",
                 laneId = "west_start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1346,7 +1372,7 @@ namespace VehicleRoads.Editor.Tests
             {
                 vehicleId = "north_car",
                 laneId = "south_start",
-                distanceAlongLane = 8f,
+                distanceAlongLane = 7.8f,
                 speed = 0f,
                 vehicleLength = 4f,
                 agentMask = RoadAgentMask.Car,
@@ -1409,6 +1435,55 @@ namespace VehicleRoads.Editor.Tests
             Assert.That(second.distanceToStopLine, Is.EqualTo(2f).Within(0.001f));
             Assert.True(second.hasStopPosition);
             Assert.That(second.stopPosition.z, Is.EqualTo(10f).Within(0.001f));
+        }
+
+        [Test]
+        public void VehicleRoadSubsystemSkipsQueueStopPositionBehindVehicle()
+        {
+            BakedLaneNetwork network = Track(CreateSignalRouteNetwork(false));
+            network.JunctionTraffic[0].queueSpacing = 2f;
+            VehicleRoadSubsystem subsystem = CreateSubsystem();
+            subsystem.RegisterNetwork(network);
+
+            VehicleRoadTrafficControlResult first = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "queue_guard_front",
+                laneId = "start",
+                distanceAlongLane = 14f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "start", "connector", "goal" }
+            });
+            Assert.AreEqual(VehicleRoadPassageStatus.Waiting, first.passageStatus);
+            Assert.True(first.hasStopPosition);
+
+            subsystem.UpdateVehicle(new VehicleRoadVehicleUpdate
+            {
+                vehicleId = "queue_guard_front",
+                laneId = "connector",
+                distanceAlongLane = 0f,
+                speed = 0f,
+                length = 4f,
+                routeLaneIds = new[] { "start", "connector", "goal" }
+            });
+
+            VehicleRoadTrafficControlResult behindStop = subsystem.EvaluateTrafficControl(new VehicleRoadTrafficQuery
+            {
+                vehicleId = "queue_guard_behind",
+                laneId = "start",
+                distanceAlongLane = 10f,
+                speed = 0f,
+                vehicleLength = 4f,
+                agentMask = RoadAgentMask.Car,
+                routeLaneIds = new[] { "start", "connector", "goal" }
+            });
+
+            Assert.False(behindStop.hasConstraint);
+            Assert.AreEqual(VehicleRoadPassageStatus.NotRequired, behindStop.passageStatus);
+            Assert.AreEqual(VehicleRoadStopReason.None, behindStop.stopReason);
+            Assert.False(behindStop.hasStopPosition);
+            Assert.AreEqual(1, subsystem.GetSnapshot().queuedVehicleCount);
         }
 
         [Test]
@@ -1490,7 +1565,7 @@ namespace VehicleRoads.Editor.Tests
         }
 
         [Test]
-        public void VehicleRoadSubsystemKeepsNegativeStopLineConstraintOnConnectorLane()
+        public void VehicleRoadSubsystemSkipsNegativeStopLineConstraintAfterConnectorLanePassesLine()
         {
             BakedLaneNetwork network = Track(CreateSignalRouteNetwork(false));
             network.JunctionTraffic[0].defaultStopLineDistance = -2f;
@@ -1509,12 +1584,11 @@ namespace VehicleRoads.Editor.Tests
                 routeLaneIds = new[] { "start", "connector", "goal" }
             });
 
-            Assert.AreEqual(VehicleRoadStopReason.TrafficSignal, result.stopReason);
-            Assert.AreEqual(VehicleRoadPassageStatus.Waiting, result.passageStatus);
-            Assert.AreEqual(VehicleRoadSignalState.Red, result.signalState);
-            Assert.That(result.distanceToStopLine, Is.EqualTo(0f).Within(0.001f));
-            Assert.True(result.hasStopPosition);
-            Assert.That(result.stopPosition.z, Is.EqualTo(20f).Within(0.001f));
+            Assert.False(result.hasConstraint);
+            Assert.AreEqual(VehicleRoadStopReason.None, result.stopReason);
+            Assert.AreEqual(VehicleRoadPassageStatus.NotRequired, result.passageStatus);
+            Assert.AreEqual(VehicleRoadSignalState.None, result.signalState);
+            Assert.False(result.hasStopPosition);
         }
 
         [Test]
@@ -1535,7 +1609,8 @@ namespace VehicleRoads.Editor.Tests
                 agentMask = RoadAgentMask.Car,
                 routeLaneIds = new[] { "start", "connector", "goal" }
             });
-            Assert.That(original.distanceToStopLine, Is.EqualTo(0f).Within(0.001f));
+            Assert.False(original.hasConstraint);
+            Assert.False(original.hasStopPosition);
 
             BakedConnectorTrafficRecord connector = network.ConnectorTraffic[0];
             network.SetData(
@@ -1572,7 +1647,8 @@ namespace VehicleRoads.Editor.Tests
                 agentMask = RoadAgentMask.Car,
                 routeLaneIds = new[] { "start", "connector", "goal" }
             });
-            Assert.That(stale.distanceToStopLine, Is.EqualTo(0f).Within(0.001f));
+            Assert.False(stale.hasConstraint);
+            Assert.False(stale.hasStopPosition);
 
             int refreshed = RoadLaneNetworkEditor.RefreshVehicleRoadSubsystemsAfterBake();
             Assert.That(refreshed, Is.GreaterThanOrEqualTo(1));
@@ -1702,7 +1778,7 @@ namespace VehicleRoads.Editor.Tests
             });
 
             Assert.AreEqual(VehicleRoadStopReason.None, result.stopReason);
-            Assert.AreEqual(VehicleRoadPassageStatus.Granted, result.passageStatus);
+            Assert.AreEqual(VehicleRoadPassageStatus.NotRequired, result.passageStatus);
             Assert.False(result.hasStopPosition);
         }
 
@@ -2038,7 +2114,7 @@ namespace VehicleRoads.Editor.Tests
             VehicleLaneFollowerOutput output = follower.ComputeControl(new VehicleLaneFollowerInput
             {
                 vehicleId = "signal_car",
-                position = new Vector3(0f, 0f, 18f),
+                position = new Vector3(0f, 0f, 14f),
                 forward = Vector3.forward,
                 speed = 4f,
                 wheelBase = 2.5f,
