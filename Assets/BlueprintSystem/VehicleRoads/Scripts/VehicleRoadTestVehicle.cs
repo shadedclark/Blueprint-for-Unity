@@ -7,6 +7,8 @@ namespace VehicleRoads
     [AddComponentMenu("Vehicle Road/Vehicle Road Test Vehicle")]
     public sealed class VehicleRoadTestVehicle : MonoBehaviour
     {
+        private const float StopPointBehindEpsilon = 0.001f;
+
         [SerializeField] private string vehicleId = string.Empty;
         [SerializeField] private VehicleRoadSubsystem roadSubsystem;
         [SerializeField, Min(0.1f)] private float vehicleLength = 4.5f;
@@ -145,6 +147,17 @@ namespace VehicleRoads
             bool reachedExplicitStopPoint = false;
             if (LastOutput.hasStopPoint && float.IsFinite(LastOutput.distanceToStopLine))
             {
+                if (LastOutput.distanceToStopLine < -StopPointBehindEpsilon)
+                {
+                    if (followBakedLanePose && TryMoveAlongBakedRoute(LastOutput, travelDistance))
+                    {
+                        return;
+                    }
+
+                    MoveTowardLookAhead(travelDistance);
+                    return;
+                }
+
                 float distanceToStop = Mathf.Max(0f, LastOutput.distanceToStopLine);
                 if (LastOutput.targetSpeed <= 0.01f && distanceToStop > 0.001f)
                 {
@@ -159,7 +172,7 @@ namespace VehicleRoads
                 travelDistance = Mathf.Min(travelDistance, distanceToStop);
             }
 
-            if (reachedExplicitStopPoint)
+            if (reachedExplicitStopPoint && IsStopPointAhead(LastOutput.stopPoint))
             {
                 transform.position = LastOutput.stopPoint;
                 currentSpeed = 0f;
@@ -171,6 +184,11 @@ namespace VehicleRoads
                 return;
             }
 
+            MoveTowardLookAhead(travelDistance);
+        }
+
+        private void MoveTowardLookAhead(float travelDistance)
+        {
             Vector3 toTarget = LastOutput.lookAheadPoint - transform.position;
             if (toTarget.sqrMagnitude > 0.0001f)
             {
@@ -182,6 +200,17 @@ namespace VehicleRoads
             }
 
             transform.position += transform.forward * travelDistance;
+        }
+
+        private bool IsStopPointAhead(Vector3 stopPoint)
+        {
+            Vector3 forward = transform.forward;
+            if (forward.sqrMagnitude <= 0.0001f)
+            {
+                return true;
+            }
+
+            return Vector3.Dot(stopPoint - transform.position, forward.normalized) >= -StopPointBehindEpsilon;
         }
 
         private bool TryMoveAlongBakedRoute(VehicleLaneFollowerOutput output, float travelDistance)

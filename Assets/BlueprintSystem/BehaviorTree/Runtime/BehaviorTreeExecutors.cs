@@ -2603,7 +2603,8 @@ namespace BlueprintSystem
                 out travelDistance,
                 out reachedExplicitStopPoint);
 
-            if (reachedExplicitStopPoint)
+            if (reachedExplicitStopPoint &&
+                BehaviorTreeVehicleRoadUtility.IsStopPointAhead(transform, output.stopPoint))
             {
                 transform.position = output.stopPoint;
                 currentSpeed = 0f;
@@ -3222,6 +3223,11 @@ namespace BlueprintSystem
                 return BehaviorTreeStatus.Failure;
             }
 
+            if (!BehaviorTreeVehicleRoadUtility.IsStopPointAhead(context.Owner.transform, stopPoint))
+            {
+                return BehaviorTreeStatus.Failure;
+            }
+
             context.Owner.transform.position = stopPoint;
             BehaviorTreeVehicleRoadUtility.WriteValue(context, node, "currentSpeedKey", 0f);
             return BehaviorTreeStatus.Success;
@@ -3539,6 +3545,8 @@ namespace BlueprintSystem
 
     internal static class BehaviorTreeVehicleRoadUtility
     {
+        private const float StopPointBehindEpsilon = 0.001f;
+
         public static T ResolveRequiredInputComponent<T>(
             BehaviorTreeExecutionContext context,
             RuntimeBehaviorTreeNode node,
@@ -3811,6 +3819,11 @@ namespace BlueprintSystem
                 return;
             }
 
+            if (distanceToStopLine < -StopPointBehindEpsilon)
+            {
+                return;
+            }
+
             float distanceToStop = Mathf.Max(0f, distanceToStopLine);
             if (targetSpeed <= 0.01f && distanceToStop > 0.001f)
             {
@@ -3823,6 +3836,22 @@ namespace BlueprintSystem
             reachedExplicitStopPoint = targetSpeed <= 0.01f &&
                                        distanceToStop <= requestedTravelDistance + 0.001f;
             travelDistance = Mathf.Min(travelDistance, distanceToStop);
+        }
+
+        public static bool IsStopPointAhead(Transform transform, Vector3 stopPoint)
+        {
+            if (transform == null)
+            {
+                return false;
+            }
+
+            Vector3 forward = transform.forward;
+            if (forward.sqrMagnitude <= 0.0001f)
+            {
+                return true;
+            }
+
+            return Vector3.Dot(stopPoint - transform.position, forward.normalized) >= -StopPointBehindEpsilon;
         }
 
         public static bool TryMoveAlongBakedRoute(

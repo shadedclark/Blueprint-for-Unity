@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using BlueprintSystem.Editor;
 using NUnit.Framework;
 using UnityEngine;
@@ -623,6 +624,121 @@ namespace BlueprintSystem.Tests
                 Assert.AreEqual(0f, (float)runtime.Blackboard.GetValue("CurrentSpeed"));
                 Assert.That((float)runtime.Blackboard.GetValue("TravelDistance"), Is.EqualTo(0.5f).Within(0.001f));
                 Assert.AreEqual(new Vector3(0f, 0f, 0.5f), owner.transform.position);
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadEvaluateStopPointTravelKeepsMovingAfterPassingStopLine()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.EvaluateStopPointTravel");
+            BehaviorTreeNodeSource evaluateStop = source.Nodes[1];
+            Bind(evaluateStop, "hasStopPoint", "HasStopPoint");
+            Bind(evaluateStop, "distanceToStopLine", "DistanceToStopLine");
+            Bind(evaluateStop, "currentSpeed", "CurrentSpeed");
+            evaluateStop.Properties["targetSpeed"] = 0f;
+            evaluateStop.Properties["deltaTime"] = 1f;
+            evaluateStop.Properties["stopPointApproachSpeed"] = 2f;
+            evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
+            evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
+            evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtPassedStopLineOwner");
+            try
+            {
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("HasStopPoint", true);
+                runtime.Blackboard.SetValue("DistanceToStopLine", -0.01f);
+                runtime.Blackboard.SetValue("CurrentSpeed", 3f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(1f));
+                Assert.AreEqual(false, runtime.Blackboard.GetValue("ReachedStopPoint"));
+                Assert.That((float)runtime.Blackboard.GetValue("RequestedTravelDistance"), Is.EqualTo(3f).Within(0.001f));
+                Assert.That((float)runtime.Blackboard.GetValue("TravelDistance"), Is.EqualTo(3f).Within(0.001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadApplyStopPointFailsWhenStopPointIsBehindOwner()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.ApplyStopPoint");
+            BehaviorTreeNodeSource applyStop = source.Nodes[1];
+            Bind(applyStop, "reachedStopPoint", "ReachedStopPoint");
+            Bind(applyStop, "stopPoint", "StopPoint");
+            applyStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtBehindStopPointOwner");
+            try
+            {
+                owner.transform.position = Vector3.zero;
+                owner.transform.rotation = Quaternion.identity;
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("ReachedStopPoint", true);
+                runtime.Blackboard.SetValue("StopPoint", new Vector3(0f, 0f, -1f));
+                runtime.Blackboard.SetValue("CurrentSpeed", 4f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Failure, runtime.Tick(1f));
+                Assert.AreEqual(Vector3.zero, owner.transform.position);
+                Assert.AreEqual(4f, (float)runtime.Blackboard.GetValue("CurrentSpeed"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadTestVehicleFallbackMovementDoesNotSnapBackwardToBehindStopPoint()
+        {
+            GameObject owner = new GameObject("VehicleRoadDemoBehindStopPointOwner");
+            try
+            {
+                VehicleRoadTestVehicle vehicle = owner.AddComponent<VehicleRoadTestVehicle>();
+                owner.transform.position = Vector3.zero;
+                owner.transform.rotation = Quaternion.identity;
+
+                VehicleLaneFollowerOutput output = new VehicleLaneFollowerOutput
+                {
+                    valid = true,
+                    hasStopPoint = true,
+                    stopPoint = new Vector3(0f, 0f, -1f),
+                    lookAheadPoint = new Vector3(0f, 0f, 10f)
+                };
+                FieldInfo outputField = typeof(VehicleRoadTestVehicle).GetField(
+                    "<LastOutput>k__BackingField",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(outputField);
+                outputField.SetValue(vehicle, output);
+
+                MethodInfo isStopPointAhead = typeof(VehicleRoadTestVehicle).GetMethod(
+                    "IsStopPointAhead",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(isStopPointAhead);
+                Assert.AreEqual(false, (bool)isStopPointAhead.Invoke(vehicle, new object[] { output.stopPoint }));
+
+                MethodInfo moveTowardLookAhead = typeof(VehicleRoadTestVehicle).GetMethod(
+                    "MoveTowardLookAhead",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.NotNull(moveTowardLookAhead);
+                moveTowardLookAhead.Invoke(vehicle, new object[] { 2f });
+
+                Assert.That(owner.transform.position.z, Is.GreaterThan(1.9f));
+                Assert.That(owner.transform.position.z, Is.LessThan(2.1f));
             }
             finally
             {
