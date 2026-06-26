@@ -2302,6 +2302,10 @@ namespace BlueprintSystem
 
             int startIndex = ResolveStartIndex(context, node, candidateLaneIds.Count);
             RoadAgentMask agentMask = BehaviorTreeVehicleRoadUtility.ResolveAgentMask(context, node);
+            List<string> outgoingFallbackRoute = null;
+            string outgoingFallbackDestination = string.Empty;
+            int outgoingFallbackIndex = -1;
+            float outgoingFallbackCost = 0f;
             for (int offset = 0; offset < candidateLaneIds.Count; offset++)
             {
                 int index = (startIndex + offset) % candidateLaneIds.Count;
@@ -2313,14 +2317,24 @@ namespace BlueprintSystem
 
                 if (string.Equals(currentLaneId, destinationLaneId, StringComparison.Ordinal))
                 {
-                    WriteSelectionResult(
-                        context,
-                        node,
-                        true,
-                        destinationLaneId,
-                        index,
-                        new List<string> { currentLaneId },
-                        0f);
+                    if (outgoingFallbackRoute == null &&
+                        TryBuildImmediateOutgoingRoute(
+                            subsystem,
+                            currentLaneId,
+                            agentMask,
+                            out outgoingFallbackRoute,
+                            out outgoingFallbackDestination,
+                            out outgoingFallbackCost))
+                    {
+                        outgoingFallbackIndex = index;
+                    }
+
+                    if (outgoingFallbackRoute != null)
+                    {
+                        continue;
+                    }
+
+                    WriteSelectionResult(context, node, true, destinationLaneId, index, new List<string> { currentLaneId }, 0f);
                     return BehaviorTreeStatus.Success;
                 }
 
@@ -2340,8 +2354,73 @@ namespace BlueprintSystem
                 }
             }
 
+            if (outgoingFallbackRoute == null)
+            {
+                TryBuildImmediateOutgoingRoute(
+                    subsystem,
+                    currentLaneId,
+                    agentMask,
+                    out outgoingFallbackRoute,
+                    out outgoingFallbackDestination,
+                    out outgoingFallbackCost);
+            }
+
+            if (outgoingFallbackRoute != null)
+            {
+                WriteSelectionResult(
+                    context,
+                    node,
+                    true,
+                    outgoingFallbackDestination,
+                    outgoingFallbackIndex,
+                    outgoingFallbackRoute,
+                    outgoingFallbackCost);
+                return BehaviorTreeStatus.Success;
+            }
+
             WriteSelectionResult(context, node, false, string.Empty, -1, new List<string>(), 0f);
             return BehaviorTreeStatus.Failure;
+        }
+
+        private static bool TryBuildImmediateOutgoingRoute(
+            VehicleRoadSubsystem subsystem,
+            string currentLaneId,
+            RoadAgentMask agentMask,
+            out List<string> routeLaneIds,
+            out string destinationLaneId,
+            out float totalCost)
+        {
+            routeLaneIds = null;
+            destinationLaneId = string.Empty;
+            totalCost = 0f;
+            if (subsystem == null || string.IsNullOrWhiteSpace(currentLaneId))
+            {
+                return false;
+            }
+
+            IReadOnlyList<BakedLaneConnectionRecord> outgoing = subsystem.GetOutgoingConnections(currentLaneId);
+            for (int i = 0; i < outgoing.Count; i++)
+            {
+                BakedLaneConnectionRecord connection = outgoing[i];
+                if (connection == null ||
+                    !connection.open ||
+                    string.IsNullOrWhiteSpace(connection.toLaneId) ||
+                    !subsystem.TryGetLane(connection.toLaneId, out BakedLaneRecord nextLane) ||
+                    nextLane == null ||
+                    !nextLane.open ||
+                    nextLane.orphaned ||
+                    !nextLane.AllowsAgent(agentMask))
+                {
+                    continue;
+                }
+
+                destinationLaneId = connection.toLaneId;
+                routeLaneIds = new List<string> { currentLaneId, destinationLaneId };
+                totalCost = Mathf.Max(0f, nextLane.length) + Mathf.Max(0f, connection.baseCost);
+                return true;
+            }
+
+            return false;
         }
 
         private static int ResolveStartIndex(BehaviorTreeExecutionContext context, RuntimeBehaviorTreeNode node, int count)
