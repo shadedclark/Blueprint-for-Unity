@@ -119,4 +119,40 @@ namespace BlueprintSystem.Editor
             SetPropertyInspectorOnly("target", true);
         }
     }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Blueprint.GetVariableFromGameObject")]
+    public sealed class BlueprintGetVariableFromGameObjectVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Blueprint.GetVariableFromGameObject", "Get Variable From GameObject", "Blueprint", "Reads an exposed variable from the BlueprintRunner on a target GameObject.");
+            AddValueInput("target", "Binding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("name", "string", true, "propertyOrConnection");
+            AddValueOutput("value", null);
+            AddValueOutput("success", "bool");
+            AddProperty("target", "Binding<GameObject>", false);
+            AddProperty("name", "string", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Blueprint.SetVariableFromGameObject")]
+    public sealed class BlueprintSetVariableFromGameObjectVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Blueprint.SetVariableFromGameObject", "Set Variable From GameObject", "Blueprint", "Writes an exposed variable on the BlueprintRunner on a target GameObject.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("name", "string", true, "propertyOrConnection");
+            AddValueInput("value", null, true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<GameObject>", false);
+            AddProperty("name", "string", false);
+            AddProperty("value", null, false);
+        }
+    }
 }

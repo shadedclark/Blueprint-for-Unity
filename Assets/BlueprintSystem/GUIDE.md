@@ -63,6 +63,8 @@ connected value edge -> compiled node property -> null
 | `Blueprint.TriggerEvent` | Trigger Blueprint Event | Blueprint | `Blueprint.TriggerEvent` | `BlueprintTriggerEventExecutor` | Calls `TriggerEvent` on a Blueprint instance resolved by asset path or `BlueprintRef`. |
 | `Blueprint.GetVariable` | Get Blueprint Variable | Blueprint | `Blueprint.GetVariable` | `BlueprintGetVariableExecutor` | Reads an exposed variable from a Blueprint instance resolved by asset path or `BlueprintRef`. |
 | `Blueprint.SetVariable` | Set Blueprint Variable | Blueprint | `Blueprint.SetVariable` | `BlueprintSetVariableExecutor` | Writes an exposed variable on a Blueprint instance resolved by asset path or `BlueprintRef`. |
+| `Blueprint.GetVariableFromGameObject` | Get Variable From GameObject | Blueprint | `Blueprint.GetVariableFromGameObject` | `BlueprintGetVariableFromGameObjectExecutor` | Reads an exposed variable from the `BlueprintRunner` on a bound or connected `GameObject`. |
+| `Blueprint.SetVariableFromGameObject` | Set Variable From GameObject | Blueprint | `Blueprint.SetVariableFromGameObject` | `BlueprintSetVariableFromGameObjectExecutor` | Writes an exposed variable on the `BlueprintRunner` on a bound or connected `GameObject`. |
 | `BehaviorTree.GetBlackboardBool` | Get Blackboard Bool | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardBool` | `BehaviorTreeGetBlackboardBoolExecutor` | Reads a bool value from a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.GetBlackboardInt` | Get Blackboard Int | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardInt` | `BehaviorTreeGetBlackboardIntExecutor` | Reads an int value from a bound `BehaviorTreeRunner` Blackboard. |
 | `BehaviorTree.GetBlackboardFloat` | Get Blackboard Float | BehaviorTree/Blackboard | `BehaviorTree.GetBlackboardFloat` | `BehaviorTreeGetBlackboardFloatExecutor` | Reads a float value from a bound `BehaviorTreeRunner` Blackboard. |
@@ -174,11 +176,21 @@ Graph Toolkit stores the component list as editor metadata on the `.bpgraph`, bu
 
 Only variables declared with `"exposed": true` on the target blueprint can be read or written by `Blueprint.GetVariable` and `Blueprint.SetVariable`. Non-exposed variables, missing variables, invalid targets, duplicate target paths, and uncompiled targets fail. `Blueprint.TriggerEvent` forwards the event name to the resolved target instance; if the target blueprint has no matching custom event, the existing VM warning is used.
 
+`Blueprint.GetVariableFromGameObject` and `Blueprint.SetVariableFromGameObject` are direct scene-object bridges for the same exposed-variable rules when the target is a real `GameObject` with a `BlueprintRunner` or `UIBlueprintBinder` on that same object. The `target` input is `Binding<GameObject>` with `propertyOrConnection`, so JSON stores a binding name while runtime outputs such as pooled or instantiated `GameObject` values can also be connected. The resolver does not search parent or child transforms and does not resolve in-memory component blueprints; it calls `GetComponent<BlueprintRunner>()` on the resolved object and then reuses the standard exposed-variable read/write path, including reactive binding refresh after successful writes.
+
+Ports:
+
+| Node | Inputs | Outputs | Failure behavior |
+| --- | --- | --- | --- |
+| `Blueprint.GetVariableFromGameObject` | `target: Binding<GameObject>`, `name: string` | `value`, `success: bool` | Missing target, missing runner, missing/non-exposed variable, or uncompiled target returns `success=false` and `value=null`. |
+| `Blueprint.SetVariableFromGameObject` | `execIn`, `target: Binding<GameObject>`, `name: string`, `value` | `execOut` | Missing target, missing runner, missing/non-exposed variable, uncompiled target, or rejected value returns an execution error. |
+
 Avoid duplicates:
 
 ```text
 Use Blueprint component declarations, `BlueprintRef` nodes, and `Blueprint` asset variables for owner-owned behavior modules before adding one-off direct-object access nodes.
 Use bindings only for Unity object/component access nodes, not for cross-blueprint target resolution.
+Use GameObject variable access only when the runtime object itself is the intended scene Blueprint owner.
 Use `Blueprint.TriggerEvent` before adding specialized cross-blueprint event nodes.
 Use exposed variables for small public state only; prefer custom events when another blueprint should own the mutation.
 ```

@@ -4751,6 +4751,47 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BlueprintAccessGameObjectVariableNodesUseBindingGameObjectTargetsInManifestAndGraphToolkit()
+        {
+            BlueprintNodeManifestCollection manifests = LoadManifests();
+            BlueprintExecutorRegistry registry = BlueprintExecutorRegistry.CreateDefault();
+            string[] targetNodeIds =
+            {
+                "Blueprint.GetVariableFromGameObject",
+                "Blueprint.SetVariableFromGameObject"
+            };
+
+            for (int i = 0; i < targetNodeIds.Length; i++)
+            {
+                BlueprintNodeManifest manifest;
+                Assert.True(manifests.TryGet(targetNodeIds[i], out manifest), targetNodeIds[i]);
+                Assert.AreEqual("Blueprint", manifest.Category, targetNodeIds[i]);
+                IBlueprintNodeExecutor executor;
+                Assert.True(registry.TryGet(targetNodeIds[i], out executor), targetNodeIds[i]);
+
+                BlueprintPortSpec targetInput = manifest.FindInput("target");
+                BlueprintPropertySpec targetProperty = manifest.FindProperty("target");
+                Assert.NotNull(targetInput, targetNodeIds[i]);
+                Assert.AreEqual("Binding<GameObject>", targetInput.Type, targetNodeIds[i]);
+                Assert.True(targetInput.Required, targetNodeIds[i]);
+                Assert.AreEqual(BlueprintValueSource.PropertyOrConnection, targetInput.Source, targetNodeIds[i]);
+                Assert.NotNull(targetProperty, targetNodeIds[i]);
+                Assert.AreEqual("Binding<GameObject>", targetProperty.Type, targetNodeIds[i]);
+
+                BlueprintVisualNode visualNode = BlueprintVisualNodeFactory.Create(targetNodeIds[i]);
+                Assert.AreEqual(targetNodeIds[i], visualNode.ReadTypeId());
+                Assert.AreNotEqual(typeof(BlueprintVisualNode), visualNode.GetType(), targetNodeIds[i]);
+                BlueprintVisualPortData visualTargetInput = visualNode.Inputs.Find(port => port.Id == "target");
+                BlueprintVisualPropertyData visualTargetProperty = visualNode.Properties.Find(property => property.Id == "target");
+                Assert.NotNull(visualTargetInput, targetNodeIds[i]);
+                Assert.AreEqual("Binding<GameObject>", visualTargetInput.Type, targetNodeIds[i]);
+                Assert.AreEqual("propertyOrConnection", visualTargetInput.Source, targetNodeIds[i]);
+                Assert.NotNull(visualTargetProperty, targetNodeIds[i]);
+                Assert.AreEqual("Binding<GameObject>", visualTargetProperty.Type, targetNodeIds[i]);
+            }
+        }
+
+        [Test]
         public void ValidatorAcceptsBlueprintVariableTargetConnections()
         {
             string componentPath = "Assets/BlueprintSystem/Tests/Editor/CrossBlueprintTarget.blueprint.json";
@@ -5014,6 +5055,132 @@ namespace BlueprintSystem.Tests
                 Object.DestroyImmediate(ownerObject);
                 Object.DestroyImmediate(ownerAsset);
                 Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
+        public void RuntimeBlueprintGameObjectTargetsReadAndWriteSceneRunnerVariables()
+        {
+            string targetPath = "Assets/BlueprintSystem/Tests/Editor/GameObjectTarget.blueprint.json";
+            BlueprintCompiledAsset targetAsset = CreateCrossBlueprintTargetCompiledAsset(targetPath);
+            GameObject targetObject = new GameObject("BlueprintGameObjectTarget");
+
+            try
+            {
+                UIBlueprintBinder targetRunner = targetObject.AddComponent<UIBlueprintBinder>();
+                SetPrivateField(targetRunner, "compiledBlueprint", targetAsset);
+                Assert.True(targetRunner.Compile());
+
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("TargetObject", targetObject);
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), resolver, new RecordingBlueprintLogger(), null);
+
+                BlueprintGetVariableFromGameObjectExecutor getExecutor = new BlueprintGetVariableFromGameObjectExecutor();
+                RuntimeNode directGetNode = CreateRuntimeNode("get_public_count_direct", "Blueprint.GetVariableFromGameObject");
+                directGetNode.Properties["target"] = targetObject;
+                directGetNode.Properties["name"] = "publicCount";
+                Assert.AreEqual(3, getExecutor.Evaluate(context, directGetNode, "value"));
+                Assert.True((bool)getExecutor.Evaluate(context, directGetNode, "success"));
+
+                RuntimeNode bindingGetNode = CreateRuntimeNode("get_public_count_binding", "Blueprint.GetVariableFromGameObject");
+                bindingGetNode.Properties["target"] = "TargetObject";
+                bindingGetNode.Properties["name"] = "publicCount";
+                Assert.AreEqual(3, getExecutor.Evaluate(context, bindingGetNode, "value"));
+
+                RuntimeNode setNode = CreateRuntimeNode("set_public_count", "Blueprint.SetVariableFromGameObject");
+                setNode.Properties["target"] = "TargetObject";
+                setNode.Properties["name"] = "publicCount";
+                setNode.Properties["value"] = 9;
+                BlueprintExecResult setResult = new BlueprintSetVariableFromGameObjectExecutor().Execute(context, setNode);
+                Assert.AreEqual("execOut", setResult.NextExecPortId);
+
+                object publicValue;
+                Assert.True(targetRunner.TryGetVariable("publicCount", out publicValue));
+                Assert.AreEqual(9, publicValue);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+                Object.DestroyImmediate(targetAsset);
+            }
+        }
+
+        [Test]
+        public void RuntimeBlueprintGameObjectTargetsRejectInvalidTargetsAndVariables()
+        {
+            string targetPath = "Assets/BlueprintSystem/Tests/Editor/GameObjectTargetFailures.blueprint.json";
+            BlueprintCompiledAsset targetAsset = CreateCrossBlueprintTargetCompiledAsset(targetPath);
+            GameObject targetObject = new GameObject("BlueprintGameObjectTargetFailures");
+            GameObject plainObject = new GameObject("PlainGameObjectTarget");
+
+            try
+            {
+                BlueprintRunner targetRunner = targetObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(targetRunner, "compiledBlueprint", targetAsset);
+                Assert.True(targetRunner.Compile());
+
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+                BlueprintGetVariableFromGameObjectExecutor getExecutor = new BlueprintGetVariableFromGameObjectExecutor();
+
+                RuntimeNode noRunnerNode = CreateRuntimeNode("get_no_runner", "Blueprint.GetVariableFromGameObject");
+                noRunnerNode.Properties["target"] = plainObject;
+                noRunnerNode.Properties["name"] = "publicCount";
+                Assert.False((bool)getExecutor.Evaluate(context, noRunnerNode, "success"));
+                Assert.Null(getExecutor.Evaluate(context, noRunnerNode, "value"));
+
+                RuntimeNode missingVariableNode = CreateRuntimeNode("get_missing_variable", "Blueprint.GetVariableFromGameObject");
+                missingVariableNode.Properties["target"] = targetObject;
+                missingVariableNode.Properties["name"] = "missingCount";
+                Assert.False((bool)getExecutor.Evaluate(context, missingVariableNode, "success"));
+
+                RuntimeNode hiddenSetNode = CreateRuntimeNode("set_hidden_count", "Blueprint.SetVariableFromGameObject");
+                hiddenSetNode.Properties["target"] = targetObject;
+                hiddenSetNode.Properties["name"] = "hiddenCount";
+                hiddenSetNode.Properties["value"] = 12;
+                BlueprintExecResult hiddenSetResult = new BlueprintSetVariableFromGameObjectExecutor().Execute(context, hiddenSetNode);
+                Assert.False(string.IsNullOrEmpty(hiddenSetResult.ErrorMessage));
+
+                object hiddenValue;
+                Assert.True(targetRunner.TryGetVariable("hiddenCount", out hiddenValue));
+                Assert.AreEqual(2, hiddenValue);
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+                Object.DestroyImmediate(plainObject);
+                Object.DestroyImmediate(targetAsset);
+            }
+        }
+
+        [Test]
+        public void RuntimeBlueprintGameObjectSetRejectsIncompatibleDataTableValue()
+        {
+            WriteUserStructDefinition();
+            string targetPath = "Assets/BlueprintSystem/Tests/Editor/GameObjectDataTableTarget.blueprint.json";
+            BlueprintCompiledAsset targetAsset = CreateDataTableVariableTargetCompiledAsset(targetPath);
+            GameObject targetObject = new GameObject("BlueprintGameObjectDataTableTarget");
+
+            try
+            {
+                BlueprintRunner targetRunner = targetObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(targetRunner, "compiledBlueprint", targetAsset);
+                Assert.True(targetRunner.Compile());
+
+                BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
+                RuntimeNode setNode = CreateRuntimeNode("set_public_table", "Blueprint.SetVariableFromGameObject");
+                setNode.Properties["target"] = targetObject;
+                setNode.Properties["name"] = "publicTable";
+                setNode.Properties["value"] = 123;
+
+                BlueprintExecResult result = new BlueprintSetVariableFromGameObjectExecutor().Execute(context, setNode);
+                Assert.False(string.IsNullOrEmpty(result.ErrorMessage));
+                Assert.True(result.ErrorMessage.Contains("expects DataTable<Struct.TestInventoryItem>"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(targetObject);
+                Object.DestroyImmediate(targetAsset);
+                DeleteUserStructDefinition();
             }
         }
 
@@ -8019,6 +8186,34 @@ namespace BlueprintSystem.Tests
                     new BlueprintCompiledEventEntry { EventName = "Ping", NodeId = "event_ping" }
                 });
             return componentAsset;
+        }
+
+        private static BlueprintCompiledAsset CreateDataTableVariableTargetCompiledAsset(string sourcePath)
+        {
+            BlueprintCompiledAsset asset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            asset.SetCompiledData(
+                "0.1",
+                "DataTableVariableTarget",
+                null,
+                sourcePath,
+                "datatable-target-source",
+                "datatable-target-manifest",
+                new[]
+                {
+                    new BlueprintCompiledVariable
+                    {
+                        Name = "publicTable",
+                        Type = "DataTable<Struct.TestInventoryItem>",
+                        Exposed = true
+                    }
+                },
+                new BlueprintCompiledBinding[0],
+                new BlueprintCompiledComponent[0],
+                new BlueprintCompiledNode[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEventEntry[0]);
+            return asset;
         }
 
         private static BlueprintCompiledAsset CreateOwnerCompiledAsset(

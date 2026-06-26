@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace BlueprintSystem
 {
@@ -97,6 +98,25 @@ namespace BlueprintSystem
             }
 
             return null;
+        }
+
+        public static IBlueprintInstance ResolveGameObjectInstanceTarget(BlueprintExecutionContext context, object targetValue, bool logWarnings)
+        {
+            GameObject target = GameExecutorBindingUtility.ResolveBinding<GameObject>(context, targetValue);
+            if (target == null)
+            {
+                Warn(context, logWarnings, "Blueprint GameObject target could not resolve a GameObject.");
+                return null;
+            }
+
+            BlueprintRunner runner = target.GetComponent<BlueprintRunner>();
+            if (runner == null)
+            {
+                Warn(context, logWarnings, "Blueprint GameObject target '" + target.name + "' has no BlueprintRunner.");
+                return null;
+            }
+
+            return runner;
         }
 
         private static IBlueprintInstance ResolveOptionalInstance(BlueprintExecutionContext context, object targetValue, bool logWarnings)
@@ -495,6 +515,68 @@ namespace BlueprintSystem
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
             IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, context.GetInputValue(node, "target"), true);
+            string variableName = context.GetInputValue(node, "name", string.Empty);
+            object value = context.GetInputValue(node, "value");
+            string error;
+            if (!BlueprintAccessUtility.TrySetExposedVariableValue(instance, variableName, value, out error))
+            {
+                return BlueprintExecResult.Error(error);
+            }
+
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class BlueprintGetVariableFromGameObjectExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Blueprint.GetVariableFromGameObject"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            bool logWarnings = outputPortId == "value";
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveGameObjectInstanceTarget(
+                context,
+                context.GetInputValue(node, "target"),
+                logWarnings);
+            string variableName = context.GetInputValue(node, "name", string.Empty);
+            object value;
+            bool success = BlueprintAccessUtility.TryGetExposedVariableValue(
+                context,
+                instance,
+                variableName,
+                out value,
+                logWarnings);
+
+            if (outputPortId == "success")
+            {
+                return success;
+            }
+
+            if (outputPortId == "value")
+            {
+                return success ? value : null;
+            }
+
+            return null;
+        }
+    }
+
+    public sealed class BlueprintSetVariableFromGameObjectExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Blueprint.SetVariableFromGameObject"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveGameObjectInstanceTarget(
+                context,
+                context.GetInputValue(node, "target"),
+                true);
             string variableName = context.GetInputValue(node, "name", string.Empty);
             object value = context.GetInputValue(node, "value");
             string error;

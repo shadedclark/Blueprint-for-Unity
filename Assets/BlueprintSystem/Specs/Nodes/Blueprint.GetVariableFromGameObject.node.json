@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.GetVariableFromGameObject",
+  "title": "Get Variable From GameObject",
+  "category": "Blueprint",
+  "description": "Reads an exposed variable from the BlueprintRunner on a target GameObject.",
+  "executor": "Blueprint.GetVariableFromGameObject",
+  "inputs": [
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<GameObject>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "name",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "value",
+      "kind": "value"
+    },
+    {
+      "id": "success",
+      "kind": "value",
+      "type": "bool"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<GameObject>",
+      "required": false
+    },
+    {
+      "id": "name",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "gameobject",
+    "variable",
+    "get"
+  ]
+}

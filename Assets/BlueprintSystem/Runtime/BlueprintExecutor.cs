@@ -222,6 +222,8 @@ namespace BlueprintSystem
             registry.Register(new BlueprintTriggerEventExecutor());
             registry.Register(new BlueprintGetVariableExecutor());
             registry.Register(new BlueprintSetVariableExecutor());
+            registry.Register(new BlueprintGetVariableFromGameObjectExecutor());
+            registry.Register(new BlueprintSetVariableFromGameObjectExecutor());
             if (BlueprintModuleSettings.BehaviorTreeEnabled)
             {
                 registry.Register(new BehaviorTreeGetBlackboardBoolExecutor());
