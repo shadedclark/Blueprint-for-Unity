@@ -334,6 +334,8 @@ namespace BlueprintSystem.Tests
             evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
             evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
             evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+            evaluateStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+            evaluateStop.Properties["speedChangeKey"] = "SpeedChange";
             sequence.Children.Add(evaluateStop.Id);
 
             BehaviorTreeNodeSource applyStop = AddNode(source, "apply_stop", "BT.VehicleRoad.ApplyStopPoint");
@@ -599,6 +601,8 @@ namespace BlueprintSystem.Tests
             evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
             evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
             evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+            evaluateStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+            evaluateStop.Properties["speedChangeKey"] = "SpeedChange";
             sequence.Children.Add(evaluateStop.Id);
 
             BehaviorTreeNodeSource applyStop = AddNode(source, "apply_stop", "BT.VehicleRoad.ApplyStopPoint");
@@ -646,6 +650,8 @@ namespace BlueprintSystem.Tests
             evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
             evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
             evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+            evaluateStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+            evaluateStop.Properties["speedChangeKey"] = "SpeedChange";
 
             BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
             Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
@@ -662,6 +668,51 @@ namespace BlueprintSystem.Tests
                 Assert.AreEqual(false, runtime.Blackboard.GetValue("ReachedStopPoint"));
                 Assert.That((float)runtime.Blackboard.GetValue("RequestedTravelDistance"), Is.EqualTo(3f).Within(0.001f));
                 Assert.That((float)runtime.Blackboard.GetValue("TravelDistance"), Is.EqualTo(3f).Within(0.001f));
+                Assert.That((float)runtime.Blackboard.GetValue("CurrentSpeed"), Is.EqualTo(3f).Within(0.001f));
+                Assert.That((float)runtime.Blackboard.GetValue("SpeedChange"), Is.EqualTo(0f).Within(0.001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(owner);
+            }
+        }
+
+        [Test]
+        public void VehicleRoadEvaluateStopPointTravelDeceleratesBeforeRedStopLine()
+        {
+            BehaviorTreeExecutorRegistry registry = BehaviorTreeExecutorRegistry.CreateDefault();
+            BehaviorTreeSource source = CreateSingleVehicleRoadNodeSource("BT.VehicleRoad.EvaluateStopPointTravel");
+            BehaviorTreeNodeSource evaluateStop = source.Nodes[1];
+            Bind(evaluateStop, "hasStopPoint", "HasStopPoint");
+            Bind(evaluateStop, "distanceToStopLine", "DistanceToStopLine");
+            Bind(evaluateStop, "currentSpeed", "CurrentSpeed");
+            evaluateStop.Properties["targetSpeed"] = 0f;
+            evaluateStop.Properties["deltaTime"] = 1f;
+            evaluateStop.Properties["stopPointDecelerationTime"] = 2f;
+            evaluateStop.Properties["maxStopPointDeceleration"] = 6f;
+            evaluateStop.Properties["requestedTravelDistanceKey"] = "RequestedTravelDistance";
+            evaluateStop.Properties["travelDistanceKey"] = "TravelDistance";
+            evaluateStop.Properties["reachedStopPointKey"] = "ReachedStopPoint";
+            evaluateStop.Properties["currentSpeedKey"] = "CurrentSpeed";
+            evaluateStop.Properties["speedChangeKey"] = "SpeedChange";
+
+            BehaviorTreeCompileResult compileResult = new BehaviorTreeCompiler().Compile(source, registry);
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject owner = new GameObject("VehicleRoadBtBeforeRedStopLineOwner");
+            try
+            {
+                BehaviorTreeRuntime runtime = new BehaviorTreeRuntime(compileResult.Tree, owner, null);
+                runtime.Blackboard.SetValue("HasStopPoint", true);
+                runtime.Blackboard.SetValue("DistanceToStopLine", 10f);
+                runtime.Blackboard.SetValue("CurrentSpeed", 10f);
+
+                Assert.AreEqual(BehaviorTreeStatus.Success, runtime.Tick(1f));
+                Assert.AreEqual(false, runtime.Blackboard.GetValue("ReachedStopPoint"));
+                Assert.That((float)runtime.Blackboard.GetValue("RequestedTravelDistance"), Is.EqualTo(10f).Within(0.001f));
+                Assert.That((float)runtime.Blackboard.GetValue("TravelDistance"), Is.EqualTo(7.5f).Within(0.001f));
+                Assert.That((float)runtime.Blackboard.GetValue("CurrentSpeed"), Is.EqualTo(5f).Within(0.001f));
+                Assert.That((float)runtime.Blackboard.GetValue("SpeedChange"), Is.EqualTo(-5f).Within(0.001f));
             }
             finally
             {
@@ -990,6 +1041,7 @@ namespace BlueprintSystem.Tests
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RouteLaneChangeFailureReason", Type = "string", DefaultValue = string.Empty });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "Completed", Type = "bool", DefaultValue = false });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "CurrentSpeed", Type = "float", DefaultValue = 0f });
+            source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "SpeedChange", Type = "float", DefaultValue = 0f });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "DestinationLaneId", Type = "string", DefaultValue = string.Empty });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "SelectedIndex", Type = "int", DefaultValue = -1 });
             source.Blackboard.Add(new BehaviorTreeBlackboardKey { Name = "RouteLaneIds", Type = "Array<string>", DefaultValue = new List<object>() });
@@ -1036,6 +1088,7 @@ namespace BlueprintSystem.Tests
             node.Properties["laneChangeStatusKey"] = "LaneChangeStatus";
             node.Properties["laneChangeTargetLaneIdKey"] = "LaneChangeTargetLaneId";
             node.Properties["currentSpeedKey"] = "CurrentSpeed";
+            node.Properties["speedChangeKey"] = "SpeedChange";
             node.Properties["arrivedKey"] = "Arrived";
             node.Properties["loopResetKey"] = "LoopReset";
         }

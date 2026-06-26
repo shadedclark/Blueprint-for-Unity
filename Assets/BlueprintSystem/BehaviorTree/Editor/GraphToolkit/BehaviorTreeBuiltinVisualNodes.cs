@@ -841,9 +841,16 @@ namespace BlueprintSystem.Editor
                     }
 
                     if (inputId == "stopPointApproachSpeed" ||
+                        inputId == "stopPointDecelerationTime" ||
                         inputId == "loopResetDelay")
                     {
                         value = 2f;
+                        return true;
+                    }
+
+                    if (inputId == "maxStopPointDeceleration")
+                    {
+                        value = 6f;
                         return true;
                     }
 
@@ -1131,9 +1138,16 @@ namespace BlueprintSystem.Editor
                         return true;
                     }
 
-                    if (inputId == "stopPointApproachSpeed")
+                    if (inputId == "stopPointApproachSpeed" ||
+                        inputId == "stopPointDecelerationTime")
                     {
                         value = 2f;
+                        return true;
+                    }
+
+                    if (inputId == "maxStopPointDeceleration")
+                    {
+                        value = 6f;
                         return true;
                     }
 
@@ -2054,7 +2068,7 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadDriveFollower, "Task: VehicleRoad Drive Follower", 0);
-            PropertiesJson = "{\"validKey\":\"\",\"currentLaneIdKey\":\"\",\"distanceAlongLaneKey\":\"\",\"targetSteeringAngleKey\":\"\",\"targetSpeedKey\":\"\",\"lookAheadPointKey\":\"\",\"recoveryModeKey\":\"\",\"recoveryPositionKey\":\"\",\"lateralErrorKey\":\"\",\"stopReasonKey\":\"\",\"passageStatusKey\":\"\",\"signalStateKey\":\"\",\"hasStopPointKey\":\"\",\"stopPointKey\":\"\",\"distanceToStopLineKey\":\"\",\"queueIndexKey\":\"\",\"junctionIdKey\":\"\",\"connectorLaneIdKey\":\"\",\"laneChangeStatusKey\":\"\",\"laneChangeTargetLaneIdKey\":\"\",\"currentSpeedKey\":\"\",\"arrivedKey\":\"\",\"loopResetKey\":\"\"}";
+            PropertiesJson = "{\"validKey\":\"\",\"currentLaneIdKey\":\"\",\"distanceAlongLaneKey\":\"\",\"targetSteeringAngleKey\":\"\",\"targetSpeedKey\":\"\",\"lookAheadPointKey\":\"\",\"recoveryModeKey\":\"\",\"recoveryPositionKey\":\"\",\"lateralErrorKey\":\"\",\"stopReasonKey\":\"\",\"passageStatusKey\":\"\",\"signalStateKey\":\"\",\"hasStopPointKey\":\"\",\"stopPointKey\":\"\",\"distanceToStopLineKey\":\"\",\"queueIndexKey\":\"\",\"junctionIdKey\":\"\",\"connectorLaneIdKey\":\"\",\"laneChangeStatusKey\":\"\",\"laneChangeTargetLaneIdKey\":\"\",\"currentSpeedKey\":\"\",\"speedChangeKey\":\"\",\"arrivedKey\":\"\",\"loopResetKey\":\"\"}";
         }
 
         protected override void ApplyDefaultMetadata()
@@ -2068,6 +2082,8 @@ namespace BlueprintSystem.Editor
             AddBlackboardInput("agentMask", "RoadAgentMask", "Agent Mask", true);
             AddBlackboardInput("followBakedLanePose", "bool", "Follow Baked Pose", true);
             AddBlackboardInput("stopPointApproachSpeed", "float", "Stop Approach Speed", true);
+            AddBlackboardInput("stopPointDecelerationTime", "float", "Stop Decel Time", true);
+            AddBlackboardInput("maxStopPointDeceleration", "float", "Max Stop Decel", true);
             AddBlackboardInput("loopRoute", "bool", "Loop Route", true);
             AddBlackboardInput("loopResetDelay", "float", "Loop Reset Delay", true);
             AddBlackboardInput("leadVehicleDistance", "float", "Lead Distance", true);
@@ -2257,7 +2273,7 @@ namespace BlueprintSystem.Editor
         protected override void ConfigureDefaultNode()
         {
             SetIdentity(BehaviorTreeVisualNodeMetadata.VehicleRoadEvaluateStopPointTravel, "Task: VehicleRoad Evaluate Stop Point Travel", 0);
-            PropertiesJson = "{\"requestedTravelDistanceKey\":\"\",\"travelDistanceKey\":\"\",\"reachedStopPointKey\":\"\"}";
+            PropertiesJson = "{\"requestedTravelDistanceKey\":\"\",\"travelDistanceKey\":\"\",\"reachedStopPointKey\":\"\",\"currentSpeedKey\":\"\",\"speedChangeKey\":\"\"}";
         }
 
         protected override void ApplyDefaultMetadata()
@@ -2267,6 +2283,8 @@ namespace BlueprintSystem.Editor
             AddBlackboardInput("targetSpeed", "float", "Target Speed", true);
             AddBlackboardInput("currentSpeed", "float", "Current Speed", true);
             AddBlackboardInput("stopPointApproachSpeed", "float", "Stop Approach Speed", true);
+            AddBlackboardInput("stopPointDecelerationTime", "float", "Stop Decel Time", true);
+            AddBlackboardInput("maxStopPointDeceleration", "float", "Max Stop Decel", true);
             AddBlackboardInput("deltaTime", "float", "Delta Time", true);
         }
     }

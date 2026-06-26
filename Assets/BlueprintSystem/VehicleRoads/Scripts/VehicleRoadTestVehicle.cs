@@ -18,6 +18,8 @@ namespace VehicleRoads
         [Header("Demo Movement")]
         [SerializeField] private bool followBakedLanePose;
         [SerializeField, Min(0.1f)] private float stopPointApproachSpeed = 2f;
+        [SerializeField, Min(0f)] private float stopPointDecelerationTime = 2f;
+        [SerializeField, Min(0.01f)] private float maxStopPointDeceleration = 6f;
         [Header("Demo Loop")]
         [SerializeField] private bool loopRoute;
         [SerializeField, Min(0.1f)] private float loopResetDelay = 2f;
@@ -121,10 +123,18 @@ namespace VehicleRoads
                 return;
             }
 
-            currentSpeed = Mathf.MoveTowards(
-                currentSpeed,
-                Mathf.Max(0f, LastOutput.targetSpeed),
-                acceleration * Time.deltaTime);
+            bool stopPointControlsSpeed =
+                LastOutput.hasStopPoint &&
+                float.IsFinite(LastOutput.distanceToStopLine) &&
+                LastOutput.targetSpeed <= 0.01f;
+            if (!stopPointControlsSpeed)
+            {
+                currentSpeed = Mathf.MoveTowards(
+                    currentSpeed,
+                    Mathf.Max(0f, LastOutput.targetSpeed),
+                    acceleration * Time.deltaTime);
+            }
+
             if (followBakedLanePose &&
                 follower.IsAtRouteEnd(LastOutput.currentLaneId, LastOutput.distanceAlongLane))
             {
@@ -142,35 +152,23 @@ namespace VehicleRoads
             }
 
             invalidOutputDuration = 0f;
-            float requestedTravelDistance = currentSpeed * Time.deltaTime;
-            float travelDistance = requestedTravelDistance;
+            float requestedTravelDistance;
+            float travelDistance;
             bool reachedExplicitStopPoint = false;
-            if (LastOutput.hasStopPoint && float.IsFinite(LastOutput.distanceToStopLine))
-            {
-                if (LastOutput.distanceToStopLine < -StopPointBehindEpsilon)
-                {
-                    if (followBakedLanePose && TryMoveAlongBakedRoute(LastOutput, travelDistance))
-                    {
-                        return;
-                    }
-
-                    MoveTowardLookAhead(travelDistance);
-                    return;
-                }
-
-                float distanceToStop = Mathf.Max(0f, LastOutput.distanceToStopLine);
-                if (LastOutput.targetSpeed <= 0.01f && distanceToStop > 0.001f)
-                {
-                    requestedTravelDistance = Mathf.Max(
-                        requestedTravelDistance,
-                        stopPointApproachSpeed * Time.deltaTime);
-                    travelDistance = Mathf.Max(travelDistance, requestedTravelDistance);
-                }
-
-                reachedExplicitStopPoint = LastOutput.targetSpeed <= 0.01f &&
-                                           distanceToStop <= requestedTravelDistance + 0.001f;
-                travelDistance = Mathf.Min(travelDistance, distanceToStop);
-            }
+            float evaluatedSpeed;
+            EvaluateStopPointTravel(
+                LastOutput.hasStopPoint,
+                LastOutput.distanceToStopLine,
+                LastOutput.targetSpeed,
+                currentSpeed,
+                stopPointDecelerationTime,
+                maxStopPointDeceleration,
+                Time.deltaTime,
+                out requestedTravelDistance,
+                out travelDistance,
+                out reachedExplicitStopPoint,
+                out evaluatedSpeed);
+            currentSpeed = evaluatedSpeed;
 
             if (reachedExplicitStopPoint && IsStopPointAhead(LastOutput.stopPoint))
             {
@@ -200,6 +198,63 @@ namespace VehicleRoads
             }
 
             transform.position += transform.forward * travelDistance;
+        }
+
+        private static void EvaluateStopPointTravel(
+            bool hasStopPoint,
+            float distanceToStopLine,
+            float targetSpeed,
+            float currentSpeed,
+            float stopPointDecelerationTime,
+            float maxStopPointDeceleration,
+            float deltaTime,
+            out float requestedTravelDistance,
+            out float travelDistance,
+            out bool reachedExplicitStopPoint,
+            out float evaluatedSpeed)
+        {
+            float initialSpeed = Mathf.Max(0f, currentSpeed);
+            float safeDeltaTime = Mathf.Max(0f, deltaTime);
+            requestedTravelDistance = initialSpeed * safeDeltaTime;
+            travelDistance = requestedTravelDistance;
+            reachedExplicitStopPoint = false;
+            evaluatedSpeed = initialSpeed;
+            if (!hasStopPoint ||
+                !float.IsFinite(distanceToStopLine) ||
+                distanceToStopLine < -StopPointBehindEpsilon ||
+                targetSpeed > 0.01f)
+            {
+                return;
+            }
+
+            float distanceToStop = Mathf.Max(0f, distanceToStopLine);
+            if (safeDeltaTime <= 0f)
+            {
+                reachedExplicitStopPoint = distanceToStop <= StopPointBehindEpsilon;
+                travelDistance = 0f;
+                evaluatedSpeed = reachedExplicitStopPoint ? 0f : initialSpeed;
+                return;
+            }
+
+            float maxDeceleration = Mathf.Max(0.01f, maxStopPointDeceleration);
+            float desiredSpeed = initialSpeed;
+            float safeDecelerationTime = Mathf.Max(0f, stopPointDecelerationTime);
+            if (safeDecelerationTime > 0.001f)
+            {
+                desiredSpeed = Mathf.Min(desiredSpeed, distanceToStop / safeDecelerationTime);
+            }
+
+            desiredSpeed = distanceToStop <= StopPointBehindEpsilon
+                ? 0f
+                : Mathf.Min(desiredSpeed, Mathf.Sqrt(Mathf.Max(0f, 2f * maxDeceleration * distanceToStop)));
+            evaluatedSpeed = Mathf.MoveTowards(initialSpeed, desiredSpeed, maxDeceleration * safeDeltaTime);
+            travelDistance = Mathf.Max(0f, (initialSpeed + evaluatedSpeed) * 0.5f * safeDeltaTime);
+            reachedExplicitStopPoint = distanceToStop <= travelDistance + StopPointBehindEpsilon;
+            if (reachedExplicitStopPoint)
+            {
+                travelDistance = distanceToStop;
+                evaluatedSpeed = 0f;
+            }
         }
 
         private bool IsStopPointAhead(Vector3 stopPoint)

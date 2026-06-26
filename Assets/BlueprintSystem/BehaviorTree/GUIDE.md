@@ -561,7 +561,7 @@ Most VehicleRoad tasks are decision/control-output nodes only. They write Blackb
 
 `BT.VehicleRoad.ComputeFollowerControl` resolves a `VehicleLaneFollower` from the `follower` Blackboard input or from the owner GameObject. It reads vehicle pose/control inputs and writes `validKey`, lane pose, target steering/speed, recovery, stop/signal/queue, and lane-change result keys. It returns `Success` only when the follower output is valid. Movement remains owned by an external vehicle executor.
 
-`BT.VehicleRoad.DriveFollower` is the wrapper task for the sample `VehicleRoadTestVehicle` behavior. It resolves a `VehicleLaneFollower` from the `follower` Blackboard input or from the owner GameObject, computes follower control using the owner pose and an internal `currentSpeed`, writes the same output keys as `BT.VehicleRoad.ComputeFollowerControl`, and moves the owner `Transform` kinematically. It returns `Failure` if no follower exists or if the follower output is invalid while `loopRoute` is false, returns `Success` when `followBakedLanePose` reaches the end of a non-loop route, and returns `Running` while driving, waiting at an explicit stop point, or performing loop reset delay. When a stop line is already behind the vehicle, or the stop point is behind the owner's current forward direction, it skips stop-point snapping and continues through baked-route or look-ahead fallback movement.
+`BT.VehicleRoad.DriveFollower` is the wrapper task for the sample `VehicleRoadTestVehicle` behavior. It resolves a `VehicleLaneFollower` from the `follower` Blackboard input or from the owner GameObject, computes follower control using the owner pose and an internal `currentSpeed`, writes the same output keys as `BT.VehicleRoad.ComputeFollowerControl`, and moves the owner `Transform` kinematically. It returns `Failure` if no follower exists or if the follower output is invalid while `loopRoute` is false, returns `Success` when `followBakedLanePose` reaches the end of a non-loop route, and returns `Running` while driving, waiting at an explicit stop point, or performing loop reset delay. When a red/blocked stop point is still ahead, it computes braking from the current vehicle-front distance to stop at or before the stop line. When the stop line is already behind the vehicle, or the stop point is behind the owner's current forward direction, it skips stop-point speed correction and snapping, then continues through baked-route or look-ahead fallback movement.
 
 | Parameter | Source | Type | Default | Notes |
 | --- | --- | --- | --- | --- |
@@ -573,7 +573,9 @@ Most VehicleRoad tasks are decision/control-output nodes only. They write Blackb
 | `turnSpeed` | input/property | float | `180` | Degrees per second for fallback look-at steering. |
 | `agentMask` | input/property | RoadAgentMask | `Car` | `None` normalizes to `Car`. |
 | `followBakedLanePose` | input/property | bool | `false` | When true, samples route pose from `VehicleLaneFollower.TryEvaluateRoutePose`; otherwise rotates toward `lookAheadPoint` and moves forward. |
-| `stopPointApproachSpeed` | input/property | float | `2` | Minimum approach speed while clamping to an explicit stop point. |
+| `stopPointApproachSpeed` | input/property | float | `2` | Legacy input retained for older graphs; stop-point braking is controlled by the deceleration inputs below. |
+| `stopPointDecelerationTime` | input/property | float | `2` | Desired time window used to shape red/blocked stop-point braking before the stop line. |
+| `maxStopPointDeceleration` | input/property | float | `6` | Maximum speed reduction per second used by stop-point braking. |
 | `loopRoute` | input/property | bool | `false` | Invalid output or route end waits for `loopResetDelay`, unregisters the vehicle, and restores the first tick pose. |
 | `loopResetDelay` | input/property | float | `2` | Minimum reset delay is `0.1`. |
 | `leadVehicleDistance` / `leadVehicleSpeed` | input/property | float | `0` | Optional follower speed limiting inputs. |
@@ -586,6 +588,7 @@ Additional output key properties:
 | Property | Blackboard Type | Notes |
 | --- | --- | --- |
 | `currentSpeedKey` | float | Current internal speed after acceleration/deceleration. |
+| `speedChangeKey` | float | Stop-point speed correction for this tick; `0` when the stop line is already behind the vehicle. |
 | `arrivedKey` | bool | True when a baked-pose route end is reached. |
 | `loopResetKey` | bool | True only on the tick that performs loop reset. |
 
@@ -594,7 +597,7 @@ Use the split follower tasks when a tree should customize the `VehicleRoadTestVe
 | Task | Main Inputs | Outputs | Status |
 | --- | --- | --- | --- |
 | `BT.VehicleRoad.UpdateFollowerSpeed` | `valid`, `currentSpeed`, `targetSpeed`, `acceleration`, `deltaTime` | `currentSpeedKey: float` | Always `Success`; invalid output decelerates toward zero. |
-| `BT.VehicleRoad.EvaluateStopPointTravel` | `hasStopPoint`, `distanceToStopLine`, `targetSpeed`, `currentSpeed`, `stopPointApproachSpeed`, `deltaTime` | `requestedTravelDistanceKey: float`, `travelDistanceKey: float`, `reachedStopPointKey: bool` | Always `Success`; negative `distanceToStopLine` values past epsilon mean the stop line is already behind, so `reachedStopPointKey` stays false and normal travel distance is preserved. |
+| `BT.VehicleRoad.EvaluateStopPointTravel` | `hasStopPoint`, `distanceToStopLine`, `targetSpeed`, `currentSpeed`, `stopPointApproachSpeed`, `stopPointDecelerationTime`, `maxStopPointDeceleration`, `deltaTime` | `requestedTravelDistanceKey: float`, `travelDistanceKey: float`, `reachedStopPointKey: bool`, `currentSpeedKey: float`, `speedChangeKey: float` | Always `Success`; red/blocked stops ahead brake from vehicle-front distance to stop at or before the line, while negative `distanceToStopLine` values past epsilon mean the stop line is already behind, so speed correction is `0` and normal travel distance is preserved. |
 | `BT.VehicleRoad.ApplyStopPoint` | `reachedStopPoint`, `stopPoint` | `currentSpeedKey: float` | `Success` when it applies a stop point ahead of the owner, `Failure` when no stop was reached or the stop point is behind the owner. |
 | `BT.VehicleRoad.CheckFollowerRouteEnd` | `follower`, `currentLaneId`, `distanceAlongLane`, `followBakedLanePose` | `arrivedKey: bool` | `Success` only when `VehicleLaneFollower.IsAtRouteEnd` is true. |
 | `BT.VehicleRoad.MoveAlongBakedRoute` | `follower`, `currentLaneId`, `distanceAlongLane`, `travelDistance`, `followBakedLanePose` | none | `Success` when route pose evaluation moves owner, otherwise `Failure` for fallback. |

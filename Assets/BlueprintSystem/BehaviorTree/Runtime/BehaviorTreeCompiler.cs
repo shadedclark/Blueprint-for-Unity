@@ -328,6 +328,7 @@ namespace BlueprintSystem
             "laneChangeDecisionReasonKey",
             "completedKey",
             "currentSpeedKey",
+            "speedChangeKey",
             "requestedTravelDistanceKey",
             "travelDistanceKey",
             "reachedStopPointKey",
@@ -939,6 +940,7 @@ namespace BlueprintSystem
                 if (node.TypeId == "BT.VehicleRoad.DriveFollower")
                 {
                     ValidatePropertyKeyType(node.Properties, "currentSpeedKey", "float", blackboard, diagnostics, node.Id);
+                    ValidatePropertyKeyType(node.Properties, "speedChangeKey", "float", blackboard, diagnostics, node.Id);
                     ValidatePropertyKeyType(node.Properties, "arrivedKey", "bool", blackboard, diagnostics, node.Id);
                     ValidatePropertyKeyType(node.Properties, "loopResetKey", "bool", blackboard, diagnostics, node.Id);
                 }
@@ -1018,6 +1020,8 @@ namespace BlueprintSystem
                 ValidatePropertyKeyType(node.Properties, "requestedTravelDistanceKey", "float", blackboard, diagnostics, node.Id);
                 ValidatePropertyKeyType(node.Properties, "travelDistanceKey", "float", blackboard, diagnostics, node.Id);
                 ValidatePropertyKeyType(node.Properties, "reachedStopPointKey", "bool", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "currentSpeedKey", "float", blackboard, diagnostics, node.Id);
+                ValidatePropertyKeyType(node.Properties, "speedChangeKey", "float", blackboard, diagnostics, node.Id);
             }
             else if (BlueprintModuleSettings.VehicleRoadsEnabled &&
                      node.TypeId == "BT.VehicleRoad.ApplyStopPoint")

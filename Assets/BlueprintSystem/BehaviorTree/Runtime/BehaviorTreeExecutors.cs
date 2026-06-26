@@ -2556,6 +2556,7 @@ namespace BlueprintSystem
             BehaviorTreeVehicleRoadUtility.WriteFollowerOutput(context, node, output);
             WriteDriveOutput(context, node, "arrivedKey", false);
             WriteDriveOutput(context, node, "loopResetKey", false);
+            WriteDriveOutput(context, node, "speedChangeKey", 0f);
 
             bool loopRoute = BehaviorTreePropertyUtility.ResolveBool(context, node, "loopRoute", "loopRoute", false);
             float loopResetDelay = Mathf.Max(0.1f, BehaviorTreePropertyUtility.ResolveFloat(context, node, "loopResetDelay", "loopResetDelay", 2f));
@@ -2572,7 +2573,14 @@ namespace BlueprintSystem
                 return TickLoopResetDelay(context, node, state, follower, transform, vehicleId, loopResetDelay);
             }
 
-            currentSpeed = BehaviorTreeVehicleRoadUtility.UpdateFollowerSpeed(true, currentSpeed, output.targetSpeed, acceleration, deltaTime);
+            bool stopPointControlsSpeed =
+                output.hasStopPoint &&
+                float.IsFinite(output.distanceToStopLine) &&
+                output.targetSpeed <= 0.01f;
+            if (!stopPointControlsSpeed)
+            {
+                currentSpeed = BehaviorTreeVehicleRoadUtility.UpdateFollowerSpeed(true, currentSpeed, output.targetSpeed, acceleration, deltaTime);
+            }
 
             bool followBakedLanePose = BehaviorTreePropertyUtility.ResolveBool(context, node, "followBakedLanePose", "followBakedLanePose", false);
             if (followBakedLanePose && follower.IsAtRouteEnd(output.currentLaneId, output.distanceAlongLane))
@@ -2592,16 +2600,24 @@ namespace BlueprintSystem
             float requestedTravelDistance;
             float travelDistance;
             bool reachedExplicitStopPoint;
+            float evaluatedSpeed;
+            float speedChange;
             BehaviorTreeVehicleRoadUtility.EvaluateStopPointTravel(
                 output.hasStopPoint,
                 output.distanceToStopLine,
                 output.targetSpeed,
                 currentSpeed,
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "stopPointApproachSpeed", "stopPointApproachSpeed", 2f),
+                BehaviorTreePropertyUtility.ResolveFloat(context, node, "stopPointDecelerationTime", "stopPointDecelerationTime", 2f),
+                BehaviorTreePropertyUtility.ResolveFloat(context, node, "maxStopPointDeceleration", "maxStopPointDeceleration", 6f),
                 deltaTime,
                 out requestedTravelDistance,
                 out travelDistance,
-                out reachedExplicitStopPoint);
+                out reachedExplicitStopPoint,
+                out evaluatedSpeed,
+                out speedChange);
+            currentSpeed = evaluatedSpeed;
+            WriteDriveOutput(context, node, "speedChangeKey", speedChange);
 
             if (reachedExplicitStopPoint &&
                 BehaviorTreeVehicleRoadUtility.IsStopPointAhead(transform, output.stopPoint))
@@ -3179,19 +3195,27 @@ namespace BlueprintSystem
             float requestedTravelDistance;
             float travelDistance;
             bool reachedExplicitStopPoint;
+            float evaluatedSpeed;
+            float speedChange;
             BehaviorTreeVehicleRoadUtility.EvaluateStopPointTravel(
                 BehaviorTreePropertyUtility.ResolveBool(context, node, "hasStopPoint", "hasStopPoint", false),
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "distanceToStopLine", "distanceToStopLine", 0f),
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "targetSpeed", "targetSpeed", 0f),
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "currentSpeed", "currentSpeed", 0f),
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "stopPointApproachSpeed", "stopPointApproachSpeed", 2f),
+                BehaviorTreePropertyUtility.ResolveFloat(context, node, "stopPointDecelerationTime", "stopPointDecelerationTime", 2f),
+                BehaviorTreePropertyUtility.ResolveFloat(context, node, "maxStopPointDeceleration", "maxStopPointDeceleration", 6f),
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "deltaTime", "deltaTime", context.DeltaTime),
                 out requestedTravelDistance,
                 out travelDistance,
-                out reachedExplicitStopPoint);
+                out reachedExplicitStopPoint,
+                out evaluatedSpeed,
+                out speedChange);
             BehaviorTreeVehicleRoadUtility.WriteValue(context, node, "requestedTravelDistanceKey", requestedTravelDistance);
             BehaviorTreeVehicleRoadUtility.WriteValue(context, node, "travelDistanceKey", travelDistance);
             BehaviorTreeVehicleRoadUtility.WriteBool(context, node, "reachedStopPointKey", reachedExplicitStopPoint);
+            BehaviorTreeVehicleRoadUtility.WriteValue(context, node, "currentSpeedKey", evaluatedSpeed);
+            BehaviorTreeVehicleRoadUtility.WriteValue(context, node, "speedChangeKey", speedChange);
             return BehaviorTreeStatus.Success;
         }
     }
@@ -3806,14 +3830,22 @@ namespace BlueprintSystem
             float targetSpeed,
             float currentSpeed,
             float stopPointApproachSpeed,
+            float stopPointDecelerationTime,
+            float maxStopPointDeceleration,
             float deltaTime,
             out float requestedTravelDistance,
             out float travelDistance,
-            out bool reachedExplicitStopPoint)
+            out bool reachedExplicitStopPoint,
+            out float evaluatedSpeed,
+            out float speedChange)
         {
-            requestedTravelDistance = Mathf.Max(0f, currentSpeed) * Mathf.Max(0f, deltaTime);
+            float initialSpeed = Mathf.Max(0f, currentSpeed);
+            float safeDeltaTime = Mathf.Max(0f, deltaTime);
+            requestedTravelDistance = initialSpeed * safeDeltaTime;
             travelDistance = requestedTravelDistance;
             reachedExplicitStopPoint = false;
+            evaluatedSpeed = initialSpeed;
+            speedChange = 0f;
             if (!hasStopPoint || !float.IsFinite(distanceToStopLine))
             {
                 return;
@@ -3825,17 +3857,41 @@ namespace BlueprintSystem
             }
 
             float distanceToStop = Mathf.Max(0f, distanceToStopLine);
-            if (targetSpeed <= 0.01f && distanceToStop > 0.001f)
+            if (targetSpeed > 0.01f)
             {
-                requestedTravelDistance = Mathf.Max(
-                    requestedTravelDistance,
-                    Mathf.Max(0.1f, stopPointApproachSpeed) * Mathf.Max(0f, deltaTime));
-                travelDistance = Mathf.Max(travelDistance, requestedTravelDistance);
+                return;
             }
 
-            reachedExplicitStopPoint = targetSpeed <= 0.01f &&
-                                       distanceToStop <= requestedTravelDistance + 0.001f;
-            travelDistance = Mathf.Min(travelDistance, distanceToStop);
+            if (safeDeltaTime <= 0f)
+            {
+                reachedExplicitStopPoint = distanceToStop <= StopPointBehindEpsilon;
+                travelDistance = 0f;
+                evaluatedSpeed = reachedExplicitStopPoint ? 0f : initialSpeed;
+                speedChange = evaluatedSpeed - initialSpeed;
+                return;
+            }
+
+            float maxDeceleration = Mathf.Max(0.01f, maxStopPointDeceleration);
+            float desiredSpeed = initialSpeed;
+            float safeDecelerationTime = Mathf.Max(0f, stopPointDecelerationTime);
+            if (safeDecelerationTime > 0.001f)
+            {
+                desiredSpeed = Mathf.Min(desiredSpeed, distanceToStop / safeDecelerationTime);
+            }
+
+            desiredSpeed = distanceToStop <= StopPointBehindEpsilon
+                ? 0f
+                : Mathf.Min(desiredSpeed, Mathf.Sqrt(Mathf.Max(0f, 2f * maxDeceleration * distanceToStop)));
+            evaluatedSpeed = Mathf.MoveTowards(initialSpeed, desiredSpeed, maxDeceleration * safeDeltaTime);
+            travelDistance = Mathf.Max(0f, (initialSpeed + evaluatedSpeed) * 0.5f * safeDeltaTime);
+            reachedExplicitStopPoint = distanceToStop <= travelDistance + StopPointBehindEpsilon;
+            if (reachedExplicitStopPoint)
+            {
+                travelDistance = distanceToStop;
+                evaluatedSpeed = 0f;
+            }
+
+            speedChange = evaluatedSpeed - initialSpeed;
         }
 
         public static bool IsStopPointAhead(Transform transform, Vector3 stopPoint)
