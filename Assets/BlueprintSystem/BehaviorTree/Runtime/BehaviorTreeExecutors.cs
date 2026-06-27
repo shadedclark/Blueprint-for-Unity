@@ -2294,14 +2294,34 @@ namespace BlueprintSystem
                 node,
                 "candidateLaneIds",
                 "candidateLaneIds");
-            if (subsystem == null || string.IsNullOrWhiteSpace(currentLaneId) || candidateLaneIds.Count == 0)
+            if (subsystem == null || string.IsNullOrWhiteSpace(currentLaneId))
+            {
+                WriteSelectionResult(context, node, false, string.Empty, -1, new List<string>(), 0f);
+                return BehaviorTreeStatus.Failure;
+            }
+
+            RoadAgentMask agentMask = BehaviorTreeVehicleRoadUtility.ResolveAgentMask(context, node);
+            if (candidateLaneIds.Count == 0)
+            {
+                candidateLaneIds = subsystem.GetRouteCandidateLaneIds(new VehicleRoadRouteCandidateLaneQuery
+                {
+                    agentMask = agentMask,
+                    includeTerminalLanes = true,
+                    includeDeadEnds = false,
+                    minLength = 3f,
+                    excludeConnectors = true,
+                    onlyOpen = true,
+                    excludeOrphaned = true
+                });
+            }
+
+            if (candidateLaneIds.Count == 0)
             {
                 WriteSelectionResult(context, node, false, string.Empty, -1, new List<string>(), 0f);
                 return BehaviorTreeStatus.Failure;
             }
 
             int startIndex = ResolveStartIndex(context, node, candidateLaneIds.Count);
-            RoadAgentMask agentMask = BehaviorTreeVehicleRoadUtility.ResolveAgentMask(context, node);
             List<string> outgoingFallbackRoute = null;
             string outgoingFallbackDestination = string.Empty;
             int outgoingFallbackIndex = -1;

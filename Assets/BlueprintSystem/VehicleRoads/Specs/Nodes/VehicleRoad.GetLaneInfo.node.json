@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.GetLaneInfo",
+  "title": "VehicleRoad Get Lane Info",
+  "category": "VehicleRoads",
+  "description": "Returns diagnostic metadata for one registered lane id.",
+  "executor": "VehicleRoad.GetLaneInfo",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "laneId", "kind": "value", "type": "string", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "found", "kind": "value", "type": "bool" },
+    { "id": "laneId", "kind": "value", "type": "string" },
+    { "id": "kind", "kind": "value", "type": "RoadElementKind" },
+    { "id": "length", "kind": "value", "type": "float" },
+    { "id": "open", "kind": "value", "type": "bool" },
+    { "id": "orphaned", "kind": "value", "type": "bool" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask" },
+    { "id": "outgoingConnectionCount", "kind": "value", "type": "int" },
+    { "id": "adjacentLinkCount", "kind": "value", "type": "int" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "laneId", "required": false, "type": "string", "defaultValue": "" }
+  ]
+}

@@ -17,6 +17,12 @@ namespace BlueprintSystem.Tests
             {
                 "VehicleRoad.FindNearestLane",
                 "VehicleRoad.FindLaneRoute",
+                "VehicleRoad.GetLaneIds",
+                "VehicleRoad.GetRouteCandidateLaneIds",
+                "VehicleRoad.FindSpawnLaneAroundTransform",
+                "VehicleRoad.SelectReachableRouteTarget",
+                "VehicleRoad.FilterLaneIds",
+                "VehicleRoad.GetLaneInfo",
                 "VehicleRoad.SetLaneClosed",
                 "VehicleRoad.SetLaneCongestionCost",
                 "VehicleRoad.UpdateVehicle",
@@ -63,9 +69,13 @@ namespace BlueprintSystem.Tests
                 BlueprintNodeManifestCollection manifests = BlueprintNodeManifestAssetUtility.LoadManifests();
                 BlueprintNodeManifest manifest;
                 Assert.False(manifests.TryGet("VehicleRoad.FindNearestLane", out manifest));
+                Assert.False(manifests.TryGet("VehicleRoad.GetRouteCandidateLaneIds", out manifest));
+                Assert.False(manifests.TryGet("VehicleRoad.SelectReachableRouteTarget", out manifest));
 
                 IBlueprintNodeExecutor executor;
                 Assert.False(BlueprintExecutorRegistry.CreateDefault().TryGet("VehicleRoad.FindNearestLane", out executor));
+                Assert.False(BlueprintExecutorRegistry.CreateDefault().TryGet("VehicleRoad.GetRouteCandidateLaneIds", out executor));
+                Assert.False(BlueprintExecutorRegistry.CreateDefault().TryGet("VehicleRoad.SelectReachableRouteTarget", out executor));
 
                 BehaviorTreeExecutorRegistry behaviorTreeRegistry = BehaviorTreeExecutorRegistry.CreateDefault();
                 Assert.False(behaviorTreeRegistry.HasNode("BT.VehicleRoad.FindNearestLane"));
@@ -108,8 +118,14 @@ namespace BlueprintSystem.Tests
             Assert.True(BlueprintVariableTypeRegistry.TryGetClrType("RoadAgentMask", out System.Type maskType));
             Assert.AreEqual(typeof(RoadAgentMask), maskType);
             Assert.AreEqual(RoadAgentMask.MotorVehicles, BlueprintTypeUtility.ConvertValue("MotorVehicles", RoadAgentMask.None));
+            Assert.True(BlueprintVariableTypeRegistry.TryGetClrType("VehicleRoadLaneSortMode", out System.Type sortModeType));
+            Assert.AreEqual(typeof(VehicleRoadLaneSortMode), sortModeType);
+            Assert.True(BlueprintVariableTypeRegistry.TryGetClrType("VehicleRoadRouteTargetSelectionMode", out System.Type selectionModeType));
+            Assert.AreEqual(typeof(VehicleRoadRouteTargetSelectionMode), selectionModeType);
 
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("Array<string>"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneSortMode"));
+            Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadRouteTargetSelectionMode"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadStopReason"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneChangeStatus"));
             Assert.True(BehaviorTreeValueUtility.IsKnownBlackboardType("VehicleRoadLaneOccupancyStatus"));

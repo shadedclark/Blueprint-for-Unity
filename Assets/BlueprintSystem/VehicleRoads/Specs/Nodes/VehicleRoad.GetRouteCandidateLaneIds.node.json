@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.GetRouteCandidateLaneIds",
+  "title": "VehicleRoad Get Route Candidate Lane Ids",
+  "category": "VehicleRoads",
+  "description": "Returns ordinary road lane ids suitable for vehicle random destinations or anchors.",
+  "executor": "VehicleRoad.GetRouteCandidateLaneIds",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "includeTerminalLanes", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "includeDeadEnds", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "minLength", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "excludeConnectors", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "onlyOpen", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "excludeOrphaned", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "laneIds", "kind": "value", "type": "Array<string>" },
+    { "id": "count", "kind": "value", "type": "int" },
+    { "id": "success", "kind": "value", "type": "bool" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "Car" },
+    { "id": "includeTerminalLanes", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "includeDeadEnds", "required": false, "type": "bool", "defaultValue": false },
+    { "id": "minLength", "required": false, "type": "float", "defaultValue": 3 },
+    { "id": "excludeConnectors", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "onlyOpen", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "excludeOrphaned", "required": false, "type": "bool", "defaultValue": true }
+  ]
+}

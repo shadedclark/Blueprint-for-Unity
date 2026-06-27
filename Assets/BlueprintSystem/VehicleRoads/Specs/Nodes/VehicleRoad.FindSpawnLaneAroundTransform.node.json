@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.FindSpawnLaneAroundTransform",
+  "title": "VehicleRoad Find Spawn Lane Around Transform",
+  "category": "VehicleRoads",
+  "description": "Samples points around an anchor Transform, finds a nearby candidate lane, and optionally requires a reachable route candidate.",
+  "executor": "VehicleRoad.FindSpawnLaneAroundTransform",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "anchor", "kind": "value", "type": "Binding<Transform>", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "minDistance", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "maxDistance", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "laneSearchDistance", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "maxHeightDifference", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" },
+    { "id": "candidateLaneIds", "kind": "value", "type": "Array<string>", "required": false, "source": "propertyOrConnection" },
+    { "id": "requireReachableCandidate", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "excludeConnectors", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "maxTrials", "kind": "value", "type": "int", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "execOut", "kind": "exec" },
+    { "id": "found", "kind": "value", "type": "bool" },
+    { "id": "laneId", "kind": "value", "type": "string" },
+    { "id": "position", "kind": "value", "type": "Vector3" },
+    { "id": "forward", "kind": "value", "type": "Vector3" },
+    { "id": "up", "kind": "value", "type": "Vector3" },
+    { "id": "distanceFromAnchor", "kind": "value", "type": "float" },
+    { "id": "failureReason", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "anchor", "required": true, "type": "Binding<Transform>" },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "Car" },
+    { "id": "minDistance", "required": false, "type": "float", "defaultValue": 35 },
+    { "id": "maxDistance", "required": false, "type": "float", "defaultValue": 235 },
+    { "id": "laneSearchDistance", "required": false, "type": "float", "defaultValue": 25 },
+    { "id": "maxHeightDifference", "required": false, "type": "float", "defaultValue": 3 },
+    { "id": "candidateLaneIds", "required": false, "type": "Array<string>", "defaultValue": [] },
+    { "id": "requireReachableCandidate", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "excludeConnectors", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "maxTrials", "required": false, "type": "int", "defaultValue": 32 }
+  ]
+}

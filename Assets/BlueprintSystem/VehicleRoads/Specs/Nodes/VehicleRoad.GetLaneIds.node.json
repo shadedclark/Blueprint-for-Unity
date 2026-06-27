@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.GetLaneIds",
+  "title": "VehicleRoad Get Lane Ids",
+  "category": "VehicleRoads",
+  "description": "Returns registered lane ids that match agent, topology, openness, and connector filters.",
+  "executor": "VehicleRoad.GetLaneIds",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "includeConnectors", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "onlyOpen", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "excludeOrphaned", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "requireOutgoingConnection", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "requireRouteNode", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "sortMode", "kind": "value", "type": "VehicleRoadLaneSortMode", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "laneIds", "kind": "value", "type": "Array<string>" },
+    { "id": "count", "kind": "value", "type": "int" },
+    { "id": "success", "kind": "value", "type": "bool" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "Car" },
+    { "id": "includeConnectors", "required": false, "type": "bool", "defaultValue": false },
+    { "id": "onlyOpen", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "excludeOrphaned", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "requireOutgoingConnection", "required": false, "type": "bool", "defaultValue": false },
+    { "id": "requireRouteNode", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "sortMode", "required": false, "type": "VehicleRoadLaneSortMode", "defaultValue": "Stable" }
+  ]
+}

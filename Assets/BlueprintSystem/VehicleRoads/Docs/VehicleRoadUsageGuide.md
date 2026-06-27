@@ -173,6 +173,12 @@ VehicleRoads 节点只覆盖运行时，不包含道路制作、Validate、Bake 
 
 - `VehicleRoad.FindNearestLane`：从 `Binding<VehicleRoadSubsystem>`、世界位置、朝向和 `RoadAgentMask` 查询最近开放 Lane，输出 lane id、位姿和距离。
 - `VehicleRoad.FindLaneRoute`：从起点/终点 Lane ID 查询同一 `BakedLaneNetwork` 内的 `Array<string>` 路线和总成本。
+- `VehicleRoad.GetLaneIds`：按 Agent、Connector、Open、Orphan、Outgoing Connection 和 Route Node 条件返回当前注册网络里的 lane id。`sortMode` 为 `Stable` 时保持注册网络和烘焙 lane 顺序，`ByLaneId` 时按字符串排序。
+- `VehicleRoad.GetRouteCandidateLaneIds`：返回更适合作为车辆随机目的地/锚点的普通道路 lane，默认排除 Connector、关闭 lane、Orphan lane、孤立死路，并保留有入口的 terminal lane。
+- `VehicleRoad.FindSpawnLaneAroundTransform`：执行节点；围绕 `Binding<Transform>` anchor 随机采样世界点，查找附近候选 lane，验证距离区间，并可要求该 lane 能到达至少一个候选目的 lane。输出会缓存到同一次执行的端口上。
+- `VehicleRoad.SelectReachableRouteTarget`：执行节点；从传入或自动查询的候选普通 lane 中选择可达目的地，支持 `Random`、`Cycle`、`NearestCost` 和 `LowestCost`，输出目的 lane、索引、路线和总成本。候选数组为空时会自动使用 `VehicleRoad.GetRouteCandidateLaneIds` 的默认规则。
+- `VehicleRoad.FilterLaneIds`：过滤策划或蓝图传入的 lane 数组，移除 Connector、关闭、Orphan、不支持 Agent、无 outgoing connection 或过短的 lane。
+- `VehicleRoad.GetLaneInfo`：读取单个 lane 的调试信息，包括 kind、length、open、orphaned、allowed agent mask、outgoing connection 数和 adjacent link 数。
 - `VehicleRoad.SetLaneClosed`：运行时关闭或重新开放 Lane。
 - `VehicleRoad.SetLaneCongestionCost`：把外部世界模拟得到的拥堵成本写入 Lane；`cost <= 0` 清除该 Lane 的拥堵成本。
 - `VehicleRoad.UpdateVehicle` / `VehicleRoad.UnregisterVehicle`：向交通层发布或移除车辆状态。
@@ -189,7 +195,7 @@ Behavior Tree 节点位于 `BT.VehicleRoad.*`。查询/控制输出节点只写 
 
 - `BT.VehicleRoad.FindNearestLane`：写 `foundKey`、`laneIdKey`、pose 和距离 key，找到 Lane 才返回 `Success`。
 - `BT.VehicleRoad.FindLaneRoute`：写 `successKey`、`routeLaneIdsKey: Array<string>` 和 `totalCostKey`，路线存在才返回 `Success`。
-- `BT.VehicleRoad.SetFollowerRoute` / `SelectNextRouteTarget`：把 `Array<string>` 路线写入 `VehicleLaneFollower`，或从候选目的 Lane 中按 `First` / `Cycle` / `Random` 找到可达路线并写 `destinationLaneIdKey`、`selectedIndexKey`、`routeLaneIdsKey` 和 `totalCostKey`。
+- `BT.VehicleRoad.SetFollowerRoute` / `SelectNextRouteTarget`：把 `Array<string>` 路线写入 `VehicleLaneFollower`，或从候选目的 Lane 中按 `First` / `Cycle` / `Random` 找到可达路线并写 `destinationLaneIdKey`、`selectedIndexKey`、`routeLaneIdsKey` 和 `totalCostKey`。`candidateLaneIds` 为空时会自动查询普通 route candidate lane，从而不需要维护固定目的 lane 数组。
 - `BT.VehicleRoad.ComputeFollowerControl`：从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，写 steering/speed/stop/lane-change 输出，`output.valid` 为真才返回 `Success`。
 - `BT.VehicleRoad.DriveFollower`：便捷封装节点；从 Blackboard 或 owner GameObject 解析 `VehicleLaneFollower`，维护内部当前速度，按 `VehicleRoadTestVehicle` 的加减速、停止点减速、baked route pose 和 loop reset 逻辑移动 owner，额外写 `currentSpeedKey`、`speedChangeKey`、`arrivedKey` 和 `loopResetKey`。红灯/阻塞停止点仍在车头前方时，会使用 `stopPointDecelerationTime` 和 `maxStopPointDeceleration` 根据车头到停止线距离计算减速，尽量停在停止线或停止线前；如果停止线已经在车后，或 `stopPoint` 位于 owner 当前 forward 后方，则跳过停止点速度修正和吸附，继续走 baked route / look-ahead fallback movement。
 - `BT.VehicleRoad.UpdateTrafficState` / `DecideLaneChange` / `EvaluateLaneOccupancy` / `EvaluateLaneChangeRoute` / `RequestLaneChange` / `CompleteLaneChange`：发布车辆交通状态、读取前车信息、判断单条 Lane 占用、做路线级相邻 Lane 决策，并显式请求或完成换道。`DecideLaneChange` 适合前车阻挡策略；`EvaluateLaneChangeRoute` 适合当前路线缺失、下一 Lane 关闭/不可达/不安全/拥堵/满载时的路线级换道。

@@ -18,6 +18,12 @@ namespace BlueprintSystem
 
             registry.Register(new VehicleRoadFindNearestLaneExecutor());
             registry.Register(new VehicleRoadFindLaneRouteExecutor());
+            registry.Register(new VehicleRoadGetLaneIdsExecutor());
+            registry.Register(new VehicleRoadGetRouteCandidateLaneIdsExecutor());
+            registry.Register(new VehicleRoadFindSpawnLaneAroundTransformExecutor());
+            registry.Register(new VehicleRoadSelectReachableRouteTargetExecutor());
+            registry.Register(new VehicleRoadFilterLaneIdsExecutor());
+            registry.Register(new VehicleRoadGetLaneInfoExecutor());
             registry.Register(new VehicleRoadSetLaneClosedExecutor());
             registry.Register(new VehicleRoadSetLaneCongestionCostExecutor());
             registry.Register(new VehicleRoadUpdateVehicleExecutor());
@@ -83,6 +89,189 @@ namespace BlueprintSystem
                     VehicleRoadExecutorUtility.GetAgentMask(context, node)),
                 out result);
             return VehicleRoadExecutorUtility.ReadRouteResult(success, result, outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadGetLaneIdsExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.GetLaneIds"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            List<string> laneIds = subsystem == null
+                ? new List<string>()
+                : subsystem.GetLaneIds(new VehicleRoadLaneQuery
+                {
+                    agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node, RoadAgentMask.Car),
+                    includeConnectors = context.GetInputValue(node, "includeConnectors", false),
+                    onlyOpen = context.GetInputValue(node, "onlyOpen", true),
+                    excludeOrphaned = context.GetInputValue(node, "excludeOrphaned", true),
+                    requireOutgoingConnection = context.GetInputValue(node, "requireOutgoingConnection", false),
+                    requireRouteNode = context.GetInputValue(node, "requireRouteNode", true),
+                    sortMode = context.GetInputValue(node, "sortMode", VehicleRoadLaneSortMode.Stable)
+                });
+            return VehicleRoadExecutorUtility.ReadLaneIdsResult(subsystem != null, laneIds, outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadGetRouteCandidateLaneIdsExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.GetRouteCandidateLaneIds"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            List<string> laneIds = subsystem == null
+                ? new List<string>()
+                : subsystem.GetRouteCandidateLaneIds(new VehicleRoadRouteCandidateLaneQuery
+                {
+                    agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node, RoadAgentMask.Car),
+                    includeTerminalLanes = context.GetInputValue(node, "includeTerminalLanes", true),
+                    includeDeadEnds = context.GetInputValue(node, "includeDeadEnds", false),
+                    minLength = context.GetInputValue(node, "minLength", 3f),
+                    excludeConnectors = context.GetInputValue(node, "excludeConnectors", true),
+                    onlyOpen = context.GetInputValue(node, "onlyOpen", true),
+                    excludeOrphaned = context.GetInputValue(node, "excludeOrphaned", true)
+                });
+            return VehicleRoadExecutorUtility.ReadLaneIdsResult(subsystem != null, laneIds, outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadFindSpawnLaneAroundTransformExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.FindSpawnLaneAroundTransform"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            if (subsystem == null)
+            {
+                VehicleRoadExecutorUtility.StoreResult(
+                    context,
+                    node,
+                    new VehicleRoadSpawnLaneResult { failureReason = "Missing VehicleRoadSubsystem target." });
+                return BlueprintExecResult.Continue("execOut");
+            }
+
+            Transform anchor = VehicleRoadExecutorUtility.ResolveBinding<Transform>(context, node, "anchor");
+            VehicleRoadSpawnLaneResult result = subsystem.FindSpawnLaneAroundTransform(
+                anchor,
+                new VehicleRoadSpawnLaneQuery
+                {
+                    agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node, RoadAgentMask.Car),
+                    minDistance = context.GetInputValue(node, "minDistance", 35f),
+                    maxDistance = context.GetInputValue(node, "maxDistance", 235f),
+                    laneSearchDistance = context.GetInputValue(node, "laneSearchDistance", 25f),
+                    maxHeightDifference = context.GetInputValue(node, "maxHeightDifference", 3f),
+                    candidateLaneIds = VehicleRoadExecutorUtility.GetStringListInput(context, node, "candidateLaneIds"),
+                    requireReachableCandidate = context.GetInputValue(node, "requireReachableCandidate", true),
+                    excludeConnectors = context.GetInputValue(node, "excludeConnectors", true),
+                    maxTrials = context.GetInputValue(node, "maxTrials", 32)
+                });
+            VehicleRoadExecutorUtility.StoreResult(context, node, result);
+            return BlueprintExecResult.Continue("execOut");
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            return VehicleRoadExecutorUtility.ReadSpawnLaneResult(
+                VehicleRoadExecutorUtility.GetStoredResult<VehicleRoadSpawnLaneResult>(context, node),
+                outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadSelectReachableRouteTargetExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.SelectReachableRouteTarget"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            VehicleRoadRouteTargetSelectionResult result = subsystem == null
+                ? new VehicleRoadRouteTargetSelectionResult { failureReason = "Missing VehicleRoadSubsystem target." }
+                : subsystem.SelectReachableRouteTarget(new VehicleRoadRouteTargetSelectionQuery
+                {
+                    currentLaneId = context.GetInputValue(node, "currentLaneId", string.Empty),
+                    agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node, RoadAgentMask.Car),
+                    candidateLaneIds = VehicleRoadExecutorUtility.GetStringListInput(context, node, "candidateLaneIds"),
+                    selectionMode = context.GetInputValue(node, "selectionMode", VehicleRoadRouteTargetSelectionMode.Random),
+                    previousIndex = context.GetInputValue(node, "previousIndex", -1),
+                    minimumRouteCost = context.GetInputValue(node, "minimumRouteCost", 0.001f),
+                    allowSameLane = context.GetInputValue(node, "allowSameLane", false),
+                    excludeConnectors = context.GetInputValue(node, "excludeConnectors", true)
+                });
+            VehicleRoadExecutorUtility.StoreResult(context, node, result);
+            return BlueprintExecResult.Continue("execOut");
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            return VehicleRoadExecutorUtility.ReadRouteTargetSelectionResult(
+                VehicleRoadExecutorUtility.GetStoredResult<VehicleRoadRouteTargetSelectionResult>(context, node),
+                outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadFilterLaneIdsExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.FilterLaneIds"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            int removedCount = 0;
+            List<string> filteredLaneIds = subsystem == null
+                ? new List<string>()
+                : subsystem.FilterLaneIds(
+                    VehicleRoadExecutorUtility.GetStringListInput(context, node, "laneIds"),
+                    new VehicleRoadLaneFilterQuery
+                    {
+                        agentMask = VehicleRoadExecutorUtility.GetAgentMask(context, node, RoadAgentMask.Car),
+                        excludeConnectors = context.GetInputValue(node, "excludeConnectors", true),
+                        onlyOpen = context.GetInputValue(node, "onlyOpen", true),
+                        excludeOrphaned = context.GetInputValue(node, "excludeOrphaned", true),
+                        requireOutgoingConnection = context.GetInputValue(node, "requireOutgoingConnection", false),
+                        minLength = context.GetInputValue(node, "minLength", 0f)
+                    },
+                    out removedCount);
+            return VehicleRoadExecutorUtility.ReadFilterLaneIdsResult(
+                subsystem != null,
+                filteredLaneIds,
+                removedCount,
+                outputPortId);
+        }
+    }
+
+    public sealed class VehicleRoadGetLaneInfoExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "VehicleRoad.GetLaneInfo"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            VehicleRoadSubsystem subsystem = VehicleRoadExecutorUtility.ResolveSubsystem(context, node);
+            VehicleRoadLaneInfoResult result = subsystem == null
+                ? new VehicleRoadLaneInfoResult()
+                : subsystem.GetLaneInfo(context.GetInputValue(node, "laneId", string.Empty));
+            return VehicleRoadExecutorUtility.ReadLaneInfoResult(result, outputPortId);
         }
     }
 
@@ -476,6 +665,12 @@ namespace BlueprintSystem
             return mask == RoadAgentMask.None ? RoadAgentMask.MotorVehicles : mask;
         }
 
+        public static RoadAgentMask GetAgentMask(BlueprintExecutionContext context, RuntimeNode node, RoadAgentMask defaultValue)
+        {
+            RoadAgentMask mask = context.GetInputValue(node, "agentMask", defaultValue);
+            return mask == RoadAgentMask.None ? defaultValue : mask;
+        }
+
         public static List<string> GetStringListInput(BlueprintExecutionContext context, RuntimeNode node, string portId)
         {
             return ToStringList(context.GetInputValue(node, portId));
@@ -543,6 +738,133 @@ namespace BlueprintSystem
                     return result == null || result.laneIds == null ? new List<string>() : new List<string>(result.laneIds);
                 case "totalCost":
                     return result == null ? 0f : result.totalCost;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadLaneIdsResult(bool validTarget, List<string> laneIds, string outputPortId)
+        {
+            int count = laneIds == null ? 0 : laneIds.Count;
+            switch (outputPortId)
+            {
+                case "laneIds":
+                    return laneIds == null ? new List<string>() : new List<string>(laneIds);
+                case "count":
+                    return count;
+                case "success":
+                    return validTarget && count > 0;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadFilterLaneIdsResult(
+            bool validTarget,
+            List<string> filteredLaneIds,
+            int removedCount,
+            string outputPortId)
+        {
+            int count = filteredLaneIds == null ? 0 : filteredLaneIds.Count;
+            switch (outputPortId)
+            {
+                case "filteredLaneIds":
+                    return filteredLaneIds == null ? new List<string>() : new List<string>(filteredLaneIds);
+                case "removedCount":
+                    return removedCount;
+                case "success":
+                    return validTarget && count > 0;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadSpawnLaneResult(VehicleRoadSpawnLaneResult result, string outputPortId)
+        {
+            if (result == null)
+            {
+                result = new VehicleRoadSpawnLaneResult { failureReason = "No spawn result has been executed." };
+            }
+
+            switch (outputPortId)
+            {
+                case "found":
+                    return result.found;
+                case "laneId":
+                    return result.laneId ?? string.Empty;
+                case "position":
+                    return result.position;
+                case "forward":
+                    return result.forward;
+                case "up":
+                    return result.up;
+                case "distanceFromAnchor":
+                    return result.distanceFromAnchor;
+                case "failureReason":
+                    return result.failureReason ?? string.Empty;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadRouteTargetSelectionResult(
+            VehicleRoadRouteTargetSelectionResult result,
+            string outputPortId)
+        {
+            if (result == null)
+            {
+                result = new VehicleRoadRouteTargetSelectionResult
+                {
+                    failureReason = "No route target selection has been executed."
+                };
+            }
+
+            switch (outputPortId)
+            {
+                case "success":
+                    return result.success;
+                case "destinationLaneId":
+                    return result.destinationLaneId ?? string.Empty;
+                case "selectedIndex":
+                    return result.selectedIndex;
+                case "routeLaneIds":
+                    return result.routeLaneIds == null ? new List<string>() : new List<string>(result.routeLaneIds);
+                case "totalCost":
+                    return result.totalCost;
+                case "failureReason":
+                    return result.failureReason ?? string.Empty;
+                default:
+                    return null;
+            }
+        }
+
+        public static object ReadLaneInfoResult(VehicleRoadLaneInfoResult result, string outputPortId)
+        {
+            if (result == null)
+            {
+                result = new VehicleRoadLaneInfoResult();
+            }
+
+            switch (outputPortId)
+            {
+                case "found":
+                    return result.found;
+                case "laneId":
+                    return result.laneId ?? string.Empty;
+                case "kind":
+                    return result.kind;
+                case "length":
+                    return result.length;
+                case "open":
+                    return result.open;
+                case "orphaned":
+                    return result.orphaned;
+                case "agentMask":
+                    return result.agentMask;
+                case "outgoingConnectionCount":
+                    return result.outgoingConnectionCount;
+                case "adjacentLinkCount":
+                    return result.adjacentLinkCount;
                 default:
                     return null;
             }

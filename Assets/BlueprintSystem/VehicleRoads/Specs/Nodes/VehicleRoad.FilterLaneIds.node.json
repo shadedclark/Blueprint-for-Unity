@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "VehicleRoad.FilterLaneIds",
+  "title": "VehicleRoad Filter Lane Ids",
+  "category": "VehicleRoads",
+  "description": "Filters a supplied lane id list by agent, connector, open, orphan, outgoing, and length rules.",
+  "executor": "VehicleRoad.FilterLaneIds",
+  "inputs": [
+    { "id": "target", "kind": "value", "type": "Binding<VehicleRoadSubsystem>", "required": true, "source": "propertyOrConnection" },
+    { "id": "laneIds", "kind": "value", "type": "Array<string>", "required": true, "source": "propertyOrConnection" },
+    { "id": "agentMask", "kind": "value", "type": "RoadAgentMask", "required": false, "source": "propertyOrConnection" },
+    { "id": "excludeConnectors", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "onlyOpen", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "excludeOrphaned", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "requireOutgoingConnection", "kind": "value", "type": "bool", "required": false, "source": "propertyOrConnection" },
+    { "id": "minLength", "kind": "value", "type": "float", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "filteredLaneIds", "kind": "value", "type": "Array<string>" },
+    { "id": "removedCount", "kind": "value", "type": "int" },
+    { "id": "success", "kind": "value", "type": "bool" }
+  ],
+  "properties": [
+    { "id": "target", "required": true, "type": "Binding<VehicleRoadSubsystem>" },
+    { "id": "laneIds", "required": false, "type": "Array<string>", "defaultValue": [] },
+    { "id": "agentMask", "required": false, "type": "RoadAgentMask", "defaultValue": "Car" },
+    { "id": "excludeConnectors", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "onlyOpen", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "excludeOrphaned", "required": false, "type": "bool", "defaultValue": true },
+    { "id": "requireOutgoingConnection", "required": false, "type": "bool", "defaultValue": false },
+    { "id": "minLength", "required": false, "type": "float", "defaultValue": 0 }
+  ]
+}

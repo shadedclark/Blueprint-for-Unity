@@ -130,6 +130,196 @@ namespace BlueprintSystem.Editor
             AddValueOutput("laneChangeStatus", "VehicleRoadLaneChangeStatus");
             AddValueOutput("laneChangeTargetLaneId", "string");
         }
+
+        protected void AddLaneIdsOutputs(string laneIdsPort)
+        {
+            AddValueOutput(laneIdsPort, "Array<string>");
+            AddValueOutput("count", "int");
+            AddValueOutput("success", "bool");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.GetLaneIds")]
+    public sealed class VehicleRoadGetLaneIdsVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.GetLaneIds", "VehicleRoad Get Lane Ids", "VehicleRoads", "Returns registered lane ids matching lane filters.");
+            AddSubsystemInput();
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("includeConnectors", "bool", false, "propertyOrConnection");
+            AddValueInput("onlyOpen", "bool", false, "propertyOrConnection");
+            AddValueInput("excludeOrphaned", "bool", false, "propertyOrConnection");
+            AddValueInput("requireOutgoingConnection", "bool", false, "propertyOrConnection");
+            AddValueInput("requireRouteNode", "bool", false, "propertyOrConnection");
+            AddValueInput("sortMode", "VehicleRoadLaneSortMode", false, "propertyOrConnection");
+            AddLaneIdsOutputs("laneIds");
+            AddProperty("agentMask", "RoadAgentMask", false, "Car");
+            AddProperty("includeConnectors", "bool", false, false);
+            AddProperty("onlyOpen", "bool", false, true);
+            AddProperty("excludeOrphaned", "bool", false, true);
+            AddProperty("requireOutgoingConnection", "bool", false, false);
+            AddProperty("requireRouteNode", "bool", false, true);
+            AddProperty("sortMode", "VehicleRoadLaneSortMode", false, "Stable");
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.GetRouteCandidateLaneIds")]
+    public sealed class VehicleRoadGetRouteCandidateLaneIdsVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.GetRouteCandidateLaneIds", "VehicleRoad Get Route Candidate Lane Ids", "VehicleRoads", "Returns ordinary route target or anchor lane ids.");
+            AddSubsystemInput();
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("includeTerminalLanes", "bool", false, "propertyOrConnection");
+            AddValueInput("includeDeadEnds", "bool", false, "propertyOrConnection");
+            AddValueInput("minLength", "float", false, "propertyOrConnection");
+            AddValueInput("excludeConnectors", "bool", false, "propertyOrConnection");
+            AddValueInput("onlyOpen", "bool", false, "propertyOrConnection");
+            AddValueInput("excludeOrphaned", "bool", false, "propertyOrConnection");
+            AddLaneIdsOutputs("laneIds");
+            AddProperty("agentMask", "RoadAgentMask", false, "Car");
+            AddProperty("includeTerminalLanes", "bool", false, true);
+            AddProperty("includeDeadEnds", "bool", false, false);
+            AddProperty("minLength", "float", false, 3f);
+            AddProperty("excludeConnectors", "bool", false, true);
+            AddProperty("onlyOpen", "bool", false, true);
+            AddProperty("excludeOrphaned", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.FindSpawnLaneAroundTransform")]
+    public sealed class VehicleRoadFindSpawnLaneAroundTransformVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.FindSpawnLaneAroundTransform", "VehicleRoad Find Spawn Lane Around Transform", "VehicleRoads", "Finds a spawn lane around an anchor Transform.");
+            AddExecInput("execIn");
+            AddSubsystemInput();
+            AddValueInput("anchor", "Binding<Transform>", true, "propertyOrConnection");
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("minDistance", "float", false, "propertyOrConnection");
+            AddValueInput("maxDistance", "float", false, "propertyOrConnection");
+            AddValueInput("laneSearchDistance", "float", false, "propertyOrConnection");
+            AddValueInput("maxHeightDifference", "float", false, "propertyOrConnection");
+            AddValueInput("candidateLaneIds", "Array<string>", false, "propertyOrConnection");
+            AddValueInput("requireReachableCandidate", "bool", false, "propertyOrConnection");
+            AddValueInput("excludeConnectors", "bool", false, "propertyOrConnection");
+            AddValueInput("maxTrials", "int", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddValueOutput("found", "bool");
+            AddValueOutput("laneId", "string");
+            AddValueOutput("position", "Vector3");
+            AddValueOutput("forward", "Vector3");
+            AddValueOutput("up", "Vector3");
+            AddValueOutput("distanceFromAnchor", "float");
+            AddValueOutput("failureReason", "string");
+            AddProperty("anchor", "Binding<Transform>", true);
+            AddProperty("agentMask", "RoadAgentMask", false, "Car");
+            AddProperty("minDistance", "float", false, 35f);
+            AddProperty("maxDistance", "float", false, 235f);
+            AddProperty("laneSearchDistance", "float", false, 25f);
+            AddProperty("maxHeightDifference", "float", false, 3f);
+            AddProperty("candidateLaneIds", "Array<string>", false, new List<object>());
+            AddProperty("requireReachableCandidate", "bool", false, true);
+            AddProperty("excludeConnectors", "bool", false, true);
+            AddProperty("maxTrials", "int", false, 32);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.SelectReachableRouteTarget")]
+    public sealed class VehicleRoadSelectReachableRouteTargetVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.SelectReachableRouteTarget", "VehicleRoad Select Reachable Route Target", "VehicleRoads", "Selects a reachable route destination lane.");
+            AddExecInput("execIn");
+            AddSubsystemInput();
+            AddValueInput("currentLaneId", "string", true, "propertyOrConnection");
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("candidateLaneIds", "Array<string>", false, "propertyOrConnection");
+            AddValueInput("selectionMode", "VehicleRoadRouteTargetSelectionMode", false, "propertyOrConnection");
+            AddValueInput("previousIndex", "int", false, "propertyOrConnection");
+            AddValueInput("minimumRouteCost", "float", false, "propertyOrConnection");
+            AddValueInput("allowSameLane", "bool", false, "propertyOrConnection");
+            AddValueInput("excludeConnectors", "bool", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddValueOutput("success", "bool");
+            AddValueOutput("destinationLaneId", "string");
+            AddValueOutput("selectedIndex", "int");
+            AddValueOutput("routeLaneIds", "Array<string>");
+            AddValueOutput("totalCost", "float");
+            AddValueOutput("failureReason", "string");
+            AddProperty("currentLaneId", "string", false, "");
+            AddProperty("agentMask", "RoadAgentMask", false, "Car");
+            AddProperty("candidateLaneIds", "Array<string>", false, new List<object>());
+            AddProperty("selectionMode", "VehicleRoadRouteTargetSelectionMode", false, "Random");
+            AddProperty("previousIndex", "int", false, -1);
+            AddProperty("minimumRouteCost", "float", false, 0.001f);
+            AddProperty("allowSameLane", "bool", false, false);
+            AddProperty("excludeConnectors", "bool", false, true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.FilterLaneIds")]
+    public sealed class VehicleRoadFilterLaneIdsVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.FilterLaneIds", "VehicleRoad Filter Lane Ids", "VehicleRoads", "Filters a supplied lane id list.");
+            AddSubsystemInput();
+            AddValueInput("laneIds", "Array<string>", true, "propertyOrConnection");
+            AddValueInput("agentMask", "RoadAgentMask", false, "propertyOrConnection");
+            AddValueInput("excludeConnectors", "bool", false, "propertyOrConnection");
+            AddValueInput("onlyOpen", "bool", false, "propertyOrConnection");
+            AddValueInput("excludeOrphaned", "bool", false, "propertyOrConnection");
+            AddValueInput("requireOutgoingConnection", "bool", false, "propertyOrConnection");
+            AddValueInput("minLength", "float", false, "propertyOrConnection");
+            AddValueOutput("filteredLaneIds", "Array<string>");
+            AddValueOutput("removedCount", "int");
+            AddValueOutput("success", "bool");
+            AddProperty("laneIds", "Array<string>", false, new List<object>());
+            AddProperty("agentMask", "RoadAgentMask", false, "Car");
+            AddProperty("excludeConnectors", "bool", false, true);
+            AddProperty("onlyOpen", "bool", false, true);
+            AddProperty("excludeOrphaned", "bool", false, true);
+            AddProperty("requireOutgoingConnection", "bool", false, false);
+            AddProperty("minLength", "float", false, 0f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("VehicleRoad.GetLaneInfo")]
+    public sealed class VehicleRoadGetLaneInfoVisualNode : VehicleRoadVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("VehicleRoad.GetLaneInfo", "VehicleRoad Get Lane Info", "VehicleRoads", "Returns diagnostic metadata for one lane id.");
+            AddSubsystemInput();
+            AddValueInput("laneId", "string", true, "propertyOrConnection");
+            AddValueOutput("found", "bool");
+            AddValueOutput("laneId", "string");
+            AddValueOutput("kind", "RoadElementKind");
+            AddValueOutput("length", "float");
+            AddValueOutput("open", "bool");
+            AddValueOutput("orphaned", "bool");
+            AddValueOutput("agentMask", "RoadAgentMask");
+            AddValueOutput("outgoingConnectionCount", "int");
+            AddValueOutput("adjacentLinkCount", "int");
+            AddProperty("laneId", "string", false, "");
+        }
     }
 
     [Serializable]
