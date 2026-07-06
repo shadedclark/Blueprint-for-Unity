@@ -24,6 +24,9 @@ plugin into that Unity project's Codex marketplace:
 python3 Assets/BlueprintSystem/CodexPlugin~/scripts/install_blueprint_codex_plugin.py
 ```
 
+You can run the same installer inside Unity from `Project Settings > Blueprint System > Codex`
+with the `Install / Refresh Codex Skills` button.
+
 If the package lives under `Packages/` or `Library/PackageCache/`, run the same script by absolute
 path. When no project root argument is provided, the script first infers the Unity project from its
 own package path, so package-cache execution installs into that project instead of the shell's
