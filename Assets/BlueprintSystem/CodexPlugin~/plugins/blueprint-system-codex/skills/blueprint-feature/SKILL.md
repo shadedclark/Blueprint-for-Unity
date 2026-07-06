@@ -49,6 +49,17 @@ Prefer the package MCP tools when available:
 - `blueprint_compile_blueprints`
 - `blueprint_apply_bindings`
 - `blueprint_run_unity_figma_to_ui`
+- `blueprint_validate_assets`
+- `blueprint_contract_check`
+- `blueprint_binding_snapshot`
+- `blueprint_runtime_snapshot`
+
+Use the typed BlueprintSystem MCP tools before creating temporary C# editor tests or ad hoc `Unity_RunCommand` probes:
+
+- After changing `.blueprint.json`, `.bpstruct.json`, `.bpdatatable.json`, or resource blueprint sources, run `blueprint_validate_assets` for JSON parsing, runtime registry sync, Blueprint compile, and captured logs. `.btree.json` assets are parsed by this tool, but Behavior Tree compile remains in the Behavior Tree editor tooling.
+- When checking graph contracts such as required or forbidden nodes, edges, variables, bindings, components, blackboard keys, unknown edge nodes, or exec fan-in, use `blueprint_contract_check`.
+- When checking prefab or loaded-scene integration, use `blueprint_binding_snapshot` for `BlueprintRunner`, `UIBlueprintBinder`, `BehaviorTreeRunner`, missing scripts, compiled asset references, and binding targets.
+- Use `blueprint_runtime_snapshot` only after the user explicitly asks for Play Mode/runtime evidence or the current investigation already requires runtime truth; otherwise report runtime verification as not run.
 
 Use Unity MCP for Editor operations such as scene, prefab, component, asset, screenshot, validation, and console work. Do not hand-edit Unity scene or prefab YAML.
 

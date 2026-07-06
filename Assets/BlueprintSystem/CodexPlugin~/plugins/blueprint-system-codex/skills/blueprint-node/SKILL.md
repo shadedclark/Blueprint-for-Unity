@@ -49,3 +49,11 @@ Read the live package files returned by the locator before editing:
 5. Keep `.blueprint.json` behavior source files authoritative; `.bpgraph` is an editor visualization/cache.
 
 Do not add node code, manifests, registry entries, visual nodes, or GUIDE documentation until the current conversation contains explicit approval for that node.
+
+## Validation Tools
+
+After node work, prefer typed BlueprintSystem MCP tools over temporary C# editor tests or ad hoc `Unity_RunCommand` probes when they can provide the needed evidence:
+
+- Use `blueprint_validate_assets` for affected Blueprint/DataTable/Struct sources and registry/compile checks.
+- Use `blueprint_contract_check` to prove sample graphs contain the expected new node, ports, required edges, and no exec fan-in regressions.
+- Use `blueprint_binding_snapshot` when node work affects runner or prefab integration.

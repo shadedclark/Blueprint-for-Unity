@@ -41,6 +41,13 @@ Read the live package files returned by the locator before planning or editing:
 
 Use Unity MCP for Editor operations such as behavior tree compile, `BehaviorTreeRunner` attachment, prefab or scene inspection, asset refresh, validation, console checks, and scene saves. Do not hand-edit Unity scene or prefab YAML.
 
+Prefer typed BlueprintSystem MCP tools before writing temporary C# validation scripts or ad hoc `Unity_RunCommand` probes:
+
+- Use `blueprint_validate_assets` to parse `.btree.json` and related Blueprint/DataTable/Struct sources and sync registries when needed. It does not directly compile Behavior Trees; use the existing Behavior Tree editor compile tooling for `.btree.json` compile.
+- Use `blueprint_contract_check` for required or forbidden BT nodes, decorators, services, blackboard keys, child ordering, related Blueprint event/task nodes, unknown edge nodes, and Blueprint exec fan-in.
+- Use `blueprint_binding_snapshot` to inspect prefabs or loaded scene objects for `BehaviorTreeRunner`, `BlueprintRunner`, compiled asset references, missing scripts, and binding targets.
+- Use `blueprint_runtime_snapshot` only when the user explicitly asks for Play Mode/runtime proof or is already diagnosing a runtime AI symptom; otherwise report runtime verification as not run.
+
 ## Guardrails
 
 - Keep `.btree.json` as the Behavior Tree source of truth.

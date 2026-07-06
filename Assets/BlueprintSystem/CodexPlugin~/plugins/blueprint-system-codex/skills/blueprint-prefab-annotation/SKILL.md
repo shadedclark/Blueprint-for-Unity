@@ -39,10 +39,16 @@ Then follow `PrefabAnnotationBlueprintAgent.md` as the source of truth.
 
 ## Workflow
 
-- Inspect the prefab through Unity MCP or `blueprint_inspect_prefab_bindings`.
+- Inspect the prefab through Unity MCP, `blueprint_inspect_prefab_bindings`, or `blueprint_binding_snapshot`.
 - Use the annotation Markdown as the behavior contract.
 - Create or update `.blueprint.json` files only where needed.
 - Compile changed blueprints with `blueprint_compile_blueprints`.
 - Apply runner references with `blueprint_apply_bindings`.
+- Run `blueprint_validate_assets` after source edits for JSON parsing, runtime registry sync, Blueprint compile, and captured logs.
+- Use `blueprint_contract_check` when the annotation implies required nodes, edges, variables, bindings, or graph invariants.
+- Re-run `blueprint_binding_snapshot` after applying bindings to verify compiled assets, missing scripts, and binding targets.
+- Use `blueprint_runtime_snapshot` only when the user explicitly asks for Play Mode/runtime proof; do not enter Play Mode by default.
 
 Do not rebuild the UI, change the visual layout, create C# code, or edit prefab YAML by hand.
+
+Before creating temporary C# editor tests or ad hoc `Unity_RunCommand` probes, check whether these typed BlueprintSystem MCP tools can provide the needed evidence.
