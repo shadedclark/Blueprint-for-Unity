@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BlueprintSystem
 {
-    public sealed class BlueprintRuntimeComponent : IBlueprintInstance
+    public sealed class BlueprintRuntimeComponent : IBlueprintInstance, IBlueprintDebugInspectable
     {
         private readonly string _name;
         private readonly BlueprintCompiledAsset _compiledBlueprint;
@@ -262,7 +262,7 @@ namespace BlueprintSystem
                 return false;
             }
 
-            _context.Variables.Set(variableName, value);
+            _context.SetVariable(variableName, value);
             return true;
         }
 
@@ -292,6 +292,16 @@ namespace BlueprintSystem
             }
 
             return _componentsByName.TryGetValue(componentName, out component);
+        }
+
+        public IReadOnlyList<BlueprintDebugVariableDescriptor> GetVariableDescriptors()
+        {
+            return BlueprintDebugInspectableUtility.GetVariableDescriptors(_blueprint);
+        }
+
+        public IReadOnlyList<BlueprintDebugComponentDescriptor> GetComponentDescriptors()
+        {
+            return BlueprintDebugInspectableUtility.GetComponentDescriptors(_componentsByName);
         }
 
         public void TriggerLifecycleEvent(string eventName)

@@ -16,14 +16,14 @@ namespace BlueprintSystem.Editor
 
         public static bool CompileBlueprintAtPath(string sourcePath, bool log, out BlueprintCompiledAsset compiledAsset)
         {
-            return CompileBlueprintAtPath(sourcePath, log, out compiledAsset, new HashSet<string>(StringComparer.Ordinal));
+            return CompileBlueprintAtPath(sourcePath, log, out compiledAsset, new BlueprintCompilationSession());
         }
 
-        private static bool CompileBlueprintAtPath(
+        public static bool CompileBlueprintAtPath(
             string sourcePath,
             bool log,
             out BlueprintCompiledAsset compiledAsset,
-            HashSet<string> compilationStack)
+            BlueprintCompilationSession session)
         {
             compiledAsset = null;
             if (string.IsNullOrEmpty(sourcePath))
@@ -32,6 +32,12 @@ namespace BlueprintSystem.Editor
             }
 
             sourcePath = NormalizeAssetPath(sourcePath);
+            session = session ?? new BlueprintCompilationSession();
+            if (session.TryGetCompleted(sourcePath, out compiledAsset))
+            {
+                return compiledAsset != null;
+            }
+
             TextAsset blueprintJson = AssetDatabase.LoadAssetAtPath<TextAsset>(sourcePath);
             if (blueprintJson == null)
             {
@@ -43,19 +49,19 @@ namespace BlueprintSystem.Editor
                 return false;
             }
 
-            return CompileBlueprint(blueprintJson, log, out compiledAsset, compilationStack);
+            return CompileBlueprint(blueprintJson, log, out compiledAsset, session);
         }
 
         public static bool CompileBlueprint(TextAsset blueprintJson, bool log, out BlueprintCompiledAsset compiledAsset)
         {
-            return CompileBlueprint(blueprintJson, log, out compiledAsset, new HashSet<string>(StringComparer.Ordinal));
+            return CompileBlueprint(blueprintJson, log, out compiledAsset, new BlueprintCompilationSession());
         }
 
         private static bool CompileBlueprint(
             TextAsset blueprintJson,
             bool log,
             out BlueprintCompiledAsset compiledAsset,
-            HashSet<string> compilationStack)
+            BlueprintCompilationSession session)
         {
             compiledAsset = null;
             if (blueprintJson == null)
@@ -74,13 +80,31 @@ namespace BlueprintSystem.Editor
                 return false;
             }
 
+            sourcePath = NormalizeAssetPath(sourcePath);
+            session = session ?? new BlueprintCompilationSession();
+            if (session.TryGetCompleted(sourcePath, out compiledAsset))
+            {
+                return compiledAsset != null;
+            }
+
             CompilationData data;
-            if (!TryBuildCompilationData(blueprintJson, sourcePath, log, compilationStack, out data))
+            if (!TryBuildCompilationData(blueprintJson, sourcePath, log, session, out data))
             {
                 return false;
             }
 
             string assetPath = GetCompiledAssetPath(sourcePath);
+            if (!session.ForceRecompile)
+            {
+                BlueprintCompiledAsset currentAsset = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(assetPath);
+                if (currentAsset != null && currentAsset.IsCurrent(data.SourceHash, data.ManifestHash))
+                {
+                    compiledAsset = currentAsset;
+                    session.RecordCompleted(sourcePath, compiledAsset);
+                    return true;
+                }
+            }
+
             bool created = false;
             compiledAsset = LoadCompiledAssetForWrite(assetPath, log, blueprintJson);
 
@@ -105,6 +129,7 @@ namespace BlueprintSystem.Editor
                 BlueprintLog.Log("[Blueprint] Compiled '" + data.Source.Name + "' to " + assetPath + ".", compiledAsset);
             }
 
+            session.RecordCompleted(sourcePath, compiledAsset);
             return true;
         }
 
@@ -178,7 +203,7 @@ namespace BlueprintSystem.Editor
             }
 
             CompilationData data;
-            if (!TryBuildCompilationData(blueprintJson, sourcePath, false, new HashSet<string>(StringComparer.Ordinal), out data))
+            if (!TryBuildCompilationData(blueprintJson, sourcePath, false, new BlueprintCompilationSession(), out data))
             {
                 reason = "Source blueprint cannot be compiled.";
                 return false;
@@ -252,7 +277,7 @@ namespace BlueprintSystem.Editor
                 : directory.Replace('\\', '/') + "/" + fileName + CompiledAssetSuffix;
         }
 
-        private static string ResolveComponentAssetPath(string ownerSourcePath, string componentPath)
+        internal static string ResolveComponentAssetPath(string ownerSourcePath, string componentPath)
         {
             componentPath = NormalizeAssetPath(componentPath);
             if (string.IsNullOrEmpty(componentPath))
@@ -272,7 +297,7 @@ namespace BlueprintSystem.Editor
                 : directory + "/" + componentPath);
         }
 
-        private static string NormalizeAssetPath(string path)
+        internal static string NormalizeAssetPath(string path)
         {
             return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/');
         }
@@ -286,13 +311,13 @@ namespace BlueprintSystem.Editor
             TextAsset blueprintJson,
             string sourcePath,
             bool log,
-            HashSet<string> compilationStack,
+            BlueprintCompilationSession session,
             out CompilationData data)
         {
             data = null;
             sourcePath = NormalizeAssetPath(sourcePath);
-            compilationStack = compilationStack ?? new HashSet<string>(StringComparer.Ordinal);
-            if (compilationStack.Contains(sourcePath))
+            session = session ?? new BlueprintCompilationSession();
+            if (session.CompilationStack.Contains(sourcePath))
             {
                 if (log)
                 {
@@ -302,7 +327,7 @@ namespace BlueprintSystem.Editor
                 return false;
             }
 
-            compilationStack.Add(sourcePath);
+            session.CompilationStack.Add(sourcePath);
             string sourceText = blueprintJson.text;
             BlueprintSource source;
             try
@@ -322,7 +347,7 @@ namespace BlueprintSystem.Editor
                     BlueprintLog.Error("[Blueprint] Could not parse blueprint JSON at '" + sourcePath + "': " + exception.Message, blueprintJson);
                 }
 
-                compilationStack.Remove(sourcePath);
+                session.CompilationStack.Remove(sourcePath);
                 return false;
             }
 
@@ -336,15 +361,15 @@ namespace BlueprintSystem.Editor
                     BlueprintLog.Error("[Blueprint] Compile failed for " + blueprintJson.name + "\n" + compileResult.Diagnostics.ToDisplayString(), blueprintJson);
                 }
 
-                compilationStack.Remove(sourcePath);
+                session.CompilationStack.Remove(sourcePath);
                 return false;
             }
 
             List<BlueprintCompiledComponent> compiledComponents;
             string componentHash;
-            if (!BuildComponents(source, sourcePath, log, compilationStack, out compiledComponents, out componentHash))
+            if (!BuildComponents(source, sourcePath, log, session, out compiledComponents, out componentHash))
             {
-                compilationStack.Remove(sourcePath);
+                session.CompilationStack.Remove(sourcePath);
                 return false;
             }
 
@@ -357,7 +382,7 @@ namespace BlueprintSystem.Editor
             data.SourceHash = ComputeHash(sourceText + "\ncomponents:" + componentHash);
             data.ManifestHash = ComputeRequiredManifestHash(source, manifestTextsByTypeId);
             data.Components = compiledComponents;
-            compilationStack.Remove(sourcePath);
+            session.CompilationStack.Remove(sourcePath);
             return true;
         }
 
@@ -432,7 +457,7 @@ namespace BlueprintSystem.Editor
             BlueprintSource source,
             string sourcePath,
             bool log,
-            HashSet<string> compilationStack,
+            BlueprintCompilationSession session,
             out List<BlueprintCompiledComponent> result,
             out string componentHash)
         {
@@ -458,7 +483,12 @@ namespace BlueprintSystem.Editor
                 else if (!string.IsNullOrEmpty(componentPath))
                 {
                     componentSourcePath = componentPath;
-                    if (!CompileBlueprintAtPath(componentSourcePath, log, out compiledComponent, compilationStack))
+                    if (session != null && !session.CompileDependencies)
+                    {
+                        compiledComponent = AssetDatabase.LoadAssetAtPath<BlueprintCompiledAsset>(
+                            GetCompiledAssetPath(componentSourcePath));
+                    }
+                    else if (!CompileBlueprintAtPath(componentSourcePath, log, out compiledComponent, session))
                     {
                         compiledComponent = null;
                     }

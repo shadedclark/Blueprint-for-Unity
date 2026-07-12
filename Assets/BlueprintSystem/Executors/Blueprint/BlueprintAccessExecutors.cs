@@ -466,7 +466,17 @@ namespace BlueprintSystem
                 return BlueprintExecResult.Error("Blueprint.TriggerEvent node '" + node.Id + "' has no eventName.");
             }
 
+            context.RecordTrace(
+                BlueprintTraceRecordKind.CrossBlueprintEnter,
+                status: "trigger",
+                value: instance.SourcePath ?? string.Empty,
+                message: eventName);
             instance.TriggerEvent(eventName);
+            context.RecordTrace(
+                BlueprintTraceRecordKind.CrossBlueprintExit,
+                status: "returned",
+                value: instance.SourcePath ?? string.Empty,
+                message: eventName);
             return BlueprintExecResult.Continue("execOut");
         }
     }

@@ -3021,6 +3021,25 @@ Ports and parameters:
 | `index` | property | int | property | no | `0` | Used when no value edge is connected. |
 | `item` | output value | untyped | none | no | none | Item value. |
 
+## MCP Diagnostics and Safe Maintenance Tools
+
+BlueprintSystem registers the following MCP tools from `Assets/BlueprintSystem/Editor/MCPTool`. They operate on embedded or upstream package source; do not edit `Library/PackageCache`.
+
+| Tool | Use | Mutation boundary |
+| --- | --- | --- |
+| `blueprint_compile_dependency_ordered` | Builds a stable Component dependency graph, compiles children before owners, and reports cycles or missing dependencies. | Writes generated `.compiled.asset` files and optional runtime registries. `dryRun=true` writes nothing. |
+| `blueprint_runtime_component_snapshot` | Reads declared runtime variables and owner/component metadata from a loaded Runner or nested Component. | Read-only; requires Play Mode and returns exposed variables by default. |
+| `blueprint_event_trace` | Temporarily traces one Runner's event delivery, nodes, selected ports, variable writes, and cross-Blueprint events. | `observe` is read-only. `trigger` invokes the requested event and returns `stateMutation=true`. |
+| `unity_asset_reference_scan` | Finds Unity dependencies plus Blueprint, Behavior Tree, DataTable, and optional text references before a deletion or migration. | Read-only; never moves or deletes assets. |
+
+Recommended maintenance flow:
+
+1. Before recompiling a root graph, call `blueprint_compile_dependency_ordered` with `dryRun=true`; resolve cycles and required missing dependencies, then rerun without `dryRun`.
+2. Before deletion, call `unity_asset_reference_scan`. Only treat `safeToDelete=true` as a conservative clean result; a truncated or parse-incomplete scan always returns false.
+3. In Play Mode, inspect a nested Component with `blueprint_runtime_component_snapshot` before using `blueprint_event_trace`. Supply `componentPath` whenever repeated Component names are possible.
+
+All new tools return stable error codes rather than relying on Console text. Common codes include `BP_PLAY_MODE_REQUIRED`, `BP_RUNTIME_COMPONENT_AMBIGUOUS`, `BP_COMPILE_DEPENDENCY_CYCLE`, `BP_TRACE_RECORD_LIMIT`, `ASSET_SCAN_RESULT_LIMIT`, and `ASSET_SCAN_INCOMPLETE`. Trace execution errors use `BP_TRACE_EXECUTION_FAILED`; a trace sink is removed when the call ends, Play Mode exits, or a domain reload starts.
+
 ## Existing Node Families Not Yet Implemented
 
 Before adding nodes in these areas, check whether a current node plus variables/events can solve the case. If not, add a new node deliberately and update this guide.

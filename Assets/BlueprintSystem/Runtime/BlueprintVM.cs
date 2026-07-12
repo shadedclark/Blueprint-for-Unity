@@ -27,14 +27,43 @@ namespace BlueprintSystem
                 return;
             }
 
+            bool traceEnabled = context.IsTraceEnabled;
+            string previousTraceEvent = context.CurrentTraceEventName;
+            RuntimeNode previousTraceNode = context.CurrentTraceNode;
+            if (traceEnabled)
+            {
+                context.SetTraceExecutionState(eventName, null);
+                context.RecordTrace(BlueprintTraceRecordKind.EventRequested);
+            }
+
             string entryNodeId;
             if (!context.Blueprint.EventEntries.TryGetValue(eventName, out entryNodeId))
             {
                 context.Logger.Warning("No blueprint event entry named '" + eventName + "'.");
+                if (traceEnabled)
+                {
+                    context.RecordTrace(BlueprintTraceRecordKind.EventMissing, message: "No matching event entry.");
+                    context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
+                }
                 return;
             }
 
-            ExecuteNodeQueue(context, new List<string> { entryNodeId });
+            if (traceEnabled)
+            {
+                context.RecordTrace(BlueprintTraceRecordKind.EventMatched, status: "matched", value: entryNodeId);
+            }
+
+            try
+            {
+                ExecuteNodeQueue(context, new List<string> { entryNodeId });
+            }
+            finally
+            {
+                if (traceEnabled)
+                {
+                    context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
+                }
+            }
         }
 
         public void ExecuteNodeQueue(BlueprintExecutionContext context, List<string> nodeIds)
@@ -59,6 +88,7 @@ namespace BlueprintSystem
                 if (++steps > MaxStepsPerEvent)
                 {
                     context.Logger.Error("Blueprint execution exceeded " + MaxStepsPerEvent + " steps.");
+                    context.RecordTrace(BlueprintTraceRecordKind.Error, status: "stepLimit", message: "Blueprint execution exceeded " + MaxStepsPerEvent + " steps.");
                     return;
                 }
 
@@ -67,23 +97,38 @@ namespace BlueprintSystem
                 if (node == null)
                 {
                     context.Logger.Error("Missing runtime node '" + queued.NodeId + "'.");
+                    context.RecordTrace(BlueprintTraceRecordKind.Error, status: "missingNode", message: "Missing runtime node '" + queued.NodeId + "'.");
                     continue;
                 }
 
                 if (node.Executor == null)
                 {
                     context.Logger.Error("Node '" + node.Id + "' has no runtime executor.");
+                    context.RecordTrace(BlueprintTraceRecordKind.Error, status: "missingExecutor", message: "Node '" + node.Id + "' has no runtime executor.");
                     continue;
                 }
 
                 context.ClearValueCache();
                 context.Logger.Log("Execute " + node.Id + " (" + node.TypeId + ")");
                 string previousInputPortId = context.CurrentExecInputPortId;
+                bool traceEnabled = context.IsTraceEnabled;
+                string previousTraceEvent = context.CurrentTraceEventName;
+                RuntimeNode previousTraceNode = context.CurrentTraceNode;
+                if (traceEnabled)
+                {
+                    context.SetTraceExecutionState(previousTraceEvent, node);
+                    context.RecordTrace(BlueprintTraceRecordKind.NodeEnter, queued.InputPortId, "entered");
+                }
                 context.SetCurrentExecInputPort(queued.InputPortId);
                 BlueprintExecResult result;
                 try
                 {
                     result = node.Executor.Execute(context, node);
+                }
+                catch (System.Exception exception)
+                {
+                    result = BlueprintExecResult.Error(
+                        "Node '" + node.Id + "' threw " + exception.GetType().Name + ": " + exception.Message);
                 }
                 finally
                 {
@@ -92,16 +137,34 @@ namespace BlueprintSystem
                 if (!string.IsNullOrEmpty(result.ErrorMessage))
                 {
                     context.Logger.Error(result.ErrorMessage);
+                    context.RecordTrace(BlueprintTraceRecordKind.Error, status: "error", message: result.ErrorMessage);
+                    context.RecordTrace(BlueprintTraceRecordKind.NodeExit, status: "error", message: result.ErrorMessage);
+                    if (traceEnabled)
+                    {
+                        context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
+                    }
                     continue;
                 }
 
                 if (result.IsSuspended)
                 {
+                    context.RecordTrace(BlueprintTraceRecordKind.NodeExit, status: "suspended");
                     ScheduleResume(context, node, result);
+                    if (traceEnabled)
+                    {
+                        context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
+                    }
                     continue;
                 }
 
+                context.RecordTrace(
+                    BlueprintTraceRecordKind.NodeExit,
+                    status: HasNextExecutionPort(result) ? "continued" : "stopped");
                 EnqueueNext(context, node, result, queue);
+                if (traceEnabled)
+                {
+                    context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
+                }
             }
         }
 
@@ -112,6 +175,7 @@ namespace BlueprintSystem
                 return;
             }
 
+            context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, outputPortId, "selected");
             Queue<QueuedExec> queue = new Queue<QueuedExec>();
             EnqueueOutput(context, node, outputPortId, queue);
             ExecuteNodeQueue(context, queue);
@@ -123,6 +187,7 @@ namespace BlueprintSystem
             {
                 for (int i = 0; i < result.NextExecPortIds.Count; i++)
                 {
+                    context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, result.NextExecPortIds[i], "selected");
                     EnqueueOutput(context, node, result.NextExecPortIds[i], queue);
                 }
 
@@ -131,6 +196,7 @@ namespace BlueprintSystem
 
             if (!string.IsNullOrEmpty(result.NextExecPortId))
             {
+                context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, result.NextExecPortId, "selected");
                 EnqueueOutput(context, node, result.NextExecPortId, queue);
             }
         }
@@ -165,10 +231,20 @@ namespace BlueprintSystem
                 return;
             }
 
-            coroutineHost.StartCoroutine(ResumeAfterDelay(context, node, result, context.ExecutionGeneration));
+            coroutineHost.StartCoroutine(ResumeAfterDelay(
+                context,
+                node,
+                result,
+                context.ExecutionGeneration,
+                context.CurrentTraceEventName));
         }
 
-        private IEnumerator ResumeAfterDelay(BlueprintExecutionContext context, RuntimeNode node, BlueprintExecResult result, int executionGeneration)
+        private IEnumerator ResumeAfterDelay(
+            BlueprintExecutionContext context,
+            RuntimeNode node,
+            BlueprintExecResult result,
+            int executionGeneration,
+            string traceEventName)
         {
             yield return new WaitForSeconds(result.DelaySeconds);
             if (!context.IsExecutionGenerationCurrent(executionGeneration))
@@ -176,9 +252,33 @@ namespace BlueprintSystem
                 yield break;
             }
 
-            Queue<QueuedExec> queue = new Queue<QueuedExec>();
-            EnqueueNext(context, node, result, queue);
-            ExecuteNodeQueue(context, queue);
+            bool traceEnabled = context.IsTraceEnabled;
+            string previousTraceEvent = context.CurrentTraceEventName;
+            RuntimeNode previousTraceNode = context.CurrentTraceNode;
+            if (traceEnabled)
+            {
+                context.SetTraceExecutionState(traceEventName, node);
+            }
+
+            try
+            {
+                Queue<QueuedExec> queue = new Queue<QueuedExec>();
+                EnqueueNext(context, node, result, queue);
+                ExecuteNodeQueue(context, queue);
+            }
+            finally
+            {
+                if (traceEnabled)
+                {
+                    context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
+                }
+            }
+        }
+
+        private static bool HasNextExecutionPort(BlueprintExecResult result)
+        {
+            return (result.NextExecPortIds != null && result.NextExecPortIds.Count > 0) ||
+                   !string.IsNullOrEmpty(result.NextExecPortId);
         }
     }
 }

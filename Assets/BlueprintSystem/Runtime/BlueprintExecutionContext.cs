@@ -10,6 +10,9 @@ namespace BlueprintSystem
         private readonly HashSet<BlueprintPortKey> _evaluationStack = new HashSet<BlueprintPortKey>();
         private readonly Dictionary<string, object> _state = new Dictionary<string, object>();
         private readonly Action<RuntimeNode, string> _executeFromOutput;
+        private IBlueprintExecutionTraceSink _traceSink;
+        private string _currentTraceEventName;
+        private RuntimeNode _currentTraceNode;
         private int _executionGeneration = 1;
 
         public RuntimeBlueprint Blueprint { get; private set; }
@@ -22,6 +25,26 @@ namespace BlueprintSystem
         public IBlueprintEventBus EventBus { get; private set; }
         public IBlueprintLogger Logger { get; private set; }
         public string CurrentExecInputPortId { get; private set; }
+        public IBlueprintExecutionTraceSink TraceSink
+        {
+            get { return _traceSink; }
+            set { _traceSink = value; }
+        }
+
+        internal bool IsTraceEnabled
+        {
+            get { return _traceSink != null && _traceSink.IsEnabled; }
+        }
+
+        internal string CurrentTraceEventName
+        {
+            get { return _currentTraceEventName; }
+        }
+
+        internal RuntimeNode CurrentTraceNode
+        {
+            get { return _currentTraceNode; }
+        }
         public int ExecutionGeneration
         {
             get { return _executionGeneration; }
@@ -121,6 +144,53 @@ namespace BlueprintSystem
             CurrentExecInputPortId = inputPortId;
         }
 
+        /// <summary>
+        /// Writes a declared runtime variable and records the mutation when diagnostics tracing is
+        /// enabled. Blueprint executors should prefer this over Variables.Set directly.
+        /// </summary>
+        public void SetVariable(string name, object value)
+        {
+            Variables.Set(name, value);
+            RecordTrace(BlueprintTraceRecordKind.VariableWrite, "", "written", value, name);
+        }
+
+        internal void SetTraceExecutionState(string eventName, RuntimeNode node)
+        {
+            _currentTraceEventName = eventName;
+            _currentTraceNode = node;
+        }
+
+        internal void RecordTrace(
+            BlueprintTraceRecordKind kind,
+            string portId = "",
+            string status = "",
+            object value = null,
+            string message = "")
+        {
+            if (!IsTraceEnabled)
+            {
+                return;
+            }
+
+            IBlueprintInstance instance = Instance;
+            RuntimeNode node = _currentTraceNode;
+            _traceSink.Record(new BlueprintTraceRecord
+            {
+                Kind = kind,
+                Frame = UnityEngine.Time.frameCount,
+                TimeSeconds = UnityEngine.Time.realtimeSinceStartup,
+                InstancePath = BuildInstancePath(instance),
+                BlueprintPath = instance == null ? string.Empty : instance.SourcePath ?? string.Empty,
+                EventName = _currentTraceEventName ?? string.Empty,
+                NodeId = node == null ? string.Empty : node.Id ?? string.Empty,
+                TypeId = node == null ? string.Empty : node.TypeId ?? string.Empty,
+                PortId = portId ?? string.Empty,
+                Status = status ?? string.Empty,
+                Value = value,
+                Message = message ?? string.Empty
+            });
+        }
+
         public void SetLoopValue(RuntimeNode node, string outputPortId, object value)
         {
             if (node == null || string.IsNullOrEmpty(outputPortId))
@@ -204,6 +274,25 @@ namespace BlueprintSystem
         private static string CreateLoopValueKey(RuntimeNode node, string outputPortId)
         {
             return "loopValue:" + node.Id + ":" + outputPortId;
+        }
+
+        private static string BuildInstancePath(IBlueprintInstance instance)
+        {
+            if (instance == null)
+            {
+                return string.Empty;
+            }
+
+            var names = new List<string>();
+            IBlueprintInstance current = instance;
+            while (current != null)
+            {
+                names.Add(current.InstanceName ?? string.Empty);
+                current = current.OwnerInstance;
+            }
+
+            names.Reverse();
+            return string.Join("/", names);
         }
     }
 }

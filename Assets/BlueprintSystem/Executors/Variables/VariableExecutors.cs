@@ -61,7 +61,7 @@ namespace BlueprintSystem
                     "Variable.Set node '" + node.Id + "' expects " + declaration.Type + " for variable '" + name + "'.");
             }
 
-            context.Variables.Set(name, value);
+            context.SetVariable(name, value);
             BlueprintReactiveBindingRuntime.RefreshForContext(context);
             return BlueprintExecResult.Continue("execOut");
         }
