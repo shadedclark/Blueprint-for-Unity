@@ -61,6 +61,7 @@ connected value edge -> compiled node property -> null
 | `Blueprint.GetOwner` | Get Blueprint Owner | Blueprint | `Blueprint.GetOwner` | `BlueprintGetOwnerExecutor` | Returns the owner `BlueprintRef` for the current component or supplied `BlueprintRef`. |
 | `Blueprint.GetComponent` | Get Blueprint Component | Blueprint | `Blueprint.GetComponent` | `BlueprintGetComponentExecutor` | Finds a named component from the current instance or supplied `BlueprintRef`, walking owner instances outward. |
 | `Blueprint.TriggerEvent` | Trigger Blueprint Event | Blueprint | `Blueprint.TriggerEvent` | `BlueprintTriggerEventExecutor` | Calls `TriggerEvent` on a Blueprint instance resolved by asset path or `BlueprintRef`. |
+| `Blueprint.TriggerEventFromGameObject` | Trigger Event From GameObject | Blueprint | `Blueprint.TriggerEventFromGameObject` | `BlueprintTriggerEventFromGameObjectExecutor` | Calls a named event on the compiled `BlueprintRunner` attached to a bound or connected `GameObject`. |
 | `Blueprint.GetVariable` | Get Blueprint Variable | Blueprint | `Blueprint.GetVariable` | `BlueprintGetVariableExecutor` | Reads an exposed variable from a Blueprint instance resolved by asset path or `BlueprintRef`. |
 | `Blueprint.SetVariable` | Set Blueprint Variable | Blueprint | `Blueprint.SetVariable` | `BlueprintSetVariableExecutor` | Writes an exposed variable on a Blueprint instance resolved by asset path or `BlueprintRef`. |
 | `Blueprint.GetVariableFromGameObject` | Get Variable From GameObject | Blueprint | `Blueprint.GetVariableFromGameObject` | `BlueprintGetVariableFromGameObjectExecutor` | Reads an exposed variable from the `BlueprintRunner` on a bound or connected `GameObject`. |
@@ -176,7 +177,7 @@ Graph Toolkit stores the component list as editor metadata on the `.bpgraph`, bu
 
 Only variables declared with `"exposed": true` on the target blueprint can be read or written by `Blueprint.GetVariable` and `Blueprint.SetVariable`. Non-exposed variables, missing variables, invalid targets, duplicate target paths, and uncompiled targets fail. `Blueprint.TriggerEvent` forwards the event name to the resolved target instance; if the target blueprint has no matching custom event, the existing VM warning is used.
 
-`Blueprint.GetVariableFromGameObject` and `Blueprint.SetVariableFromGameObject` are direct scene-object bridges for the same exposed-variable rules when the target is a real `GameObject` with a `BlueprintRunner` or `UIBlueprintBinder` on that same object. The `target` input is `Binding<GameObject>` with `propertyOrConnection`, so JSON stores a binding name while runtime outputs such as pooled or instantiated `GameObject` values can also be connected. The resolver does not search parent or child transforms and does not resolve in-memory component blueprints; it calls `GetComponent<BlueprintRunner>()` on the resolved object and then reuses the standard exposed-variable read/write path, including reactive binding refresh after successful writes.
+`Blueprint.GetVariableFromGameObject`, `Blueprint.SetVariableFromGameObject`, and `Blueprint.TriggerEventFromGameObject` are direct scene-object bridges when the target is a real `GameObject` with a `BlueprintRunner` or `UIBlueprintBinder` on that same object. Their `target` input is `Binding<GameObject>` with `propertyOrConnection`, so JSON stores a binding name while runtime outputs such as pooled or instantiated `GameObject` values can also be connected. The resolver does not search parent or child transforms and does not resolve in-memory component blueprints; it calls `GetComponent<BlueprintRunner>()` on the resolved object. Variable nodes reuse the standard exposed-variable read/write path, including reactive binding refresh after successful writes; the event node requires a compiled runner and invokes `TriggerEvent` with the same cross-blueprint trace records as `Blueprint.TriggerEvent`.
 
 Ports:
 
@@ -184,6 +185,7 @@ Ports:
 | --- | --- | --- | --- |
 | `Blueprint.GetVariableFromGameObject` | `target: Binding<GameObject>`, `name: string` | `value`, `success: bool` | Missing target, missing runner, missing/non-exposed variable, or uncompiled target returns `success=false` and `value=null`. |
 | `Blueprint.SetVariableFromGameObject` | `execIn`, `target: Binding<GameObject>`, `name: string`, `value` | `execOut` | Missing target, missing runner, missing/non-exposed variable, uncompiled target, or rejected value returns an execution error. |
+| `Blueprint.TriggerEventFromGameObject` | `execIn`, `target: Binding<GameObject>`, `eventName: string` | `execOut` | Missing target, missing runner, uncompiled target, or empty event name returns an execution error. A missing named event follows the target VM's warning behavior and continues. |
 
 Avoid duplicates:
 
@@ -191,7 +193,7 @@ Avoid duplicates:
 Use Blueprint component declarations, `BlueprintRef` nodes, and `Blueprint` asset variables for owner-owned behavior modules before adding one-off direct-object access nodes.
 Use bindings only for Unity object/component access nodes, not for cross-blueprint target resolution.
 Use GameObject variable access only when the runtime object itself is the intended scene Blueprint owner.
-Use `Blueprint.TriggerEvent` before adding specialized cross-blueprint event nodes.
+Use `Blueprint.TriggerEvent` for owner-owned component targets; use `Blueprint.TriggerEventFromGameObject` only when the target scene object itself owns the runner.
 Use exposed variables for small public state only; prefer custom events when another blueprint should own the mutation.
 ```
 

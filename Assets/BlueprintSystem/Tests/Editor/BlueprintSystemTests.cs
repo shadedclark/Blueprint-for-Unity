@@ -4751,14 +4751,15 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
-        public void BlueprintAccessGameObjectVariableNodesUseBindingGameObjectTargetsInManifestAndGraphToolkit()
+        public void BlueprintAccessGameObjectNodesUseBindingGameObjectTargetsInManifestAndGraphToolkit()
         {
             BlueprintNodeManifestCollection manifests = LoadManifests();
             BlueprintExecutorRegistry registry = BlueprintExecutorRegistry.CreateDefault();
             string[] targetNodeIds =
             {
                 "Blueprint.GetVariableFromGameObject",
-                "Blueprint.SetVariableFromGameObject"
+                "Blueprint.SetVariableFromGameObject",
+                "Blueprint.TriggerEventFromGameObject"
             };
 
             for (int i = 0; i < targetNodeIds.Length; i++)
@@ -4789,6 +4790,30 @@ namespace BlueprintSystem.Tests
                 Assert.NotNull(visualTargetProperty, targetNodeIds[i]);
                 Assert.AreEqual("Binding<GameObject>", visualTargetProperty.Type, targetNodeIds[i]);
             }
+
+            BlueprintNodeManifest triggerManifest;
+            Assert.True(manifests.TryGet("Blueprint.TriggerEventFromGameObject", out triggerManifest));
+            Assert.AreEqual("Trigger Event From GameObject", triggerManifest.Title);
+            Assert.NotNull(triggerManifest.FindInput("execIn"));
+            BlueprintPortSpec eventNameInput = triggerManifest.FindInput("eventName");
+            BlueprintPropertySpec eventNameProperty = triggerManifest.FindProperty("eventName");
+            Assert.NotNull(eventNameInput);
+            Assert.AreEqual("string", eventNameInput.Type);
+            Assert.True(eventNameInput.Required);
+            Assert.AreEqual(BlueprintValueSource.PropertyOrConnection, eventNameInput.Source);
+            Assert.NotNull(eventNameProperty);
+            Assert.AreEqual("string", eventNameProperty.Type);
+            Assert.NotNull(triggerManifest.FindOutput("execOut"));
+
+            BlueprintVisualNode triggerVisualNode = BlueprintVisualNodeFactory.Create("Blueprint.TriggerEventFromGameObject");
+            Assert.AreEqual(typeof(BlueprintTriggerEventFromGameObjectVisualNode), triggerVisualNode.GetType());
+            BlueprintVisualPortData visualEventNameInput = triggerVisualNode.Inputs.Find(port => port.Id == "eventName");
+            Assert.NotNull(visualEventNameInput);
+            Assert.AreEqual("string", visualEventNameInput.Type);
+            Assert.AreEqual("propertyOrConnection", visualEventNameInput.Source);
+            Assert.NotNull(triggerVisualNode.Inputs.Find(port => port.Id == "execIn"));
+            Assert.NotNull(triggerVisualNode.Outputs.Find(port => port.Id == "execOut"));
+            Assert.NotNull(triggerVisualNode.Properties.Find(property => property.Id == "eventName" && property.Type == "string"));
         }
 
         [Test]
@@ -5059,7 +5084,7 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
-        public void RuntimeBlueprintGameObjectTargetsReadAndWriteSceneRunnerVariables()
+        public void RuntimeBlueprintGameObjectTargetsReadWriteAndTriggerSceneRunner()
         {
             string targetPath = "Assets/BlueprintSystem/Tests/Editor/GameObjectTarget.blueprint.json";
             BlueprintCompiledAsset targetAsset = CreateCrossBlueprintTargetCompiledAsset(targetPath);
@@ -5087,6 +5112,24 @@ namespace BlueprintSystem.Tests
                 bindingGetNode.Properties["name"] = "publicCount";
                 Assert.AreEqual(3, getExecutor.Evaluate(context, bindingGetNode, "value"));
 
+                BlueprintTriggerEventFromGameObjectExecutor triggerExecutor = new BlueprintTriggerEventFromGameObjectExecutor();
+                RuntimeNode directTriggerNode = CreateRuntimeNode("trigger_ping_direct", "Blueprint.TriggerEventFromGameObject");
+                directTriggerNode.Properties["target"] = targetObject;
+                directTriggerNode.Properties["eventName"] = "Ping";
+                Assert.AreEqual("execOut", triggerExecutor.Execute(context, directTriggerNode).NextExecPortId);
+
+                object fired;
+                Assert.True(targetRunner.TryGetVariable("fired", out fired));
+                Assert.AreEqual(true, fired);
+                Assert.True(targetRunner.TrySetVariable("fired", false));
+
+                RuntimeNode bindingTriggerNode = CreateRuntimeNode("trigger_ping_binding", "Blueprint.TriggerEventFromGameObject");
+                bindingTriggerNode.Properties["target"] = "TargetObject";
+                bindingTriggerNode.Properties["eventName"] = "Ping";
+                Assert.AreEqual("execOut", triggerExecutor.Execute(context, bindingTriggerNode).NextExecPortId);
+                Assert.True(targetRunner.TryGetVariable("fired", out fired));
+                Assert.AreEqual(true, fired);
+
                 RuntimeNode setNode = CreateRuntimeNode("set_public_count", "Blueprint.SetVariableFromGameObject");
                 setNode.Properties["target"] = "TargetObject";
                 setNode.Properties["name"] = "publicCount";
@@ -5106,12 +5149,13 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
-        public void RuntimeBlueprintGameObjectTargetsRejectInvalidTargetsAndVariables()
+        public void RuntimeBlueprintGameObjectTargetsRejectInvalidTargetsVariablesAndEvents()
         {
             string targetPath = "Assets/BlueprintSystem/Tests/Editor/GameObjectTargetFailures.blueprint.json";
             BlueprintCompiledAsset targetAsset = CreateCrossBlueprintTargetCompiledAsset(targetPath);
             GameObject targetObject = new GameObject("BlueprintGameObjectTargetFailures");
             GameObject plainObject = new GameObject("PlainGameObjectTarget");
+            GameObject uncompiledObject = new GameObject("UncompiledBlueprintGameObjectTarget");
 
             try
             {
@@ -5121,6 +5165,7 @@ namespace BlueprintSystem.Tests
 
                 BlueprintExecutionContext context = CreateTestContext(new RuntimeBlueprint(), new TestBindingResolver(), new RecordingBlueprintLogger(), null);
                 BlueprintGetVariableFromGameObjectExecutor getExecutor = new BlueprintGetVariableFromGameObjectExecutor();
+                BlueprintTriggerEventFromGameObjectExecutor triggerExecutor = new BlueprintTriggerEventFromGameObjectExecutor();
 
                 RuntimeNode noRunnerNode = CreateRuntimeNode("get_no_runner", "Blueprint.GetVariableFromGameObject");
                 noRunnerNode.Properties["target"] = plainObject;
@@ -5143,11 +5188,38 @@ namespace BlueprintSystem.Tests
                 object hiddenValue;
                 Assert.True(targetRunner.TryGetVariable("hiddenCount", out hiddenValue));
                 Assert.AreEqual(2, hiddenValue);
+
+                RuntimeNode unresolvedTriggerNode = CreateRuntimeNode("trigger_unresolved", "Blueprint.TriggerEventFromGameObject");
+                unresolvedTriggerNode.Properties["target"] = "MissingTarget";
+                unresolvedTriggerNode.Properties["eventName"] = "Ping";
+                Assert.False(string.IsNullOrEmpty(triggerExecutor.Execute(context, unresolvedTriggerNode).ErrorMessage));
+
+                RuntimeNode noRunnerTriggerNode = CreateRuntimeNode("trigger_no_runner", "Blueprint.TriggerEventFromGameObject");
+                noRunnerTriggerNode.Properties["target"] = plainObject;
+                noRunnerTriggerNode.Properties["eventName"] = "Ping";
+                Assert.False(string.IsNullOrEmpty(triggerExecutor.Execute(context, noRunnerTriggerNode).ErrorMessage));
+
+                uncompiledObject.AddComponent<BlueprintRunner>();
+                RuntimeNode uncompiledTriggerNode = CreateRuntimeNode("trigger_uncompiled", "Blueprint.TriggerEventFromGameObject");
+                uncompiledTriggerNode.Properties["target"] = uncompiledObject;
+                uncompiledTriggerNode.Properties["eventName"] = "Ping";
+                Assert.False(string.IsNullOrEmpty(triggerExecutor.Execute(context, uncompiledTriggerNode).ErrorMessage));
+
+                RuntimeNode emptyEventNameNode = CreateRuntimeNode("trigger_empty_event", "Blueprint.TriggerEventFromGameObject");
+                emptyEventNameNode.Properties["target"] = targetObject;
+                emptyEventNameNode.Properties["eventName"] = string.Empty;
+                Assert.False(string.IsNullOrEmpty(triggerExecutor.Execute(context, emptyEventNameNode).ErrorMessage));
+
+                RuntimeNode missingEventNode = CreateRuntimeNode("trigger_missing_event", "Blueprint.TriggerEventFromGameObject");
+                missingEventNode.Properties["target"] = targetObject;
+                missingEventNode.Properties["eventName"] = "MissingEvent";
+                Assert.AreEqual("execOut", triggerExecutor.Execute(context, missingEventNode).NextExecPortId);
             }
             finally
             {
                 Object.DestroyImmediate(targetObject);
                 Object.DestroyImmediate(plainObject);
+                Object.DestroyImmediate(uncompiledObject);
                 Object.DestroyImmediate(targetAsset);
             }
         }

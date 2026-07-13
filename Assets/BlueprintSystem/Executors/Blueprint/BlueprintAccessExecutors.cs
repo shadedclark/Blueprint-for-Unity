@@ -481,6 +481,50 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class BlueprintTriggerEventFromGameObjectExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Blueprint.TriggerEventFromGameObject"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveGameObjectInstanceTarget(
+                context,
+                context.GetInputValue(node, "target"),
+                true);
+            if (instance == null)
+            {
+                return BlueprintExecResult.Error("Blueprint.TriggerEventFromGameObject node '" + node.Id + "' has no valid target.");
+            }
+
+            if (instance.RuntimeBlueprint == null)
+            {
+                return BlueprintExecResult.Error("Blueprint.TriggerEventFromGameObject node '" + node.Id + "' target '" + instance.InstanceName + "' is not compiled.");
+            }
+
+            string eventName = context.GetInputValue(node, "eventName", string.Empty);
+            if (string.IsNullOrEmpty(eventName))
+            {
+                return BlueprintExecResult.Error("Blueprint.TriggerEventFromGameObject node '" + node.Id + "' has no eventName.");
+            }
+
+            context.RecordTrace(
+                BlueprintTraceRecordKind.CrossBlueprintEnter,
+                status: "trigger",
+                value: instance.SourcePath ?? string.Empty,
+                message: eventName);
+            instance.TriggerEvent(eventName);
+            context.RecordTrace(
+                BlueprintTraceRecordKind.CrossBlueprintExit,
+                status: "returned",
+                value: instance.SourcePath ?? string.Empty,
+                message: eventName);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
     public sealed class BlueprintGetVariableExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Blueprint.TriggerEventFromGameObject",
+  "title": "Trigger Event From GameObject",
+  "category": "Blueprint",
+  "description": "Triggers a named event on the BlueprintRunner attached to a target GameObject.",
+  "executor": "Blueprint.TriggerEventFromGameObject",
+  "inputs": [
+    {
+      "id": "execIn",
+      "kind": "exec"
+    },
+    {
+      "id": "target",
+      "kind": "value",
+      "type": "Binding<GameObject>",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "eventName",
+      "kind": "value",
+      "type": "string",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "execOut",
+      "kind": "exec"
+    }
+  ],
+  "properties": [
+    {
+      "id": "target",
+      "type": "Binding<GameObject>",
+      "required": false
+    },
+    {
+      "id": "eventName",
+      "type": "string",
+      "required": false
+    }
+  ],
+  "tags": [
+    "blueprint",
+    "gameobject",
+    "event"
+  ]
+}

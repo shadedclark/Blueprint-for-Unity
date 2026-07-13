@@ -220,6 +220,7 @@ namespace BlueprintSystem
             registry.Register(new BlueprintGetOwnerExecutor());
             registry.Register(new BlueprintGetComponentExecutor());
             registry.Register(new BlueprintTriggerEventExecutor());
+            registry.Register(new BlueprintTriggerEventFromGameObjectExecutor());
             registry.Register(new BlueprintGetVariableExecutor());
             registry.Register(new BlueprintSetVariableExecutor());
             registry.Register(new BlueprintGetVariableFromGameObjectExecutor());

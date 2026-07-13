@@ -76,6 +76,23 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Blueprint.TriggerEventFromGameObject")]
+    public sealed class BlueprintTriggerEventFromGameObjectVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Blueprint.TriggerEventFromGameObject", "Trigger Event From GameObject", "Blueprint", "Triggers a named event on the BlueprintRunner attached to a target GameObject.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<GameObject>", true, "propertyOrConnection");
+            AddValueInput("eventName", "string", true, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<GameObject>", false);
+            AddProperty("eventName", "string", false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("Blueprint.GetVariable")]
     public sealed class BlueprintGetVariableVisualNode : BlueprintVisualNode
     {
