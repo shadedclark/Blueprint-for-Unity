@@ -3,7 +3,7 @@
   "typeId": "Game.OverlapSphere",
   "title": "Overlap Sphere",
   "category": "Game/Physics",
-  "description": "Finds 3D colliders inside a sphere.",
+  "description": "Finds 3D colliders inside a sphere and returns their unique GameObjects.",
   "executor": "Game.OverlapSphere",
   "inputs": [
     {
@@ -53,6 +53,11 @@
       "id": "names",
       "kind": "value",
       "type": "Array<string>"
+    },
+    {
+      "id": "gameObjects",
+      "kind": "value",
+      "type": "Array<GameObject>"
     }
   ],
   "properties": [

@@ -141,6 +141,7 @@ namespace BlueprintSystem
         public int Count;
         public string FirstName;
         public List<object> Names;
+        public List<GameObject> GameObjects;
     }
 
     internal static class GamePhysicsQueryUtility
@@ -219,7 +220,7 @@ namespace BlueprintSystem
                 radius,
                 GetLayerMask(context, node),
                 GetQueryTriggerInteraction(context, node));
-            return FromColliders(colliders);
+            return FromColliders(colliders, true);
         }
 
         public static PhysicsOverlapResult OverlapBox(BlueprintExecutionContext context, RuntimeNode node)
@@ -233,7 +234,7 @@ namespace BlueprintSystem
                 Quaternion.Euler(orientationEuler),
                 GetLayerMask(context, node),
                 GetQueryTriggerInteraction(context, node));
-            return FromColliders(colliders);
+            return FromColliders(colliders, false);
         }
 
         public static PhysicsRaycast2DResult Raycast2D(BlueprintExecutionContext context, RuntimeNode node)
@@ -324,6 +325,8 @@ namespace BlueprintSystem
                     return result.FirstName ?? string.Empty;
                 case "names":
                     return result.Names ?? new List<object>();
+                case "gameObjects":
+                    return result.GameObjects ?? new List<GameObject>();
                 default:
                     return null;
             }
@@ -365,21 +368,30 @@ namespace BlueprintSystem
             };
         }
 
-        private static PhysicsOverlapResult FromColliders(Collider[] colliders)
+        private static PhysicsOverlapResult FromColliders(Collider[] colliders, bool includeGameObjects)
         {
             List<object> names = new List<object>();
+            List<GameObject> gameObjects = includeGameObjects ? new List<GameObject>() : null;
+            HashSet<GameObject> seenGameObjects = includeGameObjects ? new HashSet<GameObject>() : null;
             if (colliders != null)
             {
                 for (int i = 0; i < colliders.Length; i++)
                 {
                     if (colliders[i] != null)
                     {
-                        names.Add(colliders[i].gameObject.name);
+                        GameObject gameObject = colliders[i].gameObject;
+                        names.Add(gameObject.name);
+                        if (includeGameObjects && seenGameObjects.Add(gameObject))
+                        {
+                            gameObjects.Add(gameObject);
+                        }
                     }
                 }
             }
 
-            return FromNames(names);
+            PhysicsOverlapResult result = FromNames(names);
+            result.GameObjects = gameObjects;
+            return result;
         }
 
         private static PhysicsOverlapResult FromColliders2D(Collider2D[] colliders)

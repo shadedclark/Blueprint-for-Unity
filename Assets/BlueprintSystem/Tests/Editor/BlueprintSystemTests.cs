@@ -3401,6 +3401,61 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void OverlapSphereGameObjectsOutputIsAlignedAndDeduplicated()
+        {
+            BlueprintNodeManifest manifest;
+            Assert.True(LoadManifests().TryGet("Game.OverlapSphere", out manifest));
+            Assert.AreEqual("Array<string>", manifest.FindOutput("names").Type);
+            Assert.AreEqual("Array<GameObject>", manifest.FindOutput("gameObjects").Type);
+
+            BlueprintVisualNode visual = BlueprintVisualNodeFactory.Create("Game.OverlapSphere");
+            Assert.AreNotEqual(typeof(BlueprintVisualNode), visual.GetType());
+            Assert.AreEqual("Array<string>", visual.Outputs.Find(port => port.Id == "names").Type);
+            Assert.AreEqual("Array<GameObject>", visual.Outputs.Find(port => port.Id == "gameObjects").Type);
+
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "OverlapSphereGameObjectsTest";
+            BlueprintNodeSource overlap = AddNode(source, "overlap", "Game.OverlapSphere");
+            overlap.Properties["center"] = new List<object> { 12345f, 23456f, 34567f };
+            overlap.Properties["radius"] = 5f;
+            overlap.Properties["layerMask"] = -1;
+            overlap.Properties["includeTriggers"] = true;
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject target = new GameObject("OverlapTarget");
+            try
+            {
+                target.transform.position = new Vector3(12345f, 23456f, 34567f);
+                target.AddComponent<BoxCollider>();
+                target.AddComponent<SphereCollider>();
+                Physics.SyncTransforms();
+
+                BlueprintExecutionContext context = CreateTestExecutionContext(
+                    compileResult.Blueprint,
+                    target,
+                    new NullBlueprintBindingResolver());
+                RuntimeNode runtimeNode = compileResult.Blueprint.GetNode("overlap");
+                List<GameObject> gameObjects = runtimeNode.Executor.Evaluate(context, runtimeNode, "gameObjects") as List<GameObject>;
+                List<object> names = runtimeNode.Executor.Evaluate(context, runtimeNode, "names") as List<object>;
+
+                Assert.NotNull(gameObjects);
+                Assert.AreEqual(1, gameObjects.Count);
+                Assert.AreSame(target, gameObjects[0]);
+                Assert.NotNull(names);
+                Assert.AreEqual(2, names.Count);
+                Assert.AreEqual(2, runtimeNode.Executor.Evaluate(context, runtimeNode, "count"));
+                Assert.AreEqual(true, runtimeNode.Executor.Evaluate(context, runtimeNode, "hasAny"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(target);
+            }
+        }
+
+        [Test]
         public void RuntimeSetsTransformProperties()
         {
             BlueprintSource source = new BlueprintSource();

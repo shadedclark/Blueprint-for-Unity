@@ -696,12 +696,13 @@ namespace BlueprintSystem.Editor
     {
         protected override void ConfigureDefaultNode()
         {
-            SetIdentity("Game.OverlapSphere", "Overlap Sphere", "Game/Physics", "Finds 3D colliders inside a sphere.");
+            SetIdentity("Game.OverlapSphere", "Overlap Sphere", "Game/Physics", "Finds 3D colliders inside a sphere and returns their unique GameObjects.");
             AddValueInput("center", "Vector3", true, "propertyOrConnection");
             AddValueInput("radius", "float", true, "propertyOrConnection");
             AddLayerMaskProperty();
             AddTriggerProperty();
             AddOverlapOutputs();
+            AddValueOutput("gameObjects", "Array<GameObject>");
             AddProperty("center", "Vector3", false, new List<object> { 0f, 0f, 0f });
             AddProperty("radius", "float", false, 0.5f);
         }

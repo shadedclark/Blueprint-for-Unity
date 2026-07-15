@@ -278,7 +278,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | GameObject pooling | `GameObject.PrewarmPool`, `GameObject.AcquireFromPool`, `GameObject.ReleaseToPool`, `GameObject.ClearPool`, `GameObject.GetPoolStats`, `GameObject.GetPoolActiveInstances` | Unreal-style runner-scoped object pooling and read-only pool queries for `GameObject` prefabs using string `poolId` keys. |
 | Transform access/actions | `Game.GetTransformPosition`, `Game.GetTransformEulerAngles`, `Game.GetTransformLocalPosition`, `Game.GetTransformLocalEulerAngles`, `Game.GetTransformLocalScale`, `Game.GetTransformForward`, `Game.GetTransformRight`, `Game.GetTransformUp`, `Game.SetTransformLocalPosition`, `Game.SetTransformLocalEulerAngles`, `Game.TranslateTransform`, `Game.RotateTransform`, `Game.LookAtTransform`, `Game.SetTransformParent`, `Game.DetachTransform` | Common Unity Transform getters, local setters, movement/rotation actions, look-at, parent, and detach helpers. All target references are `Binding<Transform>` strings resolved at runtime. |
 | Lighting actions | `Game.SetLightEnabled`, `Game.SetLightIntensity`, `Game.SetLightColor`, `Game.SetLightColorTemperature`, `Game.SetLightRange`, `Game.SetLightSpotAngle` | Common Unity `Light` component setters. All targets are `Binding<Light>` strings resolved at runtime. |
-| Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return plain blueprint values such as hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. They do not serialize Unity object references. |
+| Physics queries | `Game.Raycast`, `Game.SphereCast`, `Game.BoxCast`, `Game.OverlapSphere`, `Game.OverlapBox`, `Game.Raycast2D`, `Game.OverlapCircle2D`, `Game.OverlapBox2D` | 3D/2D query nodes that return hit booleans, points, normals, distances, counts, first object name, and `Array<string>` object names. `Game.OverlapSphere` also returns deduplicated runtime `GameObject` values; no Unity object references are serialized. |
 
 Avoid duplicates:
 
@@ -503,7 +503,7 @@ Do not store direct Transform, GameObject, or Component references in `.blueprin
 | `Game.Raycast` | `origin`, `direction`, `maxDistance`, `layerMask`, `includeTriggers` | `hit`, `point`, `normal`, `distance`, `colliderName`, `gameObjectName` |
 | `Game.SphereCast` | `origin`, `radius`, `direction`, `maxDistance`, `layerMask`, `includeTriggers` | Same raycast outputs. |
 | `Game.BoxCast` | `center`, `halfExtents`, `direction`, `orientationEuler`, `maxDistance`, `layerMask`, `includeTriggers` | Same raycast outputs. |
-| `Game.OverlapSphere` | `center`, `radius`, `layerMask`, `includeTriggers` | `hasAny`, `count`, `firstName`, `names: Array<string>` |
+| `Game.OverlapSphere` | `center`, `radius`, `layerMask`, `includeTriggers` | `hasAny`, `count`, `firstName`, `names: Array<string>`, `gameObjects: Array<GameObject>` |
 | `Game.OverlapBox` | `center`, `halfExtents`, `orientationEuler`, `layerMask`, `includeTriggers` | Same overlap outputs. |
 
 2D query nodes:
@@ -520,7 +520,9 @@ Notes:
 Layer mask defaults to `-1` (all layers).
 3D query `includeTriggers` defaults to true and maps to Unity `QueryTriggerInteraction.Collide`.
 Ray/cast distance values <= 0 are treated as infinite.
-Query nodes return primitive values and object names, not serialized Unity object references.
+`Game.OverlapSphere.gameObjects` returns the real runtime GameObjects for the matching Colliders and automatically removes duplicate GameObjects while preserving first-seen order. It is a runtime-only array and does not serialize Unity object references.
+For compatibility, `Game.OverlapSphere.names`, `count`, and `hasAny` keep their existing Collider-based semantics. A GameObject with multiple matching Colliders therefore appears once in `gameObjects`, while `count` and `names` can contain multiple Collider entries.
+Other query nodes return primitive values and object names, not serialized Unity object references.
 ```
 
 ## Event Nodes
