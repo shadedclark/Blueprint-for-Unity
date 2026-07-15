@@ -446,6 +446,7 @@ Waits for the current agent path to finish. Returns `Running` while the path is 
 
 | Parameter | Source | Type | Default | Notes |
 | --- | --- | --- | --- | --- |
+| `speed` | input/property | float | unchanged | Non-negative values set `agent.speed` on every tick, so a Blackboard binding can update movement speed dynamically. Missing or negative values preserve the current agent speed; the visual inline default is `-1`. |
 | `acceptableRadius` | input/property | float | `0.25` | Combined with `agent.stoppingDistance`; the larger value is used. |
 | `velocityThreshold` | input/property | float | `0.05` | Arrival also requires velocity magnitude at or below this value. |
 

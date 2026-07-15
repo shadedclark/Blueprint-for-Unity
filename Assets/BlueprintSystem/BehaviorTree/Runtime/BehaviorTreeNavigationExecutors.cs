@@ -161,6 +161,17 @@ namespace BlueprintSystem
                 return BehaviorTreeStatus.Failure;
             }
 
+            object speedValue;
+            if (BehaviorTreePropertyUtility.TryResolveValue(context, node, "speed", "speed", out speedValue) &&
+                speedValue != null)
+            {
+                float speed = BlueprintTypeUtility.ConvertValue(speedValue, -1f);
+                if (speed >= 0f && !float.IsInfinity(speed))
+                {
+                    agent.speed = speed;
+                }
+            }
+
             float acceptableRadius = Mathf.Max(0f,
                 BehaviorTreePropertyUtility.ResolveFloat(context, node, "acceptableRadius", "acceptableRadius", 0.25f));
             float velocityThreshold = Mathf.Max(0f,

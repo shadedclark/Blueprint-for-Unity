@@ -556,6 +556,12 @@ namespace BlueprintSystem.Editor
 
                     break;
                 case "BT.WaitForNavigation":
+                    if (inputId == "speed")
+                    {
+                        value = -1f;
+                        return true;
+                    }
+
                     if (inputId == "acceptableRadius")
                     {
                         value = 0.25f;
@@ -1802,6 +1808,7 @@ namespace BlueprintSystem.Editor
 
         protected override void ApplyDefaultMetadata()
         {
+            AddBlackboardInput("speed", "float", "Speed", true);
             AddBlackboardInput("acceptableRadius", "float", "Acceptable Radius", true);
             AddBlackboardInput("velocityThreshold", "float", "Velocity Threshold", true);
         }
