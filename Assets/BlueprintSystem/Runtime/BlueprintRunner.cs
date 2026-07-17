@@ -652,6 +652,61 @@ namespace BlueprintSystem
             ambiguous = false;
             targetPath = BlueprintCompiledTargetUtility.NormalizeAssetPath(targetPath);
 
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                return false;
+            }
+
+            BlueprintRunner current = this;
+            HashSet<BlueprintRunner> visited = null;
+            while (current != null)
+            {
+                if (current.TryResolveBlueprintTargetInCurrentTree(
+                    compiledTarget,
+                    targetPath,
+                    out instance,
+                    out ambiguous))
+                {
+                    return true;
+                }
+
+                // Ambiguity in the nearest tree is an error, not an inherited miss.
+                if (ambiguous)
+                {
+                    return false;
+                }
+
+                BlueprintRunner owner = current.OwnerInstance as BlueprintRunner;
+                if (owner == null)
+                {
+                    return false;
+                }
+
+                if (visited == null)
+                {
+                    visited = new HashSet<BlueprintRunner> { current };
+                }
+
+                if (!visited.Add(owner))
+                {
+                    return false;
+                }
+
+                current = owner;
+            }
+
+            return false;
+        }
+
+        private bool TryResolveBlueprintTargetInCurrentTree(
+            CompiledBlueprintTarget compiledTarget,
+            string targetPath,
+            out IBlueprintInstance instance,
+            out bool ambiguous)
+        {
+            instance = null;
+            ambiguous = false;
+
             if (compiledTarget != null &&
                 compiledTarget.RuntimeVersion == _componentRuntimeVersion &&
                 compiledTarget.RuntimeRecordIndex >= 0 &&
@@ -659,11 +714,6 @@ namespace BlueprintSystem
                 TryGetVerifiedRecord(compiledTarget.RuntimeRecordIndex, compiledTarget, out instance))
             {
                 return true;
-            }
-
-            if (string.IsNullOrEmpty(targetPath))
-            {
-                return false;
             }
 
             int cachedRecordIndex;

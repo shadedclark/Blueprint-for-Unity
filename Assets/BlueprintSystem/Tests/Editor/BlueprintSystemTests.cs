@@ -5439,6 +5439,53 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void UIBlueprintBinderTargetMissFallsBackToOwnerRunnerAfterNegativeCacheHit()
+        {
+            string rootPath = "Assets/BlueprintSystem/Tests/Editor/BinderOwner.blueprint.json";
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/BinderOwnerTarget.blueprint.json";
+            string binderPath = "Assets/BlueprintSystem/Tests/Editor/ChildBinder.blueprint.json";
+            BlueprintCompiledAsset componentAsset = CreateCrossBlueprintTargetCompiledAsset(componentPath);
+            BlueprintCompiledAsset rootAsset = CreateOwnerCompiledAsset(rootPath, componentAsset, componentPath, "TargetComponent");
+            BlueprintCompiledAsset binderAsset = CreateOwnerCompiledAsset(binderPath, componentAsset, componentPath);
+            GameObject rootObject = new GameObject("BinderOwner");
+            GameObject binderObject = new GameObject("ChildBinder");
+
+            try
+            {
+                BlueprintRunner rootRunner = rootObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(rootRunner, "compiledBlueprint", rootAsset);
+                Assert.True(rootRunner.Compile());
+
+                UIBlueprintBinder binder = binderObject.AddComponent<UIBlueprintBinder>();
+                SetPrivateField(binder, "compiledBlueprint", binderAsset);
+                SetPrivateField(binder, "ownerRunner", rootRunner);
+                Assert.True(binder.Compile());
+
+                RuntimeNode node = CreateRuntimeNode("binder_target", "Blueprint.IsValid");
+                node.Properties["target"] = componentPath;
+                BlueprintExecutionContext context = CreateBlueprintInstanceContext(binder, new RecordingBlueprintLogger());
+                BlueprintIsValidExecutor executor = new BlueprintIsValidExecutor();
+
+                Assert.True((bool)executor.Evaluate(context, node, "result"));
+                Assert.AreEqual(1, binder.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(1, rootRunner.DynamicBlueprintTargetCacheCount);
+
+                context.ClearValueCache();
+                Assert.True((bool)executor.Evaluate(context, node, "result"));
+                Assert.AreEqual(1, binder.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(1, rootRunner.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(binderObject);
+                Object.DestroyImmediate(rootObject);
+                Object.DestroyImmediate(binderAsset);
+                Object.DestroyImmediate(rootAsset);
+                Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
         public void RuntimeBlueprintAssetTargetsAcceptBlueprintRefTargets()
         {
             string ownerPath = "Assets/BlueprintSystem/Tests/Editor/Owner.blueprint.json";
