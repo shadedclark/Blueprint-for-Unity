@@ -229,6 +229,7 @@ namespace BlueprintSystem
         [NonSerialized] internal float ReservedUntil;
         [NonSerialized] internal float OccupiedSince;
         [NonSerialized] internal string LastReleaseReason;
+        [NonSerialized] private SmartObjectComponent owner;
 
         public int SlotId
         {
@@ -239,13 +240,31 @@ namespace BlueprintSystem
         public string Activities
         {
             get { return activities; }
-            set { activities = value; }
+            set
+            {
+                if (string.Equals(activities, value, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                activities = value;
+                NotifyDefinitionChanged();
+            }
         }
 
         public string Tags
         {
             get { return tags; }
-            set { tags = value; }
+            set
+            {
+                if (string.Equals(tags, value, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                tags = value;
+                NotifyDefinitionChanged();
+            }
         }
 
         public string AccessGroup
@@ -364,6 +383,19 @@ namespace BlueprintSystem
             OccupiedSince = 0f;
             LastReleaseReason = string.IsNullOrEmpty(releaseReason) ? string.Empty : releaseReason;
         }
+
+        internal void SetOwner(SmartObjectComponent value)
+        {
+            owner = value;
+        }
+
+        private void NotifyDefinitionChanged()
+        {
+            if (owner != null)
+            {
+                owner.RefreshDefinition();
+            }
+        }
     }
 
     public struct SmartObjectResult
@@ -420,6 +452,17 @@ namespace BlueprintSystem
         private static readonly List<SmartObjectComponent> RegisteredObjects = new List<SmartObjectComponent>();
         private static readonly Dictionary<string, SmartObjectReservation> ReservationsByToken =
             new Dictionary<string, SmartObjectReservation>(StringComparer.Ordinal);
+        private static readonly Dictionary<SmartObjectComponent, List<CompiledSmartObjectSlot>> CompiledSlotsByComponent =
+            new Dictionary<SmartObjectComponent, List<CompiledSmartObjectSlot>>();
+        private static readonly Dictionary<SmartObjectSlot, CompiledSmartObjectSlot> CompiledSlotsBySlot =
+            new Dictionary<SmartObjectSlot, CompiledSmartObjectSlot>();
+        private static readonly Dictionary<int, List<CompiledSmartObjectSlot>> SlotsByActivityId =
+            new Dictionary<int, List<CompiledSmartObjectSlot>>();
+        private static readonly List<CompiledSmartObjectSlot> WildcardActivitySlots =
+            new List<CompiledSmartObjectSlot>();
+        private static readonly SmartObjectStringIdTable ActivityIds = new SmartObjectStringIdTable();
+        private static readonly SmartObjectStringIdTable TagIds = new SmartObjectStringIdTable();
+        private static readonly SmartObjectTagQueryCache TagQueryCache = new SmartObjectTagQueryCache(TagIds);
 
         private static int nextRegistrationOrder = 1;
         private static float lastTimeoutScanTime;
@@ -443,6 +486,7 @@ namespace BlueprintSystem
             {
                 if (string.Equals(registeredId, id, StringComparison.Ordinal))
                 {
+                    RefreshDefinition(component);
                     return;
                 }
 
@@ -466,6 +510,18 @@ namespace BlueprintSystem
             ObjectsById[id] = component;
             RegisteredIdsByComponent[component] = id;
             RegisteredObjects.Add(component);
+            CompileDefinition(component);
+        }
+
+        public static void RefreshDefinition(SmartObjectComponent component)
+        {
+            if (component == null || !RegisteredIdsByComponent.ContainsKey(component))
+            {
+                return;
+            }
+
+            RemoveCompiledDefinition(component);
+            CompileDefinition(component);
         }
 
         public static void Unregister(SmartObjectComponent component, string releaseReason)
@@ -476,6 +532,7 @@ namespace BlueprintSystem
             }
 
             ReleaseAllForObject(component, releaseReason);
+            RemoveCompiledDefinition(component);
 
             string registeredId;
             if (RegisteredIdsByComponent.TryGetValue(component, out registeredId))
@@ -600,49 +657,54 @@ namespace BlueprintSystem
                 return SmartObjectResult.Failure(SmartObjectFailReason.NoCandidate);
             }
 
+            int activityId;
+            List<CompiledSmartObjectSlot> activitySlots = null;
+            if (ActivityIds.TryGetId(activity.Trim(), out activityId))
+            {
+                SlotsByActivityId.TryGetValue(activityId, out activitySlots);
+            }
+
+            SmartObjectCompiledTagQuery required = TagQueryCache.Get(requiredTags);
+            if (required.HasUnknownId)
+            {
+                return SmartObjectResult.Failure(SmartObjectFailReason.NoCandidate);
+            }
+
+            SmartObjectCompiledTagQuery forbidden = TagQueryCache.Get(forbiddenTags);
             float searchRadius = Mathf.Max(0f, radius);
-            HashSet<string> required = SmartObjectTextUtility.ToSet(requiredTags);
-            HashSet<string> forbidden = SmartObjectTextUtility.ToSet(forbiddenTags);
             SmartObjectCandidateFailureTracker failures = new SmartObjectCandidateFailureTracker();
             SmartObjectResult best = SmartObjectResult.Failure(SmartObjectFailReason.NoCandidate);
             float bestDistance = float.MaxValue;
+            int bestRegistrationOrder = int.MaxValue;
+            int bestSlotOrder = int.MaxValue;
             bool hasBest = false;
 
-            for (int i = 0; i < RegisteredObjects.Count; i++)
+            for (int pass = 0; pass < 2; pass++)
             {
-                SmartObjectComponent smartObject = RegisteredObjects[i];
-                if (smartObject == null)
+                List<CompiledSmartObjectSlot> candidates = pass == 0 ? activitySlots : WildcardActivitySlots;
+                if (candidates == null)
                 {
                     continue;
                 }
 
-                if (IsExcludedSmartObject(smartObject, excludeGameObject))
+                for (int i = 0; i < candidates.Count; i++)
                 {
-                    continue;
-                }
-
-                if (!smartObject.SmartObjectEnabled || !smartObject.isActiveAndEnabled)
-                {
-                    failures.Record(SmartObjectFailReason.ObjectDisabled);
-                    continue;
-                }
-
-                List<SmartObjectSlot> slots = smartObject.Slots;
-                if (slots == null)
-                {
-                    continue;
-                }
-
-                for (int s = 0; s < slots.Count; s++)
-                {
-                    SmartObjectSlot slot = slots[s];
-                    if (slot == null)
+                    CompiledSmartObjectSlot candidate = candidates[i];
+                    SmartObjectComponent smartObject = candidate == null ? null : candidate.Component;
+                    SmartObjectSlot slot = candidate == null ? null : candidate.Slot;
+                    if (smartObject == null || slot == null)
                     {
                         continue;
                     }
 
-                    if (!slot.SupportsActivity(activity))
+                    if (IsExcludedSmartObject(smartObject, excludeGameObject))
                     {
+                        continue;
+                    }
+
+                    if (!smartObject.SmartObjectEnabled || !smartObject.isActiveAndEnabled)
+                    {
+                        failures.Record(SmartObjectFailReason.ObjectDisabled);
                         continue;
                     }
 
@@ -653,7 +715,7 @@ namespace BlueprintSystem
                         continue;
                     }
 
-                    if (!MatchesTags(smartObject, slot, required, forbidden))
+                    if (!candidate.MatchesTags(required.Ids, forbidden.Ids))
                     {
                         failures.Record(SmartObjectFailReason.NoCandidate);
                         continue;
@@ -674,10 +736,18 @@ namespace BlueprintSystem
                     }
 
                     float score = 100f + smartObject.ObjectBaseScore + slot.SlotBaseScore + needScore - distancePenalty;
-                    if (!hasBest || score > best.Score || Mathf.Approximately(score, best.Score) && IsCloserOrEarlier(smartObject, distance, bestDistance, best))
+                    if (!hasBest || score > best.Score ||
+                        Mathf.Approximately(score, best.Score) && IsCloserOrEarlier(
+                            candidate,
+                            distance,
+                            bestDistance,
+                            bestRegistrationOrder,
+                            bestSlotOrder))
                     {
                         hasBest = true;
                         bestDistance = distance;
+                        bestRegistrationOrder = smartObject.RegistrationOrder;
+                        bestSlotOrder = candidate.SlotOrder;
                         best = SmartObjectResult.Default();
                         best.Found = true;
                         best.ObjectId = smartObject.ObjectId;
@@ -950,6 +1020,13 @@ namespace BlueprintSystem
             RegisteredIdsByComponent.Clear();
             RegisteredObjects.Clear();
             ReservationsByToken.Clear();
+            CompiledSlotsByComponent.Clear();
+            CompiledSlotsBySlot.Clear();
+            SlotsByActivityId.Clear();
+            WildcardActivitySlots.Clear();
+            ActivityIds.Clear();
+            TagIds.Clear();
+            TagQueryCache.Clear();
             nextRegistrationOrder = 1;
             lastTimeoutScanTime = 0f;
             timeProviderForTests = null;
@@ -958,6 +1035,106 @@ namespace BlueprintSystem
         public static void SetTimeProviderForTests(Func<float> timeProvider)
         {
             timeProviderForTests = timeProvider;
+        }
+
+        private static void CompileDefinition(SmartObjectComponent component)
+        {
+            List<CompiledSmartObjectSlot> compiledSlots = new List<CompiledSmartObjectSlot>();
+            CompiledSlotsByComponent[component] = compiledSlots;
+            if (component.Slots == null)
+            {
+                return;
+            }
+
+            int[] objectTagIds = TagIds.InternList(component.Tags, false, out bool ignoredWildcard);
+            for (int slotOrder = 0; slotOrder < component.Slots.Count; slotOrder++)
+            {
+                SmartObjectSlot slot = component.Slots[slotOrder];
+                if (slot == null)
+                {
+                    continue;
+                }
+
+                int[] activityIds = ActivityIds.InternList(slot.Activities, true, out bool supportsAnyActivity);
+                int[] slotTagIds = TagIds.InternList(slot.Tags, false, out ignoredWildcard);
+                int[] combinedTagIds = SmartObjectIdSet.Merge(objectTagIds, slotTagIds);
+                CompiledSmartObjectSlot compiled = new CompiledSmartObjectSlot(
+                    component,
+                    slot,
+                    slotOrder,
+                    activityIds,
+                    combinedTagIds,
+                    supportsAnyActivity);
+
+                compiledSlots.Add(compiled);
+                CompiledSlotsBySlot[slot] = compiled;
+                slot.SetOwner(component);
+
+                if (supportsAnyActivity)
+                {
+                    WildcardActivitySlots.Add(compiled);
+                    continue;
+                }
+
+                for (int i = 0; i < activityIds.Length; i++)
+                {
+                    List<CompiledSmartObjectSlot> activitySlots;
+                    if (!SlotsByActivityId.TryGetValue(activityIds[i], out activitySlots))
+                    {
+                        activitySlots = new List<CompiledSmartObjectSlot>();
+                        SlotsByActivityId.Add(activityIds[i], activitySlots);
+                    }
+
+                    activitySlots.Add(compiled);
+                }
+            }
+        }
+
+        private static void RemoveCompiledDefinition(SmartObjectComponent component)
+        {
+            List<CompiledSmartObjectSlot> compiledSlots;
+            if (!CompiledSlotsByComponent.TryGetValue(component, out compiledSlots))
+            {
+                return;
+            }
+
+            for (int i = 0; i < compiledSlots.Count; i++)
+            {
+                CompiledSmartObjectSlot compiled = compiledSlots[i];
+                if (compiled == null)
+                {
+                    continue;
+                }
+
+                CompiledSlotsBySlot.Remove(compiled.Slot);
+                if (compiled.Slot != null)
+                {
+                    compiled.Slot.SetOwner(null);
+                }
+
+                if (compiled.SupportsAnyActivity)
+                {
+                    WildcardActivitySlots.Remove(compiled);
+                    continue;
+                }
+
+                for (int a = 0; a < compiled.ActivityIds.Length; a++)
+                {
+                    List<CompiledSmartObjectSlot> activitySlots;
+                    if (!SlotsByActivityId.TryGetValue(compiled.ActivityIds[a], out activitySlots))
+                    {
+                        continue;
+                    }
+
+                    activitySlots.Remove(compiled);
+                    if (activitySlots.Count == 0)
+                    {
+                        SlotsByActivityId.Remove(compiled.ActivityIds[a]);
+                    }
+                }
+            }
+
+            CompiledSlotsByComponent.Remove(component);
         }
 
         private static SmartObjectRegistrationState ResolveRegistrationState(
@@ -1121,7 +1298,8 @@ namespace BlueprintSystem
                 return SmartObjectResult.Failure(SmartObjectFailReason.Closed);
             }
 
-            if (!slot.SupportsActivity(activity))
+            CompiledSmartObjectSlot compiledSlot;
+            if (!CompiledSlotsBySlot.TryGetValue(slot, out compiledSlot) || !compiledSlot.SupportsActivity(activity, ActivityIds))
             {
                 return SmartObjectResult.Failure(SmartObjectFailReason.ActivityMismatch);
             }
@@ -1199,34 +1377,6 @@ namespace BlueprintSystem
                    string.Equals(requiredAccessGroup, accessGroup, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool MatchesTags(
-            SmartObjectComponent smartObject,
-            SmartObjectSlot slot,
-            HashSet<string> requiredTags,
-            HashSet<string> forbiddenTags)
-        {
-            HashSet<string> tags = SmartObjectTextUtility.ToSet(smartObject == null ? null : smartObject.Tags);
-            SmartObjectTextUtility.AddAll(tags, slot == null ? null : slot.Tags);
-
-            foreach (string required in requiredTags)
-            {
-                if (!tags.Contains(required))
-                {
-                    return false;
-                }
-            }
-
-            foreach (string forbidden in forbiddenTags)
-            {
-                if (tags.Contains(forbidden))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private static bool IsExcludedSmartObject(SmartObjectComponent smartObject, GameObject excludeGameObject)
         {
             if (smartObject == null || excludeGameObject == null)
@@ -1246,20 +1396,25 @@ namespace BlueprintSystem
                 excludeTransform.IsChildOf(smartObjectTransform);
         }
 
-        private static bool IsCloserOrEarlier(SmartObjectComponent smartObject, float distance, float bestDistance, SmartObjectResult best)
+        private static bool IsCloserOrEarlier(
+            CompiledSmartObjectSlot candidate,
+            float distance,
+            float bestDistance,
+            int bestRegistrationOrder,
+            int bestSlotOrder)
         {
             if (!Mathf.Approximately(distance, bestDistance))
             {
                 return distance < bestDistance;
             }
 
-            SmartObjectComponent bestObject;
-            if (!string.IsNullOrEmpty(best.ObjectId) && ObjectsById.TryGetValue(best.ObjectId, out bestObject) && bestObject != null)
+            int registrationOrder = candidate.Component == null ? int.MaxValue : candidate.Component.RegistrationOrder;
+            if (registrationOrder != bestRegistrationOrder)
             {
-                return smartObject.RegistrationOrder < bestObject.RegistrationOrder;
+                return registrationOrder < bestRegistrationOrder;
             }
 
-            return true;
+            return candidate.SlotOrder < bestSlotOrder;
         }
 
         private static SmartObjectResult TryGetReservation(string reservationToken, out SmartObjectReservation reservation)
@@ -1398,6 +1553,308 @@ namespace BlueprintSystem
         }
     }
 
+    internal sealed class CompiledSmartObjectSlot
+    {
+        public CompiledSmartObjectSlot(
+            SmartObjectComponent component,
+            SmartObjectSlot slot,
+            int slotOrder,
+            int[] activityIds,
+            int[] tagIds,
+            bool supportsAnyActivity)
+        {
+            Component = component;
+            Slot = slot;
+            SlotOrder = slotOrder;
+            ActivityIds = activityIds ?? new int[0];
+            TagIds = tagIds ?? new int[0];
+            SupportsAnyActivity = supportsAnyActivity;
+        }
+
+        public SmartObjectComponent Component { get; private set; }
+        public SmartObjectSlot Slot { get; private set; }
+        public int SlotOrder { get; private set; }
+        public int[] ActivityIds { get; private set; }
+        public int[] TagIds { get; private set; }
+        public bool SupportsAnyActivity { get; private set; }
+
+        public bool SupportsActivity(string activity, SmartObjectStringIdTable activityIdTable)
+        {
+            if (string.IsNullOrWhiteSpace(activity))
+            {
+                return false;
+            }
+
+            if (SupportsAnyActivity)
+            {
+                return true;
+            }
+
+            int activityId;
+            return activityIdTable.TryGetId(activity.Trim(), out activityId) &&
+                SmartObjectIdSet.Contains(ActivityIds, activityId);
+        }
+
+        public bool MatchesTags(int[] requiredTagIds, int[] excludedTagIds)
+        {
+            return SmartObjectIdSet.ContainsAll(TagIds, requiredTagIds) &&
+                !SmartObjectIdSet.ContainsAny(TagIds, excludedTagIds);
+        }
+    }
+
+    internal sealed class SmartObjectStringIdTable
+    {
+        private readonly Dictionary<string, int> ids = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private int nextId = 1;
+
+        public int Version { get; private set; }
+
+        public bool TryGetId(string value, out int id)
+        {
+            return ids.TryGetValue(value, out id);
+        }
+
+        public int[] InternList(string value, bool recognizeWildcard, out bool hasWildcard)
+        {
+            hasWildcard = false;
+            string[] values = SmartObjectTextUtility.SplitList(value);
+            HashSet<int> result = new HashSet<int>();
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (recognizeWildcard && values[i] == "*")
+                {
+                    hasWildcard = true;
+                    continue;
+                }
+
+                int id;
+                if (!ids.TryGetValue(values[i], out id))
+                {
+                    id = nextId++;
+                    ids.Add(values[i], id);
+                    Version++;
+                }
+
+                result.Add(id);
+            }
+
+            int[] compiled = new int[result.Count];
+            result.CopyTo(compiled);
+            Array.Sort(compiled);
+            return compiled;
+        }
+
+        public void Clear()
+        {
+            ids.Clear();
+            nextId = 1;
+            Version++;
+        }
+    }
+
+    internal sealed class SmartObjectTagQueryCache
+    {
+        private const int MaxCachedQueries = 256;
+
+        private readonly SmartObjectStringIdTable tagIds;
+        private readonly Dictionary<string, SmartObjectCompiledTagQuery> cache =
+            new Dictionary<string, SmartObjectCompiledTagQuery>(StringComparer.Ordinal);
+
+        public SmartObjectTagQueryCache(SmartObjectStringIdTable tagIds)
+        {
+            this.tagIds = tagIds;
+        }
+
+        public SmartObjectCompiledTagQuery Get(string value)
+        {
+            string cacheKey = value ?? string.Empty;
+            SmartObjectCompiledTagQuery query;
+            if (cache.TryGetValue(cacheKey, out query) && query.IdTableVersion == tagIds.Version)
+            {
+                return query;
+            }
+
+            string[] values = SmartObjectTextUtility.SplitList(cacheKey);
+            HashSet<int> compiledIds = new HashSet<int>();
+            bool hasUnknownId = false;
+            for (int i = 0; i < values.Length; i++)
+            {
+                int id;
+                if (tagIds.TryGetId(values[i], out id))
+                {
+                    compiledIds.Add(id);
+                }
+                else
+                {
+                    hasUnknownId = true;
+                }
+            }
+
+            int[] ids = new int[compiledIds.Count];
+            compiledIds.CopyTo(ids);
+            Array.Sort(ids);
+            query = new SmartObjectCompiledTagQuery(ids, hasUnknownId, tagIds.Version);
+            if (cache.Count >= MaxCachedQueries)
+            {
+                cache.Clear();
+            }
+
+            cache[cacheKey] = query;
+            return query;
+        }
+
+        public void Clear()
+        {
+            cache.Clear();
+        }
+    }
+
+    internal sealed class SmartObjectCompiledTagQuery
+    {
+        public SmartObjectCompiledTagQuery(int[] ids, bool hasUnknownId, int idTableVersion)
+        {
+            Ids = ids ?? new int[0];
+            HasUnknownId = hasUnknownId;
+            IdTableVersion = idTableVersion;
+        }
+
+        public int[] Ids { get; private set; }
+        public bool HasUnknownId { get; private set; }
+        public int IdTableVersion { get; private set; }
+    }
+
+    internal static class SmartObjectIdSet
+    {
+        public static int[] Merge(int[] left, int[] right)
+        {
+            if (left == null || left.Length == 0)
+            {
+                return Copy(right);
+            }
+
+            if (right == null || right.Length == 0)
+            {
+                return Copy(left);
+            }
+
+            int[] merged = new int[left.Length + right.Length];
+            int leftIndex = 0;
+            int rightIndex = 0;
+            int count = 0;
+            while (leftIndex < left.Length || rightIndex < right.Length)
+            {
+                int next;
+                if (rightIndex >= right.Length || leftIndex < left.Length && left[leftIndex] < right[rightIndex])
+                {
+                    next = left[leftIndex++];
+                }
+                else if (leftIndex >= left.Length || right[rightIndex] < left[leftIndex])
+                {
+                    next = right[rightIndex++];
+                }
+                else
+                {
+                    next = left[leftIndex];
+                    leftIndex++;
+                    rightIndex++;
+                }
+
+                if (count == 0 || merged[count - 1] != next)
+                {
+                    merged[count++] = next;
+                }
+            }
+
+            if (count == merged.Length)
+            {
+                return merged;
+            }
+
+            int[] result = new int[count];
+            Array.Copy(merged, result, count);
+            return result;
+        }
+
+        public static bool Contains(int[] values, int expected)
+        {
+            return values != null && Array.BinarySearch(values, expected) >= 0;
+        }
+
+        public static bool ContainsAll(int[] values, int[] required)
+        {
+            if (required == null || required.Length == 0)
+            {
+                return true;
+            }
+
+            if (values == null || values.Length < required.Length)
+            {
+                return false;
+            }
+
+            int valueIndex = 0;
+            int requiredIndex = 0;
+            while (valueIndex < values.Length && requiredIndex < required.Length)
+            {
+                if (values[valueIndex] < required[requiredIndex])
+                {
+                    valueIndex++;
+                }
+                else if (values[valueIndex] == required[requiredIndex])
+                {
+                    valueIndex++;
+                    requiredIndex++;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return requiredIndex == required.Length;
+        }
+
+        public static bool ContainsAny(int[] values, int[] excluded)
+        {
+            if (values == null || excluded == null || values.Length == 0 || excluded.Length == 0)
+            {
+                return false;
+            }
+
+            int valueIndex = 0;
+            int excludedIndex = 0;
+            while (valueIndex < values.Length && excludedIndex < excluded.Length)
+            {
+                if (values[valueIndex] < excluded[excludedIndex])
+                {
+                    valueIndex++;
+                }
+                else if (values[valueIndex] > excluded[excludedIndex])
+                {
+                    excludedIndex++;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static int[] Copy(int[] values)
+        {
+            if (values == null || values.Length == 0)
+            {
+                return new int[0];
+            }
+
+            int[] result = new int[values.Length];
+            Array.Copy(values, result, values.Length);
+            return result;
+        }
+    }
+
     internal static class SmartObjectTextUtility
     {
         private static readonly char[] Separators = { ',', ';', '|' };
@@ -1423,25 +1880,5 @@ namespace BlueprintSystem
             return result.ToArray();
         }
 
-        public static HashSet<string> ToSet(string value)
-        {
-            HashSet<string> result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            AddAll(result, value);
-            return result;
-        }
-
-        public static void AddAll(HashSet<string> target, string value)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            string[] values = SplitList(value);
-            for (int i = 0; i < values.Length; i++)
-            {
-                target.Add(values[i]);
-            }
-        }
     }
 }

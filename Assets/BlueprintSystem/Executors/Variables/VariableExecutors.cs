@@ -83,7 +83,7 @@ namespace BlueprintSystem
             switch (comparison)
             {
                 case ComparisonMode.NotEquals:
-                    return !object.Equals(Normalize(left), Normalize(right));
+                    return !AreEqual(left, right);
                 case ComparisonMode.Greater:
                     return ToDouble(left) > ToDouble(right);
                 case ComparisonMode.GreaterOrEqual:
@@ -93,8 +93,20 @@ namespace BlueprintSystem
                 case ComparisonMode.LessOrEqual:
                     return ToDouble(left) <= ToDouble(right);
                 default:
-                    return object.Equals(Normalize(left), Normalize(right));
+                    return AreEqual(left, right);
             }
+        }
+
+        private static bool AreEqual(object left, object right)
+        {
+            RuntimeStructRecord leftRecord = left as RuntimeStructRecord;
+            RuntimeStructRecord rightRecord = right as RuntimeStructRecord;
+            if (leftRecord != null || rightRecord != null)
+            {
+                return leftRecord != null && rightRecord != null && leftRecord.Equals(rightRecord);
+            }
+
+            return object.Equals(Normalize(left), Normalize(right));
         }
 
         private static object Normalize(object value)

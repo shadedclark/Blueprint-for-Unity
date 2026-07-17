@@ -57,7 +57,16 @@ namespace BlueprintSystem
         public string Tags
         {
             get { return tags; }
-            set { tags = value; }
+            set
+            {
+                if (string.Equals(tags, value, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                tags = value;
+                RefreshDefinition();
+            }
         }
 
         public string AccessGroup
@@ -75,6 +84,11 @@ namespace BlueprintSystem
         {
             get;
             internal set;
+        }
+
+        public void RefreshDefinition()
+        {
+            SmartObjectRegistry.RefreshDefinition(this);
         }
 
         public SmartObjectSlot FindSlot(int slotId)
@@ -112,6 +126,7 @@ namespace BlueprintSystem
 #if UNITY_EDITOR
             EnsureUniqueObjectIdInEditor();
 #endif
+            RefreshDefinition();
         }
 
         private void OnEnable()

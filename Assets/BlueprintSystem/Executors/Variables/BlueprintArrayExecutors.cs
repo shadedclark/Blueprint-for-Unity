@@ -283,16 +283,16 @@ namespace BlueprintSystem
         public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
         {
             string structTypeId;
-            BlueprintUserStructDefinition definition;
-            if (!BlueprintBreakStructNodeUtility.TryResolveDefinition(node.Properties, out structTypeId, out definition))
+            CompiledStructLayout layout;
+            if (!BlueprintBreakStructNodeUtility.TryResolveLayout(node.Properties, out structTypeId, out layout))
             {
                 context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' has unknown struct type '" +
                     BlueprintBreakStructNodeUtility.GetStructTypeId(node.Properties) + "'.");
                 return null;
             }
 
-            BlueprintUserStructField field;
-            if (!BlueprintBreakStructNodeUtility.TryGetFieldById(definition, outputPortId, out field))
+            int fieldIndex;
+            if (!layout.TryGetFieldIndexById(outputPortId, out fieldIndex))
             {
                 context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' has unknown field output '" + outputPortId + "'.");
                 return null;
@@ -312,14 +312,14 @@ namespace BlueprintSystem
                 return null;
             }
 
-            BlueprintStructValue structValue = runtimeValue as BlueprintStructValue;
+            RuntimeStructRecord structValue = runtimeValue as RuntimeStructRecord;
             object fieldValue;
-            if (structValue != null && structValue.TryGetValue(field.Id, out fieldValue))
+            if (structValue != null && structValue.TryGetValue(fieldIndex, out fieldValue))
             {
                 return fieldValue;
             }
 
-            context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' could not read field '" + field.Id + "'.");
+            context.Logger.Error("Variable.BreakStruct node '" + node.Id + "' could not read field '" + outputPortId + "'.");
             return null;
         }
     }
@@ -499,23 +499,25 @@ namespace BlueprintSystem
                 return false;
             }
 
-            BlueprintStructValue structValue = source as BlueprintStructValue;
+            RuntimeStructRecord structValue = source as RuntimeStructRecord;
             if (structValue != null)
             {
-                BlueprintStructValue updated = structValue.WithValue(key, newValue);
-                if (updated == null)
+                RuntimeStructRecord updated;
+                if (!BlueprintUserStructUtility.TrySetFieldValue(structValue, key, newValue, out updated))
                 {
                     return false;
                 }
 
-                object normalized;
-                if (!BlueprintUserStructUtility.TryConvertToRuntimeValue(updated, updated.TypeId, out normalized))
-                {
-                    return false;
-                }
-
-                value = normalized;
+                value = updated;
                 return true;
+            }
+
+            BlueprintStructValue legacyStructValue = source as BlueprintStructValue;
+            if (legacyStructValue != null)
+            {
+                BlueprintStructValue updated = legacyStructValue.WithValue(key, newValue);
+                return updated != null &&
+                       BlueprintUserStructUtility.TryConvertToRuntimeValue(updated, updated.TypeId, out value);
             }
 
             IDictionary<string, object> typedDictionary = source as IDictionary<string, object>;

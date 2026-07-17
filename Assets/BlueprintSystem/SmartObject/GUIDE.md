@@ -73,6 +73,10 @@ Runtime reservation fields such as reserved/occupied state, requester id, reserv
 
 List fields (`activities`, `tags`, `requiredTags`, and `forbiddenTags`) accept comma, semicolon, or pipe separators and trim whitespace. Matching is case-insensitive. `accessGroup` is a single string, not a list.
 
+At registration, the runtime interns activity/tag strings into compact integer ids and builds a compiled record for every slot. Each record holds sorted activity ids, the merged object-plus-slot tag ids, slot order, and direct component/slot metadata references. The registry also maintains an `activityId -> compiled slots` inverted index plus a wildcard-activity list, so `FindBest` and `FindBestActor` do not split authored strings or scan unrelated activities. Required/forbidden query tag strings are compiled once per distinct input and reused until the tag-id table changes.
+
+Inspector changes and assignments through `SmartObjectComponent.Tags`, `SmartObjectSlot.Activities`, or `SmartObjectSlot.Tags` refresh the compiled records automatically. Runtime code that mutates the returned `Slots` list itself (add, remove, or reorder) must call `SmartObjectComponent.RefreshDefinition()` after the list mutation so the activity index and slot metadata stay synchronized.
+
 ## Runtime Behavior
 
 `FindBest` and `FindBestActor` never change state.

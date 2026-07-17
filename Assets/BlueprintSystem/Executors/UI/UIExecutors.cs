@@ -165,7 +165,7 @@ namespace BlueprintSystem
                 return true;
             }
 
-            IBlueprintInstance targetInstance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(Context, targetValue, true);
+            IBlueprintInstance targetInstance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(Context, _node, targetValue, true);
             if (targetInstance == null)
             {
                 return true;
@@ -200,7 +200,7 @@ namespace BlueprintSystem
             object targetValue = Context.GetInputValue(_node, _variableTargetPortId);
             if (!IsEmptyVariableTarget(targetValue))
             {
-                return BlueprintAccessUtility.ResolveRuntimeInstanceTarget(Context, targetValue, logWarnings);
+                return BlueprintAccessUtility.ResolveRuntimeInstanceTarget(Context, _node, targetValue, logWarnings);
             }
 
             if (Context.Instance != null)

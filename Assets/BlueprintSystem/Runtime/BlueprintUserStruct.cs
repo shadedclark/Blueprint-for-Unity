@@ -89,27 +89,42 @@ namespace BlueprintSystem
     }
 
     [Serializable]
-    public sealed class BlueprintStructValue
+    public sealed class CompiledStructLayout
     {
-        [SerializeField] private string typeId;
-        [SerializeField] private List<BlueprintStructFieldValue> values = new List<BlueprintStructFieldValue>();
+        private readonly string typeId;
+        private readonly BlueprintUserStructField[] fieldDefinitions;
+        private readonly Dictionary<string, int> fieldIndicesById;
+        private readonly Dictionary<string, int> fieldIndicesByName;
 
-        public BlueprintStructValue(string typeId)
+        internal CompiledStructLayout(BlueprintUserStructDefinition definition)
         {
-            this.typeId = typeId;
-        }
-
-        public BlueprintStructValue(string typeId, IDictionary<string, object> valuesByFieldId)
-            : this(typeId)
-        {
-            if (valuesByFieldId == null)
+            if (definition == null)
             {
-                return;
+                throw new ArgumentNullException("definition");
             }
 
-            foreach (KeyValuePair<string, object> pair in valuesByFieldId)
+            typeId = definition.TypeId;
+            fieldDefinitions = new BlueprintUserStructField[definition.Fields.Count];
+            fieldIndicesById = new Dictionary<string, int>(StringComparer.Ordinal);
+            fieldIndicesByName = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (int i = 0; i < definition.Fields.Count; i++)
             {
-                SetByFieldId(pair.Key, pair.Value);
+                BlueprintUserStructField field = definition.Fields[i];
+                fieldDefinitions[i] = field;
+                if (field == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(field.Id))
+                {
+                    fieldIndicesById[field.Id] = i;
+                }
+
+                if (!string.IsNullOrEmpty(field.Name))
+                {
+                    fieldIndicesByName[field.Name] = i;
+                }
             }
         }
 
@@ -118,116 +133,276 @@ namespace BlueprintSystem
             get { return typeId; }
         }
 
+        public int FieldCount
+        {
+            get { return fieldDefinitions.Length; }
+        }
+
+        public IReadOnlyList<BlueprintUserStructField> FieldDefinitions
+        {
+            get { return fieldDefinitions; }
+        }
+
+        public bool TryGetFieldIndex(string nameOrId, out int fieldIndex)
+        {
+            fieldIndex = -1;
+            return !string.IsNullOrEmpty(nameOrId) &&
+                   (fieldIndicesById.TryGetValue(nameOrId, out fieldIndex) ||
+                    fieldIndicesByName.TryGetValue(nameOrId, out fieldIndex));
+        }
+
+        public bool TryGetFieldIndexById(string fieldId, out int fieldIndex)
+        {
+            fieldIndex = -1;
+            return !string.IsNullOrEmpty(fieldId) && fieldIndicesById.TryGetValue(fieldId, out fieldIndex);
+        }
+
+        public bool TryGetFieldDefinition(int fieldIndex, out BlueprintUserStructField field)
+        {
+            field = null;
+            if (fieldIndex < 0 || fieldIndex >= fieldDefinitions.Length)
+            {
+                return false;
+            }
+
+            field = fieldDefinitions[fieldIndex];
+            return field != null;
+        }
+
+        internal static CompiledStructLayout CreateFallback(string fallbackTypeId, IDictionary<string, object> valuesByFieldId)
+        {
+            BlueprintUserStructDefinition definition = new BlueprintUserStructDefinition();
+            definition.TypeId = fallbackTypeId;
+            List<string> fieldIds = valuesByFieldId == null
+                ? new List<string>()
+                : new List<string>(valuesByFieldId.Keys);
+            fieldIds.Sort(StringComparer.Ordinal);
+            for (int i = 0; i < fieldIds.Count; i++)
+            {
+                definition.Fields.Add(new BlueprintUserStructField
+                {
+                    Id = fieldIds[i],
+                    Name = fieldIds[i],
+                    Type = "object"
+                });
+            }
+
+            return new CompiledStructLayout(definition);
+        }
+    }
+
+    [Serializable]
+    public class BlueprintStructValue
+    {
+        private readonly CompiledStructLayout layout;
+        private readonly object[] fieldValueRecords;
+        [NonSerialized] private BlueprintStructFieldValue[] legacyValues;
+
+        public BlueprintStructValue(string typeId)
+            : this(typeId, null)
+        {
+        }
+
+        public BlueprintStructValue(string typeId, IDictionary<string, object> valuesByFieldId)
+        {
+            CompiledStructLayout resolvedLayout;
+            if (!BlueprintUserStructRegistry.TryGetLayout(typeId, out resolvedLayout))
+            {
+                resolvedLayout = CompiledStructLayout.CreateFallback(typeId, valuesByFieldId);
+            }
+
+            layout = resolvedLayout;
+            fieldValueRecords = new object[layout.FieldCount];
+            if (valuesByFieldId != null)
+            {
+                foreach (KeyValuePair<string, object> pair in valuesByFieldId)
+                {
+                    int fieldIndex;
+                    if (layout.TryGetFieldIndexById(pair.Key, out fieldIndex))
+                    {
+                        fieldValueRecords[fieldIndex] = pair.Value;
+                    }
+                }
+            }
+        }
+
+        internal BlueprintStructValue(CompiledStructLayout layout, object[] fieldValueRecords, bool takeOwnership)
+        {
+            if (layout == null)
+            {
+                throw new ArgumentNullException("layout");
+            }
+
+            if (fieldValueRecords == null || fieldValueRecords.Length != layout.FieldCount)
+            {
+                throw new ArgumentException("Field value record count must match the compiled struct layout.", "fieldValueRecords");
+            }
+
+            this.layout = layout;
+            this.fieldValueRecords = takeOwnership ? fieldValueRecords : (object[])fieldValueRecords.Clone();
+        }
+
+        public string TypeId
+        {
+            get { return layout.TypeId; }
+        }
+
+        public CompiledStructLayout Layout
+        {
+            get { return layout; }
+        }
+
+        public IReadOnlyList<object> FieldValueRecords
+        {
+            get { return fieldValueRecords; }
+        }
+
         public IReadOnlyList<BlueprintStructFieldValue> Values
         {
-            get { return values; }
+            get
+            {
+                if (legacyValues == null)
+                {
+                    legacyValues = new BlueprintStructFieldValue[layout.FieldCount];
+                    for (int i = 0; i < legacyValues.Length; i++)
+                    {
+                        BlueprintUserStructField field;
+                        layout.TryGetFieldDefinition(i, out field);
+                        legacyValues[i] = new BlueprintStructFieldValue
+                        {
+                            FieldId = field == null ? string.Empty : field.Id,
+                            Value = fieldValueRecords[i]
+                        };
+                    }
+                }
+
+                return legacyValues;
+            }
         }
 
         public bool TryGetValue(string nameOrId, out object value)
         {
             value = null;
-            BlueprintUserStructDefinition definition;
-            if (BlueprintUserStructRegistry.TryGet(typeId, out definition))
-            {
-                BlueprintUserStructField field;
-                if (!definition.TryGetField(nameOrId, out field))
-                {
-                    return false;
-                }
+            int fieldIndex;
+            return layout.TryGetFieldIndex(nameOrId, out fieldIndex) && TryGetValue(fieldIndex, out value);
+        }
 
-                return TryGetByFieldId(field.Id, out value);
+        public bool TryGetValue(int fieldIndex, out object value)
+        {
+            value = null;
+            if (fieldIndex < 0 || fieldIndex >= fieldValueRecords.Length)
+            {
+                return false;
             }
 
-            return TryGetByFieldId(nameOrId, out value);
+            value = fieldValueRecords[fieldIndex];
+            return true;
         }
 
         public BlueprintStructValue WithValue(string nameOrId, object value)
         {
-            BlueprintUserStructDefinition definition;
-            if (BlueprintUserStructRegistry.TryGet(typeId, out definition))
-            {
-                BlueprintUserStructField field;
-                if (!definition.TryGetField(nameOrId, out field))
-                {
-                    return null;
-                }
+            int fieldIndex;
+            return layout.TryGetFieldIndex(nameOrId, out fieldIndex) ? WithValue(fieldIndex, value) : null;
+        }
 
-                return WithFieldIdValue(field.Id, value);
+        public BlueprintStructValue WithValue(int fieldIndex, object value)
+        {
+            if (fieldIndex < 0 || fieldIndex >= fieldValueRecords.Length)
+            {
+                return null;
             }
 
-            return WithFieldIdValue(nameOrId, value);
+            object[] copiedValues = (object[])fieldValueRecords.Clone();
+            copiedValues[fieldIndex] = value;
+            return CreateCopy(copiedValues);
         }
 
         public Dictionary<string, object> ToFieldIdDictionary()
         {
             Dictionary<string, object> result = new Dictionary<string, object>(StringComparer.Ordinal);
-            for (int i = 0; i < values.Count; i++)
+            for (int i = 0; i < layout.FieldCount; i++)
             {
-                BlueprintStructFieldValue fieldValue = values[i];
-                if (fieldValue != null && !string.IsNullOrEmpty(fieldValue.FieldId))
+                BlueprintUserStructField field;
+                if (layout.TryGetFieldDefinition(i, out field) && !string.IsNullOrEmpty(field.Id))
                 {
-                    result[fieldValue.FieldId] = fieldValue.Value;
+                    result[field.Id] = fieldValueRecords[i];
                 }
             }
 
             return result;
         }
 
-        private BlueprintStructValue WithFieldIdValue(string fieldId, object value)
+        public override bool Equals(object obj)
         {
-            if (string.IsNullOrEmpty(fieldId))
-            {
-                return null;
-            }
-
-            BlueprintStructValue clone = new BlueprintStructValue(typeId, ToFieldIdDictionary());
-            clone.SetByFieldId(fieldId, value);
-            return clone;
-        }
-
-        private bool TryGetByFieldId(string fieldId, out object value)
-        {
-            value = null;
-            if (string.IsNullOrEmpty(fieldId))
+            BlueprintStructValue other = obj as BlueprintStructValue;
+            if (other == null || TypeId != other.TypeId || fieldValueRecords.Length != other.fieldValueRecords.Length)
             {
                 return false;
             }
 
-            for (int i = 0; i < values.Count; i++)
+            if (ReferenceEquals(layout, other.layout))
             {
-                BlueprintStructFieldValue fieldValue = values[i];
-                if (fieldValue != null && fieldValue.FieldId == fieldId)
+                for (int i = 0; i < fieldValueRecords.Length; i++)
                 {
-                    value = fieldValue.Value;
-                    return true;
+                    if (!object.Equals(fieldValueRecords[i], other.fieldValueRecords[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            for (int i = 0; i < layout.FieldCount; i++)
+            {
+                BlueprintUserStructField field;
+                int otherIndex;
+                if (!layout.TryGetFieldDefinition(i, out field) ||
+                    !other.layout.TryGetFieldIndexById(field.Id, out otherIndex) ||
+                    !object.Equals(fieldValueRecords[i], other.fieldValueRecords[otherIndex]))
+                {
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
 
-        private void SetByFieldId(string fieldId, object value)
+        public override int GetHashCode()
         {
-            if (string.IsNullOrEmpty(fieldId))
+            unchecked
             {
-                return;
-            }
-
-            for (int i = 0; i < values.Count; i++)
-            {
-                BlueprintStructFieldValue fieldValue = values[i];
-                if (fieldValue != null && fieldValue.FieldId == fieldId)
+                int hash = TypeId == null ? 0 : TypeId.GetHashCode();
+                for (int i = 0; i < fieldValueRecords.Length; i++)
                 {
-                    fieldValue.Value = value;
-                    return;
+                    BlueprintUserStructField field;
+                    layout.TryGetFieldDefinition(i, out field);
+                    int fieldHash = field == null || field.Id == null ? 0 : field.Id.GetHashCode();
+                    int valueHash = fieldValueRecords[i] == null ? 0 : fieldValueRecords[i].GetHashCode();
+                    hash ^= fieldHash * 397 ^ valueHash;
                 }
-            }
 
-            values.Add(new BlueprintStructFieldValue
-            {
-                FieldId = fieldId,
-                Value = value
-            });
+                return hash;
+            }
+        }
+
+        protected virtual BlueprintStructValue CreateCopy(object[] copiedValues)
+        {
+            return new BlueprintStructValue(layout, copiedValues, true);
+        }
+    }
+
+    [Serializable]
+    public sealed class RuntimeStructRecord : BlueprintStructValue
+    {
+        internal RuntimeStructRecord(CompiledStructLayout layout, object[] fieldValueRecords, bool takeOwnership)
+            : base(layout, fieldValueRecords, takeOwnership)
+        {
+        }
+
+        protected override BlueprintStructValue CreateCopy(object[] copiedValues)
+        {
+            return new RuntimeStructRecord(Layout, copiedValues, true);
         }
     }
 
@@ -238,12 +413,20 @@ namespace BlueprintSystem
 
         private static readonly object CacheLock = new object();
         private static Dictionary<string, BlueprintUserStructDefinition> definitionsByTypeId;
+        private static Dictionary<string, CompiledStructLayout> layoutsByTypeId;
 
         public static bool TryGet(string typeId, out BlueprintUserStructDefinition definition)
         {
             definition = null;
             EnsureLoaded();
             return !string.IsNullOrEmpty(typeId) && definitionsByTypeId.TryGetValue(typeId, out definition);
+        }
+
+        public static bool TryGetLayout(string typeId, out CompiledStructLayout layout)
+        {
+            layout = null;
+            EnsureLoaded();
+            return !string.IsNullOrEmpty(typeId) && layoutsByTypeId.TryGetValue(typeId, out layout);
         }
 
         public static bool IsUserStructType(string typeId)
@@ -265,6 +448,7 @@ namespace BlueprintSystem
             lock (CacheLock)
             {
                 definitionsByTypeId = null;
+                layoutsByTypeId = null;
             }
 
             BlueprintRuntimeRegistry.Refresh();
@@ -273,20 +457,36 @@ namespace BlueprintSystem
 
         private static void EnsureLoaded()
         {
-            if (definitionsByTypeId != null)
+            if (definitionsByTypeId != null && layoutsByTypeId != null)
             {
                 return;
             }
 
             lock (CacheLock)
             {
-                if (definitionsByTypeId != null)
+                if (definitionsByTypeId != null && layoutsByTypeId != null)
                 {
                     return;
                 }
 
-                definitionsByTypeId = LoadDefinitions();
+                Dictionary<string, BlueprintUserStructDefinition> loadedDefinitions = LoadDefinitions();
+                Dictionary<string, CompiledStructLayout> compiledLayouts = CompileLayouts(loadedDefinitions);
+                layoutsByTypeId = compiledLayouts;
+                definitionsByTypeId = loadedDefinitions;
             }
+        }
+
+        private static Dictionary<string, CompiledStructLayout> CompileLayouts(
+            IDictionary<string, BlueprintUserStructDefinition> definitions)
+        {
+            Dictionary<string, CompiledStructLayout> result =
+                new Dictionary<string, CompiledStructLayout>(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, BlueprintUserStructDefinition> pair in definitions)
+            {
+                result[pair.Key] = new CompiledStructLayout(pair.Value);
+            }
+
+            return result;
         }
 
         private static Dictionary<string, BlueprintUserStructDefinition> LoadDefinitions()
@@ -386,6 +586,17 @@ namespace BlueprintSystem
             return BlueprintUserStructRegistry.TryGet(structTypeId, out definition);
         }
 
+        public static bool TryResolveLayout(
+            IDictionary<string, object> properties,
+            out string structTypeId,
+            out CompiledStructLayout layout)
+        {
+            layout = null;
+            BlueprintUserStructDefinition ignoredDefinition;
+            return TryResolveDefinition(properties, out structTypeId, out ignoredDefinition) &&
+                   BlueprintUserStructRegistry.TryGetLayout(structTypeId, out layout);
+        }
+
         public static bool TryCreateOutputPort(BlueprintNodeSource node, string outputPortId, out BlueprintPortSpec port)
         {
             return TryCreateOutputPort(node == null ? null : node.Properties, outputPortId, out port);
@@ -450,24 +661,31 @@ namespace BlueprintSystem
         public static bool TryConvertToRuntimeValue(object value, string typeId, out object runtimeValue)
         {
             runtimeValue = null;
-            BlueprintUserStructDefinition definition;
-            if (!BlueprintUserStructRegistry.TryGet(typeId, out definition))
+            CompiledStructLayout layout;
+            if (!BlueprintUserStructRegistry.TryGetLayout(typeId, out layout))
             {
                 return false;
             }
 
-            BlueprintStructValue structValue = value as BlueprintStructValue;
-            if (structValue != null && structValue.TypeId == typeId)
+            RuntimeStructRecord runtimeRecord = value as RuntimeStructRecord;
+            if (runtimeRecord != null && runtimeRecord.TypeId == typeId)
             {
-                value = structValue.ToFieldIdDictionary();
+                runtimeValue = runtimeRecord;
+                return true;
+            }
+
+            BlueprintStructValue legacyStructValue = value as BlueprintStructValue;
+            if (legacyStructValue != null && legacyStructValue.TypeId != typeId)
+            {
+                return false;
             }
 
             IDictionary<string, object> dictionary = null;
-            if (value == null)
+            if (legacyStructValue == null && value == null)
             {
                 dictionary = new Dictionary<string, object>(StringComparer.Ordinal);
             }
-            else
+            else if (legacyStructValue == null)
             {
                 dictionary = NormalizeDictionary(value);
                 if (dictionary == null)
@@ -477,7 +695,7 @@ namespace BlueprintSystem
             }
 
             object typeValue;
-            if (dictionary.TryGetValue(TypeKey, out typeValue) && typeValue != null &&
+            if (dictionary != null && dictionary.TryGetValue(TypeKey, out typeValue) && typeValue != null &&
                 Convert.ToString(typeValue, CultureInfo.InvariantCulture) != typeId)
             {
                 return false;
@@ -485,7 +703,7 @@ namespace BlueprintSystem
 
             IDictionary<string, object> fieldsDictionary = dictionary;
             object nestedFields;
-            if (dictionary.TryGetValue(FieldsKey, out nestedFields))
+            if (dictionary != null && dictionary.TryGetValue(FieldsKey, out nestedFields))
             {
                 fieldsDictionary = NormalizeDictionary(nestedFields);
                 if (fieldsDictionary == null)
@@ -494,40 +712,47 @@ namespace BlueprintSystem
                 }
             }
 
-            Dictionary<string, BlueprintUserStructField> fieldsById = new Dictionary<string, BlueprintUserStructField>(StringComparer.Ordinal);
-            Dictionary<string, BlueprintUserStructField> fieldsByName = new Dictionary<string, BlueprintUserStructField>(StringComparer.Ordinal);
-            for (int i = 0; i < definition.Fields.Count; i++)
+            if (fieldsDictionary != null)
             {
-                BlueprintUserStructField field = definition.Fields[i];
-                fieldsById[field.Id] = field;
-                fieldsByName[field.Name] = field;
+                foreach (string key in fieldsDictionary.Keys)
+                {
+                    if (key == TypeKey || key == FieldsKey)
+                    {
+                        continue;
+                    }
+
+                    int ignoredIndex;
+                    if (!layout.TryGetFieldIndex(key, out ignoredIndex))
+                    {
+                        return false;
+                    }
+                }
             }
 
-            foreach (string key in fieldsDictionary.Keys)
+            object[] runtimeValues = new object[layout.FieldCount];
+            for (int i = 0; i < layout.FieldCount; i++)
             {
-                if (key == TypeKey || key == FieldsKey)
-                {
-                    continue;
-                }
-
-                if (!fieldsById.ContainsKey(key) && !fieldsByName.ContainsKey(key))
+                BlueprintUserStructField field;
+                if (!layout.TryGetFieldDefinition(i, out field))
                 {
                     return false;
                 }
-            }
 
-            Dictionary<string, object> runtimeValues = new Dictionary<string, object>(StringComparer.Ordinal);
-            for (int i = 0; i < definition.Fields.Count; i++)
-            {
-                BlueprintUserStructField field = definition.Fields[i];
                 if (field.Deprecated)
                 {
                     continue;
                 }
 
                 object rawValue;
-                if (!fieldsDictionary.TryGetValue(field.Id, out rawValue) &&
-                    !fieldsDictionary.TryGetValue(field.Name, out rawValue))
+                if (legacyStructValue != null)
+                {
+                    if (!legacyStructValue.TryGetValue(field.Id, out rawValue))
+                    {
+                        rawValue = field.DefaultValue;
+                    }
+                }
+                else if (!fieldsDictionary.TryGetValue(field.Id, out rawValue) &&
+                         !fieldsDictionary.TryGetValue(field.Name, out rawValue))
                 {
                     rawValue = field.DefaultValue;
                 }
@@ -538,10 +763,10 @@ namespace BlueprintSystem
                     return false;
                 }
 
-                runtimeValues[field.Id] = fieldValue;
+                runtimeValues[i] = fieldValue;
             }
 
-            runtimeValue = new BlueprintStructValue(typeId, runtimeValues);
+            runtimeValue = new RuntimeStructRecord(layout, runtimeValues, true);
             return true;
         }
 
@@ -554,29 +779,28 @@ namespace BlueprintSystem
                 return false;
             }
 
-            BlueprintStructValue structValue = runtimeValue as BlueprintStructValue;
+            RuntimeStructRecord structValue = runtimeValue as RuntimeStructRecord;
             if (structValue == null)
             {
                 return false;
             }
 
-            BlueprintUserStructDefinition definition;
-            if (!BlueprintUserStructRegistry.TryGet(typeId, out definition))
-            {
-                return false;
-            }
-
             Dictionary<string, object> dictionary = new Dictionary<string, object>(StringComparer.Ordinal);
-            for (int i = 0; i < definition.Fields.Count; i++)
+            for (int i = 0; i < structValue.Layout.FieldCount; i++)
             {
-                BlueprintUserStructField field = definition.Fields[i];
+                BlueprintUserStructField field;
+                if (!structValue.Layout.TryGetFieldDefinition(i, out field))
+                {
+                    return false;
+                }
+
                 if (field.Deprecated)
                 {
                     continue;
                 }
 
                 object fieldValue;
-                if (!structValue.TryGetValue(field.Id, out fieldValue))
+                if (!structValue.TryGetValue(i, out fieldValue))
                 {
                     fieldValue = field.DefaultValue;
                 }
@@ -592,6 +816,37 @@ namespace BlueprintSystem
 
             jsonValue = dictionary;
             return true;
+        }
+
+        public static bool TrySetFieldValue(
+            RuntimeStructRecord source,
+            string nameOrId,
+            object value,
+            out RuntimeStructRecord updated)
+        {
+            updated = null;
+            if (source == null)
+            {
+                return false;
+            }
+
+            int fieldIndex;
+            BlueprintUserStructField field;
+            if (!source.Layout.TryGetFieldIndex(nameOrId, out fieldIndex) ||
+                !source.Layout.TryGetFieldDefinition(fieldIndex, out field) ||
+                field.Deprecated)
+            {
+                return false;
+            }
+
+            object convertedValue;
+            if (!TryConvertFieldToRuntimeValue(value, field.Type, out convertedValue))
+            {
+                return false;
+            }
+
+            updated = source.WithValue(fieldIndex, convertedValue) as RuntimeStructRecord;
+            return updated != null;
         }
 
         public static bool TryCreateDefaultRuntimeValue(string typeId, out object runtimeValue)

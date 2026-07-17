@@ -5059,6 +5059,74 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void CompilerConvertsBlueprintVariableTargetConnectionToCompiledTarget()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/CrossBlueprintTarget.blueprint.json";
+            BlueprintSource source = CreateBlueprintAssetTargetConnectionSource(componentPath);
+            source.Components.Add(new BlueprintComponentDeclaration
+            {
+                Name = "TargetComponent",
+                Blueprint = componentPath,
+                Required = true
+            });
+
+            BlueprintCompileResult result = new BlueprintCompiler().Compile(
+                source,
+                LoadManifests(),
+                BlueprintExecutorRegistry.CreateDefault());
+
+            Assert.True(result.Success, result.Diagnostics.ToDisplayString());
+            RuntimeNode node = result.Blueprint.GetNode("read_target_count");
+            Assert.NotNull(node);
+            Assert.NotNull(node.CompiledTarget);
+            Assert.AreEqual(componentPath, node.CompiledTarget.SourcePath);
+            Assert.AreEqual(0, node.CompiledTarget.OwnerTraversal);
+            Assert.AreEqual(0, node.CompiledTarget.ComponentIndex);
+            CollectionAssert.AreEqual(new[] { 0 }, node.CompiledTarget.ComponentIndexPath);
+        }
+
+        [Test]
+        public void CompiledAssetStoresBlueprintTargetGuidAndComponentIndexPath()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/CompiledHandleTarget.blueprint.json";
+            string ownerPath = "Assets/BlueprintSystem/Tests/Editor/CompiledHandleOwner.blueprint.json";
+            DeleteTemporaryCompiledArtifacts(componentPath);
+            DeleteTemporaryCompiledArtifacts(ownerPath);
+
+            try
+            {
+                WriteTemporaryBlueprintAsset(componentPath, CreateCrossBlueprintTargetSource());
+                BlueprintSource ownerSource = CreateBlueprintAssetTargetConnectionSource(componentPath);
+                ownerSource.Components.Add(new BlueprintComponentDeclaration
+                {
+                    Name = "TargetComponent",
+                    Blueprint = componentPath,
+                    Required = true
+                });
+                WriteTemporaryBlueprintAsset(ownerPath, ownerSource);
+
+                TextAsset sourceAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(ownerPath);
+                BlueprintCompiledAsset compiledAsset;
+                Assert.NotNull(sourceAsset);
+                Assert.True(BlueprintCompiledAssetCompiler.CompileBlueprint(sourceAsset, false, out compiledAsset));
+                Assert.NotNull(compiledAsset);
+
+                BlueprintCompiledNode node = compiledAsset.Nodes.First(item => item.Id == "read_target_count");
+                Assert.NotNull(node.Target);
+                Assert.AreEqual(componentPath, node.Target.SourcePath);
+                Assert.AreEqual(AssetDatabase.AssetPathToGUID(componentPath), node.Target.ExpectedSourceGuid);
+                Assert.AreEqual(0, node.Target.OwnerTraversal);
+                Assert.AreEqual(0, node.Target.ComponentIndex);
+                CollectionAssert.AreEqual(new[] { 0 }, node.Target.ComponentIndexPath);
+            }
+            finally
+            {
+                DeleteTemporaryCompiledArtifacts(ownerPath);
+                DeleteTemporaryCompiledArtifacts(componentPath);
+            }
+        }
+
+        [Test]
         public void GraphToolkitRoundTripsBlueprintVariableTargetConnections()
         {
             string componentPath = "Assets/BlueprintSystem/Tests/Editor/CrossBlueprintTarget.blueprint.json";
@@ -5262,6 +5330,111 @@ namespace BlueprintSystem.Tests
                 Object.DestroyImmediate(ownerObject);
                 Object.DestroyImmediate(ownerAsset);
                 Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
+        public void RuntimeBlueprintStaticTargetsBindHandlesAndDynamicOverridesUseVersionCache()
+        {
+            string ownerPath = "Assets/BlueprintSystem/Tests/Editor/HandleOwner.blueprint.json";
+            string firstPath = "Assets/BlueprintSystem/Tests/Editor/HandleFirst.blueprint.json";
+            string secondPath = "Assets/BlueprintSystem/Tests/Editor/HandleSecond.blueprint.json";
+            BlueprintCompiledAsset firstAsset = CreateCrossBlueprintTargetCompiledAsset(firstPath);
+            BlueprintCompiledAsset secondAsset = CreateCrossBlueprintTargetCompiledAsset(secondPath);
+            BlueprintCompiledAsset ownerAsset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            GameObject ownerObject = new GameObject("BlueprintHandleOwner");
+
+            ownerAsset.SetCompiledData(
+                "0.1",
+                "BlueprintHandleOwner",
+                null,
+                ownerPath,
+                "handle-owner-source",
+                "handle-owner-manifest",
+                new BlueprintCompiledVariable[0],
+                new BlueprintCompiledBinding[0],
+                new[]
+                {
+                    new BlueprintCompiledComponent
+                    {
+                        Name = "FirstTarget",
+                        BlueprintPath = firstPath,
+                        Required = true,
+                        CompiledBlueprint = firstAsset
+                    },
+                    new BlueprintCompiledComponent
+                    {
+                        Name = "SecondTarget",
+                        BlueprintPath = secondPath,
+                        Required = true,
+                        CompiledBlueprint = secondAsset
+                    }
+                },
+                new[]
+                {
+                    new BlueprintCompiledNode
+                    {
+                        Id = "read_target_count",
+                        TypeId = "Blueprint.GetVariable",
+                        ExecutorId = "Blueprint.GetVariable",
+                        Target = new CompiledBlueprintTarget
+                        {
+                            OwnerTraversal = 0,
+                            ComponentIndex = 0,
+                            ComponentIndexPath = new List<int> { 0 },
+                            SourcePath = firstPath
+                        },
+                        Properties = new List<BlueprintCompiledProperty>
+                        {
+                            new BlueprintCompiledProperty { Id = "target", JsonValue = BlueprintJson.Serialize(firstPath, false) },
+                            new BlueprintCompiledProperty { Id = "name", JsonValue = BlueprintJson.Serialize("publicCount", false) }
+                        }
+                    }
+                },
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEventEntry[0]);
+
+            try
+            {
+                BlueprintRunner runner = ownerObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(runner, "compiledBlueprint", ownerAsset);
+                Assert.True(runner.Compile());
+                Assert.AreEqual(3, runner.ComponentRuntimeRecordCount);
+
+                RuntimeNode node = runner.RuntimeBlueprint.GetNode("read_target_count");
+                Assert.NotNull(node.CompiledTarget);
+                Assert.AreEqual(runner.ComponentRuntimeVersion, node.CompiledTarget.BoundRuntimeVersion);
+                Assert.AreEqual(1, node.CompiledTarget.BoundRuntimeRecordIndex);
+
+                BlueprintExecutionContext context = CreateBlueprintInstanceContext(runner, new RecordingBlueprintLogger());
+                BlueprintGetVariableExecutor executor = new BlueprintGetVariableExecutor();
+                Assert.AreEqual(3, executor.Evaluate(context, node, "value"));
+                Assert.AreEqual(0, runner.DynamicBlueprintTargetCacheCount);
+
+                IBlueprintInstance secondTarget;
+                Assert.True(runner.TryGetBlueprintComponent("SecondTarget", out secondTarget));
+                Assert.True(secondTarget.TrySetVariable("publicCount", 8));
+                node.Properties["target"] = secondPath;
+                context.ClearValueCache();
+
+                Assert.AreEqual(8, executor.Evaluate(context, node, "value"));
+                Assert.AreEqual(1, runner.DynamicBlueprintTargetCacheCount);
+                context.ClearValueCache();
+                Assert.AreEqual(8, executor.Evaluate(context, node, "value"));
+                Assert.AreEqual(1, runner.DynamicBlueprintTargetCacheCount);
+
+                int oldVersion = runner.ComponentRuntimeVersion;
+                Assert.True(runner.Compile());
+                Assert.Greater(runner.ComponentRuntimeVersion, oldVersion);
+                Assert.AreEqual(0, runner.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(ownerObject);
+                Object.DestroyImmediate(ownerAsset);
+                Object.DestroyImmediate(firstAsset);
+                Object.DestroyImmediate(secondAsset);
             }
         }
 
@@ -6490,9 +6663,46 @@ namespace BlueprintSystem.Tests
 
                 Assert.False(diagnostics.HasErrors, diagnostics.ToDisplayString());
                 Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
-                Assert.IsInstanceOf<BlueprintStructValue>(selectedItem);
+                Assert.IsInstanceOf<RuntimeStructRecord>(selectedItem);
                 Assert.True(BlueprintFieldUtility.TryGetValue(selectedItem, "count", out count));
                 Assert.AreEqual(1, System.Convert.ToInt32(count));
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void UserStructRuntimeConversionReusesCompiledRecordAndStableFieldIndices()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                object runtimeValue;
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    CreateUserStructDefaultValue("sword_01", 1),
+                    "Struct.TestInventoryItem",
+                    out runtimeValue));
+
+                RuntimeStructRecord record = runtimeValue as RuntimeStructRecord;
+                Assert.NotNull(record);
+
+                int itemIdIndex;
+                int countIndex;
+                Assert.True(record.Layout.TryGetFieldIndexById("fld_item_id", out itemIdIndex));
+                Assert.True(record.Layout.TryGetFieldIndexById("fld_count", out countIndex));
+                Assert.AreNotEqual(itemIdIndex, countIndex);
+                Assert.AreEqual("fld_item_id", record.Layout.FieldDefinitions[itemIdIndex].Id);
+                Assert.AreEqual("fld_count", record.Layout.FieldDefinitions[countIndex].Id);
+
+                object convertedAgain;
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    record,
+                    "Struct.TestInventoryItem",
+                    out convertedAgain));
+                Assert.AreSame(record, convertedAgain);
             }
             finally
             {
@@ -6523,11 +6733,60 @@ namespace BlueprintSystem.Tests
                 object originalCount;
                 object updatedCount;
 
-                Assert.IsInstanceOf<BlueprintStructValue>(result);
+                Assert.IsInstanceOf<RuntimeStructRecord>(result);
+                Assert.AreNotSame(selectedItem, result);
+                Assert.AreSame(
+                    ((RuntimeStructRecord)selectedItem).Layout,
+                    ((RuntimeStructRecord)result).Layout);
                 Assert.True(BlueprintFieldUtility.TryGetValue(selectedItem, "count", out originalCount));
                 Assert.True(BlueprintFieldUtility.TryGetValue(result, "count", out updatedCount));
                 Assert.AreEqual(1, System.Convert.ToInt32(originalCount));
                 Assert.AreEqual(5, System.Convert.ToInt32(updatedCount));
+            }
+            finally
+            {
+                DeleteUserStructDefinition();
+            }
+        }
+
+        [Test]
+        public void VariableCompareUsesRuntimeStructRecordFieldIndices()
+        {
+            WriteUserStructDefinition();
+
+            try
+            {
+                object left;
+                object equalRight;
+                object differentRight;
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    CreateUserStructDefaultValue("sword_01", 1),
+                    "Struct.TestInventoryItem",
+                    out left));
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    CreateUserStructDefaultValue("sword_01", 1),
+                    "Struct.TestInventoryItem",
+                    out equalRight));
+                Assert.True(BlueprintStructuredValueUtility.TryConvertToRuntimeValue(
+                    CreateUserStructDefaultValue("sword_01", 2),
+                    "Struct.TestInventoryItem",
+                    out differentRight));
+
+                BlueprintExecutionContext context = CreateTestContext(
+                    new RuntimeBlueprint(),
+                    new TestBindingResolver(),
+                    new RecordingBlueprintLogger(),
+                    null);
+                RuntimeNode compareNode = CreateRuntimeNode("compare_struct", "Variable.Compare");
+                compareNode.Properties["comparison"] = ComparisonMode.Equals;
+                compareNode.Properties["left"] = left;
+                compareNode.Properties["right"] = equalRight;
+
+                VariableCompareExecutor executor = new VariableCompareExecutor();
+                Assert.AreEqual(true, executor.Evaluate(context, compareNode, "result"));
+
+                compareNode.Properties["right"] = differentRight;
+                Assert.AreEqual(false, executor.Evaluate(context, compareNode, "result"));
             }
             finally
             {

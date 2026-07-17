@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BlueprintSystem
 {
-    public sealed class BlueprintRuntimeComponent : IBlueprintInstance, IBlueprintDebugInspectable
+    public sealed class BlueprintRuntimeComponent : IBlueprintInstance, IBlueprintDebugInspectable, IBlueprintTargetHandleResolver
     {
         private readonly string _name;
         private readonly BlueprintCompiledAsset _compiledBlueprint;
@@ -13,6 +13,7 @@ namespace BlueprintSystem
         private readonly Component _ownerComponent;
         private readonly IBlueprintBindingResolver _bindingResolver;
         private readonly IBlueprintLogger _logger;
+        private readonly IBlueprintTargetHandleResolver _targetHandleResolver;
         private readonly Dictionary<string, IBlueprintInstance> _componentsByName = new Dictionary<string, IBlueprintInstance>();
 
         private RuntimeBlueprint _blueprint;
@@ -35,6 +36,10 @@ namespace BlueprintSystem
             _ownerComponent = ownerComponent;
             _bindingResolver = bindingResolver ?? new NullBlueprintBindingResolver();
             _logger = logger ?? new UnityBlueprintLogger();
+            BlueprintRuntimeComponent ownerRuntimeComponent = ownerInstance as BlueprintRuntimeComponent;
+            _targetHandleResolver = ownerRuntimeComponent == null
+                ? ownerInstance as IBlueprintTargetHandleResolver
+                : ownerRuntimeComponent._targetHandleResolver;
         }
 
         public string InstanceName
@@ -57,6 +62,11 @@ namespace BlueprintSystem
             get { return _context; }
         }
 
+        internal bool HasTargetHandleResolver
+        {
+            get { return _targetHandleResolver != null; }
+        }
+
         public string SourcePath
         {
             get { return _compiledBlueprint == null ? null : _compiledBlueprint.SourcePath; }
@@ -77,9 +87,37 @@ namespace BlueprintSystem
             get { return _ownerComponent; }
         }
 
+        bool IBlueprintTargetHandleResolver.TryResolveBlueprintTarget(
+            IBlueprintInstance requester,
+            CompiledBlueprintTarget compiledTarget,
+            string targetPath,
+            out IBlueprintInstance instance,
+            out bool ambiguous)
+        {
+            if (_targetHandleResolver != null)
+            {
+                return _targetHandleResolver.TryResolveBlueprintTarget(
+                    requester,
+                    compiledTarget,
+                    targetPath,
+                    out instance,
+                    out ambiguous);
+            }
+
+            instance = null;
+            ambiguous = false;
+            return false;
+        }
+
         public bool Compile()
         {
-            return Compile(null, false, true);
+            bool success = Compile(null, false, true);
+            if (success)
+            {
+                NotifyTargetStructureChanged();
+            }
+
+            return success;
         }
 
         internal bool Compile(BlueprintReloadSnapshot snapshot, bool preserveVariables, bool log)
@@ -113,6 +151,7 @@ namespace BlueprintSystem
             InvalidateRuntimeState();
             ApplyRuntimeState(state);
             BlueprintReactiveBindingRuntime.RestoreForInstance(reactiveBindingSnapshot, this);
+            NotifyTargetStructureChanged();
 
             if (options.Log)
             {
@@ -130,6 +169,21 @@ namespace BlueprintSystem
             }
 
             return true;
+        }
+
+        private void NotifyTargetStructureChanged()
+        {
+            IBlueprintInstance root = this;
+            while (root != null && root.OwnerInstance != null)
+            {
+                root = root.OwnerInstance;
+            }
+
+            BlueprintRunner runner = root as BlueprintRunner;
+            if (runner != null)
+            {
+                runner.RefreshComponentRuntimeRecords();
+            }
         }
 
         internal BlueprintReloadSnapshot CaptureReloadSnapshot()

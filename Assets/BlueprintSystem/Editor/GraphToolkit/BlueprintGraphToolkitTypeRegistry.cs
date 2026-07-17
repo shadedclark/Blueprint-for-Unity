@@ -22,6 +22,7 @@ namespace BlueprintSystem.Editor
             {
                 List<Type> types = new List<Type>(BlueprintVariableTypeRegistry.GetSupportedClrTypes());
                 types.Remove(typeof(BlueprintStructValue));
+                types.Remove(typeof(RuntimeStructRecord));
                 if (BlueprintUserStructRegistry.GetTypeIds().Length > 0)
                 {
                     types.Add(typeof(Struct));

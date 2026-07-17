@@ -154,6 +154,121 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void SmartObjectCompiledDataReindexesActivitiesAndMatchesCombinedIntegerTags()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                SmartObjectComponent smartObject = CreateSmartObject(
+                    "compiled_desk",
+                    "Work; Inspect",
+                    Vector3.zero,
+                    0f,
+                    0f,
+                    "Office | Indoor",
+                    string.Empty);
+                smartObject.Slots[0].Tags = "Maintenance, Left";
+                objects.Add(smartObject.gameObject);
+
+                SmartObjectResult combinedTags = SmartObjectRegistry.FindBest(
+                    "npc-compiled",
+                    "inspect",
+                    Vector3.zero,
+                    10f,
+                    "indoor; LEFT",
+                    "vip",
+                    string.Empty,
+                    0f,
+                    0f);
+                Assert.True(combinedTags.Found, combinedTags.FailReason);
+                Assert.AreEqual(smartObject.ObjectId, combinedTags.ObjectId);
+
+                SmartObjectResult excluded = SmartObjectRegistry.FindBest(
+                    "npc-compiled",
+                    "Inspect",
+                    Vector3.zero,
+                    10f,
+                    "Office",
+                    "maintenance",
+                    string.Empty,
+                    0f,
+                    0f);
+                Assert.False(excluded.Found);
+                Assert.AreEqual("NoCandidate", excluded.FailReason);
+
+                smartObject.Slots[0].Activities = "Repair";
+
+                SmartObjectResult staleActivity = SmartObjectRegistry.FindBest(
+                    "npc-compiled",
+                    "Inspect",
+                    Vector3.zero,
+                    10f,
+                    string.Empty,
+                    string.Empty,
+                    string.Empty,
+                    0f,
+                    0f);
+                Assert.False(staleActivity.Found);
+
+                SmartObjectResult reindexedActivity = SmartObjectRegistry.FindBest(
+                    "npc-compiled",
+                    "repair",
+                    Vector3.zero,
+                    10f,
+                    "Office",
+                    string.Empty,
+                    string.Empty,
+                    0f,
+                    0f);
+                Assert.True(reindexedActivity.Found, reindexedActivity.FailReason);
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
+        public void SmartObjectWildcardActivityUsesCompiledFallbackIndex()
+        {
+            SmartObjectRegistry.ResetForTests();
+            List<GameObject> objects = new List<GameObject>();
+            try
+            {
+                SmartObjectComponent smartObject = CreateSmartObject(
+                    "wildcard_station",
+                    "*",
+                    Vector3.zero,
+                    0f,
+                    0f,
+                    "Station",
+                    string.Empty);
+                objects.Add(smartObject.gameObject);
+
+                SmartObjectResult result = SmartObjectRegistry.FindBest(
+                    "npc-wildcard",
+                    "UnknownActivity",
+                    Vector3.zero,
+                    10f,
+                    "station",
+                    "unknown-forbidden-tag",
+                    string.Empty,
+                    0f,
+                    0f);
+
+                Assert.True(result.Found, result.FailReason);
+                Assert.AreEqual(smartObject.ObjectId, result.ObjectId);
+            }
+            finally
+            {
+                DestroyObjects(objects);
+                SmartObjectRegistry.ResetForTests();
+            }
+        }
+
+        [Test]
         public void SmartObjectFindBestActorExcludesBoundActorAndReturnsTargetGameObject()
         {
             SmartObjectRegistry.ResetForTests();
@@ -351,6 +466,7 @@ namespace BlueprintSystem.Tests
 
                 SmartObjectComponent cleanupObject = CreateSmartObject("cleanup_object", "Work", Vector3.zero, 0f, 0f, "Office", string.Empty);
                 cleanupObject.Slots.Add(CreateSmartObjectSlot(1, "Work", new Vector3(1f, 0f, 0f)));
+                cleanupObject.RefreshDefinition();
                 objects.Add(cleanupObject.gameObject);
 
                 string cleanupObjectId = cleanupObject.ObjectId;
@@ -469,6 +585,7 @@ namespace BlueprintSystem.Tests
                 AssertGeneratedObjectId(duplicate.ObjectId);
                 Assert.AreNotEqual(first.ObjectId, duplicate.ObjectId);
                 duplicateObject.SetActive(true);
+                SmartObjectRegistry.Register(duplicate);
 
                 GameObject runtimeDuplicateObject = new GameObject("runtime_duplicate_debug");
                 objects.Add(runtimeDuplicateObject);
@@ -483,6 +600,7 @@ namespace BlueprintSystem.Tests
                 objects.Add(inactiveObject);
                 SmartObjectComponent inactive = inactiveObject.AddComponent<SmartObjectComponent>();
                 inactiveObject.SetActive(false);
+                SmartObjectRegistry.Unregister(inactive, SmartObjectReleaseReason.Disabled);
 
                 Assert.AreEqual(SmartObjectRegistrationState.Registered, SmartObjectRegistry.CreateDebugSnapshot(first).RegistrationState);
                 Assert.AreEqual(SmartObjectRegistrationState.Registered, SmartObjectRegistry.CreateDebugSnapshot(duplicate).RegistrationState);
@@ -555,6 +673,7 @@ namespace BlueprintSystem.Tests
             smartObject.Tags = tags;
             smartObject.AccessGroup = accessGroup;
             smartObject.Slots.Add(CreateSmartObjectSlot(0, activities, localTargetPosition, slotBaseScore));
+            smartObject.RefreshDefinition();
             return smartObject;
         }
 

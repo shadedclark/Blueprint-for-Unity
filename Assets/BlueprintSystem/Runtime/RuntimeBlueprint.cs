@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace BlueprintSystem
@@ -32,6 +33,7 @@ namespace BlueprintSystem
         public string TypeId;
         public BlueprintNodeManifest Manifest;
         public IBlueprintNodeExecutor Executor;
+        public CompiledBlueprintTarget CompiledTarget;
         public readonly Dictionary<string, object> Properties = new Dictionary<string, object>();
 
         public object GetProperty(string propertyId)
@@ -39,5 +41,60 @@ namespace BlueprintSystem
             object value;
             return Properties.TryGetValue(propertyId, out value) ? value : null;
         }
+    }
+
+    [Serializable]
+    public sealed class CompiledBlueprintTarget
+    {
+        public int OwnerTraversal = -1;
+        public int ComponentIndex = -1;
+        public List<int> ComponentIndexPath = new List<int>();
+        public string ExpectedSourceGuid;
+        public string SourcePath;
+
+        [NonSerialized] internal int RuntimeVersion = -1;
+        [NonSerialized] internal int RuntimeRecordIndex = -1;
+
+        public int BoundRuntimeVersion
+        {
+            get { return RuntimeVersion; }
+        }
+
+        public int BoundRuntimeRecordIndex
+        {
+            get { return RuntimeRecordIndex; }
+        }
+
+        internal void SetRuntimeHandle(int runtimeVersion, int runtimeRecordIndex)
+        {
+            RuntimeVersion = runtimeVersion;
+            RuntimeRecordIndex = runtimeRecordIndex;
+        }
+
+        internal void ClearRuntimeHandle()
+        {
+            RuntimeVersion = -1;
+            RuntimeRecordIndex = -1;
+        }
+    }
+
+    internal sealed class ComponentRuntimeRecord
+    {
+        public int RecordIndex;
+        public int OwnerRecordIndex;
+        public int ComponentIndex;
+        public string SourceGuid;
+        public string SourcePath;
+        public IBlueprintInstance Instance;
+    }
+
+    internal interface IBlueprintTargetHandleResolver
+    {
+        bool TryResolveBlueprintTarget(
+            IBlueprintInstance requester,
+            CompiledBlueprintTarget compiledTarget,
+            string targetPath,
+            out IBlueprintInstance instance,
+            out bool ambiguous);
     }
 }

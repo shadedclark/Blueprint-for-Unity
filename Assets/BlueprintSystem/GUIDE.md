@@ -155,7 +155,9 @@ connected value edge -> compiled node property -> null
 
 These nodes mirror the common Unreal Blueprint access pattern: the parent declares components as separate blueprint assets, the runner creates runtime component instances, and graphs pass runtime references when they need to talk across that instance tree.
 
-`Blueprint` target values store `.blueprint.json` asset paths as strings. At runtime, `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable` resolve that path only inside the current `BlueprintRunner` instance tree. The resolver starts from `context.Instance`, walks up to the root owner runner, then recursively checks the root compiled asset source path and each declared component's blueprint path. It does not search tags, bindings, prefabs, or other scene runners.
+`Blueprint` target values store `.blueprint.json` asset paths as strings. `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable` resolve that path only inside the current `BlueprintRunner` instance tree. The compiler recognizes a direct target property or a `Variable.Get.value` connection from a declared `Blueprint` variable and stores a `CompiledBlueprintTarget`: owner traversal, stable component index path, expected source GUID, and source path. At runner construction and hot reload, the runner flattens its compiled component tree into ordered `ComponentRuntimeRecord` entries and binds each static target to a versioned direct record handle. Normal execution therefore validates the handle and accesses the instance directly without walking the component tree or allocating a match list.
+
+If the target is runtime-dynamic, a `Blueprint` variable override differs from its compiled default, or an older compiled asset has no target metadata, the runner resolves the path through the same current-tree semantics and caches the unique result for the current component-runtime version. Rebuild or hot reload increments the version and clears both static handles and dynamic target cache entries. Dynamic lookup still does not search tags, bindings, prefabs, or other scene runners.
 
 `BlueprintRef` is a runtime-only handle around `IBlueprintInstance`. `Blueprint.GetOwner` returns the owner of the current component, supplied `BlueprintRef`, or a scene `BlueprintRunner` assigned in the runner's `ownerRunner` field. `Blueprint.GetComponent` takes a component name and searches from the current instance or supplied `BlueprintRef`, then walks owner instances outward so sibling components can be found through their shared owner. This lets interactable UI GameObjects run their own `UIBlueprintBinder` while sending intent to a shared panel runner. `BlueprintRef` values can connect into `Blueprint.IsValid`, `Blueprint.TriggerEvent`, `Blueprint.GetVariable`, and `Blueprint.SetVariable`; they are not valid `.blueprint.json` variable defaults or blackboard variable types.
 
@@ -2289,6 +2291,7 @@ Value node.
 Reads `left`, `right`, and `comparison`.
 Returns bool through output `result`.
 `Equals` and `NotEquals` normalize all CLR numeric values (`byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, and `decimal`) to double before comparing; nonnumeric values keep normal object equality.
+When both operands are Blueprint user structs, comparison walks their shared compiled layout by stable field index instead of rebuilding dictionaries or comparing record references.
 Ordered numeric comparisons convert operands to double; failed conversion becomes 0.
 ```
 
@@ -2377,6 +2380,7 @@ Function:
 Reads `target`, a dot-separated `path`, and a new `value`.
 Returns a changed copy through output `result`; connect that output to `Variable.Set.value` when the changed struct should be stored.
 Supports Blueprint user structs, dictionaries, list indexes, Vector2/Vector3 x/y/z fields, and serializable fields/properties.
+For `RuntimeStructRecord` targets, each path segment resolves through the record's `CompiledStructLayout`; a successful struct write clones only that record's indexed value array and reuses the layout.
 Logs an error and returns the original target when the path cannot be written or the value does not fit a user struct field type.
 ```
 
@@ -2412,6 +2416,7 @@ Function:
 ```text
 Reads `target` as the configured Blueprint user struct type and returns a field value from the requested output port.
 Output port IDs are stable hidden field IDs, while port labels use the current field names from the struct definition.
+At runtime, the output field ID resolves once through the shared `CompiledStructLayout` and the value is read by stable field index.
 Logs an error and returns null when the target is missing, has the wrong struct type, or the field output no longer exists.
 ```
 
@@ -2471,7 +2476,11 @@ Generated JSON shape:
 
 In the ScriptableObject inspector, `schemaVersion` and field `id` are hidden internal fields. `id` is auto-generated as the stable field identity and should not be hand-authored. `typeId` is read-only and derived from the asset file name as `Struct.{FileName}`; renaming the asset updates the type id. There is no separate display name; editor UI and generated definitions use `typeId` whenever a struct label is needed. In the field list, `name` is the user-facing field path used by `Variable.GetField` and `Variable.SetField`; `type` is selected from the field type enum. `defaultValueJson` stores the default as JSON, such as `1`, `"Sword"`, `[0, 0]`, or `{ "nested": true }`.
 
-Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryItem>` as their type. Defaults are stored in blueprint JSON as normal field objects, then coerced into runtime `BlueprintStructValue` instances by the variable store. Runtime values keep field IDs internally; `Variable.GetField` and `Variable.SetField` accept field names or field IDs in paths, while `Variable.BreakStruct` keeps connections stable by using field IDs as output port IDs.
+Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryItem>` as their type. Defaults are stored in blueprint JSON as normal field objects, then coerced once by the variable store into `RuntimeStructRecord` instances. `BlueprintStructValue` remains the compatibility base type for existing integrations.
+
+The runtime registry compiles one shared `CompiledStructLayout` per struct type. A layout contains the `typeId`, the ordered field definitions, and field ID/name lookup tables that map to stable field indices. Each `RuntimeStructRecord` references that layout and stores only an indexed field-value array. Passing an existing `RuntimeStructRecord` through conversion for the same type returns the same instance. Reads do not allocate; `Variable.BreakStruct`, struct equality in `Variable.Compare`, and struct path access use indices. `Variable.SetField` validates only the written field, copies the value array, and reuses the layout; nested writes copy only the records along the changed path. JSON/dictionary normalization remains at ingestion and serialization boundaries.
+
+Runtime field paths still accept field names or field IDs, while `Variable.BreakStruct` keeps connections stable by using field IDs as output port IDs.
 
 The editor refreshes the user-struct registry when `BlueprintUserStructAsset` or generated `.bpstruct.json` definitions are imported, moved, or deleted. `.blueprint.json` remains the behavior source of truth; registry refreshes do not rewrite blueprint behavior.
 

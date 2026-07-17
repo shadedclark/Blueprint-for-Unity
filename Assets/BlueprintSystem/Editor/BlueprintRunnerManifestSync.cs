@@ -398,7 +398,7 @@ namespace BlueprintSystem.Editor
                 BuildVariables(data.Source),
                 BuildBindings(data.Source),
                 data.Components,
-                BuildNodes(data.Source, data.Manifests),
+                BuildNodes(data.Source, data.Manifests, data.SourcePath, data.SourceGuid, data.Components),
                 BuildExecEdges(data.Runtime),
                 BuildValueEdges(data.Runtime),
                 BuildEventEntries(data.Runtime));
@@ -536,7 +536,12 @@ namespace BlueprintSystem.Editor
             return true;
         }
 
-        private static List<BlueprintCompiledNode> BuildNodes(BlueprintSource source, BlueprintNodeManifestCollection manifests)
+        private static List<BlueprintCompiledNode> BuildNodes(
+            BlueprintSource source,
+            BlueprintNodeManifestCollection manifests,
+            string sourcePath,
+            string sourceGuid,
+            List<BlueprintCompiledComponent> components)
         {
             List<BlueprintCompiledNode> result = new List<BlueprintCompiledNode>();
             for (int i = 0; i < source.Nodes.Count; i++)
@@ -569,6 +574,7 @@ namespace BlueprintSystem.Editor
                 compiledNode.Id = sourceNode.Id;
                 compiledNode.TypeId = sourceNode.TypeId;
                 compiledNode.ExecutorId = manifest == null ? null : manifest.Executor;
+                compiledNode.Target = BuildCompiledTarget(source, sourceNode, sourcePath, sourceGuid, components);
 
                 List<string> propertyIds = new List<string>(propertyValues.Keys);
                 propertyIds.Sort(StringComparer.Ordinal);
@@ -588,6 +594,77 @@ namespace BlueprintSystem.Editor
             }
 
             return result;
+        }
+
+        private static CompiledBlueprintTarget BuildCompiledTarget(
+            BlueprintSource source,
+            BlueprintNodeSource sourceNode,
+            string sourcePath,
+            string sourceGuid,
+            List<BlueprintCompiledComponent> components)
+        {
+            CompiledBlueprintTarget target = BlueprintCompiledTargetUtility.Create(source, sourceNode);
+            if (target == null)
+            {
+                return null;
+            }
+
+            target.SourcePath = NormalizeAssetPath(target.SourcePath);
+            target.ExpectedSourceGuid = string.IsNullOrEmpty(target.SourcePath)
+                ? null
+                : AssetDatabase.AssetPathToGUID(target.SourcePath);
+
+            if ((!string.IsNullOrEmpty(sourceGuid) &&
+                 string.Equals(sourceGuid, target.ExpectedSourceGuid, StringComparison.OrdinalIgnoreCase)) ||
+                BlueprintCompiledTargetUtility.PathEquals(sourcePath, target.SourcePath))
+            {
+                target.OwnerTraversal = 0;
+                target.ComponentIndex = -1;
+                target.ComponentIndexPath.Clear();
+                return target;
+            }
+
+            List<List<int>> matches = new List<List<int>>();
+            CollectCompiledTargetPaths(components, target, new List<int>(), matches);
+            if (matches.Count == 1)
+            {
+                target.OwnerTraversal = 0;
+                target.ComponentIndexPath = matches[0];
+                target.ComponentIndex = matches[0].Count == 0 ? -1 : matches[0][0];
+            }
+
+            return target;
+        }
+
+        private static void CollectCompiledTargetPaths(
+            IReadOnlyList<BlueprintCompiledComponent> components,
+            CompiledBlueprintTarget target,
+            List<int> parentPath,
+            List<List<int>> matches)
+        {
+            if (components == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < components.Count; i++)
+            {
+                BlueprintCompiledComponent component = components[i];
+                if (component == null || component.CompiledBlueprint == null)
+                {
+                    continue;
+                }
+
+                List<int> path = new List<int>(parentPath) { i };
+                bool guidMatches = !string.IsNullOrEmpty(target.ExpectedSourceGuid) &&
+                                   string.Equals(component.BlueprintGuid, target.ExpectedSourceGuid, StringComparison.OrdinalIgnoreCase);
+                if (guidMatches || BlueprintCompiledTargetUtility.PathEquals(component.BlueprintPath, target.SourcePath))
+                {
+                    matches.Add(path);
+                }
+
+                CollectCompiledTargetPaths(component.CompiledBlueprint.Components, target, path, matches);
+            }
         }
 
         private static List<BlueprintCompiledEdge> BuildExecEdges(RuntimeBlueprint runtime)

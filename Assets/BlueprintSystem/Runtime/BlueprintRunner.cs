@@ -209,7 +209,7 @@ namespace BlueprintSystem
         }
     }
 
-    public class BlueprintRunner : MonoBehaviour, IBlueprintInstance, IBlueprintBindingResolver, IBlueprintDebugInspectable
+    public class BlueprintRunner : MonoBehaviour, IBlueprintInstance, IBlueprintBindingResolver, IBlueprintDebugInspectable, IBlueprintTargetHandleResolver
     {
         private const string ReloadEventName = "OnReload";
 
@@ -231,6 +231,9 @@ namespace BlueprintSystem
         private BlueprintVM _vm;
         private readonly Dictionary<string, IBlueprintInstance> _componentsByName = new Dictionary<string, IBlueprintInstance>();
         private readonly Dictionary<string, UnityEngine.Object> _bindingsByName = new Dictionary<string, UnityEngine.Object>();
+        private readonly List<ComponentRuntimeRecord> _componentRuntimeRecords = new List<ComponentRuntimeRecord>();
+        private readonly Dictionary<string, int> _dynamicBlueprintTargetCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private int _componentRuntimeVersion;
 
         public string InstanceName
         {
@@ -620,6 +623,329 @@ namespace BlueprintSystem
             _vm = state.Vm;
             _context = state.Context;
             BlueprintReloadUtility.ReplaceComponents(_componentsByName, state.ComponentsByName);
+            RebuildComponentRuntimeRecords();
+        }
+
+        public int ComponentRuntimeVersion
+        {
+            get { return _componentRuntimeVersion; }
+        }
+
+        public int ComponentRuntimeRecordCount
+        {
+            get { return _componentRuntimeRecords.Count; }
+        }
+
+        public int DynamicBlueprintTargetCacheCount
+        {
+            get { return _dynamicBlueprintTargetCache.Count; }
+        }
+
+        bool IBlueprintTargetHandleResolver.TryResolveBlueprintTarget(
+            IBlueprintInstance requester,
+            CompiledBlueprintTarget compiledTarget,
+            string targetPath,
+            out IBlueprintInstance instance,
+            out bool ambiguous)
+        {
+            instance = null;
+            ambiguous = false;
+            targetPath = BlueprintCompiledTargetUtility.NormalizeAssetPath(targetPath);
+
+            if (compiledTarget != null &&
+                compiledTarget.RuntimeVersion == _componentRuntimeVersion &&
+                compiledTarget.RuntimeRecordIndex >= 0 &&
+                BlueprintCompiledTargetUtility.PathEquals(compiledTarget.SourcePath, targetPath) &&
+                TryGetVerifiedRecord(compiledTarget.RuntimeRecordIndex, compiledTarget, out instance))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                return false;
+            }
+
+            int cachedRecordIndex;
+            if (_dynamicBlueprintTargetCache.TryGetValue(targetPath, out cachedRecordIndex))
+            {
+                ambiguous = cachedRecordIndex == -2;
+                if (cachedRecordIndex >= 0 && cachedRecordIndex < _componentRuntimeRecords.Count)
+                {
+                    instance = _componentRuntimeRecords[cachedRecordIndex].Instance;
+                    return instance != null;
+                }
+
+                return false;
+            }
+
+            cachedRecordIndex = FindUniqueRecordIndex(null, targetPath, out ambiguous);
+            _dynamicBlueprintTargetCache[targetPath] = ambiguous ? -2 : cachedRecordIndex;
+            if (cachedRecordIndex >= 0)
+            {
+                instance = _componentRuntimeRecords[cachedRecordIndex].Instance;
+                return instance != null;
+            }
+
+            return false;
+        }
+
+        private void RebuildComponentRuntimeRecords()
+        {
+            unchecked
+            {
+                _componentRuntimeVersion++;
+                if (_componentRuntimeVersion <= 0)
+                {
+                    _componentRuntimeVersion = 1;
+                }
+            }
+
+            _componentRuntimeRecords.Clear();
+            _dynamicBlueprintTargetCache.Clear();
+            AddRuntimeRecord(this, -1, -1);
+            CollectComponentRuntimeRecords(this, 0);
+            BindCompiledBlueprintTargets();
+        }
+
+        internal void RefreshComponentRuntimeRecords()
+        {
+            if (_blueprint != null)
+            {
+                RebuildComponentRuntimeRecords();
+            }
+        }
+
+        private void CollectComponentRuntimeRecords(IBlueprintInstance owner, int ownerRecordIndex)
+        {
+            RuntimeBlueprint ownerBlueprint = owner == null ? null : owner.RuntimeBlueprint;
+            if (ownerBlueprint == null)
+            {
+                return;
+            }
+
+            for (int componentIndex = 0; componentIndex < ownerBlueprint.Components.Count; componentIndex++)
+            {
+                BlueprintComponentDeclaration declaration = ownerBlueprint.Components[componentIndex];
+                if (declaration == null || string.IsNullOrEmpty(declaration.Name))
+                {
+                    continue;
+                }
+
+                IBlueprintInstance component;
+                if (!owner.TryGetBlueprintComponent(declaration.Name, out component) || component == null)
+                {
+                    continue;
+                }
+
+                int recordIndex = AddRuntimeRecord(component, ownerRecordIndex, componentIndex);
+                CollectComponentRuntimeRecords(component, recordIndex);
+            }
+        }
+
+        private int AddRuntimeRecord(IBlueprintInstance instance, int ownerRecordIndex, int componentIndex)
+        {
+            int recordIndex = _componentRuntimeRecords.Count;
+            BlueprintCompiledAsset asset = instance == null ? null : instance.CompiledBlueprint;
+            _componentRuntimeRecords.Add(new ComponentRuntimeRecord
+            {
+                RecordIndex = recordIndex,
+                OwnerRecordIndex = ownerRecordIndex,
+                ComponentIndex = componentIndex,
+                SourceGuid = asset == null ? null : asset.SourceGuid,
+                SourcePath = instance == null ? null : instance.SourcePath,
+                Instance = instance
+            });
+            return recordIndex;
+        }
+
+        private void BindCompiledBlueprintTargets()
+        {
+            for (int requesterIndex = 0; requesterIndex < _componentRuntimeRecords.Count; requesterIndex++)
+            {
+                IBlueprintInstance requester = _componentRuntimeRecords[requesterIndex].Instance;
+                RuntimeBlueprint blueprint = requester == null ? null : requester.RuntimeBlueprint;
+                if (blueprint == null)
+                {
+                    continue;
+                }
+
+                foreach (RuntimeNode node in blueprint.NodesById.Values)
+                {
+                    CompiledBlueprintTarget target = node == null ? null : node.CompiledTarget;
+                    if (target == null)
+                    {
+                        continue;
+                    }
+
+                    target.ClearRuntimeHandle();
+                    int targetRecordIndex = ResolveCompiledHint(requesterIndex, target);
+                    if (targetRecordIndex < 0)
+                    {
+                        bool ambiguous;
+                        targetRecordIndex = FindUniqueRecordIndex(target.ExpectedSourceGuid, target.SourcePath, out ambiguous);
+                    }
+
+                    if (targetRecordIndex >= 0 && TryGetVerifiedRecord(targetRecordIndex, target, out _))
+                    {
+                        target.SetRuntimeHandle(_componentRuntimeVersion, targetRecordIndex);
+                        UpdateRuntimeTraversal(requesterIndex, targetRecordIndex, target);
+                    }
+                }
+            }
+        }
+
+        private int ResolveCompiledHint(int requesterRecordIndex, CompiledBlueprintTarget target)
+        {
+            if (target == null || target.OwnerTraversal < 0 || requesterRecordIndex < 0)
+            {
+                return -1;
+            }
+
+            int recordIndex = requesterRecordIndex;
+            for (int i = 0; i < target.OwnerTraversal; i++)
+            {
+                recordIndex = recordIndex < 0 ? -1 : _componentRuntimeRecords[recordIndex].OwnerRecordIndex;
+                if (recordIndex < 0)
+                {
+                    return -1;
+                }
+            }
+
+            IReadOnlyList<int> path = target.ComponentIndexPath;
+            if ((path == null || path.Count == 0) && target.ComponentIndex >= 0)
+            {
+                recordIndex = FindChildRecordIndex(recordIndex, target.ComponentIndex);
+                return recordIndex;
+            }
+
+            if (path != null)
+            {
+                for (int i = 0; i < path.Count; i++)
+                {
+                    recordIndex = FindChildRecordIndex(recordIndex, path[i]);
+                    if (recordIndex < 0)
+                    {
+                        return -1;
+                    }
+                }
+            }
+
+            return recordIndex;
+        }
+
+        private int FindChildRecordIndex(int ownerRecordIndex, int componentIndex)
+        {
+            for (int i = 0; i < _componentRuntimeRecords.Count; i++)
+            {
+                ComponentRuntimeRecord record = _componentRuntimeRecords[i];
+                if (record.OwnerRecordIndex == ownerRecordIndex && record.ComponentIndex == componentIndex)
+                {
+                    return record.RecordIndex;
+                }
+            }
+
+            return -1;
+        }
+
+        private int FindUniqueRecordIndex(string expectedSourceGuid, string targetPath, out bool ambiguous)
+        {
+            ambiguous = false;
+            int match = -1;
+            for (int i = 0; i < _componentRuntimeRecords.Count; i++)
+            {
+                ComponentRuntimeRecord record = _componentRuntimeRecords[i];
+                bool matches = !string.IsNullOrEmpty(expectedSourceGuid)
+                    ? string.Equals(record.SourceGuid, expectedSourceGuid, StringComparison.OrdinalIgnoreCase)
+                    : BlueprintCompiledTargetUtility.PathEquals(record.SourcePath, targetPath);
+                if (!matches)
+                {
+                    continue;
+                }
+
+                if (match >= 0)
+                {
+                    ambiguous = true;
+                    return -1;
+                }
+
+                match = i;
+            }
+
+            return match;
+        }
+
+        private bool TryGetVerifiedRecord(
+            int recordIndex,
+            CompiledBlueprintTarget target,
+            out IBlueprintInstance instance)
+        {
+            instance = null;
+            if (recordIndex < 0 || recordIndex >= _componentRuntimeRecords.Count)
+            {
+                return false;
+            }
+
+            instance = _componentRuntimeRecords[recordIndex].Instance;
+            if (instance == null)
+            {
+                return false;
+            }
+
+            BlueprintCompiledAsset asset = instance.CompiledBlueprint;
+            if (!string.IsNullOrEmpty(target.ExpectedSourceGuid) &&
+                (asset == null || !string.Equals(asset.SourceGuid, target.ExpectedSourceGuid, StringComparison.OrdinalIgnoreCase)))
+            {
+                instance = null;
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(target.ExpectedSourceGuid) &&
+                !string.IsNullOrEmpty(target.SourcePath) &&
+                !BlueprintCompiledTargetUtility.PathEquals(instance.SourcePath, target.SourcePath))
+            {
+                instance = null;
+                return false;
+            }
+
+            return true;
+        }
+
+        private void UpdateRuntimeTraversal(int requesterRecordIndex, int targetRecordIndex, CompiledBlueprintTarget target)
+        {
+            HashSet<int> targetAncestors = new HashSet<int>();
+            int current = targetRecordIndex;
+            while (current >= 0)
+            {
+                targetAncestors.Add(current);
+                current = _componentRuntimeRecords[current].OwnerRecordIndex;
+            }
+
+            int ownerTraversal = 0;
+            current = requesterRecordIndex;
+            while (current >= 0 && !targetAncestors.Contains(current))
+            {
+                current = _componentRuntimeRecords[current].OwnerRecordIndex;
+                ownerTraversal++;
+            }
+
+            if (current < 0)
+            {
+                return;
+            }
+
+            List<int> reversePath = new List<int>();
+            int pathRecord = targetRecordIndex;
+            while (pathRecord != current)
+            {
+                reversePath.Add(_componentRuntimeRecords[pathRecord].ComponentIndex);
+                pathRecord = _componentRuntimeRecords[pathRecord].OwnerRecordIndex;
+            }
+
+            reversePath.Reverse();
+            target.OwnerTraversal = ownerTraversal;
+            target.ComponentIndexPath = reversePath;
+            target.ComponentIndex = reversePath.Count == 0 ? -1 : reversePath[0];
         }
 
         private void InvalidateRuntimeState()

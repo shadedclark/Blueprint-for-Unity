@@ -594,6 +594,8 @@ Assets/BlueprintSystem/Editor/BlueprintRunnerManifestSync.cs
 
 It validates a `.blueprint.json` asset against discovered `.node.json` manifests from the BlueprintSystem package roots and project `Assets/**`, bakes manifest defaults into node properties, and writes `<BlueprintName>.compiled.asset` next to the source blueprint. Runtime execution requires the compiled asset; runners do not reference source JSON or compile from node manifests.
 
+For static cross-blueprint access, compiled nodes also carry a `CompiledBlueprintTarget` containing owner traversal, the stable component index path, expected source GUID, and source path. Each runner builds ordered `ComponentRuntimeRecord` entries when its runtime tree is created, binds those targets to versioned direct handles, and caches only dynamic path lookups for that runner version. Hot reload rebuilds the records and invalidates the handles/cache.
+
 Compile runs from:
 
 ```text

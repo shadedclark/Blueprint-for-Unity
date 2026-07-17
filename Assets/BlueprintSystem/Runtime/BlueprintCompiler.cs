@@ -39,6 +39,7 @@ namespace BlueprintSystem
                 runtimeNode.TypeId = sourceNode.TypeId;
                 runtimeNode.Manifest = manifest;
                 runtimeNode.Executor = executor;
+                runtimeNode.CompiledTarget = BlueprintCompiledTargetUtility.Create(source, sourceNode);
                 foreach (KeyValuePair<string, object> pair in sourceNode.Properties)
                 {
                     runtimeNode.Properties[pair.Key] = pair.Value;
@@ -242,6 +243,128 @@ namespace BlueprintSystem
                 result.Diagnostics.Add(BlueprintDiagnostic.Error("BP010", ex.Message));
                 return result;
             }
+        }
+    }
+
+    public static class BlueprintCompiledTargetUtility
+    {
+        public static CompiledBlueprintTarget Create(BlueprintSource source, BlueprintNodeSource targetNode)
+        {
+            if (source == null || targetNode == null || !IsCrossBlueprintTargetNode(targetNode.TypeId))
+            {
+                return null;
+            }
+
+            string targetPath;
+            if (!TryGetStaticTargetPath(source, targetNode, out targetPath))
+            {
+                return null;
+            }
+
+            CompiledBlueprintTarget target = new CompiledBlueprintTarget();
+            target.SourcePath = NormalizeAssetPath(targetPath);
+            for (int i = 0; i < source.Components.Count; i++)
+            {
+                BlueprintComponentDeclaration component = source.Components[i];
+                if (component != null && PathEquals(component.Blueprint, target.SourcePath))
+                {
+                    target.OwnerTraversal = 0;
+                    target.ComponentIndex = i;
+                    target.ComponentIndexPath.Add(i);
+                    break;
+                }
+            }
+
+            return target;
+        }
+
+        private static bool TryGetStaticTargetPath(BlueprintSource source, BlueprintNodeSource targetNode, out string targetPath)
+        {
+            targetPath = null;
+            BlueprintEdgeSource targetEdge = null;
+            string targetPort = targetNode.Id + ".target";
+            for (int i = 0; i < source.Edges.Count; i++)
+            {
+                if (source.Edges[i] != null && source.Edges[i].To == targetPort)
+                {
+                    targetEdge = source.Edges[i];
+                    break;
+                }
+            }
+
+            if (targetEdge != null)
+            {
+                BlueprintPortKey from;
+                if (!BlueprintPortKey.TryParse(targetEdge.From, out from) || from.PortId != "value")
+                {
+                    return false;
+                }
+
+                BlueprintNodeSource variableGet = null;
+                for (int i = 0; i < source.Nodes.Count; i++)
+                {
+                    if (source.Nodes[i] != null && source.Nodes[i].Id == from.NodeId)
+                    {
+                        variableGet = source.Nodes[i];
+                        break;
+                    }
+                }
+
+                if (variableGet == null || variableGet.TypeId != "Variable.Get")
+                {
+                    return false;
+                }
+
+                object variableNameValue;
+                if (!variableGet.Properties.TryGetValue("name", out variableNameValue) || variableNameValue == null)
+                {
+                    return false;
+                }
+
+                string variableName = variableNameValue.ToString();
+                for (int i = 0; i < source.Variables.Count; i++)
+                {
+                    BlueprintVariableDeclaration variable = source.Variables[i];
+                    if (variable != null && variable.Name == variableName &&
+                        variable.Type == BlueprintVariableTypeRegistry.BlueprintAssetTypeId)
+                    {
+                        targetPath = variable.DefaultValue as string;
+                        return !string.IsNullOrEmpty(targetPath);
+                    }
+                }
+
+                return false;
+            }
+
+            object propertyValue;
+            if (targetNode.Properties.TryGetValue("target", out propertyValue))
+            {
+                targetPath = propertyValue as string;
+            }
+
+            return !string.IsNullOrEmpty(targetPath);
+        }
+
+        private static bool IsCrossBlueprintTargetNode(string typeId)
+        {
+            return typeId == "Blueprint.IsValid" ||
+                   typeId == "Blueprint.TriggerEvent" ||
+                   typeId == "Blueprint.GetVariable" ||
+                   typeId == "Blueprint.SetVariable";
+        }
+
+        public static string NormalizeAssetPath(string path)
+        {
+            return string.IsNullOrEmpty(path) ? path : path.Replace('\\', '/').Trim();
+        }
+
+        public static bool PathEquals(string left, string right)
+        {
+            left = NormalizeAssetPath(left);
+            right = NormalizeAssetPath(right);
+            return !string.IsNullOrEmpty(left) &&
+                   !string.IsNullOrEmpty(right) &&
+                   string.Equals(left, right, System.StringComparison.OrdinalIgnoreCase);
         }
     }
 }

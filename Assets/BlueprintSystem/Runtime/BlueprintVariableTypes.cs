@@ -155,7 +155,7 @@ namespace BlueprintSystem
 
             if (BlueprintUserStructRegistry.IsUserStructType(typeId))
             {
-                clrType = typeof(BlueprintStructValue);
+                clrType = typeof(RuntimeStructRecord);
                 return true;
             }
 
@@ -228,7 +228,7 @@ namespace BlueprintSystem
 
             if (BlueprintUserStructRegistry.GetTypeIds().Length > 0)
             {
-                types.Add(typeof(BlueprintStructValue));
+                types.Add(typeof(RuntimeStructRecord));
             }
 
             foreach (Type type in customTypesById.Values)

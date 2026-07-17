@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace BlueprintSystem
@@ -11,7 +10,11 @@ namespace BlueprintSystem
             return instance == null ? null : new BlueprintRef(instance);
         }
 
-        public static IBlueprintInstance ResolveRuntimeInstanceTarget(BlueprintExecutionContext context, object targetValue, bool logWarnings)
+        public static IBlueprintInstance ResolveRuntimeInstanceTarget(
+            BlueprintExecutionContext context,
+            RuntimeNode node,
+            object targetValue,
+            bool logWarnings)
         {
             IBlueprintInstance referencedInstance;
             if (TryResolveBlueprintRef(targetValue, out referencedInstance))
@@ -48,27 +51,53 @@ namespace BlueprintSystem
                 return null;
             }
 
-            IBlueprintInstance root = ResolveRootInstance(context);
-            if (root == null)
+            IBlueprintInstance current = ResolveCurrentInstance(context);
+            if (current == null)
             {
                 Warn(context, logWarnings, "Cross-blueprint target '" + targetPath + "' has no current Blueprint instance tree.");
                 return null;
             }
 
-            List<IBlueprintInstance> matches = new List<IBlueprintInstance>();
-            CollectMatchingBlueprintTargets(root, targetPath, matches);
-            if (matches.Count == 1)
+            IBlueprintTargetHandleResolver handleResolver = current as IBlueprintTargetHandleResolver;
+            BlueprintRuntimeComponent runtimeComponent = current as BlueprintRuntimeComponent;
+            if (runtimeComponent != null && !runtimeComponent.HasTargetHandleResolver)
             {
-                return matches[0];
+                handleResolver = null;
             }
 
-            if (matches.Count > 1)
+            if (handleResolver != null)
+            {
+                IBlueprintInstance resolved;
+                bool ambiguous;
+                if (handleResolver.TryResolveBlueprintTarget(
+                    current,
+                    node == null ? null : node.CompiledTarget,
+                    targetPath,
+                    out resolved,
+                    out ambiguous))
+                {
+                    return resolved;
+                }
+
+                if (ambiguous)
+                {
+                    Warn(context, logWarnings, "Cross-blueprint target '" + targetPath + "' matched multiple Blueprint components in the current instance tree.");
+                }
+
+                return null;
+            }
+
+            IBlueprintInstance root = ResolveRootInstance(context);
+            IBlueprintInstance match = null;
+            bool hasMultipleMatches = false;
+            CollectMatchingBlueprintTarget(root, targetPath, ref match, ref hasMultipleMatches);
+            if (hasMultipleMatches)
             {
                 Warn(context, logWarnings, "Cross-blueprint target '" + targetPath + "' matched multiple Blueprint components in the current instance tree.");
                 return null;
             }
 
-            return null;
+            return match;
         }
 
         public static IBlueprintInstance ResolveOwner(BlueprintExecutionContext context, object targetValue, bool logWarnings)
@@ -198,9 +227,13 @@ namespace BlueprintSystem
             return instance;
         }
 
-        private static void CollectMatchingBlueprintTargets(IBlueprintInstance instance, string targetPath, List<IBlueprintInstance> matches)
+        private static void CollectMatchingBlueprintTarget(
+            IBlueprintInstance instance,
+            string targetPath,
+            ref IBlueprintInstance match,
+            ref bool hasMultipleMatches)
         {
-            if (instance == null)
+            if (instance == null || hasMultipleMatches)
             {
                 return;
             }
@@ -208,7 +241,13 @@ namespace BlueprintSystem
             string sourcePath = instance.SourcePath;
             if (PathEquals(sourcePath, targetPath))
             {
-                AddUnique(matches, instance);
+                if (match != null && !ReferenceEquals(match, instance))
+                {
+                    hasMultipleMatches = true;
+                    return;
+                }
+
+                match = instance;
             }
 
             RuntimeBlueprint blueprint = instance.RuntimeBlueprint;
@@ -233,18 +272,16 @@ namespace BlueprintSystem
 
                 if (PathEquals(declaration.Blueprint, targetPath))
                 {
-                    AddUnique(matches, component);
+                    if (match != null && !ReferenceEquals(match, component))
+                    {
+                        hasMultipleMatches = true;
+                        return;
+                    }
+
+                    match = component;
                 }
 
-                CollectMatchingBlueprintTargets(component, targetPath, matches);
-            }
-        }
-
-        private static void AddUnique(List<IBlueprintInstance> matches, IBlueprintInstance instance)
-        {
-            if (instance != null && !matches.Contains(instance))
-            {
-                matches.Add(instance);
+                CollectMatchingBlueprintTarget(component, targetPath, ref match, ref hasMultipleMatches);
             }
         }
 
@@ -385,7 +422,7 @@ namespace BlueprintSystem
 
         public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
         {
-            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, context.GetInputValue(node, "target"), true);
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, node, context.GetInputValue(node, "target"), true);
             return instance != null;
         }
     }
@@ -454,7 +491,7 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
-            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, context.GetInputValue(node, "target"), true);
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, node, context.GetInputValue(node, "target"), true);
             if (instance == null)
             {
                 return BlueprintExecResult.Error("Blueprint.TriggerEvent node '" + node.Id + "' has no valid target.");
@@ -535,7 +572,7 @@ namespace BlueprintSystem
         public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
         {
             bool logWarnings = outputPortId == "value";
-            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, context.GetInputValue(node, "target"), logWarnings);
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, node, context.GetInputValue(node, "target"), logWarnings);
             string variableName = context.GetInputValue(node, "name", string.Empty);
             object value;
             bool success = BlueprintAccessUtility.TryGetExposedVariableValue(
@@ -568,7 +605,7 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
-            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, context.GetInputValue(node, "target"), true);
+            IBlueprintInstance instance = BlueprintAccessUtility.ResolveRuntimeInstanceTarget(context, node, context.GetInputValue(node, "target"), true);
             string variableName = context.GetInputValue(node, "name", string.Empty);
             object value = context.GetInputValue(node, "value");
             string error;

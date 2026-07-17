@@ -176,6 +176,7 @@ namespace BlueprintSystem
                 node.Id = compiled.Id;
                 node.TypeId = compiled.TypeId;
                 node.Manifest = null;
+                node.CompiledTarget = CloneCompiledTarget(compiled.Target);
 
                 IBlueprintNodeExecutor executor;
                 if (!string.IsNullOrEmpty(compiled.ExecutorId) && registry.TryGet(compiled.ExecutorId, out executor))
@@ -238,6 +239,25 @@ namespace BlueprintSystem
             }
 
             return runtime;
+        }
+
+        private static CompiledBlueprintTarget CloneCompiledTarget(CompiledBlueprintTarget source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            return new CompiledBlueprintTarget
+            {
+                OwnerTraversal = source.OwnerTraversal,
+                ComponentIndex = source.ComponentIndex,
+                ComponentIndexPath = source.ComponentIndexPath == null
+                    ? new List<int>()
+                    : new List<int>(source.ComponentIndexPath),
+                ExpectedSourceGuid = source.ExpectedSourceGuid,
+                SourcePath = source.SourcePath
+            };
         }
 
         private static void ReplaceList<T>(List<T> target, IEnumerable<T> source)
@@ -375,6 +395,7 @@ namespace BlueprintSystem
         public string Id;
         public string TypeId;
         public string ExecutorId;
+        public CompiledBlueprintTarget Target;
         public List<BlueprintCompiledProperty> Properties = new List<BlueprintCompiledProperty>();
     }
 
