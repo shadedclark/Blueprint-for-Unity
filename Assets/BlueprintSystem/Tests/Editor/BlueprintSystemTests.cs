@@ -2701,6 +2701,75 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BlueprintVmDoesNotAllocateAfterWarmupWhenDebugLoggingIsDisabled()
+        {
+            RuntimeBlueprint blueprint = CreateSingleNodeRuntimeBlueprint();
+            BlueprintVM vm = new BlueprintVM();
+            BlueprintExecutionContext context = CreateTestContext(
+                blueprint,
+                new NullBlueprintBindingResolver(),
+                new UnityBlueprintLogger(),
+                null);
+            bool previousDebugEnabled = BlueprintLog.DebugEnabled;
+
+            try
+            {
+                BlueprintLog.DebugEnabled = false;
+                vm.TriggerEvent(context, "Start");
+
+                long allocatedBefore = System.GC.GetAllocatedBytesForCurrentThread();
+                for (int i = 0; i < 32; i++)
+                {
+                    vm.TriggerEvent(context, "Start");
+                    vm.TriggerEvent(context, "Missing");
+                }
+                long allocatedBytes = System.GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+
+                Assert.AreEqual(0L, allocatedBytes);
+            }
+            finally
+            {
+                BlueprintLog.DebugEnabled = previousDebugEnabled;
+            }
+        }
+
+        [Test]
+        public void BlueprintVmReusesExecutionQueueAcrossEvents()
+        {
+            RuntimeBlueprint blueprint = CreateSingleNodeRuntimeBlueprint();
+            BlueprintVM vm = new BlueprintVM();
+            BlueprintExecutionContext context = CreateTestContext(
+                blueprint,
+                new NullBlueprintBindingResolver(),
+                new UnityBlueprintLogger(),
+                null);
+            FieldInfo poolField = typeof(BlueprintVM).GetField(
+                "_executionQueuePool",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(poolField);
+
+            bool previousDebugEnabled = BlueprintLog.DebugEnabled;
+            try
+            {
+                BlueprintLog.DebugEnabled = false;
+                vm.TriggerEvent(context, "Start");
+                object pool = poolField.GetValue(vm);
+                MethodInfo peekMethod = pool.GetType().GetMethod("Peek", BindingFlags.Instance | BindingFlags.Public);
+                Assert.NotNull(peekMethod);
+                object firstQueue = peekMethod.Invoke(pool, null);
+
+                vm.TriggerEvent(context, "Start");
+                object secondQueue = peekMethod.Invoke(pool, null);
+
+                Assert.AreSame(firstQueue, secondQueue);
+            }
+            finally
+            {
+                BlueprintLog.DebugEnabled = previousDebugEnabled;
+            }
+        }
+
+        [Test]
         public void BlueprintBehaviorTreeBlackboardGameObjectBridgeWritesAndReadsRuntimeObjects()
         {
             GameObject runnerObject = null;
@@ -9695,6 +9764,16 @@ namespace BlueprintSystem.Tests
                 Id = id,
                 TypeId = typeId
             };
+        }
+
+        private static RuntimeBlueprint CreateSingleNodeRuntimeBlueprint()
+        {
+            RuntimeBlueprint blueprint = new RuntimeBlueprint();
+            RuntimeNode node = CreateRuntimeNode("event_start", "Test.Event");
+            node.Executor = new FlowEventExecutor();
+            blueprint.NodesById.Add(node.Id, node);
+            blueprint.EventEntries.Add("Start", node.Id);
+            return blueprint;
         }
 
         private static BlueprintExecutionContext CreateTestContext(

@@ -7,6 +7,7 @@ namespace BlueprintSystem
     public sealed class BlueprintVM
     {
         private const int MaxStepsPerEvent = 1024;
+        private readonly Stack<Queue<QueuedExec>> _executionQueuePool = new Stack<Queue<QueuedExec>>();
 
         private struct QueuedExec
         {
@@ -39,7 +40,10 @@ namespace BlueprintSystem
             string entryNodeId;
             if (!context.Blueprint.EventEntries.TryGetValue(eventName, out entryNodeId))
             {
-                context.Logger.Warning("No blueprint event entry named '" + eventName + "'.");
+                if (IsDebugLogEnabled(context.Logger))
+                {
+                    context.Logger.Warning("No blueprint event entry named '" + eventName + "'.");
+                }
                 if (traceEnabled)
                 {
                     context.RecordTrace(BlueprintTraceRecordKind.EventMissing, message: "No matching event entry.");
@@ -55,7 +59,16 @@ namespace BlueprintSystem
 
             try
             {
-                ExecuteNodeQueue(context, new List<string> { entryNodeId });
+                Queue<QueuedExec> queue = AcquireExecutionQueue();
+                try
+                {
+                    queue.Enqueue(new QueuedExec(entryNodeId, null));
+                    ExecuteNodeQueue(context, queue);
+                }
+                finally
+                {
+                    ReleaseExecutionQueue(queue);
+                }
             }
             finally
             {
@@ -68,16 +81,23 @@ namespace BlueprintSystem
 
         public void ExecuteNodeQueue(BlueprintExecutionContext context, List<string> nodeIds)
         {
-            Queue<QueuedExec> queue = new Queue<QueuedExec>();
-            if (nodeIds != null)
+            Queue<QueuedExec> queue = AcquireExecutionQueue();
+            try
             {
-                for (int i = 0; i < nodeIds.Count; i++)
+                if (nodeIds != null)
                 {
-                    queue.Enqueue(new QueuedExec(nodeIds[i], null));
+                    for (int i = 0; i < nodeIds.Count; i++)
+                    {
+                        queue.Enqueue(new QueuedExec(nodeIds[i], null));
+                    }
                 }
-            }
 
-            ExecuteNodeQueue(context, queue);
+                ExecuteNodeQueue(context, queue);
+            }
+            finally
+            {
+                ReleaseExecutionQueue(queue);
+            }
         }
 
         private void ExecuteNodeQueue(BlueprintExecutionContext context, Queue<QueuedExec> queue)
@@ -109,7 +129,10 @@ namespace BlueprintSystem
                 }
 
                 context.ClearValueCache();
-                context.Logger.Log("Execute " + node.Id + " (" + node.TypeId + ")");
+                if (IsDebugLogEnabled(context.Logger))
+                {
+                    context.Logger.Log("Execute " + node.Id + " (" + node.TypeId + ")");
+                }
                 string previousInputPortId = context.CurrentExecInputPortId;
                 bool traceEnabled = context.IsTraceEnabled;
                 string previousTraceEvent = context.CurrentTraceEventName;
@@ -176,9 +199,16 @@ namespace BlueprintSystem
             }
 
             context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, outputPortId, "selected");
-            Queue<QueuedExec> queue = new Queue<QueuedExec>();
-            EnqueueOutput(context, node, outputPortId, queue);
-            ExecuteNodeQueue(context, queue);
+            Queue<QueuedExec> queue = AcquireExecutionQueue();
+            try
+            {
+                EnqueueOutput(context, node, outputPortId, queue);
+                ExecuteNodeQueue(context, queue);
+            }
+            finally
+            {
+                ReleaseExecutionQueue(queue);
+            }
         }
 
         private void EnqueueNext(BlueprintExecutionContext context, RuntimeNode node, BlueprintExecResult result, Queue<QueuedExec> queue)
@@ -225,9 +255,16 @@ namespace BlueprintSystem
                     context.Logger.Warning("Delay requested without a MonoBehaviour coroutine host; continuing immediately.");
                 }
 
-                Queue<QueuedExec> queue = new Queue<QueuedExec>();
-                EnqueueNext(context, node, result, queue);
-                ExecuteNodeQueue(context, queue);
+                Queue<QueuedExec> queue = AcquireExecutionQueue();
+                try
+                {
+                    EnqueueNext(context, node, result, queue);
+                    ExecuteNodeQueue(context, queue);
+                }
+                finally
+                {
+                    ReleaseExecutionQueue(queue);
+                }
                 return;
             }
 
@@ -260,14 +297,15 @@ namespace BlueprintSystem
                 context.SetTraceExecutionState(traceEventName, node);
             }
 
+            Queue<QueuedExec> queue = AcquireExecutionQueue();
             try
             {
-                Queue<QueuedExec> queue = new Queue<QueuedExec>();
                 EnqueueNext(context, node, result, queue);
                 ExecuteNodeQueue(context, queue);
             }
             finally
             {
+                ReleaseExecutionQueue(queue);
                 if (traceEnabled)
                 {
                     context.SetTraceExecutionState(previousTraceEvent, previousTraceNode);
@@ -279,6 +317,24 @@ namespace BlueprintSystem
         {
             return (result.NextExecPortIds != null && result.NextExecPortIds.Count > 0) ||
                    !string.IsNullOrEmpty(result.NextExecPortId);
+        }
+
+        private Queue<QueuedExec> AcquireExecutionQueue()
+        {
+            return _executionQueuePool.Count > 0
+                ? _executionQueuePool.Pop()
+                : new Queue<QueuedExec>();
+        }
+
+        private void ReleaseExecutionQueue(Queue<QueuedExec> queue)
+        {
+            queue.Clear();
+            _executionQueuePool.Push(queue);
+        }
+
+        private static bool IsDebugLogEnabled(IBlueprintLogger logger)
+        {
+            return !(logger is UnityBlueprintLogger) || BlueprintLog.DebugEnabled;
         }
     }
 }
