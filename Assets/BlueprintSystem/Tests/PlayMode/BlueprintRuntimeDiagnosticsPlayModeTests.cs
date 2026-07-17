@@ -76,6 +76,32 @@ namespace BlueprintSystem.Tests
             UnityEngine.Object.Destroy(gameObject);
         }
 
+        [UnityTest]
+        public IEnumerator SmartObjectOnValidateDoesNotRepairDuplicateIdInPlayMode()
+        {
+            GameObject firstObject = new GameObject("PlayModeSmartObjectFirst");
+            GameObject duplicateObject = new GameObject("PlayModeSmartObjectDuplicate");
+            SmartObjectComponent first = firstObject.AddComponent<SmartObjectComponent>();
+            SmartObjectComponent duplicate = duplicateObject.AddComponent<SmartObjectComponent>();
+            string duplicateId = first.ObjectId;
+
+            FieldInfo objectIdField = typeof(SmartObjectComponent)
+                .GetField("objectId", BindingFlags.Instance | BindingFlags.NonPublic);
+            MethodInfo onValidate = typeof(SmartObjectComponent)
+                .GetMethod("OnValidate", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(objectIdField);
+            Assert.NotNull(onValidate);
+
+            objectIdField.SetValue(duplicate, duplicateId);
+            onValidate.Invoke(duplicate, null);
+
+            Assert.AreEqual(duplicateId, duplicate.ObjectId);
+
+            UnityEngine.Object.Destroy(firstObject);
+            UnityEngine.Object.Destroy(duplicateObject);
+            yield return null;
+        }
+
         private static BlueprintCompiledAsset CreateCompiledAsset(
             string name,
             string sourcePath,

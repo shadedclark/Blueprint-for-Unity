@@ -208,7 +208,10 @@ namespace BlueprintSystem
 #if UNITY_EDITOR
         private void EnsureUniqueObjectIdInEditor()
         {
-            if (!IsSceneObjectForIdUniquenessCheck(this) || !HasDuplicateObjectIdWithEarlierEditorKey())
+            if (Application.isPlaying ||
+                EditorApplication.isPlayingOrWillChangePlaymode ||
+                !IsSceneObjectForIdUniquenessCheck(this) ||
+                !HasDuplicateObjectIdWithEarlierEditorKey())
             {
                 return;
             }
