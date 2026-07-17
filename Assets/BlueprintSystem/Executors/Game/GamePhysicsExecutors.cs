@@ -3,6 +3,24 @@ using UnityEngine;
 
 namespace BlueprintSystem
 {
+    internal static class GameSafeTeleportUtility
+    {
+        public static bool IsFinite(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value);
+        }
+
+        public static bool IsFinite(Vector2 value)
+        {
+            return IsFinite(value.x) && IsFinite(value.y);
+        }
+
+        public static bool IsFinite(Vector3 value)
+        {
+            return IsFinite(value.x) && IsFinite(value.y) && IsFinite(value.z);
+        }
+    }
+
     public sealed class GameSetRigidbodyLinearVelocityExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId
@@ -20,6 +38,57 @@ namespace BlueprintSystem
             }
 
             rigidbody.linearVelocity = GameExecutorValueUtility.GetVector3Input(context, node, "value", Vector3.zero);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameSafeTeleportRigidbodyExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SafeTeleportRigidbody"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            object target = context.GetInputValue(node, "target");
+            Rigidbody rigidbody = GameExecutorBindingUtility.ResolveBinding<Rigidbody>(context, target);
+            if (rigidbody == null)
+            {
+                return BlueprintExecResult.Error("Game.SafeTeleportRigidbody node '" + node.Id + "' could not resolve Rigidbody target.");
+            }
+
+            Vector3 position = GameExecutorValueUtility.GetVector3Input(context, node, "position", Vector3.zero);
+            if (!GameSafeTeleportUtility.IsFinite(position))
+            {
+                return BlueprintExecResult.Error("Game.SafeTeleportRigidbody node '" + node.Id + "' requires a finite position.");
+            }
+
+            bool setRotation = context.GetInputValue(node, "setRotation", false);
+            Vector3 rotationEulerAngles = GameExecutorValueUtility.GetVector3Input(context, node, "rotationEulerAngles", Vector3.zero);
+            if (setRotation && !GameSafeTeleportUtility.IsFinite(rotationEulerAngles))
+            {
+                return BlueprintExecResult.Error("Game.SafeTeleportRigidbody node '" + node.Id + "' requires finite rotationEulerAngles when setRotation is true.");
+            }
+
+            rigidbody.position = position;
+            if (setRotation)
+            {
+                rigidbody.rotation = Quaternion.Euler(rotationEulerAngles);
+            }
+
+            if (!context.GetInputValue(node, "preserveLinearVelocity", false))
+            {
+                rigidbody.linearVelocity = Vector3.zero;
+            }
+
+            if (!context.GetInputValue(node, "preserveAngularVelocity", false))
+            {
+                rigidbody.angularVelocity = Vector3.zero;
+            }
+
+            Physics.SyncTransforms();
+            rigidbody.WakeUp();
             return BlueprintExecResult.Continue("execOut");
         }
     }
@@ -143,6 +212,57 @@ namespace BlueprintSystem
             }
 
             rigidbody.linearVelocity = GameExecutorValueUtility.GetVector2Input(context, node, "value", Vector2.zero);
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class GameSafeTeleportRigidbody2DExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Game.SafeTeleportRigidbody2D"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            object target = context.GetInputValue(node, "target");
+            Rigidbody2D rigidbody = GameExecutorBindingUtility.ResolveBinding<Rigidbody2D>(context, target);
+            if (rigidbody == null)
+            {
+                return BlueprintExecResult.Error("Game.SafeTeleportRigidbody2D node '" + node.Id + "' could not resolve Rigidbody2D target.");
+            }
+
+            Vector2 position = GameExecutorValueUtility.GetVector2Input(context, node, "position", Vector2.zero);
+            if (!GameSafeTeleportUtility.IsFinite(position))
+            {
+                return BlueprintExecResult.Error("Game.SafeTeleportRigidbody2D node '" + node.Id + "' requires a finite position.");
+            }
+
+            bool setRotation = context.GetInputValue(node, "setRotation", false);
+            float rotationDegrees = context.GetInputValue(node, "rotationDegrees", 0f);
+            if (setRotation && !GameSafeTeleportUtility.IsFinite(rotationDegrees))
+            {
+                return BlueprintExecResult.Error("Game.SafeTeleportRigidbody2D node '" + node.Id + "' requires finite rotationDegrees when setRotation is true.");
+            }
+
+            rigidbody.position = position;
+            if (setRotation)
+            {
+                rigidbody.rotation = rotationDegrees;
+            }
+
+            if (!context.GetInputValue(node, "preserveLinearVelocity", false))
+            {
+                rigidbody.linearVelocity = Vector2.zero;
+            }
+
+            if (!context.GetInputValue(node, "preserveAngularVelocity", false))
+            {
+                rigidbody.angularVelocity = 0f;
+            }
+
+            Physics2D.SyncTransforms();
+            rigidbody.WakeUp();
             return BlueprintExecResult.Continue("execOut");
         }
     }

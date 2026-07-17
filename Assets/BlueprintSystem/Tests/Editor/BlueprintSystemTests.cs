@@ -4645,6 +4645,114 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void RuntimeSafelyTeleports3DRigidbody()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "SafeTeleport3DRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration
+            {
+                Name = "Body",
+                Type = "Rigidbody",
+                Required = true
+            });
+
+            BlueprintNodeSource teleport = AddNode(source, "safe_teleport", "Game.SafeTeleportRigidbody");
+            teleport.Properties["target"] = "Body";
+            teleport.Properties["position"] = new List<object> { 3f, 4f, 5f };
+            teleport.Properties["rotationEulerAngles"] = new List<object> { 0f, 90f, 0f };
+            teleport.Properties["setRotation"] = true;
+            teleport.Properties["preserveLinearVelocity"] = true;
+            teleport.Properties["preserveAngularVelocity"] = false;
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject bodyObject = new GameObject("SafeTeleportBody");
+            try
+            {
+                Rigidbody body = bodyObject.AddComponent<Rigidbody>();
+                body.linearVelocity = new Vector3(1f, 2f, 3f);
+                body.angularVelocity = new Vector3(4f, 5f, 6f);
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("Body", bodyObject);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, bodyObject, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "safe_teleport");
+
+                Assert.AreEqual(new Vector3(3f, 4f, 5f), body.position);
+                Assert.Less(Quaternion.Angle(Quaternion.Euler(0f, 90f, 0f), body.rotation), 0.01f);
+                Assert.AreEqual(new Vector3(1f, 2f, 3f), body.linearVelocity);
+                Assert.AreEqual(Vector3.zero, body.angularVelocity);
+
+                RuntimeNode invalidPosition = CreateRuntimeNode("invalid_safe_teleport", "Game.SafeTeleportRigidbody");
+                invalidPosition.Properties["target"] = "Body";
+                invalidPosition.Properties["position"] = new List<object> { float.NaN, 0f, 0f };
+                BlueprintExecResult invalidResult = new GameSafeTeleportRigidbodyExecutor().Execute(context, invalidPosition);
+                Assert.False(string.IsNullOrEmpty(invalidResult.ErrorMessage));
+            }
+            finally
+            {
+                Object.DestroyImmediate(bodyObject);
+            }
+        }
+
+        [Test]
+        public void RuntimeSafelyTeleports2DRigidbody()
+        {
+            BlueprintSource source = new BlueprintSource();
+            source.SchemaVersion = "0.1";
+            source.Name = "SafeTeleport2DRuntimeTest";
+            source.Bindings.Add(new BlueprintBindingDeclaration
+            {
+                Name = "Body2D",
+                Type = "Rigidbody2D",
+                Required = true
+            });
+
+            BlueprintNodeSource teleport = AddNode(source, "safe_teleport_2d", "Game.SafeTeleportRigidbody2D");
+            teleport.Properties["target"] = "Body2D";
+            teleport.Properties["position"] = new List<object> { 7f, 8f };
+            teleport.Properties["rotationDegrees"] = 45f;
+            teleport.Properties["setRotation"] = true;
+            teleport.Properties["preserveLinearVelocity"] = false;
+            teleport.Properties["preserveAngularVelocity"] = true;
+
+            BlueprintCompileResult compileResult = new BlueprintCompiler().Compile(source, LoadManifests(), BlueprintExecutorRegistry.CreateDefault());
+            Assert.True(compileResult.Success, compileResult.Diagnostics.ToDisplayString());
+
+            GameObject bodyObject = new GameObject("SafeTeleportBody2D");
+            try
+            {
+                Rigidbody2D body = bodyObject.AddComponent<Rigidbody2D>();
+                body.linearVelocity = new Vector2(1f, 2f);
+                body.angularVelocity = 30f;
+                TestBindingResolver resolver = new TestBindingResolver();
+                resolver.Add("Body2D", bodyObject);
+                BlueprintExecutionContext context = CreateTestExecutionContext(compileResult.Blueprint, bodyObject, resolver);
+
+                ExecuteNode(compileResult.Blueprint, context, "safe_teleport_2d");
+
+                Assert.AreEqual(new Vector2(7f, 8f), body.position);
+                Assert.AreEqual(45f, body.rotation, 0.01f);
+                Assert.AreEqual(Vector2.zero, body.linearVelocity);
+                Assert.AreEqual(30f, body.angularVelocity, 0.01f);
+
+                RuntimeNode invalidRotation = CreateRuntimeNode("invalid_safe_teleport_2d", "Game.SafeTeleportRigidbody2D");
+                invalidRotation.Properties["target"] = "Body2D";
+                invalidRotation.Properties["position"] = new List<object> { 0f, 0f };
+                invalidRotation.Properties["setRotation"] = true;
+                invalidRotation.Properties["rotationDegrees"] = float.PositiveInfinity;
+                BlueprintExecResult invalidResult = new GameSafeTeleportRigidbody2DExecutor().Execute(context, invalidRotation);
+                Assert.False(string.IsNullOrEmpty(invalidResult.ErrorMessage));
+            }
+            finally
+            {
+                Object.DestroyImmediate(bodyObject);
+            }
+        }
+
+        [Test]
         public void RuntimeSetsRendererMaterialColorAndTexture()
         {
             BlueprintSource source = new BlueprintSource();

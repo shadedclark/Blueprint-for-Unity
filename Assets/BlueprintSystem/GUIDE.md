@@ -84,10 +84,12 @@ connected value edge -> compiled node property -> null
 | `Game.SetTransformEulerAngles` | Set Transform Euler Angles | Game/Transform | `Game.SetTransformEulerAngles` | `GameSetTransformEulerAnglesExecutor` | Sets world `Transform.eulerAngles`. |
 | `Game.SetTransformLocalScale` | Set Transform Local Scale | Game/Transform | `Game.SetTransformLocalScale` | `GameSetTransformLocalScaleExecutor` | Sets `Transform.localScale`. |
 | `Game.SetRigidbodyLinearVelocity` | Set Rigidbody Linear Velocity | Game/Physics | `Game.SetRigidbodyLinearVelocity` | `GameSetRigidbodyLinearVelocityExecutor` | Sets 3D `Rigidbody.linearVelocity`. |
+| `Game.SafeTeleportRigidbody` | Safe Teleport Rigidbody | Game/Physics | `Game.SafeTeleportRigidbody` | `GameSafeTeleportRigidbodyExecutor` | Teleports a 3D Rigidbody, synchronizes physics transforms, and optionally preserves velocities. |
 | `Game.AddRigidbodyForce` | Add Rigidbody Force | Game/Physics | `Game.AddRigidbodyForce` | `GameAddRigidbodyForceExecutor` | Adds force to a 3D `Rigidbody`. |
 | `Game.SetColliderEnabled` | Set Collider Enabled | Game/Physics | `Game.SetColliderEnabled` | `GameSetColliderEnabledExecutor` | Sets 3D `Collider.enabled`. |
 | `Game.SetColliderIsTrigger` | Set Collider Is Trigger | Game/Physics | `Game.SetColliderIsTrigger` | `GameSetColliderIsTriggerExecutor` | Sets 3D `Collider.isTrigger`. |
 | `Game.SetRigidbody2DLinearVelocity` | Set Rigidbody2D Linear Velocity | Game/Physics2D | `Game.SetRigidbody2DLinearVelocity` | `GameSetRigidbody2DLinearVelocityExecutor` | Sets `Rigidbody2D.linearVelocity`. |
+| `Game.SafeTeleportRigidbody2D` | Safe Teleport Rigidbody2D | Game/Physics2D | `Game.SafeTeleportRigidbody2D` | `GameSafeTeleportRigidbody2DExecutor` | Teleports a Rigidbody2D, synchronizes physics transforms, and optionally preserves velocities. |
 | `Game.AddRigidbody2DForce` | Add Rigidbody2D Force | Game/Physics2D | `Game.AddRigidbody2DForce` | `GameAddRigidbody2DForceExecutor` | Adds force to a `Rigidbody2D`. |
 | `Game.SetCollider2DEnabled` | Set Collider2D Enabled | Game/Physics2D | `Game.SetCollider2DEnabled` | `GameSetCollider2DEnabledExecutor` | Sets `Collider2D.enabled`. |
 | `Game.SetCollider2DIsTrigger` | Set Collider2D Is Trigger | Game/Physics2D | `Game.SetCollider2DIsTrigger` | `GameSetCollider2DIsTriggerExecutor` | Sets `Collider2D.isTrigger`. |
@@ -1001,6 +1003,7 @@ Manifests:
 
 ```text
 Assets/BlueprintSystem/Specs/Nodes/Game.SetRigidbodyLinearVelocity.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SafeTeleportRigidbody.node.json
 Assets/BlueprintSystem/Specs/Nodes/Game.AddRigidbodyForce.node.json
 Assets/BlueprintSystem/Specs/Nodes/Game.SetColliderEnabled.node.json
 Assets/BlueprintSystem/Specs/Nodes/Game.SetColliderIsTrigger.node.json
@@ -1009,8 +1012,8 @@ Assets/BlueprintSystem/Specs/Nodes/Game.SetColliderIsTrigger.node.json
 Executors:
 
 ```text
-IDs: Game.SetRigidbodyLinearVelocity, Game.AddRigidbodyForce, Game.SetColliderEnabled, Game.SetColliderIsTrigger
-Classes: GameSetRigidbodyLinearVelocityExecutor, GameAddRigidbodyForceExecutor, GameSetColliderEnabledExecutor, GameSetColliderIsTriggerExecutor
+IDs: Game.SetRigidbodyLinearVelocity, Game.SafeTeleportRigidbody, Game.AddRigidbodyForce, Game.SetColliderEnabled, Game.SetColliderIsTrigger
+Classes: GameSetRigidbodyLinearVelocityExecutor, GameSafeTeleportRigidbodyExecutor, GameAddRigidbodyForceExecutor, GameSetColliderEnabledExecutor, GameSetColliderIsTriggerExecutor
 File: Assets/BlueprintSystem/Executors/Game/GamePhysicsExecutors.cs
 ```
 
@@ -1019,7 +1022,9 @@ Function:
 ```text
 Resolve `target` as Rigidbody or Collider, including from a bound GameObject or Component.
 Set `Rigidbody.linearVelocity`, call `Rigidbody.AddForce`, or set Collider flags.
-Return an error if the binding cannot resolve or if force `mode` is invalid.
+`Game.SafeTeleportRigidbody` assigns `Rigidbody.position` and optional `Rigidbody.rotation`, clears velocities unless their preserve flags are true, calls `Physics.SyncTransforms()`, and wakes the body.
+The safe teleport target may be a binding name or a connected runtime Rigidbody value.
+Return an error if the binding cannot resolve, if force `mode` is invalid, or if a safe teleport position or enabled rotation contains NaN/Infinity.
 ```
 
 Ports and parameters:
@@ -1027,6 +1032,7 @@ Ports and parameters:
 | Node | Target | Value/Force | Extra | Default |
 | --- | --- | --- | --- | --- |
 | `Game.SetRigidbodyLinearVelocity` | `Binding<Rigidbody>` | `value: Vector3` | none | `[0, 0, 0]` |
+| `Game.SafeTeleportRigidbody` | `Binding<Rigidbody>` | `position: Vector3` | `rotationEulerAngles: Vector3`, `setRotation: bool`, `preserveLinearVelocity: bool`, `preserveAngularVelocity: bool` | position/rotation `[0, 0, 0]`, all bools `false` |
 | `Game.AddRigidbodyForce` | `Binding<Rigidbody>` | `force: Vector3` | `mode: ForceMode` | force `[0, 0, 0]`, mode `Force` |
 | `Game.SetColliderEnabled` | `Binding<Collider>` | `value: bool` | none | `true` |
 | `Game.SetColliderIsTrigger` | `Binding<Collider>` | `value: bool` | none | `true` |
@@ -1039,6 +1045,7 @@ Manifests:
 
 ```text
 Assets/BlueprintSystem/Specs/Nodes/Game.SetRigidbody2DLinearVelocity.node.json
+Assets/BlueprintSystem/Specs/Nodes/Game.SafeTeleportRigidbody2D.node.json
 Assets/BlueprintSystem/Specs/Nodes/Game.AddRigidbody2DForce.node.json
 Assets/BlueprintSystem/Specs/Nodes/Game.SetCollider2DEnabled.node.json
 Assets/BlueprintSystem/Specs/Nodes/Game.SetCollider2DIsTrigger.node.json
@@ -1047,8 +1054,8 @@ Assets/BlueprintSystem/Specs/Nodes/Game.SetCollider2DIsTrigger.node.json
 Executors:
 
 ```text
-IDs: Game.SetRigidbody2DLinearVelocity, Game.AddRigidbody2DForce, Game.SetCollider2DEnabled, Game.SetCollider2DIsTrigger
-Classes: GameSetRigidbody2DLinearVelocityExecutor, GameAddRigidbody2DForceExecutor, GameSetCollider2DEnabledExecutor, GameSetCollider2DIsTriggerExecutor
+IDs: Game.SetRigidbody2DLinearVelocity, Game.SafeTeleportRigidbody2D, Game.AddRigidbody2DForce, Game.SetCollider2DEnabled, Game.SetCollider2DIsTrigger
+Classes: GameSetRigidbody2DLinearVelocityExecutor, GameSafeTeleportRigidbody2DExecutor, GameAddRigidbody2DForceExecutor, GameSetCollider2DEnabledExecutor, GameSetCollider2DIsTriggerExecutor
 File: Assets/BlueprintSystem/Executors/Game/GamePhysicsExecutors.cs
 ```
 
@@ -1057,7 +1064,9 @@ Function:
 ```text
 Resolve `target` as Rigidbody2D or Collider2D, including from a bound GameObject or Component.
 Set `Rigidbody2D.linearVelocity`, call `Rigidbody2D.AddForce`, or set Collider2D flags.
-Return an error if the binding cannot resolve or if force `mode` is invalid.
+`Game.SafeTeleportRigidbody2D` assigns `Rigidbody2D.position` and optional degree rotation, clears velocities unless their preserve flags are true, calls `Physics2D.SyncTransforms()`, and wakes the body.
+The safe teleport target may be a binding name or a connected runtime Rigidbody2D value.
+Return an error if the binding cannot resolve, if force `mode` is invalid, or if a safe teleport position or enabled rotation contains NaN/Infinity.
 ```
 
 Ports and parameters:
@@ -1065,6 +1074,7 @@ Ports and parameters:
 | Node | Target | Value/Force | Extra | Default |
 | --- | --- | --- | --- | --- |
 | `Game.SetRigidbody2DLinearVelocity` | `Binding<Rigidbody2D>` | `value: Vector2` | none | `[0, 0]` |
+| `Game.SafeTeleportRigidbody2D` | `Binding<Rigidbody2D>` | `position: Vector2` | `rotationDegrees: float`, `setRotation: bool`, `preserveLinearVelocity: bool`, `preserveAngularVelocity: bool` | position `[0, 0]`, rotation `0`, all bools `false` |
 | `Game.AddRigidbody2DForce` | `Binding<Rigidbody2D>` | `force: Vector2` | `mode: ForceMode2D` | force `[0, 0]`, mode `Force` |
 | `Game.SetCollider2DEnabled` | `Binding<Collider2D>` | `value: bool` | none | `true` |
 | `Game.SetCollider2DIsTrigger` | `Binding<Collider2D>` | `value: bool` | none | `true` |

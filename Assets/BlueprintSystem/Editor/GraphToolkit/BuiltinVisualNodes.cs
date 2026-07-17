@@ -371,6 +371,31 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SafeTeleportRigidbody")]
+    public sealed class GameSafeTeleportRigidbodyVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SafeTeleportRigidbody", "Safe Teleport Rigidbody", "Game/Physics", "Safely teleports a 3D Rigidbody and optionally preserves its velocities.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Rigidbody>", true, "propertyOrConnection");
+            AddValueInput("position", "Vector3", true, "propertyOrConnection");
+            AddValueInput("rotationEulerAngles", "Vector3", false, "propertyOrConnection");
+            AddValueInput("setRotation", "bool", false, "propertyOrConnection");
+            AddValueInput("preserveLinearVelocity", "bool", false, "propertyOrConnection");
+            AddValueInput("preserveAngularVelocity", "bool", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Rigidbody>", false);
+            AddProperty("position", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
+            AddProperty("rotationEulerAngles", "Vector3", false, new System.Collections.Generic.List<object> { 0f, 0f, 0f });
+            AddProperty("setRotation", "bool", false, false);
+            AddProperty("preserveLinearVelocity", "bool", false, false);
+            AddProperty("preserveAngularVelocity", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("Game.AddRigidbodyForce")]
     public sealed class GameAddRigidbodyForceVisualNode : BlueprintVisualNode
     {
@@ -436,6 +461,31 @@ namespace BlueprintSystem.Editor
             AddExecOutput("execOut");
             AddProperty("target", "Binding<Rigidbody2D>", true);
             AddProperty("value", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Game.SafeTeleportRigidbody2D")]
+    public sealed class GameSafeTeleportRigidbody2DVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Game.SafeTeleportRigidbody2D", "Safe Teleport Rigidbody2D", "Game/Physics2D", "Safely teleports a Rigidbody2D and optionally preserves its velocities.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<Rigidbody2D>", true, "propertyOrConnection");
+            AddValueInput("position", "Vector2", true, "propertyOrConnection");
+            AddValueInput("rotationDegrees", "float", false, "propertyOrConnection");
+            AddValueInput("setRotation", "bool", false, "propertyOrConnection");
+            AddValueInput("preserveLinearVelocity", "bool", false, "propertyOrConnection");
+            AddValueInput("preserveAngularVelocity", "bool", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<Rigidbody2D>", false);
+            AddProperty("position", "Vector2", false, new System.Collections.Generic.List<object> { 0f, 0f });
+            AddProperty("rotationDegrees", "float", false, 0f);
+            AddProperty("setRotation", "bool", false, false);
+            AddProperty("preserveLinearVelocity", "bool", false, false);
+            AddProperty("preserveAngularVelocity", "bool", false, false);
         }
     }
 

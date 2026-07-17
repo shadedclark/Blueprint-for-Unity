@@ -287,10 +287,12 @@ namespace BlueprintSystem
             registry.Register(new GameSetTransformParentExecutor());
             registry.Register(new GameDetachTransformExecutor());
             registry.Register(new GameSetRigidbodyLinearVelocityExecutor());
+            registry.Register(new GameSafeTeleportRigidbodyExecutor());
             registry.Register(new GameAddRigidbodyForceExecutor());
             registry.Register(new GameSetColliderEnabledExecutor());
             registry.Register(new GameSetColliderIsTriggerExecutor());
             registry.Register(new GameSetRigidbody2DLinearVelocityExecutor());
+            registry.Register(new GameSafeTeleportRigidbody2DExecutor());
             registry.Register(new GameAddRigidbody2DForceExecutor());
             registry.Register(new GameSetCollider2DEnabledExecutor());
             registry.Register(new GameSetCollider2DIsTriggerExecutor());
