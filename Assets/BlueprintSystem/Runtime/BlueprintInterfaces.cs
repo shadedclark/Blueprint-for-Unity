@@ -36,6 +36,15 @@ namespace BlueprintSystem
         void ResetToDefaults();
     }
 
+    public interface IBlueprintIndexedVariableStore : IBlueprintVariableStore
+    {
+        object Get(int variableIndex);
+        bool TryGet(int variableIndex, out object value);
+        void Set(int variableIndex, object value);
+        bool Contains(int variableIndex);
+        BlueprintVariableDeclaration GetDeclaration(int variableIndex);
+    }
+
     public interface IBlueprintEventBus
     {
         void Publish(string eventName);
@@ -66,13 +75,21 @@ namespace BlueprintSystem
         }
     }
 
-    public sealed class DictionaryBlueprintVariableStore : IBlueprintVariableStore
+    public sealed class DictionaryBlueprintVariableStore : IBlueprintIndexedVariableStore
     {
-        private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
-        private readonly Dictionary<string, object> _initialValues = new Dictionary<string, object>();
-        private readonly Dictionary<string, BlueprintVariableDeclaration> _declarationsByName = new Dictionary<string, BlueprintVariableDeclaration>();
-        private readonly Dictionary<string, BlueprintVariableDeclaration> _declarationsById = new Dictionary<string, BlueprintVariableDeclaration>();
-        private readonly HashSet<string> _dirtyNames = new HashSet<string>(StringComparer.Ordinal);
+        private sealed class VariableValueRecord
+        {
+            public int NameStableId;
+            public int DeclarationStableId;
+            public string Name;
+            public BlueprintVariableDeclaration Declaration;
+            public CompiledStructLayout Layout;
+            public object Value;
+            public object InitialValue;
+            public bool Dirty;
+        }
+
+        private readonly List<VariableValueRecord> _records = new List<VariableValueRecord>();
 
         public DictionaryBlueprintVariableStore()
         {
@@ -93,11 +110,14 @@ namespace BlueprintSystem
                     continue;
                 }
 
-                _declarationsByName[variable.Name] = variable;
-                if (!string.IsNullOrEmpty(variable.Id))
+                _records.Add(new VariableValueRecord
                 {
-                    _declarationsById[variable.Id] = variable;
-                }
+                    NameStableId = BlueprintStableId.FromString(variable.Name),
+                    DeclarationStableId = BlueprintStableId.FromString(variable.Id),
+                    Name = variable.Name,
+                    Declaration = variable,
+                    Layout = blueprint.GetStructLayout(variable.CompiledLayoutConstantIndex)
+                });
             }
 
             BuildInitialValuesFromDefaults();
@@ -114,22 +134,31 @@ namespace BlueprintSystem
         public object Get(string name)
         {
             object value;
-            return _values.TryGetValue(name, out value) ? value : null;
+            return TryGet(name, out value) ? value : null;
         }
 
         public bool TryGet(string name, out object value)
         {
-            return _values.TryGetValue(name, out value);
+            int index = FindByName(name);
+            return TryGet(index, out value);
         }
 
         public bool TryGetInitial(string name, out object value)
         {
-            return _initialValues.TryGetValue(name, out value);
+            int index = FindByName(name);
+            if (index >= 0)
+            {
+                value = _records[index].InitialValue;
+                return true;
+            }
+            value = null;
+            return false;
         }
 
         public bool IsDirty(string name)
         {
-            return !string.IsNullOrEmpty(name) && _dirtyNames.Contains(name);
+            int index = FindByName(name);
+            return index >= 0 && _records[index].Dirty;
         }
 
         public void Set(string name, object value)
@@ -144,37 +173,36 @@ namespace BlueprintSystem
 
         private void SetValue(string name, object value, bool dirty)
         {
-            BlueprintVariableDeclaration declaration;
-            if (_declarationsByName.TryGetValue(name, out declaration) && declaration != null)
+            int index = FindByName(name);
+            if (index < 0)
             {
-                value = CoerceValue(value, declaration.Type, declaration.DefaultValue);
+                _records.Add(new VariableValueRecord
+                {
+                    NameStableId = BlueprintStableId.FromString(name),
+                    Name = name,
+                    Value = value,
+                    InitialValue = null,
+                    Dirty = dirty
+                });
+                return;
             }
 
-            _values[name] = value;
-            if (dirty)
-            {
-                _dirtyNames.Add(name);
-            }
-            else
-            {
-                _dirtyNames.Remove(name);
-            }
+            SetValue(index, value, dirty);
         }
 
         public bool Contains(string name)
         {
-            return _values.ContainsKey(name);
+            return FindByName(name) >= 0;
         }
 
         public void ResetToDefaults()
         {
-            _values.Clear();
-            foreach (KeyValuePair<string, object> pair in _initialValues)
+            for (int i = 0; i < _records.Count; i++)
             {
-                _values[pair.Key] = CloneValueForVariable(pair.Key, pair.Value);
+                VariableValueRecord record = _records[i];
+                record.Value = CloneValueForVariable(i, record.InitialValue);
+                record.Dirty = false;
             }
-
-            _dirtyNames.Clear();
         }
 
         public void ApplyOverrides(IEnumerable<BlueprintVariableOverride> overrides, bool exposedOnly)
@@ -220,23 +248,22 @@ namespace BlueprintSystem
 
         private void BuildInitialValuesFromDefaults()
         {
-            _initialValues.Clear();
-            foreach (KeyValuePair<string, BlueprintVariableDeclaration> pair in _declarationsByName)
+            for (int i = 0; i < _records.Count; i++)
             {
-                BlueprintVariableDeclaration variable = pair.Value;
-                _initialValues[pair.Key] = CoerceValue(variable.DefaultValue, variable.Type, null);
+                BlueprintVariableDeclaration variable = _records[i].Declaration;
+                _records[i].InitialValue = variable == null
+                    ? null
+                    : CoerceValue(variable.DefaultValue, variable.Type, null, _records[i].Layout);
             }
         }
 
         private void CaptureInitialValuesFromCurrentValues()
         {
-            _initialValues.Clear();
-            foreach (KeyValuePair<string, object> pair in _values)
+            for (int i = 0; i < _records.Count; i++)
             {
-                _initialValues[pair.Key] = CloneValueForVariable(pair.Key, pair.Value);
+                _records[i].InitialValue = CloneValueForVariable(i, _records[i].Value);
+                _records[i].Dirty = false;
             }
-
-            _dirtyNames.Clear();
         }
 
         private static bool IsOverrideEnabled(BlueprintVariableOverride variableOverride)
@@ -260,19 +287,18 @@ namespace BlueprintSystem
                 return false;
             }
 
-            if (!string.IsNullOrEmpty(variableOverride.VariableId) &&
-                _declarationsById.TryGetValue(variableOverride.VariableId, out declaration) &&
-                declaration != null &&
-                !string.IsNullOrEmpty(declaration.Name))
+            int index = FindByDeclarationId(variableOverride.VariableId);
+            if (index >= 0)
             {
+                declaration = _records[index].Declaration;
                 variableName = declaration.Name;
                 return true;
             }
 
-            if (!string.IsNullOrEmpty(variableOverride.Name) &&
-                _declarationsByName.TryGetValue(variableOverride.Name, out declaration) &&
-                declaration != null)
+            index = FindByName(variableOverride.Name);
+            if (index >= 0)
             {
+                declaration = _records[index].Declaration;
                 variableName = variableOverride.Name;
                 return true;
             }
@@ -312,7 +338,7 @@ namespace BlueprintSystem
             return BlueprintTypeUtility.IsValueAssignableToType(value, type);
         }
 
-        private static object CoerceValue(object value, string type, object defaultValue)
+        private static object CoerceValue(object value, string type, object defaultValue, CompiledStructLayout layout)
         {
             if (string.IsNullOrEmpty(type) || value == null)
             {
@@ -341,6 +367,27 @@ namespace BlueprintSystem
                 case "Color":
                     return value is Color ? value : ToColor(value, defaultValue is Color ? (Color)defaultValue : Color.white);
                 default:
+                    if (layout != null)
+                    {
+                        string elementType;
+                        if (BlueprintArrayUtility.TryGetElementType(type, out elementType))
+                        {
+                            System.Collections.IList source = BlueprintArrayUtility.ReadList(value);
+                            if (source == null) return defaultValue;
+                            List<object> records = new List<object>(source.Count);
+                            for (int i = 0; i < source.Count; i++)
+                            {
+                                object record;
+                                if (!BlueprintUserStructUtility.TryConvertToRuntimeValue(source[i], layout, out record)) return defaultValue;
+                                records.Add(record);
+                            }
+                            return records;
+                        }
+
+                        object recordValue;
+                        if (BlueprintUserStructUtility.TryConvertToRuntimeValue(value, layout, out recordValue)) return recordValue;
+                    }
+
                     if (BlueprintDataTableVariableTypeUtility.IsDataTableType(type))
                     {
                         string tablePath;
@@ -372,12 +419,17 @@ namespace BlueprintSystem
             }
         }
 
-        private object CloneValueForVariable(string name, object value)
+        private object CloneValueForVariable(int index, object value)
         {
-            BlueprintVariableDeclaration declaration;
-            if (!_declarationsByName.TryGetValue(name, out declaration) || declaration == null)
+            BlueprintVariableDeclaration declaration = GetDeclaration(index);
+            if (declaration == null)
             {
                 return value;
+            }
+
+            if (_records[index].Layout != null)
+            {
+                return CoerceValue(value, declaration.Type, declaration.DefaultValue, _records[index].Layout);
             }
 
             object jsonValue;
@@ -394,7 +446,71 @@ namespace BlueprintSystem
                 return runtimeValue;
             }
 
-            return CoerceValue(value, declaration.Type, declaration.DefaultValue);
+            return CoerceValue(value, declaration.Type, declaration.DefaultValue, _records[index].Layout);
+        }
+
+        public object Get(int variableIndex)
+        {
+            object value;
+            return TryGet(variableIndex, out value) ? value : null;
+        }
+
+        public bool TryGet(int variableIndex, out object value)
+        {
+            if (variableIndex >= 0 && variableIndex < _records.Count)
+            {
+                value = _records[variableIndex].Value;
+                return true;
+            }
+            value = null;
+            return false;
+        }
+
+        public void Set(int variableIndex, object value)
+        {
+            SetValue(variableIndex, value, true);
+        }
+
+        public bool Contains(int variableIndex)
+        {
+            return variableIndex >= 0 && variableIndex < _records.Count;
+        }
+
+        public BlueprintVariableDeclaration GetDeclaration(int variableIndex)
+        {
+            return variableIndex >= 0 && variableIndex < _records.Count ? _records[variableIndex].Declaration : null;
+        }
+
+        private void SetValue(int index, object value, bool dirty)
+        {
+            if (index < 0 || index >= _records.Count) return;
+            VariableValueRecord record = _records[index];
+            BlueprintVariableDeclaration declaration = record.Declaration;
+            if (declaration != null) value = CoerceValue(value, declaration.Type, declaration.DefaultValue, record.Layout);
+            record.Value = value;
+            record.Dirty = dirty;
+        }
+
+        private int FindByName(string name)
+        {
+            int stableId = BlueprintStableId.FromString(name);
+            for (int i = 0; i < _records.Count; i++)
+            {
+                if (_records[i].NameStableId == stableId && string.Equals(_records[i].Name, name, StringComparison.Ordinal)) return i;
+            }
+            return -1;
+        }
+
+        private int FindByDeclarationId(string declarationId)
+        {
+            if (string.IsNullOrEmpty(declarationId)) return -1;
+            int stableId = BlueprintStableId.FromString(declarationId);
+            for (int i = 0; i < _records.Count; i++)
+            {
+                BlueprintVariableDeclaration declaration = _records[i].Declaration;
+                if (_records[i].DeclarationStableId == stableId && declaration != null && string.Equals(declaration.Id, declarationId, StringComparison.Ordinal)) return i;
+            }
+            return -1;
         }
 
         private static Color ToColor(object value, Color defaultValue)

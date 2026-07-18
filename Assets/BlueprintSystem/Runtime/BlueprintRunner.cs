@@ -233,7 +233,14 @@ namespace BlueprintSystem
         private readonly Dictionary<string, IBlueprintInstance> _componentsByName = new Dictionary<string, IBlueprintInstance>();
         private readonly Dictionary<string, UnityEngine.Object> _bindingsByName = new Dictionary<string, UnityEngine.Object>();
         private readonly List<ComponentRuntimeRecord> _componentRuntimeRecords = new List<ComponentRuntimeRecord>();
-        private readonly Dictionary<string, int> _dynamicBlueprintTargetCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private sealed class DynamicBlueprintTargetRecord
+        {
+            public int StablePathId;
+            public string DebugPath;
+            public int RuntimeRecordIndex;
+        }
+
+        private readonly List<DynamicBlueprintTargetRecord> _dynamicBlueprintTargetCache = new List<DynamicBlueprintTargetRecord>();
         private int _componentRuntimeVersion;
 
         public string InstanceName
@@ -729,7 +736,7 @@ namespace BlueprintSystem
             }
 
             int cachedRecordIndex;
-            if (_dynamicBlueprintTargetCache.TryGetValue(targetPath, out cachedRecordIndex))
+            if (TryGetDynamicBlueprintTarget(targetPath, out cachedRecordIndex))
             {
                 ambiguous = cachedRecordIndex == -2;
                 if (cachedRecordIndex >= 0 && cachedRecordIndex < _componentRuntimeRecords.Count)
@@ -742,13 +749,35 @@ namespace BlueprintSystem
             }
 
             cachedRecordIndex = FindUniqueRecordIndex(null, targetPath, out ambiguous);
-            _dynamicBlueprintTargetCache[targetPath] = ambiguous ? -2 : cachedRecordIndex;
+            _dynamicBlueprintTargetCache.Add(new DynamicBlueprintTargetRecord
+            {
+                StablePathId = BlueprintStableId.FromString(targetPath.ToLowerInvariant()),
+                DebugPath = targetPath,
+                RuntimeRecordIndex = ambiguous ? -2 : cachedRecordIndex
+            });
             if (cachedRecordIndex >= 0)
             {
                 instance = _componentRuntimeRecords[cachedRecordIndex].Instance;
                 return instance != null;
             }
 
+            return false;
+        }
+
+        private bool TryGetDynamicBlueprintTarget(string targetPath, out int recordIndex)
+        {
+            int stablePathId = BlueprintStableId.FromString(targetPath == null ? null : targetPath.ToLowerInvariant());
+            for (int i = 0; i < _dynamicBlueprintTargetCache.Count; i++)
+            {
+                DynamicBlueprintTargetRecord record = _dynamicBlueprintTargetCache[i];
+                if (record.StablePathId == stablePathId &&
+                    string.Equals(record.DebugPath, targetPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    recordIndex = record.RuntimeRecordIndex;
+                    return true;
+                }
+            }
+            recordIndex = -1;
             return false;
         }
 

@@ -25,6 +25,12 @@ namespace BlueprintSystem
             runtime.Bindings.AddRange(source.Bindings);
             runtime.Components.AddRange(source.Components);
 
+            for (int i = 0; i < runtime.Variables.Count; i++)
+            {
+                BlueprintVariableDeclaration variable = runtime.Variables[i];
+                if (variable != null) variable.CompiledLayoutConstantIndex = AddRuntimeStructLayout(runtime, variable.Type);
+            }
+
             for (int i = 0; i < source.Nodes.Count; i++)
             {
                 BlueprintNodeSource sourceNode = source.Nodes[i];
@@ -36,20 +42,60 @@ namespace BlueprintSystem
 
                 RuntimeNode runtimeNode = new RuntimeNode();
                 runtimeNode.Id = sourceNode.Id;
+                runtimeNode.StableId = BlueprintStableId.FromString(sourceNode.Id);
                 runtimeNode.TypeId = sourceNode.TypeId;
                 runtimeNode.Manifest = manifest;
                 runtimeNode.Executor = executor;
+                runtimeNode.ExecutorOpcode = BlueprintStableId.FromString(manifest.Executor);
                 runtimeNode.CompiledTarget = BlueprintCompiledTargetUtility.Create(source, sourceNode);
+                if (runtimeNode.CompiledTarget != null)
+                {
+                    runtimeNode.CompiledTargetConstantIndex = AddRuntimeConstant(
+                        runtime,
+                        sourceNode.Id + ".blueprintTarget",
+                        "BlueprintTarget",
+                        runtimeNode.CompiledTarget);
+                }
                 foreach (KeyValuePair<string, object> pair in sourceNode.Properties)
                 {
-                    runtimeNode.Properties[pair.Key] = pair.Value;
+                    int constantIndex = AddRuntimeConstant(runtime, sourceNode.Id + "." + pair.Key, "Property", pair.Value);
+                    runtimeNode.Properties.Set(pair.Key, pair.Value, constantIndex);
+                    runtimeNode.InputRecords.Add(new RuntimeInputRecord
+                    {
+                        PortStableId = BlueprintStableId.FromString(pair.Key),
+                        DebugPortId = pair.Key,
+                        ConstantIndex = constantIndex
+                    });
+                }
+                if (manifest.Executor == "Variable.Get" || manifest.Executor == "Variable.Set")
+                {
+                    object variableName;
+                    if (sourceNode.Properties.TryGetValue("name", out variableName))
+                    {
+                        runtimeNode.VariableIndex = FindVariableIndex(source, variableName == null ? null : variableName.ToString());
+                    }
+                }
+                if (manifest.Executor == "SmartObject.FindBest" || manifest.Executor == "SmartObject.FindBestActor")
+                {
+                    runtimeNode.SpecializedConstantIndex = AddRuntimeConstant(
+                        runtime,
+                        sourceNode.Id + ".smartObjectQuery",
+                        "SmartObjectQuery",
+                        CompiledSmartObjectQueryDescription.Create(runtimeNode));
                 }
 
-                runtime.NodesById[runtimeNode.Id] = runtimeNode;
+                runtime.NodeRecords.Add(runtimeNode);
 
                 if (BlueprintEventUtility.IsEventNode(manifest))
                 {
-                    runtime.EventEntries[BlueprintEventUtility.GetEventName(sourceNode)] = runtimeNode.Id;
+                    string eventName = BlueprintEventUtility.GetEventName(sourceNode);
+                    runtime.EventRecords.Add(new RuntimeEventRecord
+                    {
+                        StableId = BlueprintStableId.FromString(eventName),
+                        DebugName = eventName,
+                        NodeIndex = runtimeNode.StableIndex,
+                        DebugNodeId = runtimeNode.Id
+                    });
                 }
             }
 
@@ -75,26 +121,87 @@ namespace BlueprintSystem
                     continue;
                 }
 
-                RuntimeEdge edge = new RuntimeEdge(from, to);
                 if (output.Kind == BlueprintPortKind.Exec)
                 {
-                    List<RuntimeEdge> list;
-                    if (!runtime.ExecOutputs.TryGetValue(from, out list))
+                    RuntimeExecOutputRecord execOutput = fromNode.FindExecOutput(BlueprintStableId.FromString(from.PortId));
+                    if (execOutput == null)
                     {
-                        list = new List<RuntimeEdge>();
-                        runtime.ExecOutputs[from] = list;
+                        execOutput = new RuntimeExecOutputRecord
+                        {
+                            PortStableId = BlueprintStableId.FromString(from.PortId),
+                            DebugPortId = from.PortId
+                        };
+                        fromNode.ExecOutputRecords.Add(execOutput);
                     }
 
-                    list.Add(edge);
+                    execOutput.Targets.Add(new RuntimeExecTargetRecord
+                    {
+                        NodeIndex = toNode.StableIndex,
+                        InputPortStableId = BlueprintStableId.FromString(to.PortId),
+                        DebugInputPortId = to.PortId
+                    });
                 }
                 else
                 {
-                    runtime.ValueInputs[new BlueprintPortKey(toNode.Id, to.PortId)] = edge;
+                    int inputId = BlueprintStableId.FromString(to.PortId);
+                    RuntimeInputRecord input = toNode.FindInput(inputId);
+                    if (input == null)
+                    {
+                        input = new RuntimeInputRecord { PortStableId = inputId, DebugPortId = to.PortId };
+                        toNode.InputRecords.Add(input);
+                    }
+
+                    input.SourceNodeIndex = fromNode.StableIndex;
+                    input.SourcePortStableId = BlueprintStableId.FromString(from.PortId);
+                    input.DebugSourcePortId = from.PortId;
                 }
             }
 
             result.Blueprint = runtime;
             return result;
+        }
+
+        private static int AddRuntimeConstant(RuntimeBlueprint runtime, string stableName, string kind, object value)
+        {
+            int index = runtime.ConstantPool.Count;
+            runtime.ConstantPool.Add(new RuntimeConstantRecord
+            {
+                StableId = BlueprintStableId.FromString(stableName),
+                Kind = kind,
+                Value = value
+            });
+            return index;
+        }
+
+        private static int AddRuntimeStructLayout(RuntimeBlueprint runtime, string variableType)
+        {
+            string structType = variableType;
+            string elementType;
+            if (BlueprintArrayUtility.TryGetElementType(variableType, out elementType)) structType = elementType;
+
+            CompiledStructLayout layout;
+            if (!BlueprintUserStructRegistry.TryGetLayout(structType, out layout)) return -1;
+
+            int stableId = BlueprintStableId.FromString("structLayout." + structType);
+            for (int i = 0; i < runtime.ConstantPool.Count; i++)
+            {
+                RuntimeConstantRecord existing = runtime.ConstantPool[i];
+                if (existing.StableId == stableId && existing.Kind == "StructLayout") return i;
+            }
+
+            return AddRuntimeConstant(runtime, "structLayout." + structType, "StructLayout", layout);
+        }
+
+        private static int FindVariableIndex(BlueprintSource source, string variableName)
+        {
+            if (source == null || string.IsNullOrEmpty(variableName)) return -1;
+            int stableId = BlueprintStableId.FromString(variableName);
+            for (int i = 0; i < source.Variables.Count; i++)
+            {
+                BlueprintVariableDeclaration variable = source.Variables[i];
+                if (variable != null && BlueprintStableId.FromString(variable.Name) == stableId && variable.Name == variableName) return i;
+            }
+            return -1;
         }
 
         private static void MigrateLegacyBindButtonClickEvents(BlueprintSource source)

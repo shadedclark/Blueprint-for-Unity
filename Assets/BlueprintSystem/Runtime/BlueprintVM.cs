@@ -11,13 +11,15 @@ namespace BlueprintSystem
 
         private struct QueuedExec
         {
-            public string NodeId;
-            public string InputPortId;
+            public int NodeIndex;
+            public int InputPortStableId;
+            public string DebugInputPortId;
 
-            public QueuedExec(string nodeId, string inputPortId)
+            public QueuedExec(int nodeIndex, int inputPortStableId, string debugInputPortId)
             {
-                NodeId = nodeId;
-                InputPortId = inputPortId;
+                NodeIndex = nodeIndex;
+                InputPortStableId = inputPortStableId;
+                DebugInputPortId = debugInputPortId;
             }
         }
 
@@ -37,8 +39,8 @@ namespace BlueprintSystem
                 context.RecordTrace(BlueprintTraceRecordKind.EventRequested);
             }
 
-            string entryNodeId;
-            if (!context.Blueprint.EventEntries.TryGetValue(eventName, out entryNodeId))
+            int entryNodeIndex;
+            if (!context.Blueprint.TryGetEventNodeIndex(eventName, out entryNodeIndex))
             {
                 if (IsDebugLogEnabled(context.Logger))
                 {
@@ -54,7 +56,7 @@ namespace BlueprintSystem
 
             if (traceEnabled)
             {
-                context.RecordTrace(BlueprintTraceRecordKind.EventMatched, status: "matched", value: entryNodeId);
+                context.RecordTrace(BlueprintTraceRecordKind.EventMatched, status: "matched", value: entryNodeIndex);
             }
 
             try
@@ -62,7 +64,7 @@ namespace BlueprintSystem
                 Queue<QueuedExec> queue = AcquireExecutionQueue();
                 try
                 {
-                    queue.Enqueue(new QueuedExec(entryNodeId, null));
+                    queue.Enqueue(new QueuedExec(entryNodeIndex, 0, null));
                     ExecuteNodeQueue(context, queue);
                 }
                 finally
@@ -88,7 +90,8 @@ namespace BlueprintSystem
                 {
                     for (int i = 0; i < nodeIds.Count; i++)
                     {
-                        queue.Enqueue(new QueuedExec(nodeIds[i], null));
+                        RuntimeNode node = context == null || context.Blueprint == null ? null : context.Blueprint.GetNode(nodeIds[i]);
+                        if (node != null) queue.Enqueue(new QueuedExec(node.StableIndex, 0, null));
                     }
                 }
 
@@ -113,11 +116,11 @@ namespace BlueprintSystem
                 }
 
                 QueuedExec queued = queue.Dequeue();
-                RuntimeNode node = context.Blueprint.GetNode(queued.NodeId);
+                RuntimeNode node = context.Blueprint.GetNode(queued.NodeIndex);
                 if (node == null)
                 {
-                    context.Logger.Error("Missing runtime node '" + queued.NodeId + "'.");
-                    context.RecordTrace(BlueprintTraceRecordKind.Error, status: "missingNode", message: "Missing runtime node '" + queued.NodeId + "'.");
+                    context.Logger.Error("Missing runtime node index '" + queued.NodeIndex + "'.");
+                    context.RecordTrace(BlueprintTraceRecordKind.Error, status: "missingNode", message: "Missing runtime node index '" + queued.NodeIndex + "'.");
                     continue;
                 }
 
@@ -140,9 +143,9 @@ namespace BlueprintSystem
                 if (traceEnabled)
                 {
                     context.SetTraceExecutionState(previousTraceEvent, node);
-                    context.RecordTrace(BlueprintTraceRecordKind.NodeEnter, queued.InputPortId, "entered");
+                    context.RecordTrace(BlueprintTraceRecordKind.NodeEnter, queued.DebugInputPortId, "entered");
                 }
-                context.SetCurrentExecInputPort(queued.InputPortId);
+                context.SetCurrentExecInputPort(queued.DebugInputPortId);
                 BlueprintExecResult result;
                 try
                 {
@@ -213,35 +216,43 @@ namespace BlueprintSystem
 
         private void EnqueueNext(BlueprintExecutionContext context, RuntimeNode node, BlueprintExecResult result, Queue<QueuedExec> queue)
         {
-            if (result.NextExecPortIds != null && result.NextExecPortIds.Count > 0)
+            if (result.NextExecPorts != null && result.NextExecPorts.Count > 0)
             {
-                for (int i = 0; i < result.NextExecPortIds.Count; i++)
+                for (int i = 0; i < result.NextExecPorts.Count; i++)
                 {
-                    context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, result.NextExecPortIds[i], "selected");
-                    EnqueueOutput(context, node, result.NextExecPortIds[i], queue);
+                    BlueprintExecPortRecord port = result.NextExecPorts[i];
+                    if (port == null) continue;
+                    context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, port.DebugPortId, "selected");
+                    EnqueueOutput(context, node, port.StableId, queue);
                 }
 
                 return;
             }
 
-            if (!string.IsNullOrEmpty(result.NextExecPortId))
+            if (result.NextExecPort != null)
             {
-                context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, result.NextExecPortId, "selected");
-                EnqueueOutput(context, node, result.NextExecPortId, queue);
+                context.RecordTrace(BlueprintTraceRecordKind.ExecPortSelected, result.NextExecPort.DebugPortId, "selected");
+                EnqueueOutput(context, node, result.NextExecPort.StableId, queue);
             }
         }
 
         private void EnqueueOutput(BlueprintExecutionContext context, RuntimeNode node, string outputPortId, Queue<QueuedExec> queue)
         {
-            List<RuntimeEdge> edges = context.Blueprint.GetExecEdges(new BlueprintPortKey(node.Id, outputPortId));
-            if (edges == null)
+            EnqueueOutput(context, node, BlueprintStableId.FromString(outputPortId), queue);
+        }
+
+        private void EnqueueOutput(BlueprintExecutionContext context, RuntimeNode node, int outputPortStableId, Queue<QueuedExec> queue)
+        {
+            IReadOnlyList<RuntimeExecTargetRecord> targets = context.Blueprint.GetExecTargets(node.StableIndex, outputPortStableId);
+            if (targets == null)
             {
                 return;
             }
 
-            for (int i = 0; i < edges.Count; i++)
+            for (int i = 0; i < targets.Count; i++)
             {
-                queue.Enqueue(new QueuedExec(edges[i].To.NodeId, edges[i].To.PortId));
+                RuntimeExecTargetRecord target = targets[i];
+                queue.Enqueue(new QueuedExec(target.NodeIndex, target.InputPortStableId, target.DebugInputPortId));
             }
         }
 
@@ -315,8 +326,7 @@ namespace BlueprintSystem
 
         private static bool HasNextExecutionPort(BlueprintExecResult result)
         {
-            return (result.NextExecPortIds != null && result.NextExecPortIds.Count > 0) ||
-                   !string.IsNullOrEmpty(result.NextExecPortId);
+            return (result.NextExecPorts != null && result.NextExecPorts.Count > 0) || result.NextExecPort != null;
         }
 
         private Queue<QueuedExec> AcquireExecutionQueue()

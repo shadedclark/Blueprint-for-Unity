@@ -364,6 +364,81 @@ namespace BlueprintSystem.Tests
             Assert.AreEqual("event_open", blueprint.EventEntries["OnOpen"]);
             Assert.True(blueprint.NodesById.ContainsKey("set_title"));
             Assert.True(blueprint.ExecOutputs.ContainsKey(new BlueprintPortKey("event_open", "execOut")));
+            Assert.GreaterOrEqual(blueprint.GetNode("event_open").StableIndex, 0);
+            Assert.AreNotEqual(0, blueprint.GetNode("set_title").ExecutorOpcode);
+            Assert.True(blueprint.HasExecTargets(
+                blueprint.GetNode("event_open").StableIndex,
+                BlueprintStableId.FromString("execOut")));
+        }
+
+        [Test]
+        public void CompiledAssetLowersGraphIntoNodeRecordsAndConstants()
+        {
+            BlueprintCompiledAsset asset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            try
+            {
+                asset.SetCompiledData(
+                    "0.1",
+                    "LoweredGraph",
+                    "guid",
+                    "Assets/LoweredGraph.blueprint.json",
+                    "source",
+                    "manifest",
+                    new[]
+                    {
+                        new BlueprintCompiledVariable { Id = "flag-id", Name = "flag", Type = "bool", DefaultValueJson = "false" },
+                        new BlueprintCompiledVariable
+                        {
+                            Id = "row-id",
+                            Name = "row",
+                            Type = "Struct.SampleItemConfigRow",
+                            DefaultValueJson = "{\"itemId\":\"potion\",\"displayName\":\"Potion\",\"category\":\"Consumable\",\"price\":10}"
+                        }
+                    },
+                    new BlueprintCompiledBinding[0],
+                    new BlueprintCompiledComponent[0],
+                    new[]
+                    {
+                        new BlueprintCompiledNode { Id = "start", TypeId = "Game.Event.OnStart", ExecutorId = "Flow.Event" },
+                        new BlueprintCompiledNode
+                        {
+                            Id = "set_flag",
+                            TypeId = "Variable.Set",
+                            ExecutorId = "Variable.Set",
+                            Properties = new List<BlueprintCompiledProperty>
+                            {
+                                new BlueprintCompiledProperty { Id = "name", JsonValue = "\"flag\"" },
+                                new BlueprintCompiledProperty { Id = "value", JsonValue = "true" }
+                            }
+                        }
+                    },
+                    new[] { new BlueprintCompiledEdge { FromNodeId = "start", FromPortId = "execOut", ToNodeId = "set_flag", ToPortId = "execIn" } },
+                    new BlueprintCompiledEdge[0],
+                    new[] { new BlueprintCompiledEventEntry { EventName = "OnStart", NodeId = "start" } });
+
+                Assert.AreEqual(2, asset.NodeRecords.Count);
+                Assert.GreaterOrEqual(asset.ConstantPool.Count, 2);
+                Assert.AreEqual(0, asset.NodeRecords[0].StableIndex);
+                Assert.AreEqual(BlueprintStableId.FromString("Flow.Event"), asset.NodeRecords[0].ExecutorOpcode);
+                Assert.AreEqual(1, asset.NodeRecords[0].ExecOutputs[0].Targets[0].NodeIndex);
+                Assert.AreEqual(0, asset.NodeRecords[1].VariableIndex);
+                Assert.AreEqual(0, asset.EventRecords[0].NodeIndex);
+                Assert.GreaterOrEqual(asset.Variables[1].CompiledLayoutConstantIndex, 0);
+                Assert.AreEqual("StructLayout", asset.ConstantPool[asset.Variables[1].CompiledLayoutConstantIndex].Kind);
+
+                RuntimeBlueprint runtime = asset.CreateRuntimeBlueprint(BlueprintExecutorRegistry.CreateDefault());
+                RuntimeNode setFlag = runtime.GetNode(1);
+                Assert.AreEqual("set_flag", setFlag.Id);
+                Assert.AreEqual(0, setFlag.VariableIndex);
+                Assert.AreEqual(true, runtime.GetConstant(setFlag.FindInput(BlueprintStableId.FromString("value")).ConstantIndex));
+                Assert.AreEqual(
+                    "Struct.SampleItemConfigRow",
+                    runtime.GetStructLayout(runtime.Variables[1].CompiledLayoutConstantIndex).TypeId);
+            }
+            finally
+            {
+                Object.DestroyImmediate(asset);
+            }
         }
 
         [Test]

@@ -23,7 +23,11 @@ A user-facing node needs a .node.json manifest and, for Graph Toolkit UX, a visu
 
 ## Runtime Model
 
-Each blueprint node is identified by `typeId`. In the editor, the compiler finds a matching node manifest, bakes manifest defaults into a `BlueprintCompiledAsset`, then stores each node's executor id for runtime hydration. At runtime, `BlueprintRunner.compiledBlueprint` is the root blueprint asset reference and may include compiled component blueprint references; executor ids resolve through `BlueprintExecutorRegistry.CreateDefault()` without loading source JSON or node manifests.
+Each blueprint node is identified by `typeId` in source. The compiler lowers source IDs and edges into `CompiledNodeRecord` entries with a stable node index, deterministic executor opcode, property/input records, and per-output execution target records. Runtime hydration resolves opcodes once and the VM queue, value dependency traversal, event entries, variables, and exec targets use integer indices/stable IDs; source node and port strings remain debug metadata and compatibility-boundary inputs, not Dictionary keys in the execution path.
+
+Compiled values live in one record-based constant pool. Node properties and asset references point at constant indices; `CompiledBlueprintTarget`, `CompiledSmartObjectQueryDescription`, and the `CompiledStructLayout` used by scalar/array struct variables are also constants. Variable records retain the layout constant index, so variable initialization and writes do not resolve a struct type name through the global registry. Do not introduce parallel arrays for compiled fields—add a record type containing the stable ID/index and its payload or child records.
+
+Legacy compiled assets that only contain string node/edge data are lowered once when hydrated. Saving or recompiling a blueprint writes the lowered records directly.
 
 Value input resolution order:
 
@@ -2478,7 +2482,7 @@ In the ScriptableObject inspector, `schemaVersion` and field `id` are hidden int
 
 Blueprint variables can use `Struct.InventoryItem` or `Array<Struct.InventoryItem>` as their type. Defaults are stored in blueprint JSON as normal field objects, then coerced once by the variable store into `RuntimeStructRecord` instances. `BlueprintStructValue` remains the compatibility base type for existing integrations.
 
-The runtime registry compiles one shared `CompiledStructLayout` per struct type. A layout contains the `typeId`, the ordered field definitions, and field ID/name lookup tables that map to stable field indices. Each `RuntimeStructRecord` references that layout and stores only an indexed field-value array. Passing an existing `RuntimeStructRecord` through conversion for the same type returns the same instance. Reads do not allocate; `Variable.BreakStruct`, struct equality in `Variable.Compare`, and struct path access use indices. `Variable.SetField` validates only the written field, copies the value array, and reuses the layout; nested writes copy only the records along the changed path. JSON/dictionary normalization remains at ingestion and serialization boundaries.
+The compiler emits each referenced `CompiledStructLayout` into the Blueprint constant pool. A layout is a record collection containing the `typeId`, stable field indices/IDs, and ordered field definitions; it does not use parallel arrays or runtime field-name dictionaries. Each `RuntimeStructRecord` references that layout and stores only an indexed field-value array. Passing an existing `RuntimeStructRecord` through conversion for the same type returns the same instance. Reads do not allocate; `Variable.BreakStruct`, struct equality in `Variable.Compare`, and struct path access use indices. `Variable.SetField` validates only the written field, copies the value array, and reuses the layout; nested writes copy only the records along the changed path. JSON/dictionary normalization remains at ingestion and serialization boundaries.
 
 Runtime field paths still accept field names or field IDs, while `Variable.BreakStruct` keeps connections stable by using field IDs as output port IDs.
 

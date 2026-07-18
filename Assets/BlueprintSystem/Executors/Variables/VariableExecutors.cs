@@ -11,6 +11,15 @@ namespace BlueprintSystem
 
         public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
         {
+            IBlueprintIndexedVariableStore indexed = context.Variables as IBlueprintIndexedVariableStore;
+            if (node.VariableIndex >= 0 && indexed != null)
+            {
+                object indexedValue;
+                if (indexed.TryGet(node.VariableIndex, out indexedValue)) return indexedValue;
+                context.Logger.Error("Variable.Get node '" + node.Id + "' references invalid variable index " + node.VariableIndex + ".");
+                return null;
+            }
+
             string name = context.GetInputValue(node, "name", string.Empty);
             if (string.IsNullOrEmpty(name))
             {
@@ -38,6 +47,24 @@ namespace BlueprintSystem
 
         public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
         {
+            IBlueprintIndexedVariableStore indexed = context.Variables as IBlueprintIndexedVariableStore;
+            if (node.VariableIndex >= 0 && indexed != null)
+            {
+                object indexedValue = context.GetInputValue(node, "value");
+                BlueprintVariableDeclaration indexedDeclaration = indexed.GetDeclaration(node.VariableIndex);
+                if (indexedDeclaration != null &&
+                    BlueprintDataTableVariableTypeUtility.IsDataTableType(indexedDeclaration.Type) &&
+                    !BlueprintTypeUtility.IsValueAssignableToType(indexedValue, indexedDeclaration.Type))
+                {
+                    return BlueprintExecResult.Error(
+                        "Variable.Set node '" + node.Id + "' expects " + indexedDeclaration.Type + " for variable index " + node.VariableIndex + ".");
+                }
+
+                context.SetVariable(node.VariableIndex, indexedValue);
+                BlueprintReactiveBindingRuntime.RefreshForContext(context);
+                return BlueprintExecResult.Continue("execOut");
+            }
+
             string name = context.GetInputValue(node, "name", string.Empty);
             object value = context.GetInputValue(node, "value");
             if (string.IsNullOrEmpty(name))

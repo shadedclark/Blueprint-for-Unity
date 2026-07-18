@@ -31,15 +31,15 @@ namespace BlueprintSystem
         public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
         {
             SmartObjectResult result = SmartObjectRegistry.FindBest(
-                context.GetInputValue(node, "requesterId", string.Empty),
-                context.GetInputValue(node, "activity", string.Empty),
-                GameExecutorValueUtility.GetVector3Input(context, node, "center", Vector3.zero),
-                context.GetInputValue(node, "radius", 10f),
-                context.GetInputValue(node, "requiredTags", string.Empty),
-                context.GetInputValue(node, "forbiddenTags", string.Empty),
-                context.GetInputValue(node, "accessGroup", string.Empty),
-                context.GetInputValue(node, "needScore", 0f),
-                context.GetInputValue(node, "maxDistancePenalty", 0f));
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.RequesterId, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.Activity, string.Empty),
+                SmartObjectCompiledQueryUtility.GetVector3(context, node, SmartObjectCompiledQueryUtility.Center, Vector3.zero),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.Radius, 10f),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.RequiredTags, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.ForbiddenTags, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.AccessGroup, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.NeedScore, 0f),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.MaxDistancePenalty, 0f));
             return SmartObjectExecutorUtility.ReadResult(result, outputPortId);
         }
     }
@@ -55,17 +55,17 @@ namespace BlueprintSystem
         {
             GameObject excludeGameObject = GameExecutorBindingUtility.ResolveBinding<GameObject>(
                 context,
-                context.GetInputValue(node, "excludeGameObject"));
+                SmartObjectCompiledQueryUtility.GetRaw(context, node, SmartObjectCompiledQueryUtility.ExcludeGameObject));
             SmartObjectResult result = SmartObjectRegistry.FindBestActor(
-                context.GetInputValue(node, "requesterId", string.Empty),
-                context.GetInputValue(node, "activity", string.Empty),
-                GameExecutorValueUtility.GetVector3Input(context, node, "center", Vector3.zero),
-                context.GetInputValue(node, "radius", 10f),
-                context.GetInputValue(node, "requiredTags", string.Empty),
-                context.GetInputValue(node, "forbiddenTags", string.Empty),
-                context.GetInputValue(node, "accessGroup", string.Empty),
-                context.GetInputValue(node, "needScore", 0f),
-                context.GetInputValue(node, "maxDistancePenalty", 0f),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.RequesterId, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.Activity, string.Empty),
+                SmartObjectCompiledQueryUtility.GetVector3(context, node, SmartObjectCompiledQueryUtility.Center, Vector3.zero),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.Radius, 10f),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.RequiredTags, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.ForbiddenTags, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.AccessGroup, string.Empty),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.NeedScore, 0f),
+                SmartObjectCompiledQueryUtility.Get(context, node, SmartObjectCompiledQueryUtility.MaxDistancePenalty, 0f),
                 excludeGameObject);
             return SmartObjectExecutorUtility.ReadResult(result, outputPortId);
         }
@@ -240,6 +240,48 @@ namespace BlueprintSystem
         private static string ResultKey(RuntimeNode node)
         {
             return "smartObjectResult:" + (node == null ? string.Empty : node.Id);
+        }
+    }
+
+    internal static class SmartObjectCompiledQueryUtility
+    {
+        public static readonly int RequesterId = BlueprintStableId.FromString("requesterId");
+        public static readonly int Activity = BlueprintStableId.FromString("activity");
+        public static readonly int Center = BlueprintStableId.FromString("center");
+        public static readonly int Radius = BlueprintStableId.FromString("radius");
+        public static readonly int RequiredTags = BlueprintStableId.FromString("requiredTags");
+        public static readonly int ForbiddenTags = BlueprintStableId.FromString("forbiddenTags");
+        public static readonly int AccessGroup = BlueprintStableId.FromString("accessGroup");
+        public static readonly int NeedScore = BlueprintStableId.FromString("needScore");
+        public static readonly int MaxDistancePenalty = BlueprintStableId.FromString("maxDistancePenalty");
+        public static readonly int ExcludeGameObject = BlueprintStableId.FromString("excludeGameObject");
+
+        public static object GetRaw(BlueprintExecutionContext context, RuntimeNode node, int portStableId)
+        {
+            CompiledSmartObjectQueryDescription query = context == null || context.Blueprint == null || node == null
+                ? null
+                : context.Blueprint.GetConstant(node.SpecializedConstantIndex) as CompiledSmartObjectQueryDescription;
+            if (query != null)
+            {
+                for (int i = 0; i < query.Inputs.Count; i++)
+                {
+                    if (query.Inputs[i].PortStableId == portStableId)
+                    {
+                        return context.GetInputValue(node, portStableId);
+                    }
+                }
+            }
+            return context == null ? null : context.GetInputValue(node, portStableId);
+        }
+
+        public static T Get<T>(BlueprintExecutionContext context, RuntimeNode node, int portStableId, T defaultValue)
+        {
+            return BlueprintTypeUtility.ConvertValue(GetRaw(context, node, portStableId), defaultValue);
+        }
+
+        public static Vector3 GetVector3(BlueprintExecutionContext context, RuntimeNode node, int portStableId, Vector3 defaultValue)
+        {
+            return BlueprintTypeUtility.ToVector3(GetRaw(context, node, portStableId), defaultValue);
         }
     }
 }

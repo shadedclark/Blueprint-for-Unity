@@ -6,9 +6,9 @@ namespace BlueprintSystem
 {
     public sealed class BlueprintExecutionContext
     {
-        private readonly Dictionary<BlueprintPortKey, object> _valueCache = new Dictionary<BlueprintPortKey, object>();
-        private readonly HashSet<BlueprintPortKey> _evaluationStack = new HashSet<BlueprintPortKey>();
-        private readonly Dictionary<string, object> _state = new Dictionary<string, object>();
+        private readonly List<ValueCacheRecord> _valueCache = new List<ValueCacheRecord>();
+        private readonly List<ValueAddressRecord> _evaluationStack = new List<ValueAddressRecord>();
+        private readonly List<StateRecord> _state = new List<StateRecord>();
         private readonly Action<RuntimeNode, string> _executeFromOutput;
         private IBlueprintExecutionTraceSink _traceSink;
         private string _currentTraceEventName;
@@ -82,21 +82,46 @@ namespace BlueprintSystem
 
         public object GetInputValue(RuntimeNode node, string portId)
         {
-            RuntimeEdge edge;
-            if (Blueprint.ValueInputs.TryGetValue(new BlueprintPortKey(node.Id, portId), out edge))
+            int portStableId = BlueprintStableId.FromString(portId);
+            object value = GetInputValue(node, portStableId);
+            if (value != null || node == null || node.Manifest == null ||
+                node.FindInput(portStableId) != null || node.Properties.ContainsKey(portId))
             {
-                return EvaluateOutput(edge.From);
+                return value;
+            }
+
+            BlueprintPropertySpec property = node.Manifest.FindProperty(portId);
+            return property == null ? null : property.DefaultValue;
+        }
+
+        public object GetInputValue(RuntimeNode node, int portStableId)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            RuntimeInputRecord input = node.FindInput(portStableId);
+            if (input != null)
+            {
+                if (input.IsConnected)
+                {
+                    return EvaluateOutput(input.SourceNodeIndex, input.SourcePortStableId, input.DebugSourcePortId);
+                }
             }
 
             object propertyValue;
-            if (node.Properties.TryGetValue(portId, out propertyValue))
+            if (node.Properties.TryGetValue(portStableId, out propertyValue)) return propertyValue;
+
+            if (input != null && input.ConstantIndex >= 0)
             {
-                return propertyValue;
+                return Blueprint.GetConstant(input.ConstantIndex);
             }
 
             if (node.Manifest != null)
             {
-                BlueprintPropertySpec property = node.Manifest.FindProperty(portId);
+                RuntimePropertyRecord propertyRecord = FindPropertyRecord(node, portStableId);
+                BlueprintPropertySpec property = propertyRecord == null ? null : node.Manifest.FindProperty(propertyRecord.DebugName);
                 if (property != null)
                 {
                     return property.DefaultValue;
@@ -108,29 +133,35 @@ namespace BlueprintSystem
 
         public object EvaluateOutput(BlueprintPortKey output)
         {
+            RuntimeNode node = Blueprint.GetNode(output.NodeId);
+            return node == null ? null : EvaluateOutput(node.StableIndex, BlueprintStableId.FromString(output.PortId), output.PortId);
+        }
+
+        public object EvaluateOutput(int nodeIndex, int portStableId, string debugPortId = null)
+        {
             object cached;
-            if (_valueCache.TryGetValue(output, out cached))
+            if (TryGetCachedValue(nodeIndex, portStableId, out cached))
             {
                 return cached;
             }
 
-            if (_evaluationStack.Contains(output))
+            if (IsEvaluating(nodeIndex, portStableId))
             {
-                Logger.Error("Value dependency cycle while evaluating " + output + ".");
+                Logger.Error("Value dependency cycle while evaluating node " + nodeIndex + ", port " + portStableId + ".");
                 return null;
             }
 
-            RuntimeNode sourceNode = Blueprint.GetNode(output.NodeId);
+            RuntimeNode sourceNode = Blueprint.GetNode(nodeIndex);
             if (sourceNode == null || sourceNode.Executor == null)
             {
-                Logger.Error("Cannot evaluate missing value node " + output.NodeId + ".");
+                Logger.Error("Cannot evaluate missing value node index " + nodeIndex + ".");
                 return null;
             }
 
-            _evaluationStack.Add(output);
-            object value = sourceNode.Executor.Evaluate(this, sourceNode, output.PortId);
-            _evaluationStack.Remove(output);
-            _valueCache[output] = value;
+            _evaluationStack.Add(new ValueAddressRecord { NodeIndex = nodeIndex, PortStableId = portStableId });
+            object value = sourceNode.Executor.Evaluate(this, sourceNode, debugPortId ?? FindDebugOutputPort(sourceNode, portStableId));
+            _evaluationStack.RemoveAt(_evaluationStack.Count - 1);
+            _valueCache.Add(new ValueCacheRecord { NodeIndex = nodeIndex, PortStableId = portStableId, Value = value });
             return value;
         }
 
@@ -152,6 +183,19 @@ namespace BlueprintSystem
         {
             Variables.Set(name, value);
             RecordTrace(BlueprintTraceRecordKind.VariableWrite, "", "written", value, name);
+        }
+
+        public void SetVariable(int variableIndex, object value)
+        {
+            IBlueprintIndexedVariableStore indexed = Variables as IBlueprintIndexedVariableStore;
+            if (indexed == null)
+            {
+                return;
+            }
+
+            indexed.Set(variableIndex, value);
+            BlueprintVariableDeclaration declaration = indexed.GetDeclaration(variableIndex);
+            RecordTrace(BlueprintTraceRecordKind.VariableWrite, "", "written", value, declaration == null ? variableIndex.ToString() : declaration.Name);
         }
 
         internal void SetTraceExecutionState(string eventName, RuntimeNode node)
@@ -236,22 +280,46 @@ namespace BlueprintSystem
 
         public bool HasState(string key)
         {
-            return _state.ContainsKey(key);
+            object ignored;
+            return TryGetState(key, out ignored);
         }
 
         public bool TryGetState(string key, out object value)
         {
-            return _state.TryGetValue(key, out value);
+            int stableId = BlueprintStableId.FromString(key);
+            for (int i = 0; i < _state.Count; i++)
+            {
+                if (_state[i].StableId == stableId && string.Equals(_state[i].DebugKey, key, StringComparison.Ordinal))
+                {
+                    value = _state[i].Value;
+                    return true;
+                }
+            }
+            value = null;
+            return false;
         }
 
         public void SetState(string key, object value)
         {
-            _state[key] = value;
+            int stableId = BlueprintStableId.FromString(key);
+            for (int i = 0; i < _state.Count; i++)
+            {
+                if (_state[i].StableId == stableId && string.Equals(_state[i].DebugKey, key, StringComparison.Ordinal))
+                {
+                    _state[i].Value = value;
+                    return;
+                }
+            }
+            _state.Add(new StateRecord { StableId = stableId, DebugKey = key, Value = value });
         }
 
         public void RemoveState(string key)
         {
-            _state.Remove(key);
+            int stableId = BlueprintStableId.FromString(key);
+            for (int i = _state.Count - 1; i >= 0; i--)
+            {
+                if (_state[i].StableId == stableId && string.Equals(_state[i].DebugKey, key, StringComparison.Ordinal)) _state.RemoveAt(i);
+            }
         }
 
         public void InvalidateScheduledExecution()
@@ -275,6 +343,53 @@ namespace BlueprintSystem
         {
             return "loopValue:" + node.Id + ":" + outputPortId;
         }
+
+        private bool TryGetCachedValue(int nodeIndex, int portStableId, out object value)
+        {
+            for (int i = 0; i < _valueCache.Count; i++)
+            {
+                ValueCacheRecord record = _valueCache[i];
+                if (record.NodeIndex == nodeIndex && record.PortStableId == portStableId)
+                {
+                    value = record.Value;
+                    return true;
+                }
+            }
+            value = null;
+            return false;
+        }
+
+        private bool IsEvaluating(int nodeIndex, int portStableId)
+        {
+            for (int i = 0; i < _evaluationStack.Count; i++)
+            {
+                if (_evaluationStack[i].NodeIndex == nodeIndex && _evaluationStack[i].PortStableId == portStableId) return true;
+            }
+            return false;
+        }
+
+        private static RuntimePropertyRecord FindPropertyRecord(RuntimeNode node, int stableId)
+        {
+            IReadOnlyList<RuntimePropertyRecord> records = node.Properties.Records;
+            for (int i = 0; i < records.Count; i++) if (records[i].StableId == stableId) return records[i];
+            return null;
+        }
+
+        private static string FindDebugOutputPort(RuntimeNode node, int stableId)
+        {
+            RuntimeExecOutputRecord exec = node.FindExecOutput(stableId);
+            if (exec != null) return exec.DebugPortId;
+            for (int i = 0; i < node.InputRecords.Count; i++)
+            {
+                RuntimeInputRecord input = node.InputRecords[i];
+                if (input.SourcePortStableId == stableId && !string.IsNullOrEmpty(input.DebugSourcePortId)) return input.DebugSourcePortId;
+            }
+            return stableId.ToString();
+        }
+
+        private sealed class ValueAddressRecord { public int NodeIndex; public int PortStableId; }
+        private sealed class ValueCacheRecord { public int NodeIndex; public int PortStableId; public object Value; }
+        private sealed class StateRecord { public int StableId; public string DebugKey; public object Value; }
 
         private static string BuildInstancePath(IBlueprintInstance instance)
         {

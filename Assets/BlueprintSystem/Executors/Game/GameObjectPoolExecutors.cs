@@ -700,8 +700,7 @@ namespace BlueprintSystem
                 return false;
             }
 
-            List<RuntimeEdge> edges = context.Blueprint.GetExecEdges(new BlueprintPortKey(node.Id, outputPortId));
-            return edges != null && edges.Count > 0;
+            return context.Blueprint.HasExecTargets(node.StableIndex, BlueprintStableId.FromString(outputPortId));
         }
 
         private static bool TryGetRegistry(BlueprintExecutionContext context, out BlueprintGameObjectPoolRegistry registry)

@@ -38,6 +38,7 @@ namespace BlueprintSystem
         public bool Exposed;
         public bool Persistent;
         public string Description;
+        [NonSerialized] public int CompiledLayoutConstantIndex = -1;
     }
 
     [Serializable]

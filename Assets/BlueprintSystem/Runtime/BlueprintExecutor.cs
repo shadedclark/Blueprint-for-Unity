@@ -27,23 +27,44 @@ namespace BlueprintSystem
 
     public struct BlueprintExecResult
     {
-        public string NextExecPortId;
-        public List<string> NextExecPortIds;
+        public BlueprintExecPortRecord NextExecPort;
+        public List<BlueprintExecPortRecord> NextExecPorts;
         public bool IsSuspended;
         public float DelaySeconds;
         public string ErrorMessage;
 
+        // Debug/source compatibility. The VM consumes the stable-id records above.
+        public string NextExecPortId
+        {
+            get { return NextExecPort == null ? null : NextExecPort.DebugPortId; }
+        }
+
+        public List<string> NextExecPortIds
+        {
+            get
+            {
+                if (NextExecPorts == null) return null;
+                List<string> ids = new List<string>(NextExecPorts.Count);
+                for (int i = 0; i < NextExecPorts.Count; i++) ids.Add(NextExecPorts[i].DebugPortId);
+                return ids;
+            }
+        }
+
         public static BlueprintExecResult Continue(string nextExecPortId)
         {
             BlueprintExecResult result = new BlueprintExecResult();
-            result.NextExecPortId = nextExecPortId;
+            result.NextExecPort = BlueprintExecPortRecord.Create(nextExecPortId);
             return result;
         }
 
         public static BlueprintExecResult Continue(params string[] nextExecPortIds)
         {
             BlueprintExecResult result = new BlueprintExecResult();
-            result.NextExecPortIds = new List<string>(nextExecPortIds);
+            result.NextExecPorts = new List<BlueprintExecPortRecord>(nextExecPortIds.Length);
+            for (int i = 0; i < nextExecPortIds.Length; i++)
+            {
+                result.NextExecPorts.Add(BlueprintExecPortRecord.Create(nextExecPortIds[i]));
+            }
             return result;
         }
 
@@ -68,9 +89,33 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class BlueprintExecPortRecord
+    {
+        public int StableId;
+        public string DebugPortId;
+
+        public static BlueprintExecPortRecord Create(string portId)
+        {
+            return string.IsNullOrEmpty(portId)
+                ? null
+                : new BlueprintExecPortRecord
+                {
+                    StableId = BlueprintStableId.FromString(portId),
+                    DebugPortId = portId
+                };
+        }
+    }
+
     public sealed class BlueprintExecutorRegistry
     {
-        private readonly Dictionary<string, IBlueprintNodeExecutor> _executors = new Dictionary<string, IBlueprintNodeExecutor>();
+        private sealed class ExecutorRecord
+        {
+            public int Opcode;
+            public string ExecutorId;
+            public IBlueprintNodeExecutor Executor;
+        }
+
+        private readonly List<ExecutorRecord> _executors = new List<ExecutorRecord>();
 
         public void Register(IBlueprintNodeExecutor executor)
         {
@@ -79,12 +124,46 @@ namespace BlueprintSystem
                 return;
             }
 
-            _executors[executor.ExecutorId] = executor;
+            int opcode = BlueprintStableId.FromString(executor.ExecutorId);
+            for (int i = 0; i < _executors.Count; i++)
+            {
+                ExecutorRecord record = _executors[i];
+                if (record.Opcode != opcode)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(record.ExecutorId, executor.ExecutorId, System.StringComparison.Ordinal))
+                {
+                    throw new System.InvalidOperationException(
+                        "Executor opcode collision between '" + record.ExecutorId + "' and '" + executor.ExecutorId + "'.");
+                }
+
+                record.Executor = executor;
+                return;
+            }
+
+            _executors.Add(new ExecutorRecord { Opcode = opcode, ExecutorId = executor.ExecutorId, Executor = executor });
         }
 
         public bool TryGet(string executorId, out IBlueprintNodeExecutor executor)
         {
-            return _executors.TryGetValue(executorId, out executor);
+            return TryGet(BlueprintStableId.FromString(executorId), out executor);
+        }
+
+        public bool TryGet(int opcode, out IBlueprintNodeExecutor executor)
+        {
+            for (int i = 0; i < _executors.Count; i++)
+            {
+                if (_executors[i].Opcode == opcode)
+                {
+                    executor = _executors[i].Executor;
+                    return executor != null;
+                }
+            }
+
+            executor = null;
+            return false;
         }
 
         public static BlueprintExecutorRegistry CreateDefault()

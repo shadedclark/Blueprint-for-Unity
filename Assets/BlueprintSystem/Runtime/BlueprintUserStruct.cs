@@ -92,9 +92,7 @@ namespace BlueprintSystem
     public sealed class CompiledStructLayout
     {
         private readonly string typeId;
-        private readonly BlueprintUserStructField[] fieldDefinitions;
-        private readonly Dictionary<string, int> fieldIndicesById;
-        private readonly Dictionary<string, int> fieldIndicesByName;
+        private readonly List<CompiledStructFieldLayoutRecord> fieldRecords;
 
         internal CompiledStructLayout(BlueprintUserStructDefinition definition)
         {
@@ -104,27 +102,17 @@ namespace BlueprintSystem
             }
 
             typeId = definition.TypeId;
-            fieldDefinitions = new BlueprintUserStructField[definition.Fields.Count];
-            fieldIndicesById = new Dictionary<string, int>(StringComparer.Ordinal);
-            fieldIndicesByName = new Dictionary<string, int>(StringComparer.Ordinal);
+            fieldRecords = new List<CompiledStructFieldLayoutRecord>(definition.Fields.Count);
             for (int i = 0; i < definition.Fields.Count; i++)
             {
                 BlueprintUserStructField field = definition.Fields[i];
-                fieldDefinitions[i] = field;
-                if (field == null)
+                fieldRecords.Add(new CompiledStructFieldLayoutRecord
                 {
-                    continue;
-                }
-
-                if (!string.IsNullOrEmpty(field.Id))
-                {
-                    fieldIndicesById[field.Id] = i;
-                }
-
-                if (!string.IsNullOrEmpty(field.Name))
-                {
-                    fieldIndicesByName[field.Name] = i;
-                }
+                    StableIndex = i,
+                    IdStableId = BlueprintStableId.FromString(field == null ? null : field.Id),
+                    NameStableId = BlueprintStableId.FromString(field == null ? null : field.Name),
+                    Definition = field
+                });
             }
         }
 
@@ -135,37 +123,66 @@ namespace BlueprintSystem
 
         public int FieldCount
         {
-            get { return fieldDefinitions.Length; }
+            get { return fieldRecords.Count; }
         }
 
         public IReadOnlyList<BlueprintUserStructField> FieldDefinitions
         {
-            get { return fieldDefinitions; }
+            get
+            {
+                List<BlueprintUserStructField> definitions = new List<BlueprintUserStructField>(fieldRecords.Count);
+                for (int i = 0; i < fieldRecords.Count; i++) definitions.Add(fieldRecords[i].Definition);
+                return definitions;
+            }
         }
 
         public bool TryGetFieldIndex(string nameOrId, out int fieldIndex)
         {
             fieldIndex = -1;
-            return !string.IsNullOrEmpty(nameOrId) &&
-                   (fieldIndicesById.TryGetValue(nameOrId, out fieldIndex) ||
-                    fieldIndicesByName.TryGetValue(nameOrId, out fieldIndex));
+            if (string.IsNullOrEmpty(nameOrId)) return false;
+            int stableId = BlueprintStableId.FromString(nameOrId);
+            for (int i = 0; i < fieldRecords.Count; i++)
+            {
+                CompiledStructFieldLayoutRecord record = fieldRecords[i];
+                BlueprintUserStructField field = record.Definition;
+                if (field != null &&
+                    ((record.IdStableId == stableId && string.Equals(field.Id, nameOrId, StringComparison.Ordinal)) ||
+                     (record.NameStableId == stableId && string.Equals(field.Name, nameOrId, StringComparison.Ordinal))))
+                {
+                    fieldIndex = record.StableIndex;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public bool TryGetFieldIndexById(string fieldId, out int fieldIndex)
         {
             fieldIndex = -1;
-            return !string.IsNullOrEmpty(fieldId) && fieldIndicesById.TryGetValue(fieldId, out fieldIndex);
+            if (string.IsNullOrEmpty(fieldId)) return false;
+            int stableId = BlueprintStableId.FromString(fieldId);
+            for (int i = 0; i < fieldRecords.Count; i++)
+            {
+                CompiledStructFieldLayoutRecord record = fieldRecords[i];
+                BlueprintUserStructField field = record.Definition;
+                if (field != null && record.IdStableId == stableId && string.Equals(field.Id, fieldId, StringComparison.Ordinal))
+                {
+                    fieldIndex = record.StableIndex;
+                    return true;
+                }
+            }
+            return false;
         }
 
         public bool TryGetFieldDefinition(int fieldIndex, out BlueprintUserStructField field)
         {
             field = null;
-            if (fieldIndex < 0 || fieldIndex >= fieldDefinitions.Length)
+            if (fieldIndex < 0 || fieldIndex >= fieldRecords.Count)
             {
                 return false;
             }
 
-            field = fieldDefinitions[fieldIndex];
+            field = fieldRecords[fieldIndex].Definition;
             return field != null;
         }
 
@@ -189,6 +206,14 @@ namespace BlueprintSystem
 
             return new CompiledStructLayout(definition);
         }
+    }
+
+    internal sealed class CompiledStructFieldLayoutRecord
+    {
+        public int StableIndex;
+        public int IdStableId;
+        public int NameStableId;
+        public BlueprintUserStructField Definition;
     }
 
     [Serializable]
@@ -666,6 +691,19 @@ namespace BlueprintSystem
             {
                 return false;
             }
+
+            return TryConvertToRuntimeValue(value, layout, out runtimeValue);
+        }
+
+        public static bool TryConvertToRuntimeValue(object value, CompiledStructLayout layout, out object runtimeValue)
+        {
+            runtimeValue = null;
+            if (layout == null)
+            {
+                return false;
+            }
+
+            string typeId = layout.TypeId;
 
             RuntimeStructRecord runtimeRecord = value as RuntimeStructRecord;
             if (runtimeRecord != null && runtimeRecord.TypeId == typeId)
