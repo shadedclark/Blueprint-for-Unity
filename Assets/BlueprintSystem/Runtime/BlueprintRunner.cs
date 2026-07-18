@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
 
 namespace BlueprintSystem
 {
@@ -659,43 +660,54 @@ namespace BlueprintSystem
 
             BlueprintRunner current = this;
             HashSet<BlueprintRunner> visited = null;
-            while (current != null)
+            try
             {
-                if (current.TryResolveBlueprintTargetInCurrentTree(
-                    compiledTarget,
-                    targetPath,
-                    out instance,
-                    out ambiguous))
+                while (current != null)
                 {
-                    return true;
+                    if (current.TryResolveBlueprintTargetInCurrentTree(
+                        compiledTarget,
+                        targetPath,
+                        out instance,
+                        out ambiguous))
+                    {
+                        return true;
+                    }
+
+                    // Ambiguity in the nearest tree is an error, not an inherited miss.
+                    if (ambiguous)
+                    {
+                        return false;
+                    }
+
+                    BlueprintRunner owner = current.OwnerInstance as BlueprintRunner;
+                    if (owner == null)
+                    {
+                        return false;
+                    }
+
+                    if (visited == null)
+                    {
+                        visited = HashSetPool<BlueprintRunner>.Get();
+                        visited.Add(current);
+                    }
+
+                    if (!visited.Add(owner))
+                    {
+                        return false;
+                    }
+
+                    current = owner;
                 }
 
-                // Ambiguity in the nearest tree is an error, not an inherited miss.
-                if (ambiguous)
-                {
-                    return false;
-                }
-
-                BlueprintRunner owner = current.OwnerInstance as BlueprintRunner;
-                if (owner == null)
-                {
-                    return false;
-                }
-
-                if (visited == null)
-                {
-                    visited = new HashSet<BlueprintRunner> { current };
-                }
-
-                if (!visited.Add(owner))
-                {
-                    return false;
-                }
-
-                current = owner;
+                return false;
             }
-
-            return false;
+            finally
+            {
+                if (visited != null)
+                {
+                    HashSetPool<BlueprintRunner>.Release(visited);
+                }
+            }
         }
 
         private bool TryResolveBlueprintTargetInCurrentTree(

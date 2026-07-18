@@ -18,6 +18,13 @@ namespace BlueprintSystem.Tests
 {
     public sealed class BlueprintSystemTests
     {
+        private delegate bool BlueprintTargetResolverDelegate(
+            IBlueprintInstance requester,
+            CompiledBlueprintTarget compiledTarget,
+            string targetPath,
+            out IBlueprintInstance instance,
+            out bool ambiguous);
+
         [Test]
         public void ValidatorAcceptsInventorySample()
         {
@@ -5486,6 +5493,362 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void BlueprintTargetCurrentTreeHitDoesNotQueryOwnerRunner()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/NearestTarget.blueprint.json";
+            BlueprintCompiledAsset componentAsset = CreateCrossBlueprintTargetCompiledAsset(componentPath);
+            BlueprintCompiledAsset ownerAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/NearestOwner.blueprint.json",
+                componentAsset,
+                componentPath,
+                "OwnerTarget");
+            BlueprintCompiledAsset childAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/NearestChild.blueprint.json",
+                componentAsset,
+                componentPath,
+                "ChildTarget");
+            GameObject ownerObject = new GameObject("NearestOwner");
+            GameObject childObject = new GameObject("NearestChild");
+
+            try
+            {
+                BlueprintRunner owner = ownerObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(owner, "compiledBlueprint", ownerAsset);
+                Assert.True(owner.Compile());
+
+                BlueprintRunner child = childObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(child, "compiledBlueprint", childAsset);
+                SetPrivateField(child, "ownerRunner", owner);
+                Assert.True(child.Compile());
+
+                IBlueprintInstance instance;
+                bool ambiguous;
+                Assert.True(TryResolveBlueprintTarget(child, null, componentPath, out instance, out ambiguous));
+                Assert.False(ambiguous);
+                Assert.AreEqual(1, child.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(0, owner.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(childObject);
+                Object.DestroyImmediate(ownerObject);
+                Object.DestroyImmediate(childAsset);
+                Object.DestroyImmediate(ownerAsset);
+                Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
+        public void BlueprintTargetCurrentTreeAmbiguityDoesNotQueryOwnerRunner()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/AmbiguousNearestTarget.blueprint.json";
+            BlueprintCompiledAsset componentAsset = CreateCrossBlueprintTargetCompiledAsset(componentPath);
+            BlueprintCompiledAsset ownerAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/AmbiguousOwner.blueprint.json",
+                componentAsset,
+                componentPath,
+                "OwnerTarget");
+            BlueprintCompiledAsset childAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/AmbiguousChild.blueprint.json",
+                componentAsset,
+                componentPath,
+                "FirstChildTarget",
+                "SecondChildTarget");
+            GameObject ownerObject = new GameObject("AmbiguousOwner");
+            GameObject childObject = new GameObject("AmbiguousChild");
+
+            try
+            {
+                BlueprintRunner owner = ownerObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(owner, "compiledBlueprint", ownerAsset);
+                Assert.True(owner.Compile());
+
+                BlueprintRunner child = childObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(child, "compiledBlueprint", childAsset);
+                SetPrivateField(child, "ownerRunner", owner);
+                Assert.True(child.Compile());
+
+                IBlueprintInstance instance;
+                bool ambiguous;
+                Assert.False(TryResolveBlueprintTarget(child, null, componentPath, out instance, out ambiguous));
+                Assert.True(ambiguous);
+                Assert.Null(instance);
+                Assert.AreEqual(1, child.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(0, owner.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(childObject);
+                Object.DestroyImmediate(ownerObject);
+                Object.DestroyImmediate(childAsset);
+                Object.DestroyImmediate(ownerAsset);
+                Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
+        public void BlueprintTargetFallsBackAcrossMultipleOwnerRunners()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/DeepOwnerTarget.blueprint.json";
+            BlueprintCompiledAsset componentAsset = CreateCrossBlueprintTargetCompiledAsset(componentPath);
+            BlueprintCompiledAsset rootAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/DeepRoot.blueprint.json",
+                componentAsset,
+                componentPath,
+                "RootTarget");
+            BlueprintCompiledAsset panelAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/DeepPanel.blueprint.json",
+                componentAsset,
+                componentPath);
+            BlueprintCompiledAsset childAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/DeepChild.blueprint.json",
+                componentAsset,
+                componentPath);
+            GameObject rootObject = new GameObject("DeepRoot");
+            GameObject panelObject = new GameObject("DeepPanel");
+            GameObject childObject = new GameObject("DeepChild");
+
+            try
+            {
+                BlueprintRunner root = rootObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(root, "compiledBlueprint", rootAsset);
+                Assert.True(root.Compile());
+
+                BlueprintRunner panel = panelObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(panel, "compiledBlueprint", panelAsset);
+                SetPrivateField(panel, "ownerRunner", root);
+                Assert.True(panel.Compile());
+
+                BlueprintRunner child = childObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(child, "compiledBlueprint", childAsset);
+                SetPrivateField(child, "ownerRunner", panel);
+                Assert.True(child.Compile());
+
+                IBlueprintInstance instance;
+                bool ambiguous;
+                Assert.True(TryResolveBlueprintTarget(child, null, componentPath, out instance, out ambiguous));
+                Assert.False(ambiguous);
+                Assert.AreEqual(componentPath, instance.SourcePath);
+                Assert.AreEqual(1, child.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(1, panel.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(1, root.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(childObject);
+                Object.DestroyImmediate(panelObject);
+                Object.DestroyImmediate(rootObject);
+                Object.DestroyImmediate(childAsset);
+                Object.DestroyImmediate(panelAsset);
+                Object.DestroyImmediate(rootAsset);
+                Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
+        public void BlueprintTargetOwnerCycleQueriesEveryRunnerAndTerminates()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/CycleTarget.blueprint.json";
+            string missingPath = "Assets/BlueprintSystem/Tests/Editor/CycleMissing.blueprint.json";
+            BlueprintCompiledAsset componentAsset = CreateCrossBlueprintTargetCompiledAsset(componentPath);
+            BlueprintCompiledAsset emptyAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/CycleEmpty.blueprint.json",
+                componentAsset,
+                componentPath);
+            BlueprintCompiledAsset targetOwnerAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/CycleTargetOwner.blueprint.json",
+                componentAsset,
+                componentPath,
+                "CycleTarget");
+            GameObject firstObject = new GameObject("CycleA");
+            GameObject secondObject = new GameObject("CycleB");
+            GameObject thirdObject = new GameObject("CycleC");
+
+            try
+            {
+                BlueprintRunner first = firstObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(first, "compiledBlueprint", emptyAsset);
+                Assert.True(first.Compile());
+
+                BlueprintRunner second = secondObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(second, "compiledBlueprint", emptyAsset);
+                Assert.True(second.Compile());
+
+                BlueprintRunner third = thirdObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(third, "compiledBlueprint", targetOwnerAsset);
+                Assert.True(third.Compile());
+
+                SetPrivateField(first, "ownerRunner", second);
+                SetPrivateField(second, "ownerRunner", third);
+                SetPrivateField(third, "ownerRunner", second);
+
+                IBlueprintInstance instance;
+                bool ambiguous;
+                Assert.True(TryResolveBlueprintTarget(first, null, componentPath, out instance, out ambiguous));
+                Assert.False(ambiguous);
+                Assert.AreEqual(componentPath, instance.SourcePath);
+
+                Assert.False(TryResolveBlueprintTarget(first, null, missingPath, out instance, out ambiguous));
+                Assert.False(ambiguous);
+                Assert.Null(instance);
+                Assert.AreEqual(2, first.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(2, second.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(2, third.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(firstObject);
+                Object.DestroyImmediate(secondObject);
+                Object.DestroyImmediate(thirdObject);
+                Object.DestroyImmediate(emptyAsset);
+                Object.DestroyImmediate(targetOwnerAsset);
+                Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
+        public void BlueprintTargetStaleRecordIndexDoesNotMisHitAfterOwnerReload()
+        {
+            string desiredPath = "Assets/BlueprintSystem/Tests/Editor/ReloadDesired.blueprint.json";
+            string otherPath = "Assets/BlueprintSystem/Tests/Editor/ReloadOther.blueprint.json";
+            BlueprintCompiledAsset desiredAsset = CreateCrossBlueprintTargetCompiledAsset(desiredPath);
+            BlueprintCompiledAsset otherAsset = CreateCrossBlueprintTargetCompiledAsset(otherPath);
+            BlueprintCompiledAsset ownerAsset = ScriptableObject.CreateInstance<BlueprintCompiledAsset>();
+            BlueprintCompiledAsset childAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/ReloadChild.blueprint.json",
+                desiredAsset,
+                desiredPath);
+            GameObject ownerObject = new GameObject("ReloadOwner");
+            GameObject childObject = new GameObject("ReloadChild");
+
+            try
+            {
+                SetOwnerCompiledComponents(
+                    ownerAsset,
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadOwner.blueprint.json",
+                    new BlueprintCompiledComponent
+                    {
+                        Name = "Other",
+                        BlueprintPath = otherPath,
+                        Required = true,
+                        CompiledBlueprint = otherAsset
+                    },
+                    new BlueprintCompiledComponent
+                    {
+                        Name = "Desired",
+                        BlueprintPath = desiredPath,
+                        Required = true,
+                        CompiledBlueprint = desiredAsset
+                    });
+
+                BlueprintRunner owner = ownerObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(owner, "compiledBlueprint", ownerAsset);
+                Assert.True(owner.Compile());
+
+                BlueprintRunner child = childObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(child, "compiledBlueprint", childAsset);
+                SetPrivateField(child, "ownerRunner", owner);
+                Assert.True(child.Compile());
+
+                CompiledBlueprintTarget compiledTarget = new CompiledBlueprintTarget { SourcePath = desiredPath };
+                SetPrivateField(compiledTarget, "RuntimeVersion", owner.ComponentRuntimeVersion);
+                SetPrivateField(compiledTarget, "RuntimeRecordIndex", 2);
+                IBlueprintInstance instance;
+                bool ambiguous;
+                Assert.True(TryResolveBlueprintTarget(child, compiledTarget, desiredPath, out instance, out ambiguous));
+                Assert.AreEqual(desiredPath, instance.SourcePath);
+                Assert.AreEqual(1, child.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(0, owner.DynamicBlueprintTargetCacheCount);
+
+                SetOwnerCompiledComponents(
+                    ownerAsset,
+                    "Assets/BlueprintSystem/Tests/Editor/ReloadOwner.blueprint.json",
+                    new BlueprintCompiledComponent
+                    {
+                        Name = "Desired",
+                        BlueprintPath = desiredPath,
+                        Required = true,
+                        CompiledBlueprint = desiredAsset
+                    },
+                    new BlueprintCompiledComponent
+                    {
+                        Name = "Other",
+                        BlueprintPath = otherPath,
+                        Required = true,
+                        CompiledBlueprint = otherAsset
+                    });
+                Assert.True(owner.Compile());
+
+                Assert.True(TryResolveBlueprintTarget(child, compiledTarget, desiredPath, out instance, out ambiguous));
+                Assert.False(ambiguous);
+                Assert.AreEqual(desiredPath, instance.SourcePath);
+                Assert.AreEqual(1, child.DynamicBlueprintTargetCacheCount);
+                Assert.AreEqual(1, owner.DynamicBlueprintTargetCacheCount);
+            }
+            finally
+            {
+                Object.DestroyImmediate(childObject);
+                Object.DestroyImmediate(ownerObject);
+                Object.DestroyImmediate(childAsset);
+                Object.DestroyImmediate(ownerAsset);
+                Object.DestroyImmediate(desiredAsset);
+                Object.DestroyImmediate(otherAsset);
+            }
+        }
+
+        [Test]
+        public void BlueprintTargetOwnerFallbackDoesNotAllocateAfterWarmup()
+        {
+            string componentPath = "Assets/BlueprintSystem/Tests/Editor/PooledOwnerTarget.blueprint.json";
+            BlueprintCompiledAsset componentAsset = CreateCrossBlueprintTargetCompiledAsset(componentPath);
+            BlueprintCompiledAsset ownerAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/PooledOwner.blueprint.json",
+                componentAsset,
+                componentPath,
+                "OwnerTarget");
+            BlueprintCompiledAsset childAsset = CreateOwnerCompiledAsset(
+                "Assets/BlueprintSystem/Tests/Editor/PooledChild.blueprint.json",
+                componentAsset,
+                componentPath);
+            GameObject ownerObject = new GameObject("PooledOwner");
+            GameObject childObject = new GameObject("PooledChild");
+
+            try
+            {
+                BlueprintRunner owner = ownerObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(owner, "compiledBlueprint", ownerAsset);
+                Assert.True(owner.Compile());
+
+                BlueprintRunner child = childObject.AddComponent<BlueprintRunner>();
+                SetPrivateField(child, "compiledBlueprint", childAsset);
+                SetPrivateField(child, "ownerRunner", owner);
+                Assert.True(child.Compile());
+
+                IBlueprintInstance instance;
+                bool ambiguous;
+                BlueprintTargetResolverDelegate resolver = CreateBlueprintTargetResolver(child);
+                Assert.True(resolver(child, null, componentPath, out instance, out ambiguous));
+
+                long allocatedBefore = System.GC.GetAllocatedBytesForCurrentThread();
+                for (int i = 0; i < 32; i++)
+                {
+                    resolver(child, null, componentPath, out instance, out ambiguous);
+                }
+                long allocatedBytes = System.GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
+
+                Assert.AreEqual(0L, allocatedBytes);
+            }
+            finally
+            {
+                Object.DestroyImmediate(childObject);
+                Object.DestroyImmediate(ownerObject);
+                Object.DestroyImmediate(childAsset);
+                Object.DestroyImmediate(ownerAsset);
+                Object.DestroyImmediate(componentAsset);
+            }
+        }
+
+        [Test]
         public void RuntimeBlueprintAssetTargetsAcceptBlueprintRefTargets()
         {
             string ownerPath = "Assets/BlueprintSystem/Tests/Editor/Owner.blueprint.json";
@@ -8862,6 +9225,27 @@ namespace BlueprintSystem.Tests
             return ownerAsset;
         }
 
+        private static void SetOwnerCompiledComponents(
+            BlueprintCompiledAsset ownerAsset,
+            string sourcePath,
+            params BlueprintCompiledComponent[] components)
+        {
+            ownerAsset.SetCompiledData(
+                "0.1",
+                "ComponentOwner",
+                null,
+                sourcePath,
+                "owner-source",
+                "owner-manifest",
+                new BlueprintCompiledVariable[0],
+                new BlueprintCompiledBinding[0],
+                components,
+                new BlueprintCompiledNode[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEdge[0],
+                new BlueprintCompiledEventEntry[0]);
+        }
+
         private static BlueprintCompiledAsset CreateOwnerAccessCompiledAsset(
             string sourcePath,
             BlueprintCompiledAsset componentAsset,
@@ -8956,6 +9340,33 @@ namespace BlueprintSystem.Tests
                 null,
                 runner,
                 null);
+        }
+
+        private static bool TryResolveBlueprintTarget(
+            BlueprintRunner runner,
+            CompiledBlueprintTarget compiledTarget,
+            string targetPath,
+            out IBlueprintInstance instance,
+            out bool ambiguous)
+        {
+            return CreateBlueprintTargetResolver(runner)(
+                runner,
+                compiledTarget,
+                targetPath,
+                out instance,
+                out ambiguous);
+        }
+
+        private static BlueprintTargetResolverDelegate CreateBlueprintTargetResolver(BlueprintRunner runner)
+        {
+            MethodInfo method = typeof(BlueprintRunner).GetMethod(
+                "BlueprintSystem.IBlueprintTargetHandleResolver.TryResolveBlueprintTarget",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.NotNull(method);
+            return (BlueprintTargetResolverDelegate)System.Delegate.CreateDelegate(
+                typeof(BlueprintTargetResolverDelegate),
+                runner,
+                method);
         }
 
         private static BlueprintExecutionContext CreateBlueprintComponentContext(IBlueprintInstance instance, RecordingBlueprintLogger logger)
