@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Persistence.Load",
+  "title": "Load Persistent Variables",
+  "category": "Persistence",
+  "description": "Loads persistent variables for the current BlueprintRunner and refreshes reactive bindings.",
+  "executor": "Persistence.Load",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "slot", "kind": "value", "type": "string", "required": false, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "loaded", "kind": "exec" },
+    { "id": "missing", "kind": "exec" },
+    { "id": "failed", "kind": "exec" },
+    { "id": "error", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "slot", "type": "string", "required": false, "defaultValue": "" }
+  ],
+  "tags": ["persistence", "load", "variables", "disk"]
+}

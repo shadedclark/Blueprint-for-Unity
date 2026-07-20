@@ -182,6 +182,7 @@ namespace BlueprintSystem
         public void SetVariable(string name, object value)
         {
             Variables.Set(name, value);
+            BlueprintPersistenceRuntime.MarkDirty(this, name);
             RecordTrace(BlueprintTraceRecordKind.VariableWrite, "", "written", value, name);
         }
 
@@ -195,6 +196,10 @@ namespace BlueprintSystem
 
             indexed.Set(variableIndex, value);
             BlueprintVariableDeclaration declaration = indexed.GetDeclaration(variableIndex);
+            if (declaration != null)
+            {
+                BlueprintPersistenceRuntime.MarkDirty(this, declaration.Name);
+            }
             RecordTrace(BlueprintTraceRecordKind.VariableWrite, "", "written", value, declaration == null ? variableIndex.ToString() : declaration.Name);
         }
 

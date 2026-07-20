@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.StableRandomBool",
+  "title": "Stable Random Bool",
+  "category": "Math",
+  "description": "Returns a deterministic boolean for seed, sequence, and stream.",
+  "executor": "Math.StableRandomBool",
+  "inputs": [
+    { "id": "seed", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "sequence", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "stream", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "result", "kind": "value", "type": "bool" }
+  ],
+  "properties": [
+    { "id": "seed", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "sequence", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "stream", "type": "int", "required": false, "defaultValue": 0 }
+  ],
+  "tags": ["math", "random", "stable", "seed", "deterministic"]
+}

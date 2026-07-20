@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "UI.BindInputFieldChanged",
+  "title": "Bind Input Field Changed",
+  "category": "UI",
+  "description": "Binds value-changed and end-edit events from a TMP_InputField.",
+  "executor": "UI.BindInputFieldChanged",
+  "inputs": [
+    { "id": "execIn", "kind": "exec" },
+    { "id": "target", "kind": "value", "type": "Binding<TMP_InputField>", "required": true, "source": "property" }
+  ],
+  "outputs": [
+    { "id": "bound", "kind": "exec" },
+    { "id": "changed", "kind": "exec" },
+    { "id": "endEdit", "kind": "exec" },
+    { "id": "value", "kind": "value", "type": "string" }
+  ],
+  "properties": [
+    { "id": "target", "type": "Binding<TMP_InputField>", "required": true }
+  ],
+  "tags": ["ui", "input", "text", "note", "changed", "tmp"]
+}

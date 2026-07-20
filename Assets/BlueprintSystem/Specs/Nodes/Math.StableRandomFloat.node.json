@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.StableRandomFloat",
+  "title": "Stable Random Float",
+  "category": "Math",
+  "description": "Returns a deterministic float in [min,max) for seed, sequence, and stream.",
+  "executor": "Math.StableRandomFloat",
+  "inputs": [
+    { "id": "min", "kind": "value", "type": "float", "required": true, "source": "propertyOrConnection" },
+    { "id": "max", "kind": "value", "type": "float", "required": true, "source": "propertyOrConnection" },
+    { "id": "seed", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "sequence", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "stream", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "result", "kind": "value", "type": "float" }
+  ],
+  "properties": [
+    { "id": "min", "type": "float", "required": false, "defaultValue": 0.0 },
+    { "id": "max", "type": "float", "required": false, "defaultValue": 1.0 },
+    { "id": "seed", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "sequence", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "stream", "type": "int", "required": false, "defaultValue": 0 }
+  ],
+  "tags": ["math", "random", "stable", "seed", "deterministic"]
+}

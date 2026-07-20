@@ -206,6 +206,9 @@ namespace BlueprintSystem
             registry.Register(new MathRandomFloatExecutor());
             registry.Register(new MathRandomIntExecutor());
             registry.Register(new MathRandomBoolExecutor());
+            registry.Register(new MathStableRandomFloatExecutor());
+            registry.Register(new MathStableRandomIntExecutor());
+            registry.Register(new MathStableRandomBoolExecutor());
             registry.Register(new VectorMakeVector2Executor());
             registry.Register(new VectorBreakVector2Executor());
             registry.Register(new VectorMakeVector3Executor());
@@ -276,6 +279,8 @@ namespace BlueprintSystem
             registry.Register(new DataTableGetRowNamesExecutor());
             registry.Register(new DataTableGetAllRowsExecutor());
             registry.Register(new UISetTextExecutor());
+            registry.Register(new UISetInputFieldTextExecutor());
+            registry.Register(new UIBindInputFieldChangedExecutor());
             registry.Register(new UIBindTextExecutor());
             registry.Register(new UISetVisibleExecutor());
             registry.Register(new UISetImageSpriteExecutor());
@@ -304,6 +309,9 @@ namespace BlueprintSystem
             registry.Register(new BlueprintSetVariableExecutor());
             registry.Register(new BlueprintGetVariableFromGameObjectExecutor());
             registry.Register(new BlueprintSetVariableFromGameObjectExecutor());
+            registry.Register(new PersistenceSaveExecutor());
+            registry.Register(new PersistenceLoadExecutor());
+            registry.Register(new PersistenceDeleteExecutor());
             if (BlueprintModuleSettings.BehaviorTreeEnabled)
             {
                 registry.Register(new BehaviorTreeGetBlackboardBoolExecutor());

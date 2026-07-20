@@ -28,6 +28,76 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class UISetInputFieldTextExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "UI.SetInputFieldText"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            string value = context.GetInputValue(node, "value", string.Empty);
+            bool notify = context.GetInputValue(node, "notify", false);
+            TMP_InputField inputField = context.BindingResolver.Resolve<TMP_InputField>(target);
+            if (inputField == null)
+            {
+                return BlueprintExecResult.Error("UI.SetInputFieldText could not resolve TMP_InputField binding '" + target + "'.");
+            }
+
+            if (notify)
+            {
+                inputField.text = value;
+            }
+            else
+            {
+                inputField.SetTextWithoutNotify(value);
+            }
+
+            return BlueprintExecResult.Continue("execOut");
+        }
+    }
+
+    public sealed class UIBindInputFieldChangedExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "UI.BindInputFieldChanged"; }
+        }
+
+        public override BlueprintExecResult Execute(BlueprintExecutionContext context, RuntimeNode node)
+        {
+            string target = context.GetInputValue(node, "target", string.Empty);
+            TMP_InputField inputField = context.BindingResolver.Resolve<TMP_InputField>(target);
+            if (inputField == null)
+            {
+                return BlueprintExecResult.Error("UI.BindInputFieldChanged could not resolve TMP_InputField binding '" + target + "'.");
+            }
+
+            BlueprintInputFieldListener listener = inputField.GetComponent<BlueprintInputFieldListener>();
+            if (listener == null)
+            {
+                listener = inputField.gameObject.AddComponent<BlueprintInputFieldListener>();
+            }
+
+            listener.Register("input-field:" + node.Id + ":" + target, context, node);
+            return BlueprintExecResult.Continue("bound");
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            if (outputPortId != "value")
+            {
+                return base.Evaluate(context, node, outputPortId);
+            }
+
+            string target = context.GetInputValue(node, "target", string.Empty);
+            TMP_InputField inputField = context.BindingResolver.Resolve<TMP_InputField>(target);
+            return inputField == null ? string.Empty : inputField.text ?? string.Empty;
+        }
+    }
+
     public sealed class UIBindTextExecutor : BlueprintNodeExecutor, IBlueprintReactiveBindingRestorer
     {
         public override string ExecutorId

@@ -1529,6 +1529,8 @@ namespace BlueprintSystem.Editor
             {
                 case "TMP_Text":
                     return typeof(TMP_Text);
+                case "TMP_InputField":
+                    return typeof(TMP_InputField);
                 case "Text":
                     return typeof(LegacyUIText);
                 case "Button":

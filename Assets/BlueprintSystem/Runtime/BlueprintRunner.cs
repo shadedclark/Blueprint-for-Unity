@@ -226,6 +226,11 @@ namespace BlueprintSystem
         [SerializeField] private BlueprintRunner ownerRunner;
         [SerializeField] private List<BlueprintVariableOverride> variableOverrides = new List<BlueprintVariableOverride>();
         [SerializeField] private List<BlueprintBindingEntry> bindings = new List<BlueprintBindingEntry>();
+        [SerializeField] private string persistenceKey = string.Empty;
+        [SerializeField] private string defaultPersistenceSlot = "default";
+        [SerializeField] private bool autoLoadPersistentVariables = true;
+        [SerializeField] private bool autoSavePersistentVariables = true;
+        [SerializeField] private float persistentSaveDebounceSeconds = 0.75f;
 
         private RuntimeBlueprint _blueprint;
         private BlueprintExecutionContext _context;
@@ -242,6 +247,8 @@ namespace BlueprintSystem
 
         private readonly List<DynamicBlueprintTargetRecord> _dynamicBlueprintTargetCache = new List<DynamicBlueprintTargetRecord>();
         private int _componentRuntimeVersion;
+        private bool _persistenceDirty;
+        private float _nextPersistenceSaveTime;
 
         public string InstanceName
         {
@@ -271,6 +278,16 @@ namespace BlueprintSystem
         public BlueprintCompiledAsset CompiledBlueprint
         {
             get { return compiledBlueprint; }
+        }
+
+        public string PersistenceKey
+        {
+            get { return persistenceKey ?? string.Empty; }
+        }
+
+        public string DefaultPersistenceSlot
+        {
+            get { return string.IsNullOrEmpty(defaultPersistenceSlot) ? "default" : defaultPersistenceSlot; }
         }
 
         internal BlueprintExecutionContext ReactiveBindingContext
@@ -321,7 +338,15 @@ namespace BlueprintSystem
         protected virtual void Awake()
         {
             RebuildBindingCache();
-            Compile();
+            if (Compile() && autoLoadPersistentVariables && !string.IsNullOrEmpty(PersistenceKey))
+            {
+                string error;
+                BlueprintPersistenceStatus status = LoadPersistentVariables(string.Empty, out error);
+                if (status == BlueprintPersistenceStatus.Failed)
+                {
+                    BlueprintLog.Warning("[Blueprint] Persistent variables could not be loaded for '" + PersistenceKey + "': " + error, this);
+                }
+            }
         }
 
         protected virtual void Start()
@@ -343,6 +368,17 @@ namespace BlueprintSystem
             if (triggerOnTick)
             {
                 TriggerComponentLifecycleEvent(tickEventName);
+            }
+
+            if (autoSavePersistentVariables && _persistenceDirty && Time.unscaledTime >= _nextPersistenceSaveTime)
+            {
+                string error;
+                BlueprintPersistenceStatus status = SavePersistentVariables(string.Empty, out error);
+                if (status == BlueprintPersistenceStatus.Failed)
+                {
+                    _nextPersistenceSaveTime = Time.unscaledTime + Mathf.Max(0.1f, persistentSaveDebounceSeconds);
+                    BlueprintLog.Warning("[Blueprint] Persistent variables could not be saved for '" + PersistenceKey + "': " + error, this);
+                }
             }
         }
 
@@ -374,7 +410,72 @@ namespace BlueprintSystem
 
         protected virtual void OnDestroy()
         {
+            FlushPersistentVariables();
             InvalidateRuntimeState();
+        }
+
+        protected virtual void OnApplicationPause(bool paused)
+        {
+            if (paused)
+            {
+                FlushPersistentVariables();
+            }
+        }
+
+        protected virtual void OnApplicationQuit()
+        {
+            FlushPersistentVariables();
+        }
+
+        public BlueprintPersistenceStatus SavePersistentVariables(string slot, out string error)
+        {
+            BlueprintPersistenceStatus status = BlueprintPersistenceRuntime.Save(this, slot, out error);
+            if (status == BlueprintPersistenceStatus.Success)
+            {
+                ClearPersistenceDirty();
+            }
+            return status;
+        }
+
+        public BlueprintPersistenceStatus LoadPersistentVariables(string slot, out string error)
+        {
+            return BlueprintPersistenceRuntime.Load(this, slot, out error);
+        }
+
+        public BlueprintPersistenceStatus DeletePersistentVariables(string slot, out string error)
+        {
+            return BlueprintPersistenceRuntime.Delete(this, slot, out error);
+        }
+
+        internal void MarkPersistenceDirty()
+        {
+            if (string.IsNullOrEmpty(PersistenceKey))
+            {
+                return;
+            }
+
+            _persistenceDirty = true;
+            _nextPersistenceSaveTime = Time.unscaledTime + Mathf.Max(0f, persistentSaveDebounceSeconds);
+        }
+
+        internal void ClearPersistenceDirty()
+        {
+            _persistenceDirty = false;
+        }
+
+        private void FlushPersistentVariables()
+        {
+            if (!_persistenceDirty || string.IsNullOrEmpty(PersistenceKey))
+            {
+                return;
+            }
+
+            string error;
+            BlueprintPersistenceStatus status = SavePersistentVariables(string.Empty, out error);
+            if (status == BlueprintPersistenceStatus.Failed)
+            {
+                BlueprintLog.Warning("[Blueprint] Persistent variables could not be flushed for '" + PersistenceKey + "': " + error, this);
+            }
         }
 
         public bool Compile()

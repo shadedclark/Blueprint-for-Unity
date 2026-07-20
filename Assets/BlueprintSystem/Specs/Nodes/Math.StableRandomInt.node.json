@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.StableRandomInt",
+  "title": "Stable Random Int",
+  "category": "Math",
+  "description": "Returns a deterministic inclusive integer for seed, sequence, and stream.",
+  "executor": "Math.StableRandomInt",
+  "inputs": [
+    { "id": "min", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "max", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "seed", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "sequence", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" },
+    { "id": "stream", "kind": "value", "type": "int", "required": true, "source": "propertyOrConnection" }
+  ],
+  "outputs": [
+    { "id": "result", "kind": "value", "type": "int" }
+  ],
+  "properties": [
+    { "id": "min", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "max", "type": "int", "required": false, "defaultValue": 1 },
+    { "id": "seed", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "sequence", "type": "int", "required": false, "defaultValue": 0 },
+    { "id": "stream", "type": "int", "required": false, "defaultValue": 0 }
+  ],
+  "tags": ["math", "random", "stable", "seed", "deterministic"]
+}

@@ -802,6 +802,43 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.SetInputFieldText")]
+    public sealed class UISetInputFieldTextVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.SetInputFieldText", "Set Input Field Text", "UI", "Sets text on a bound TMP_InputField without notifying listeners by default.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<TMP_InputField>", true, "property");
+            AddValueInput("value", "string", true, "propertyOrConnection");
+            AddValueInput("notify", "bool", false, "propertyOrConnection");
+            AddExecOutput("execOut");
+            AddProperty("target", "Binding<TMP_InputField>", true);
+            AddProperty("value", "string", false, string.Empty);
+            AddProperty("notify", "bool", false, false);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("UI.BindInputFieldChanged")]
+    public sealed class UIBindInputFieldChangedVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("UI.BindInputFieldChanged", "Bind Input Field Changed", "UI", "Binds value-changed and end-edit events from a TMP_InputField.");
+            AddExecInput("execIn");
+            AddValueInput("target", "Binding<TMP_InputField>", true, "property");
+            AddExecOutput("bound");
+            AddExecOutput("changed");
+            AddExecOutput("endEdit");
+            AddValueOutput("value", "string");
+            AddProperty("target", "Binding<TMP_InputField>", true);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("UI.BindText")]
     public sealed class UIBindTextVisualNode : BlueprintVisualNode
     {

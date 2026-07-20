@@ -532,6 +532,68 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Math.StableRandomFloat")]
+    public sealed class MathStableRandomFloatVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Math.StableRandomFloat", "Stable Random Float", "Math", "Returns a deterministic float in [min,max) for seed, sequence, and stream.");
+            AddValueInput("min", "float", true, "propertyOrConnection");
+            AddValueInput("max", "float", true, "propertyOrConnection");
+            AddValueInput("seed", "int", true, "propertyOrConnection");
+            AddValueInput("sequence", "int", true, "propertyOrConnection");
+            AddValueInput("stream", "int", true, "propertyOrConnection");
+            AddValueOutput("result", "float");
+            AddProperty("min", "float", false, 0.0f);
+            AddProperty("max", "float", false, 1.0f);
+            AddProperty("seed", "int", false, 0);
+            AddProperty("sequence", "int", false, 0);
+            AddProperty("stream", "int", false, 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Math.StableRandomInt")]
+    public sealed class MathStableRandomIntVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Math.StableRandomInt", "Stable Random Int", "Math", "Returns a deterministic inclusive integer for seed, sequence, and stream.");
+            AddValueInput("min", "int", true, "propertyOrConnection");
+            AddValueInput("max", "int", true, "propertyOrConnection");
+            AddValueInput("seed", "int", true, "propertyOrConnection");
+            AddValueInput("sequence", "int", true, "propertyOrConnection");
+            AddValueInput("stream", "int", true, "propertyOrConnection");
+            AddValueOutput("result", "int");
+            AddProperty("min", "int", false, 0);
+            AddProperty("max", "int", false, 1);
+            AddProperty("seed", "int", false, 0);
+            AddProperty("sequence", "int", false, 0);
+            AddProperty("stream", "int", false, 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Math.StableRandomBool")]
+    public sealed class MathStableRandomBoolVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Math.StableRandomBool", "Stable Random Bool", "Math", "Returns a deterministic boolean for seed, sequence, and stream.");
+            AddValueInput("seed", "int", true, "propertyOrConnection");
+            AddValueInput("sequence", "int", true, "propertyOrConnection");
+            AddValueInput("stream", "int", true, "propertyOrConnection");
+            AddValueOutput("result", "bool");
+            AddProperty("seed", "int", false, 0);
+            AddProperty("sequence", "int", false, 0);
+            AddProperty("stream", "int", false, 0);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("Vector.MakeVector2")]
     public sealed class VectorMakeVector2VisualNode : BlueprintVisualNode
     {
