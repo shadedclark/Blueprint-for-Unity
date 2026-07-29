@@ -278,7 +278,7 @@ The following nodes extend the system with high-priority Unreal Blueprint-style 
 | Flow loops | `Flow.ForLoop`, `Flow.ForLoopWithBreak` | Execute `loopBody` for inclusive integer ranges and expose current `index`; the break variant stops when its `break` exec input is triggered during the active loop. |
 | Flow gates | `Flow.DoOnce`, `Flow.DoN`, `Flow.FlipFlop`, `Flow.Gate`, `Flow.MultiGate` | Stateful execution helpers for one-shot, limited-count, alternating, open/closed, and multi-output routing. `Flow.MultiGate` has fixed `out0`-`out7` pins and uses `outputCount` to choose the active subset. |
 | Flow switches | `Flow.SwitchInt`, `Flow.SwitchString`, `Flow.SwitchEnum` | Route execution to `case0`-`case7` or `default`. `Flow.SwitchEnum` compares enum names as strings so project-specific enum types do not need separate manifests. |
-| Float math | `Math.Add`, `Math.Subtract`, `Math.Multiply`, `Math.Divide`, `Math.Modulo`, `Math.Abs`, `Math.Clamp`, `Math.Min`, `Math.Max`, `Math.Round`, `Math.Floor`, `Math.Ceil`, `Math.Lerp`, `Math.MapRangeClamped`, `Math.RandomFloat`, `Math.RandomInt`, `Math.RandomBool`, `Math.StableRandomFloat`, `Math.StableRandomInt`, `Math.StableRandomBool` | Common scalar math and random value nodes. Divide/modulo return `0` when the divisor is zero. Random int is inclusive on both ends. Stable random nodes are pure deterministic values keyed by seed, sequence, and stream. |
+| Float math | `Math.Add`, `Math.Subtract`, `Math.Multiply`, `Math.Power`, `Math.Divide`, `Math.Modulo`, `Math.Abs`, `Math.Clamp`, `Math.Min`, `Math.Max`, `Math.Round`, `Math.Floor`, `Math.Ceil`, `Math.Lerp`, `Math.MapRangeClamped`, `Math.RandomFloat`, `Math.RandomInt`, `Math.RandomBool`, `Math.StableRandomFloat`, `Math.StableRandomInt`, `Math.StableRandomBool` | Common scalar math and random value nodes. `Math.Power` returns `base` raised to `exponent`. Divide/modulo return `0` when the divisor is zero. Random int is inclusive on both ends. Stable random nodes are pure deterministic values keyed by seed, sequence, and stream. |
 | Vector constructors | `Vector.MakeVector2`, `Vector.BreakVector2`, `Vector.MakeVector3`, `Vector.BreakVector3`, `Vector.MakeVector4`, `Vector.BreakVector4` | Build or split Unity vector values from scalar components. |
 | Vector math | `Vector.Add`, `Vector.Subtract`, `Vector.Multiply`, `Vector.Divide`, `Vector.Dot`, `Vector.Cross`, `Vector.Length`, `Vector.Normalize`, `Vector.Distance`, `Vector.Lerp` | Vector operations currently target `Vector3`; multiply/divide use a scalar input. |
 | Color math | `Color.Make`, `Color.Break`, `Color.Lerp` | Build, split, and interpolate Unity `Color` values. |
@@ -3053,6 +3053,12 @@ Ports and parameters:
 | `index` | property | int | property | no | `0` | Used when no value edge is connected. |
 | `item` | output value | untyped | none | no | none | Item value. |
 
+## `Math.Power`
+
+`Math.Power` is a pure float value node that returns `Mathf.Pow(base, exponent)` through `result`. Both `base` and `exponent` are `propertyOrConnection` inputs; their property defaults are `0` and `1` respectively. The node preserves Unity's native floating-point behavior, so unsupported real-number combinations may return `NaN` and overflowing results may return infinity.
+
+Use this node for exponentiation instead of chaining repeated `Math.Multiply` nodes. Use `Math.Multiply` when only two values need to be multiplied once.
+
 ## Stable Random Nodes
 
 `Math.StableRandomInt`, `Math.StableRandomFloat`, and `Math.StableRandomBool` are pure value nodes. They never call or seed `UnityEngine.Random`.
@@ -3136,7 +3142,6 @@ Before adding nodes in these areas, check whether a current node plus variables/
 Currently not implemented as first-class nodes:
 
 ```text
-Math arithmetic
 String formatting
 Animation/tweening
 Scene loading

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "0.1",
+  "typeId": "Math.Power",
+  "title": "Power",
+  "category": "Math",
+  "description": "Raises base to the exponent power.",
+  "executor": "Math.Power",
+  "inputs": [
+    {
+      "id": "base",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    },
+    {
+      "id": "exponent",
+      "kind": "value",
+      "type": "float",
+      "required": true,
+      "source": "propertyOrConnection"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "result",
+      "kind": "value",
+      "type": "float"
+    }
+  ],
+  "properties": [
+    {
+      "id": "base",
+      "required": false,
+      "type": "float",
+      "defaultValue": 0.0
+    },
+    {
+      "id": "exponent",
+      "required": false,
+      "type": "float",
+      "defaultValue": 1.0
+    }
+  ]
+}

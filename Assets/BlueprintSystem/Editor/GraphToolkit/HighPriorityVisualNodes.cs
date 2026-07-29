@@ -310,6 +310,22 @@ namespace BlueprintSystem.Editor
 
     [Serializable]
     [UseWithGraph(typeof(BlueprintVisualGraph))]
+    [BlueprintVisualNodeType("Math.Power")]
+    public sealed class MathPowerVisualNode : BlueprintVisualNode
+    {
+        protected override void ConfigureDefaultNode()
+        {
+            SetIdentity("Math.Power", "Power", "Math", "Raises base to the exponent power.");
+            AddValueInput("base", "float", true, "propertyOrConnection");
+            AddValueInput("exponent", "float", true, "propertyOrConnection");
+            AddValueOutput("result", "float");
+            AddProperty("base", "float", false, 0.0f);
+            AddProperty("exponent", "float", false, 1.0f);
+        }
+    }
+
+    [Serializable]
+    [UseWithGraph(typeof(BlueprintVisualGraph))]
     [BlueprintVisualNodeType("Math.Divide")]
     public sealed class MathDivideVisualNode : BlueprintVisualNode
     {

@@ -192,6 +192,7 @@ namespace BlueprintSystem
             registry.Register(new MathAddExecutor());
             registry.Register(new MathSubtractExecutor());
             registry.Register(new MathMultiplyExecutor());
+            registry.Register(new MathPowerExecutor());
             registry.Register(new MathDivideExecutor());
             registry.Register(new MathModuloExecutor());
             registry.Register(new MathAbsExecutor());

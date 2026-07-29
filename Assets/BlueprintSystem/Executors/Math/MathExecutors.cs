@@ -57,6 +57,26 @@ namespace BlueprintSystem
         }
     }
 
+    public sealed class MathPowerExecutor : BlueprintNodeExecutor
+    {
+        public override string ExecutorId
+        {
+            get { return "Math.Power"; }
+        }
+
+        public override object Evaluate(BlueprintExecutionContext context, RuntimeNode node, string outputPortId)
+        {
+            if (outputPortId == "result")
+            {
+                return Mathf.Pow(
+                    context.GetInputValue(node, "base", 0f),
+                    context.GetInputValue(node, "exponent", 1f));
+            }
+
+            return base.Evaluate(context, node, outputPortId);
+        }
+    }
+
     public sealed class MathDivideExecutor : BlueprintNodeExecutor
     {
         public override string ExecutorId

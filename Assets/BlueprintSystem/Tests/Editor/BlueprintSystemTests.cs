@@ -285,6 +285,33 @@ namespace BlueprintSystem.Tests
         }
 
         [Test]
+        public void RuntimeRaisesBaseToExponentPower()
+        {
+            MathPowerExecutor executor = new MathPowerExecutor();
+            RuntimeBlueprint blueprint = new RuntimeBlueprint();
+            RuntimeNode node = new RuntimeNode
+            {
+                Id = "power",
+                TypeId = "Math.Power",
+                Executor = executor
+            };
+            node.Properties["base"] = 2f;
+            node.Properties["exponent"] = 3f;
+            blueprint.NodesById[node.Id] = node;
+
+            BlueprintExecutionContext context = new BlueprintExecutionContext(
+                blueprint,
+                null,
+                null,
+                new NullBlueprintBindingResolver(),
+                null,
+                null,
+                new RecordingBlueprintLogger());
+
+            Assert.AreEqual(8f, executor.Evaluate(context, node, "result"));
+        }
+
+        [Test]
         public void RuntimeEqualsNormalizesAllMixedNumericTypes()
         {
             VariableCompareExecutor executor = new VariableCompareExecutor();
